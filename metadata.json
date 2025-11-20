@@ -1,0 +1,7 @@
+{
+  "name": "SGTL - Gestão Logística & Turismo",
+  "description": "Sistema de Gestão de Transporte e Logística v2.1. Arquitetura Multi-Empresa (Turismo B2C e Logística Express), incluindo Portal do Cliente e integração AI.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
