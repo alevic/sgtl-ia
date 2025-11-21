@@ -50,6 +50,16 @@ export interface IEmpresa {
   logo_url?: string;
 }
 
+export interface IAssento {
+  id: string;
+  numero: string;
+  andar: 1 | 2; // 1 = térreo, 2 = superior (double deck)
+  posicao_x: number; // coluna (0-4, geralmente)
+  posicao_y: number; // linha/fileira
+  tipo: 'CONVENCIONAL' | 'LEITO' | 'SEMI_LEITO';
+  status: AssentoStatus;
+}
+
 export interface IVeiculo {
   id: string;
   placa: string;
@@ -57,6 +67,11 @@ export interface IVeiculo {
   tipo: 'ONIBUS' | 'CAMINHAO';
   status: VeiculoStatus;
   proxima_revisao_km: number;
+  is_double_deck?: boolean; // só para ônibus
+  capacidade_passageiros?: number; // só para ônibus
+  capacidade_carga?: number; // só para caminhão (toneladas)
+  mapa_assentos?: IAssento[]; // só para ônibus
+  mapa_configurado?: boolean; // indica se o mapa foi configurado
 }
 
 export interface IMotorista {
