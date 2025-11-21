@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { SeatMap } from '../../components/Viagens/SeatMap';
-import { AssentoStatus, IAssento, ICliente, TipoDocumento } from '../../types';
+import { AssentoStatus, IAssento, ICliente, TipoDocumento } from '../types';
 import { Calendar, Clock, MapPin, CreditCard, User, Search, Plus, Check } from 'lucide-react';
 
 const MOCK_SEATS: IAssento[] = Array.from({ length: 40 }, (_, i) => ({
+  id: `seat-${i + 1}`,
   numero: `${i + 1}`,
+  andar: 1,
+  posicao_x: i % 4,
+  posicao_y: Math.floor(i / 4),
+  tipo: 'CONVENCIONAL' as const,
   status: [2, 5, 6, 15, 16].includes(i + 1) ? AssentoStatus.OCUPADO : AssentoStatus.LIVRE
 }));
 
@@ -17,7 +21,12 @@ const MOCK_CLIENTES: ICliente[] = [
     historico_viagens: 5,
     documento_tipo: TipoDocumento.CPF,
     documento_numero: '123.456.789-00',
-    nacionalidade: 'Brasileira'
+    nacionalidade: 'Brasileira',
+    data_cadastro: '2023-01-15',
+    pais: 'Brasil',
+    segmento: 'REGULAR',
+    tags: ['frequente', 'preferencial'],
+    valor_total_gasto: 1500.00
   },
   {
     id: '2',
@@ -27,7 +36,12 @@ const MOCK_CLIENTES: ICliente[] = [
     historico_viagens: 2,
     documento_tipo: TipoDocumento.CPF,
     documento_numero: '987.654.321-00',
-    nacionalidade: 'Brasileira'
+    nacionalidade: 'Brasileira',
+    data_cadastro: '2023-06-20',
+    pais: 'Brasil',
+    segmento: 'NOVO',
+    tags: [],
+    valor_total_gasto: 360.00
   },
   {
     id: '3',
@@ -37,11 +51,16 @@ const MOCK_CLIENTES: ICliente[] = [
     historico_viagens: 8,
     documento_tipo: TipoDocumento.CPF,
     documento_numero: '456.789.123-00',
-    nacionalidade: 'Brasileira'
+    nacionalidade: 'Brasileira',
+    data_cadastro: '2022-11-10',
+    pais: 'Brasil',
+    segmento: 'VIP',
+    tags: ['vip', 'executivo'],
+    valor_total_gasto: 2400.00
   }
 ];
 
-export const ReservaDemo: React.FC = () => {
+export const NovaReserva: React.FC = () => {
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null);
   const [selectedCliente, setSelectedCliente] = useState<ICliente | null>(null);
   const [modoCliente, setModoCliente] = useState<'SELECIONAR' | 'NOVO'>('SELECIONAR');
@@ -147,8 +166,8 @@ export const ReservaDemo: React.FC = () => {
                     key={cliente.id}
                     onClick={() => setSelectedCliente(cliente)}
                     className={`w-full p-3 rounded-lg border transition-colors text-left ${selectedCliente?.id === cliente.id
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50'
                       }`}
                   >
                     <div className="flex items-center gap-3">
@@ -193,11 +212,11 @@ export const ReservaDemo: React.FC = () => {
       <div className="lg:w-96 space-y-6">
         <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 text-center">Seleção de Assento</h3>
-          <SeatMap
-            assentos={MOCK_SEATS}
-            onSelect={setSelectedSeat}
-            selectedSeat={selectedSeat}
-          />
+          <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+            <p className="font-semibold mb-2">Seleção de Assentos</p>
+            <p className="text-sm">Componente em desenvolvimento...</p>
+            <p className="text-xs mt-4">Use a página de Frota → Veículo → Mapa de Assentos para configurar layouts</p>
+          </div>
         </div>
 
         <div className="bg-slate-800 dark:bg-slate-950 text-white p-6 rounded-xl shadow-lg">

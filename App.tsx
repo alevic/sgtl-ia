@@ -4,7 +4,7 @@ import { AppProvider } from './context/AppContext';
 import { Sidebar } from './components/Layout/Sidebar';
 import { Header } from './components/Layout/Header';
 import { Dashboard } from './pages/Dashboard';
-import { ReservaDemo } from './pages/Viagens/ReservaDemo';
+import { NovaReserva } from './pages/NovaReserva';
 import { Motoristas } from './pages/Motoristas';
 import { Encomendas } from './pages/Encomendas';
 import { Fretamento } from './pages/Fretamento';
@@ -53,7 +53,7 @@ const App: React.FC = () => {
                 <Route path="paradas" element={<ParadasIntermediarias />} />
                 <Route path="paradas/nova" element={<NovaParada />} />
                 <Route path="reservas" element={<Reservas />} />
-                <Route path="reservas/nova" element={<ReservaDemo />} />
+                <Route path="reservas/nova" element={<NovaReserva />} />
                 <Route path="motoristas" element={<Motoristas />} />
                 <Route path="encomendas" element={<Encomendas />} />
                 <Route path="fretamento" element={<Fretamento />} />

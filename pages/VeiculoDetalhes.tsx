@@ -17,7 +17,7 @@ const MOCK_VEICULO: IVeiculo & {
 } = {
     id: 'V001',
     placa: 'ABC-1234',
-    modelo: 'Mercedes-Benz O500',
+    modelo: 'Mercedes-Benz O500 Double Deck',
     tipo: 'ONIBUS',
     status: VeiculoStatus.EM_VIAGEM,
     proxima_revisao_km: 95000,
@@ -25,10 +25,10 @@ const MOCK_VEICULO: IVeiculo & {
     ano: 2020,
     ultima_revisao: '2023-09-15',
     motorista_atual: 'José Silva',
-    is_double_deck: false,
-    capacidade_passageiros: 46,
+    is_double_deck: true,
+    capacidade_passageiros: 72,
     mapa_configurado: false,
-    observacoes: 'Veículo em excelente estado, última revisão completa realizada.'
+    observacoes: 'Veículo Double Deck em excelente estado, última revisão completa realizada.'
 };
 
 type TabType = 'info' | 'mapa' | 'manutencao' | 'historico';
@@ -110,8 +110,8 @@ export const VeiculoDetalhes: React.FC = () => {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${activeTab === tab.id
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                         }`}
                                 >
                                     <Icon size={18} />
