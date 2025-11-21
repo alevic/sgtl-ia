@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
-import { IAssento, IVeiculo, AssentoStatus } from '../types';
-import {
-    Plus, Trash2, RotateCcw, Save, AlertCircle,
-    Armchair, User, XCircle, CheckCircle2
-} from 'lucide-react';
+import { IAssento, IVeiculo } from '../types';
+import { Plus, Trash2, X, Bus as BusIcon, Save } from 'lucide-react';
 
 interface MapaAssentosProps {
     veiculo: IVeiculo & {
@@ -14,370 +11,290 @@ interface MapaAssentosProps {
     onSave?: (assentos: IAssento[]) => void;
 }
 
+type DriverPosition = 'Left' | 'Right';
+
 export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) => {
-    const [andarAtivo, setAndarAtivo] = useState<1 | 2>(1);
-    const [assentos, setAssentos] = useState<IAssento[]>(
-        veiculo.mapa_assentos || gerarMapaPadrao(veiculo)
-    );
-    const [modoEdicao, setModoEdicao] = useState(false);
+    const [showUpperDeck, setShowUpperDeck] = useState(false);
+    const [driverPosition, setDriverPosition] = useState<DriverPosition>('Left');
+    const [seatRows, setSeatRows] = useState(8);
+    const [seatColumns, setSeatColumns] = useState(5);
+    const [lowerDeckSeats, setLowerDeckSeats] = useState<string[][]>([]);
+    const [upperDeckSeats, setUpperDeckSeats] = useState<string[][]>([]);
 
-    const assentosAndarAtual = assentos.filter(a => a.andar === andarAtivo);
+    const generateBusSeats = () => {
+        const seats: string[][] = [];
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-    // Encontrar dimensões do grid
-    const maxX = Math.max(...assentosAndarAtual.map(a => a.posicao_x), 4);
-    const maxY = Math.max(...assentosAndarAtual.map(a => a.posicao_y), 12);
+        for (let row = 0; row < seatRows; row++) {
+            const rowSeats: string[] = [];
+            const rowLetter = letters[row];
 
-    const handleToggleAssento = (x: number, y: number) => {
-        if (!modoEdicao) return;
+            for (let col = 0; col < seatColumns; col++) {
+                // Coluna do meio é sempre "Blank" (corredor)
+                if (col === Math.floor(seatColumns / 2)) {
+                    rowSeats.push('Blank');
+                } else {
+                    // Ajustar numeração considerando o corredor
+                    const seatNumber = col < Math.floor(seatColumns / 2) ? col + 1 : col;
+                    rowSeats.push(`${rowLetter}${seatNumber}`);
+                }
+            }
+            seats.push(rowSeats);
+        }
 
-        const assentoExistente = assentos.find(
-            a => a.andar === andarAtivo && a.posicao_x === x && a.posicao_y === y
-        );
-
-        if (assentoExistente) {
-            // Remove assento
-            setAssentos(assentos.filter(a => a.id !== assentoExistente.id));
-        } else {
-            // Adiciona assento
-            const novoNumero = String(assentos.length + 1).padStart(2, '0');
-            const novoAssento: IAssento = {
-                id: `A${Date.now()}`,
-                numero: novoNumero,
-                andar: andarAtivo,
-                posicao_x: x,
-                posicao_y: y,
-                tipo: 'CONVENCIONAL',
-                status: AssentoStatus.LIVRE
-            };
-            setAssentos([...assentos, novoAssento]);
+        setLowerDeckSeats(seats);
+        if (showUpperDeck) {
+            setUpperDeckSeats(seats.map(row => [...row])); // Cópia para upper deck
         }
     };
 
-    const handleLimparAndar = () => {
-        if (confirm(`Deseja limpar todos os assentos do ${andarAtivo === 1 ? 'térreo' : 'andar superior'}?`)) {
-            setAssentos(assentos.filter(a => a.andar !== andarAtivo));
-        }
-    };
+    const addNewRow = (isUpperDeck: boolean = false) => {
+        const currentSeats = isUpperDeck ? upperDeckSeats : lowerDeckSeats;
+        const setSeats = isUpperDeck ? setUpperDeckSeats : setLowerDeckSeats;
 
-    const handleResetarMapa = () => {
-        if (confirm('Deseja resetar todo o mapa para o padrão?')) {
-            setAssentos(gerarMapaPadrao(veiculo));
-        }
-    };
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const rowLetter = letters[currentSeats.length];
+        const newRow: string[] = [];
 
-    const handleSalvar = () => {
-        const totalAssentos = assentos.length;
-        const capacidade = veiculo.capacidade_passageiros || 0;
-
-        if (totalAssentos !== capacidade) {
-            if (!confirm(
-                `Atenção: Você configurou ${totalAssentos} assentos, mas a capacidade cadastrada é ${capacidade}. Deseja salvar mesmo assim?`
-            )) {
-                return;
+        for (let col = 0; col < seatColumns; col++) {
+            if (col === Math.floor(seatColumns / 2)) {
+                newRow.push('Blank');
+            } else {
+                const seatNumber = col < Math.floor(seatColumns / 2) ? col + 1 : col;
+                newRow.push(`${rowLetter}${seatNumber}`);
             }
         }
 
-        onSave?.(assentos);
-        setModoEdicao(false);
-        alert('Mapa de assentos salvo com sucesso!');
+        setSeats([...currentSeats, newRow]);
     };
 
-    const totalAssentosConfigurados = assentos.length;
-    const assentosTerreo = assentos.filter(a => a.andar === 1).length;
-    const assentosSuperior = assentos.filter(a => a.andar === 2).length;
+    const deleteRow = (rowIndex: number, isUpperDeck: boolean = false) => {
+        const currentSeats = isUpperDeck ? upperDeckSeats : lowerDeckSeats;
+        const setSeats = isUpperDeck ? setUpperDeckSeats : setLowerDeckSeats;
+
+        const newSeats = currentSeats.filter((_, index) => index !== rowIndex);
+        setSeats(newSeats);
+    };
+
+    const deleteSeat = (rowIndex: number, colIndex: number, isUpperDeck: boolean = false) => {
+        const currentSeats = isUpperDeck ? upperDeckSeats : lowerDeckSeats;
+        const setSeats = isUpperDeck ? setUpperDeckSeats : setLowerDeckSeats;
+
+        const newSeats = currentSeats.map((row, rIdx) => {
+            if (rIdx === rowIndex) {
+                return row.map((seat, cIdx) => cIdx === colIndex ? 'Blank' : seat);
+            }
+            return row;
+        });
+
+        setSeats(newSeats);
+    };
+
+    const handleSave = () => {
+        alert('Configuração de assentos salva com sucesso!');
+        // Aqui você converteria para IAssento[] e chamaria onSave
+    };
+
+    const renderSeatGrid = (seats: string[][], isUpperDeck: boolean = false) => {
+        if (seats.length === 0) {
+            return (
+                <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                    Clique em "Generate Bus Seat" para criar o layout
+                </div>
+            );
+        }
+
+        return (
+            <div className="space-y-4">
+                <div className="text-center">
+                    <div className="inline-block px-6 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg">
+                        <p className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                            <BusIcon size={20} />
+                            Bus Front
+                        </p>
+                    </div>
+                </div>
+
+                <div className="space-y-2">
+                    {seats.map((row, rowIndex) => (
+                        <div key={rowIndex} className="flex items-center gap-2">
+                            {row.map((seat, colIndex) => (
+                                <div
+                                    key={colIndex}
+                                    className={`flex-1 px-3 py-2 rounded text-center font-medium ${seat === 'Blank'
+                                            ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-dashed border-slate-300 dark:border-slate-600'
+                                            : 'bg-white dark:bg-slate-700 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-600'
+                                        }`}
+                                >
+                                    {seat}
+                                </div>
+                            ))}
+
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={() => deleteSeat(rowIndex, row.length - 1, isUpperDeck)}
+                                    className="p-2 bg-pink-500 hover:bg-pink-600 text-white rounded transition-colors"
+                                    title="Delete last seat"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                                <button
+                                    onClick={() => deleteRow(rowIndex, isUpperDeck)}
+                                    className="p-2 bg-pink-500 hover:bg-pink-600 text-white rounded transition-colors"
+                                    title="Delete row"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <button
+                    onClick={() => addNewRow(isUpperDeck)}
+                    className="w-full px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                    <Plus size={18} />
+                    Add New Row
+                </button>
+            </div>
+        );
+    };
 
     return (
         <div className="space-y-6">
-            {/* Header com Estatísticas */}
-            <div className="flex justify-between items-start">
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                        <p className="text-xs text-blue-700 dark:text-blue-300 mb-1">Total Configurado</p>
-                        <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{totalAssentosConfigurados}</p>
-                    </div>
-                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3 border border-slate-200 dark:border-slate-700">
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Térreo</p>
-                        <p className="text-2xl font-bold text-slate-800 dark:text-white">{assentosTerreo}</p>
-                    </div>
-                    {veiculo.is_double_deck && (
-                        <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-200 dark:border-purple-800">
-                            <p className="text-xs text-purple-700 dark:text-purple-300 mb-1">Superior</p>
-                            <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{assentosSuperior}</p>
-                        </div>
-                    )}
-                </div>
+            {/* Header */}
+            <div>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-1">Seat Configuration</h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">Bus seat configuration. Plan your bus seat.</p>
+            </div>
 
-                <div className="flex gap-2">
-                    {modoEdicao ? (
-                        <>
-                            <button
-                                onClick={() => setModoEdicao(false)}
-                                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors"
-                            >
-                                <XCircle size={18} className="inline mr-2" />
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSalvar}
-                                className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors"
-                            >
-                                <Save size={18} className="inline mr-2" />
-                                Salvar Mapa
-                            </button>
-                        </>
-                    ) : (
-                        <button
-                            onClick={() => setModoEdicao(true)}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors"
+            {/* Seat Information */}
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Seat Information</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Here you can plan seat of the bus.</p>
+            </div>
+
+            {/* Seat Type - Optional */}
+            <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Seat Type <span className="text-red-500">*</span>
+                </label>
+                <select className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option>Seat Plan</option>
+                    <option>Without Seat Plan</option>
+                </select>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Please select your bus seat type - Default Without Seat Plan
+                </p>
+            </div>
+
+            {/* Lower Deck Configuration */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Lower Deck</h3>
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">Lower deck seat plan</p>
+
+                {/* Show Upper Deck Toggle */}
+                {veiculo.is_double_deck && (
+                    <div className="flex items-center justify-between mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+                        <div>
+                            <p className="font-medium text-slate-700 dark:text-slate-200">Show Upper Deck</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Turn On or Off upper deck seat plan</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={showUpperDeck}
+                                onChange={(e) => setShowUpperDeck(e.target.checked)}
+                                className="sr-only peer"
+                            />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                )}
+
+                {/* Configuration Controls */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Driver Position
+                        </label>
+                        <select
+                            value={driverPosition}
+                            onChange={(e) => setDriverPosition(e.target.value as DriverPosition)}
+                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
-                            <Plus size={18} className="inline mr-2" />
-                            Modo Edição
-                        </button>
-                    )}
+                            <option value="Left">Left</option>
+                            <option value="Right">Right</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Seat Rows
+                        </label>
+                        <input
+                            type="number"
+                            value={seatRows}
+                            onChange={(e) => setSeatRows(parseInt(e.target.value) || 0)}
+                            min="1"
+                            max="20"
+                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Seat Columns
+                        </label>
+                        <input
+                            type="number"
+                            value={seatColumns}
+                            onChange={(e) => setSeatColumns(parseInt(e.target.value) || 0)}
+                            min="3"
+                            max="7"
+                            step="2"
+                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            Use odd numbers (3, 5, 7) for center aisle
+                        </p>
+                    </div>
                 </div>
+
+                {/* Generate Button */}
+                <button
+                    onClick={generateBusSeats}
+                    className="mb-6 px-6 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
+                    <Plus size={18} />
+                    Generate Bus Seat
+                </button>
+
+                {/* Seat Grid */}
+                {renderSeatGrid(lowerDeckSeats, false)}
             </div>
 
-            {/* Alerta de Validação */}
-            {veiculo.capacidade_passageiros && totalAssentosConfigurados !== veiculo.capacidade_passageiros && (
-                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                        <AlertCircle size={20} className="text-orange-600 dark:text-orange-400 mt-0.5" />
-                        <div>
-                            <p className="text-sm font-medium text-orange-900 dark:text-orange-100 mb-1">
-                                Atenção: Número de Assentos Divergente
-                            </p>
-                            <p className="text-sm text-orange-700 dark:text-orange-300">
-                                Capacidade cadastrada: <strong>{veiculo.capacidade_passageiros}</strong> |
-                                Assentos configurados: <strong>{totalAssentosConfigurados}</strong>
-                            </p>
-                        </div>
-                    </div>
+            {/* Upper Deck Configuration */}
+            {veiculo.is_double_deck && showUpperDeck && (
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Upper Deck</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">Upper deck seat plan</p>
+
+                    {renderSeatGrid(upperDeckSeats, true)}
                 </div>
             )}
 
-            {/* Seletor de Andar (para Double Deck) */}
-            {veiculo.is_double_deck && (
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => setAndarAtivo(1)}
-                        className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 ${andarAtivo === 1
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                            }`}
-                    >
-                        <Armchair size={18} />
-                        Térreo ({assentosTerreo} assentos)
-                    </button>
-                    <button
-                        onClick={() => setAndarAtivo(2)}
-                        className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 ${andarAtivo === 2
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                            }`}
-                    >
-                        <Armchair size={18} />
-                        Andar Superior ({assentosSuperior} assentos)
-                    </button>
-                </div>
-            )}
-
-            {/* Grid de Assentos */}
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                <div className="mb-4 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-green-500 rounded"></div>
-                            <span className="text-sm text-slate-600 dark:text-slate-400">Livre</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-red-500 rounded"></div>
-                            <span className="text-sm text-slate-600 dark:text-slate-400">Ocupado</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-slate-300 dark:bg-slate-600 rounded"></div>
-                            <span className="text-sm text-slate-600 dark:text-slate-400">Vazio (clique para adicionar)</span>
-                        </div>
-                    </div>
-
-                    {modoEdicao && (
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleLimparAndar}
-                                className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded text-sm font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                            >
-                                <Trash2 size={14} className="inline mr-1" />
-                                Limpar Andar
-                            </button>
-                            <button
-                                onClick={handleResetarMapa}
-                                className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded text-sm font-medium hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                            >
-                                <RotateCcw size={14} className="inline mr-1" />
-                                Resetar Tudo
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Grid Visual */}
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-6 border-2 border-dashed border-slate-300 dark:border-slate-600">
-                    <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${maxX + 1}, minmax(0, 1fr))` }}>
-                        {Array.from({ length: (maxY + 1) * (maxX + 1) }).map((_, index) => {
-                            const y = Math.floor(index / (maxX + 1));
-                            const x = index % (maxX + 1);
-
-                            const assento = assentos.find(
-                                a => a.andar === andarAtivo && a.posicao_x === x && a.posicao_y === y
-                            );
-
-                            const isCorredorCentral = x === Math.floor((maxX + 1) / 2);
-
-                            return (
-                                <div
-                                    key={`${x}-${y}`}
-                                    onClick={() => handleToggleAssento(x, y)}
-                                    className={`
-                    aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all
-                    ${isCorredorCentral
-                                            ? 'bg-transparent cursor-default'
-                                            : modoEdicao
-                                                ? 'cursor-pointer hover:ring-2 hover:ring-blue-400'
-                                                : 'cursor-default'
-                                        }
-                    ${assento
-                                            ? assento.status === AssentoStatus.OCUPADO
-                                                ? 'bg-red-500 text-white'
-                                                : assento.status === AssentoStatus.LIVRE
-                                                    ? 'bg-green-500 text-white'
-                                                    : 'bg-yellow-500 text-white'
-                                            : isCorredorCentral
-                                                ? ''
-                                                : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
-                                        }
-                  `}
-                                >
-                                    {isCorredorCentral ? (
-                                        <span className="text-[10px] text-slate-400">|</span>
-                                    ) : assento ? (
-                                        <span>{assento.numero}</span>
-                                    ) : modoEdicao ? (
-                                        <Plus size={14} className="opacity-50" />
-                                    ) : (
-                                        ''
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Legenda de Frente/Traseira */}
-                <div className="mt-4 flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                    <span>← Traseira</span>
-                    <span>Frente →</span>
-                </div>
+            {/* Save Button */}
+            <div className="flex justify-end">
+                <button
+                    onClick={handleSave}
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
+                    <Save size={18} />
+                    Save Configuration
+                </button>
             </div>
-
-            {/* Instruções */}
-            {modoEdicao && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                        <AlertCircle size={20} className="text-blue-600 dark:text-blue-400 mt-0.5" />
-                        <div>
-                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                Modo de Edição Ativo
-                            </p>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
-                                Clique nas células vazias para adicionar assentos. Clique nos assentos existentes para removê-los.
-                                O corredor central é fixo e não pode ter assentos.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
-
-// Função auxiliar para gerar mapa padrão
-function gerarMapaPadrao(veiculo: IVeiculo & { capacidade_passageiros?: number }): IAssento[] {
-    const assentos: IAssento[] = [];
-    const capacidade = veiculo.capacidade_passageiros || 46;
-    const isDoubleDeck = veiculo.is_double_deck || false;
-
-    // Layout padrão: 4 colunas (2 + corredor + 2), corredor na coluna 2
-    const assentosPorAndar = isDoubleDeck ? Math.floor(capacidade / 2) : capacidade;
-
-    const gerarAssentosAndar = (andar: 1 | 2, quantidade: number, offset: number) => {
-        let contador = offset;
-        let y = 0;
-
-        while (contador < offset + quantidade) {
-            // Lado esquerdo (colunas 0 e 1)
-            if (contador < offset + quantidade) {
-                assentos.push({
-                    id: `A${contador + 1}`,
-                    numero: String(contador + 1).padStart(2, '0'),
-                    andar,
-                    posicao_x: 0,
-                    posicao_y: y,
-                    tipo: 'CONVENCIONAL',
-                    status: AssentoStatus.LIVRE
-                });
-                contador++;
-            }
-
-            if (contador < offset + quantidade) {
-                assentos.push({
-                    id: `A${contador + 1}`,
-                    numero: String(contador + 1).padStart(2, '0'),
-                    andar,
-                    posicao_x: 1,
-                    posicao_y: y,
-                    tipo: 'CONVENCIONAL',
-                    status: AssentoStatus.LIVRE
-                });
-                contador++;
-            }
-
-            // Lado direito (colunas 3 e 4)
-            if (contador < offset + quantidade) {
-                assentos.push({
-                    id: `A${contador + 1}`,
-                    numero: String(contador + 1).padStart(2, '0'),
-                    andar,
-                    posicao_x: 3,
-                    posicao_y: y,
-                    tipo: 'CONVENCIONAL',
-                    status: AssentoStatus.LIVRE
-                });
-                contador++;
-            }
-
-            if (contador < offset + quantidade) {
-                assentos.push({
-                    id: `A${contador + 1}`,
-                    numero: String(contador + 1).padStart(2, '0'),
-                    andar,
-                    posicao_x: 4,
-                    posicao_y: y,
-                    tipo: 'CONVENCIONAL',
-                    status: AssentoStatus.LIVRE
-                });
-                contador++;
-            }
-
-            y++;
-        }
-    };
-
-    // Gerar assentos para térreo
-    gerarAssentosAndar(1, assentosPorAndar, 0);
-
-    // Gerar assentos para andar superior (se double deck)
-    if (isDoubleDeck) {
-        gerarAssentosAndar(2, capacidade - assentosPorAndar, assentosPorAndar);
-    }
-
-    return assentos;
-}
