@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { IAssento, IVeiculo } from '../types';
-import { Plus, X, Bus as BusIcon, Save } from 'lucide-react';
+import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../types';
+import { Plus, X, Bus as BusIcon, Save, PaintBucket, Type, MousePointer2 } from 'lucide-react';
 
 interface MapaAssentosProps {
     veiculo: IVeiculo & {
@@ -21,6 +21,20 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
     const [seatColumns, setSeatColumns] = useState(5);
     const [lowerDeckSeats, setLowerDeckSeats] = useState<string[][]>([]);
     const [upperDeckSeats, setUpperDeckSeats] = useState<string[][]>([]);
+
+    // Novos estados para configuração de tipos
+    const [editMode, setEditMode] = useState<'NUMBER' | 'TYPE'>('NUMBER');
+    const [selectedType, setSelectedType] = useState<TipoAssento>(TipoAssento.CONVENCIONAL);
+    const [seatTypes, setSeatTypes] = useState<Record<string, TipoAssento>>({});
+
+    const SEAT_COLORS: Record<TipoAssento, string> = {
+        [TipoAssento.CONVENCIONAL]: 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600',
+        [TipoAssento.EXECUTIVO]: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700',
+        [TipoAssento.SEMI_LEITO]: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700',
+        [TipoAssento.LEITO]: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700',
+        [TipoAssento.CAMA]: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700',
+        [TipoAssento.CAMA_MASTER]: 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700',
+    };
 
     const generateBusSeats = (isUpperDeck: boolean = false) => {
         const seats: string[][] = [];
@@ -94,9 +108,49 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
         setSeats(newSeats);
     };
 
+    const handleSeatClick = (seatNumber: string) => {
+        if (editMode === 'TYPE' && seatNumber !== 'Blank') {
+            setSeatTypes(prev => ({
+                ...prev,
+                [seatNumber]: selectedType
+            }));
+        }
+    };
+
+    const getSeatType = (seatNumber: string) => seatTypes[seatNumber] || TipoAssento.CONVENCIONAL;
+
     const handleSave = () => {
-        alert('Configuração de assentos salva com sucesso!');
-        // Aqui você converteria para IAssento[] e chamaria onSave
+        // Converter grids para IAssento[]
+        const allSeats: IAssento[] = [];
+
+        const processDeck = (seats: string[][], deck: 1 | 2) => {
+            seats.forEach((row, rowIndex) => {
+                row.forEach((seat, colIndex) => {
+                    if (seat !== 'Blank') {
+                        allSeats.push({
+                            numero: seat,
+                            andar: deck,
+                            posicao_x: colIndex,
+                            posicao_y: rowIndex,
+                            tipo: seatTypes[seat] || TipoAssento.CONVENCIONAL,
+                            status: AssentoStatus.LIVRE
+                        } as IAssento);
+                    }
+                });
+            });
+        };
+
+        processDeck(lowerDeckSeats, 1);
+        if (veiculo.is_double_deck) {
+            processDeck(upperDeckSeats, 2);
+        }
+
+        if (onSave) {
+            onSave(allSeats);
+        } else {
+            console.log('Assentos salvos:', allSeats);
+            alert('Configuração salva com sucesso! (Verifique o console)');
+        }
     };
 
     const renderSeatGrid = (seats: string[][], isUpperDeck: boolean = false, deckName: string) => {
@@ -133,15 +187,33 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                                             </div>
                                         </div>
                                     ) : (
-                                        <div key={colIndex} className="relative">
-                                            <input
-                                                type="text"
-                                                value={seat}
-                                                onChange={(e) => updateSeatName(rowIndex, colIndex, e.target.value, isUpperDeck)}
-                                                className="w-14 h-14 rounded-lg text-center text-sm font-bold transition-all duration-200 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-2 border-slate-200 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 shadow-sm"
-                                                placeholder="..."
-                                            />
-                                            <div className="absolute -top-2 -right-2 w-5 h-5 bg-slate-100 dark:bg-slate-600 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-500 shadow-sm">
+                                        <div
+                                            key={colIndex}
+                                            className="relative group cursor-pointer"
+                                            onClick={() => handleSeatClick(seat)}
+                                        >
+                                            <div className={`w-14 h-14 rounded-lg transition-all duration-200 border-2 shadow-sm flex items-center justify-center ${SEAT_COLORS[getSeatType(seat)]} ${editMode === 'TYPE' ? 'hover:ring-2 hover:ring-offset-2 ring-blue-500' : ''}`}>
+                                                {editMode === 'NUMBER' ? (
+                                                    <input
+                                                        type="text"
+                                                        value={seat}
+                                                        onChange={(e) => updateSeatName(rowIndex, colIndex, e.target.value, isUpperDeck)}
+                                                        className="w-full h-full bg-transparent text-center text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none"
+                                                        placeholder="..."
+                                                    />
+                                                ) : (
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 select-none">
+                                                        {seat}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Tooltip do Tipo */}
+                                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                                {getSeatType(seat).replace('_', ' ')}
+                                            </div>
+
+                                            <div className="absolute -top-2 -right-2 w-5 h-5 bg-slate-100 dark:bg-slate-600 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-500 shadow-sm pointer-events-none">
                                                 <span className="text-[10px] text-slate-500 dark:text-slate-300 font-medium">{colIndex + 1}</span>
                                             </div>
                                         </div>
@@ -149,7 +221,6 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                                 ))}
 
                                 <div className="flex gap-2 flex-shrink-0 ml-8 opacity-50 hover:opacity-100 transition-opacity">
-
                                     <button
                                         onClick={() => deleteRow(rowIndex, isUpperDeck)}
                                         className="p-2 bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-600 rounded-lg transition-colors border border-slate-200 hover:border-red-200"
@@ -205,6 +276,58 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                     Selecione o tipo de plano - Padrão: Sem Plano de Assentos
                 </p>
             </div>
+
+            {/* Toolbar de Edição */}
+            {hasSeatPlan && (
+                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-4">
+                        <h3 className="font-bold text-slate-700 dark:text-slate-200">Ferramentas de Edição</h3>
+                        <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
+                            <button
+                                onClick={() => setEditMode('NUMBER')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'NUMBER'
+                                        ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    }`}
+                            >
+                                <Type size={16} />
+                                Editar Numeração
+                            </button>
+                            <button
+                                onClick={() => setEditMode('TYPE')}
+                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'TYPE'
+                                        ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    }`}
+                            >
+                                <PaintBucket size={16} />
+                                Definir Tipos
+                            </button>
+                        </div>
+                    </div>
+
+                    {editMode === 'TYPE' && (
+                        <div className="animate-in fade-in slide-in-from-top-2">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Selecione um tipo e clique nos assentos para aplicar:</p>
+                            <div className="flex flex-wrap gap-2">
+                                {Object.values(TipoAssento).map((tipo) => (
+                                    <button
+                                        key={tipo}
+                                        onClick={() => setSelectedType(tipo)}
+                                        className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${selectedType === tipo
+                                                ? 'ring-2 ring-blue-500 ring-offset-2 ' + SEAT_COLORS[tipo]
+                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-600'
+                                            }`}
+                                    >
+                                        <div className={`w-3 h-3 rounded-full border border-slate-300 ${SEAT_COLORS[tipo].split(' ')[0]}`} />
+                                        {tipo.replace('_', ' ')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {hasSeatPlan ? (
                 <>

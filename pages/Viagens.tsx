@@ -50,7 +50,8 @@ const MOCK_VIAGENS: IViagem[] = [
         motorista_id: 'M001',
         ocupacao_percent: 75,
         internacional: false,
-        moeda_base: Moeda.BRL
+        moeda_base: Moeda.BRL,
+        tipo_viagem: 'IDA'
     },
     {
         id: 'V002',
@@ -80,7 +81,8 @@ const MOCK_VIAGENS: IViagem[] = [
         motorista_id: 'M001',
         ocupacao_percent: 20,
         internacional: true,
-        moeda_base: Moeda.USD
+        moeda_base: Moeda.USD,
+        tipo_viagem: 'IDA_E_VOLTA'
     }
 ];
 
@@ -265,6 +267,9 @@ export const Viagens: React.FC = () => {
                                                         Internacional
                                                     </span>
                                                 )}
+                                                <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded">
+                                                    {viagem.tipo_viagem === 'IDA_E_VOLTA' ? 'Ida e Volta' : viagem.tipo_viagem === 'IDA' ? 'Ida' : 'Volta'}
+                                                </span>
                                             </h3>
                                             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 <MapPin size={14} className="text-green-600" />

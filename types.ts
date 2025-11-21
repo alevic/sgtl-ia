@@ -42,6 +42,15 @@ export enum TipoParada {
   PARADA_TECNICA = 'PARADA_TECNICA'
 }
 
+export enum TipoAssento {
+  CONVENCIONAL = 'CONVENCIONAL',
+  EXECUTIVO = 'EXECUTIVO',
+  SEMI_LEITO = 'SEMI_LEITO',
+  LEITO = 'LEITO',
+  CAMA = 'CAMA',
+  CAMA_MASTER = 'CAMA_MASTER'
+}
+
 export interface IEmpresa {
   id: string;
   nome_fantasia: string;
@@ -56,7 +65,7 @@ export interface IAssento {
   andar: 1 | 2; // 1 = térreo, 2 = superior (double deck)
   posicao_x: number; // coluna (0-4, geralmente)
   posicao_y: number; // linha/fileira
-  tipo: 'CONVENCIONAL' | 'LEITO' | 'SEMI_LEITO';
+  tipo: TipoAssento;
   status: AssentoStatus;
 }
 
@@ -150,6 +159,8 @@ export interface IViagem {
   ocupacao_percent: number;
   internacional: boolean;
   moeda_base: Moeda;
+  tipo_viagem: 'IDA' | 'VOLTA' | 'IDA_E_VOLTA';
+  precos_por_tipo: Record<string, number>;
 }
 
 export interface IAssento {

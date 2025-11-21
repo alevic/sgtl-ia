@@ -1,13 +1,39 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IParada, TipoParada, Moeda, TipoDocumento, VeiculoStatus } from '../types';
+import { IParada, TipoParada, Moeda, TipoDocumento, VeiculoStatus, TipoAssento, IAssento, AssentoStatus } from '../types';
 import {
-    ArrowLeft, Bus, MapPin, Plus, X, User, Save
+    ArrowLeft, Bus, MapPin, Plus, X, User, Save, DollarSign
 } from 'lucide-react';
 
 const MOCK_VEICULOS = [
-    { id: 'V001', placa: 'ABC-1234', modelo: 'Mercedes-Benz O500', tipo: 'ONIBUS' as const, status: VeiculoStatus.ATIVO, proxima_revisao_km: 150000 },
-    { id: 'V002', placa: 'DEF-5678', modelo: 'Volvo 9800', tipo: 'ONIBUS' as const, status: VeiculoStatus.ATIVO, proxima_revisao_km: 120000 }
+    {
+        id: 'V001',
+        placa: 'ABC-1234',
+        modelo: 'Mercedes-Benz O500',
+        tipo: 'ONIBUS' as const,
+        status: VeiculoStatus.ATIVO,
+        proxima_revisao_km: 150000,
+        mapa_assentos: [
+            { numero: '1', tipo: TipoAssento.LEITO, status: AssentoStatus.LIVRE },
+            { numero: '2', tipo: TipoAssento.LEITO, status: AssentoStatus.LIVRE },
+            { numero: '3', tipo: TipoAssento.SEMI_LEITO, status: AssentoStatus.LIVRE },
+            { numero: '4', tipo: TipoAssento.SEMI_LEITO, status: AssentoStatus.LIVRE }
+        ] as Partial<IAssento>[]
+    },
+    {
+        id: 'V002',
+        placa: 'DEF-5678',
+        modelo: 'Volvo 9800',
+        tipo: 'ONIBUS' as const,
+        status: VeiculoStatus.ATIVO,
+        proxima_revisao_km: 120000,
+        mapa_assentos: [
+            { numero: '1', tipo: TipoAssento.CAMA, status: AssentoStatus.LIVRE },
+            { numero: '2', tipo: TipoAssento.CAMA, status: AssentoStatus.LIVRE },
+            { numero: '3', tipo: TipoAssento.LEITO, status: AssentoStatus.LIVRE },
+            { numero: '4', tipo: TipoAssento.LEITO, status: AssentoStatus.LIVRE }
+        ] as Partial<IAssento>[]
+    }
 ];
 
 const MOCK_MOTORISTAS = [
@@ -39,6 +65,7 @@ export const NovaViagem: React.FC = () => {
     const navigate = useNavigate();
 
     const [titulo, setTitulo] = useState('');
+    const [tipoViagem, setTipoViagem] = useState<'IDA' | 'VOLTA' | 'IDA_E_VOLTA'>('IDA');
     const [origem, setOrigem] = useState('');
     const [destino, setDestino] = useState('');
     const [dataPartida, setDataPartida] = useState('');
@@ -50,6 +77,20 @@ export const NovaViagem: React.FC = () => {
     const [veiculoId, setVeiculoId] = useState('');
     const [motoristaId, setMotoristaId] = useState('');
     const [paradas, setParadas] = useState<Partial<IParada>[]>([]);
+    const [precosPorTipo, setPrecosPorTipo] = useState<Record<string, number>>({});
+
+    // Derivar tipos de assento do veículo selecionado
+    const veiculoSelecionado = MOCK_VEICULOS.find(v => v.id === veiculoId);
+    const tiposAssento = veiculoSelecionado?.mapa_assentos
+        ? Array.from(new Set(veiculoSelecionado.mapa_assentos.map(a => a.tipo)))
+        : [];
+
+    const handlePrecoChange = (tipo: string, valor: string) => {
+        setPrecosPorTipo(prev => ({
+            ...prev,
+            [tipo]: parseFloat(valor) || 0
+        }));
+    };
 
     const adicionarParada = () => {
         setParadas([
@@ -77,6 +118,7 @@ export const NovaViagem: React.FC = () => {
     const handleSalvar = () => {
         console.log({
             titulo,
+            tipo_viagem: tipoViagem,
             origem,
             destino,
             data_partida: `${dataPartida}T${horaPartida}:00`,
@@ -85,7 +127,8 @@ export const NovaViagem: React.FC = () => {
             moeda_base: moeda,
             veiculo_id: veiculoId,
             motorista_id: motoristaId,
-            paradas
+            paradas,
+            precos_por_tipo: precosPorTipo
         });
         navigate('/admin/viagens');
     };
@@ -121,6 +164,47 @@ export const NovaViagem: React.FC = () => {
                         </h3>
 
                         <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                    Tipo de Viagem
+                                </label>
+                                <div className="flex gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="tipoViagem"
+                                            value="IDA"
+                                            checked={tipoViagem === 'IDA'}
+                                            onChange={(e) => setTipoViagem(e.target.value as any)}
+                                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span className="text-slate-700 dark:text-slate-300">Ida</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="tipoViagem"
+                                            value="VOLTA"
+                                            checked={tipoViagem === 'VOLTA'}
+                                            onChange={(e) => setTipoViagem(e.target.value as any)}
+                                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span className="text-slate-700 dark:text-slate-300">Volta</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="tipoViagem"
+                                            value="IDA_E_VOLTA"
+                                            checked={tipoViagem === 'IDA_E_VOLTA'}
+                                            onChange={(e) => setTipoViagem(e.target.value as any)}
+                                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <span className="text-slate-700 dark:text-slate-300">Ida e Volta</span>
+                                    </label>
+                                </div>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Título da Viagem
@@ -322,6 +406,38 @@ export const NovaViagem: React.FC = () => {
                                 </option>
                             ))}
                         </select>
+
+                        {veiculoId && tiposAssento.length > 0 && (
+                            <div className="mt-6 space-y-4 animate-in fade-in slide-in-from-top-2">
+                                <h4 className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
+                                    <DollarSign size={16} className="text-green-600" />
+                                    Preços por Tipo de Assento
+                                </h4>
+                                <div className="grid gap-3">
+                                    {tiposAssento.map((tipo) => (
+                                        <div key={tipo} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
+                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {tipo?.replace('_', ' ')}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-slate-500 dark:text-slate-400">
+                                                    {moeda}
+                                                </span>
+                                                <input
+                                                    type="number"
+                                                    placeholder="0.00"
+                                                    step="0.01"
+                                                    min="0"
+                                                    value={precosPorTipo[tipo as string] || ''}
+                                                    onChange={(e) => handlePrecoChange(tipo as string, e.target.value)}
+                                                    className="w-24 p-1 text-right border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 rounded focus:ring-2 focus:ring-blue-500 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
