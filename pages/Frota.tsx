@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 // Mock data - em produção virá do backend
-const MOCK_VEICULOS: (IVeiculo & {
+export const MOCK_VEICULOS: (IVeiculo & {
     km_atual: number;
     ano: number;
     ultima_revisao: string;

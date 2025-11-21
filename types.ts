@@ -161,6 +161,8 @@ export interface IViagem {
   moeda_base: Moeda;
   tipo_viagem: 'IDA' | 'VOLTA' | 'IDA_E_VOLTA';
   precos_por_tipo: Record<string, number>;
+  imagem_capa?: string;
+  galeria?: string[];
 }
 
 export interface IAssento {
@@ -242,4 +244,37 @@ export interface IFretamento {
   valor_total: number;
   moeda: Moeda;
   observacoes?: string;
+}
+
+export enum TipoManutencao {
+  PREVENTIVA = 'PREVENTIVA',
+  CORRETIVA = 'CORRETIVA',
+  PREDITIVA = 'PREDITIVA',
+  INSPECAO = 'INSPECAO'
+}
+
+export enum StatusManutencao {
+  AGENDADA = 'AGENDADA',
+  EM_ANDAMENTO = 'EM_ANDAMENTO',
+  CONCLUIDA = 'CONCLUIDA',
+  CANCELADA = 'CANCELADA'
+}
+
+export interface IManutencao {
+  id: string;
+  veiculo_id: string;
+  tipo: TipoManutencao;
+  status: StatusManutencao;
+  data_agendada: string; // ISO Date
+  data_inicio?: string; // ISO Date
+  data_conclusao?: string; // ISO Date
+  km_veiculo: number;
+  descricao: string;
+  custo_pecas: number;
+  custo_mao_de_obra: number;
+  moeda: Moeda;
+  oficina?: string;
+  responsavel?: string;
+  observacoes?: string;
+  anexos?: string[];
 }

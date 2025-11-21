@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IParada, TipoParada, Moeda, TipoDocumento, VeiculoStatus, TipoAssento, IAssento, AssentoStatus } from '../types';
 import {
-    ArrowLeft, Bus, MapPin, Plus, X, User, Save, DollarSign
+    ArrowLeft, Bus, MapPin, Plus, X, User, Save, DollarSign, Image
 } from 'lucide-react';
 
 const MOCK_VEICULOS = [
@@ -78,6 +78,25 @@ export const NovaViagem: React.FC = () => {
     const [motoristaId, setMotoristaId] = useState('');
     const [paradas, setParadas] = useState<Partial<IParada>[]>([]);
     const [precosPorTipo, setPrecosPorTipo] = useState<Record<string, number>>({});
+    const [imagemCapa, setImagemCapa] = useState<string>('');
+    const [galeria, setGaleria] = useState<string[]>([]);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isGallery: boolean = false) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                if (isGallery) {
+                    setGaleria(prev => [...prev, reader.result as string]);
+                } else {
+                    setImagemCapa(reader.result as string);
+                }
+            };
+            reader.readAsDataURL(file as Blob);
+        });
+    };
 
     // Derivar tipos de assento do veículo selecionado
     const veiculoSelecionado = MOCK_VEICULOS.find(v => v.id === veiculoId);
@@ -313,6 +332,68 @@ export const NovaViagem: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Imagens da Viagem Card */}
+                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                            <Image size={20} className="text-purple-600" />
+                            Imagens da Viagem
+                        </h3>
+
+                        <div className="space-y-6">
+                            {/* Cover Image */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                    Imagem de Capa
+                                </label>
+                                <div className="flex items-center gap-4">
+                                    {imagemCapa ? (
+                                        <div className="relative w-32 h-20 rounded-lg overflow-hidden group">
+                                            <img src={imagemCapa} alt="Capa" className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={() => setImagemCapa('')}
+                                                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                                            >
+                                                <X size={20} />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="w-32 h-20 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
+                                            <Plus size={24} className="text-slate-400" />
+                                            <span className="text-xs text-slate-500">Adicionar</span>
+                                            <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e)} />
+                                        </label>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Gallery */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                    Galeria de Fotos
+                                </label>
+                                <div className="grid grid-cols-4 gap-4">
+                                    {galeria.map((img, idx) => (
+                                        <div key={idx} className="relative w-full h-20 rounded-lg overflow-hidden group">
+                                            <img src={img} alt={`Galeria ${idx}`} className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={() => setGaleria(prev => prev.filter((_, i) => i !== idx))}
+                                                className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
+                                            >
+                                                <X size={20} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <label className="w-full h-20 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 transition-colors">
+                                        <Plus size={24} className="text-slate-400" />
+                                        <span className="text-xs text-slate-500">Adicionar</span>
+                                        <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => handleImageUpload(e, true)} />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Paradas Intermediárias Card */}
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
@@ -387,6 +468,7 @@ export const NovaViagem: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Right Column */}
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                         <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
@@ -464,3 +546,4 @@ export const NovaViagem: React.FC = () => {
         </div>
     );
 };
+

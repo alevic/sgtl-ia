@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { IViagem, IVeiculo, IMotorista, Moeda, VeiculoStatus } from '../types';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
@@ -28,7 +28,7 @@ const MOCK_MOTORISTAS: IMotorista[] = [
     }
 ];
 
-const MOCK_VIAGENS: IViagem[] = [
+export const MOCK_VIAGENS: IViagem[] = [
     {
         id: 'V001',
         titulo: 'São Paulo → Florianópolis',
@@ -51,7 +51,13 @@ const MOCK_VIAGENS: IViagem[] = [
         ocupacao_percent: 75,
         internacional: false,
         moeda_base: Moeda.BRL,
-        tipo_viagem: 'IDA'
+        tipo_viagem: 'IDA',
+        precos_por_tipo: {},
+        imagem_capa: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&q=80&w=1000',
+        galeria: [
+            'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1000',
+            'https://images.unsplash.com/photo-1570125909232-eb2be3b11374?auto=format&fit=crop&q=80&w=1000'
+        ]
     },
     {
         id: 'V002',
@@ -82,7 +88,12 @@ const MOCK_VIAGENS: IViagem[] = [
         ocupacao_percent: 20,
         internacional: true,
         moeda_base: Moeda.USD,
-        tipo_viagem: 'IDA_E_VOLTA'
+        tipo_viagem: 'IDA_E_VOLTA',
+        precos_por_tipo: {},
+        imagem_capa: 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?auto=format&fit=crop&q=80&w=1000',
+        galeria: [
+            'https://images.unsplash.com/photo-1612294037637-ec328d0e075e?auto=format&fit=crop&q=80&w=1000'
+        ]
     }
 ];
 
@@ -130,6 +141,8 @@ export const Viagens: React.FC = () => {
     const viagensConfirmadas = viagens.filter(v => v.status === 'CONFIRMADA').length;
     const viagensEmCurso = viagens.filter(v => v.status === 'EM_CURSO').length;
     const ocupacaoMedia = Math.round(viagens.reduce((sum, v) => sum + v.ocupacao_percent, 0) / viagens.length);
+
+    const navigate = useNavigate();
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -252,13 +265,22 @@ export const Viagens: React.FC = () => {
                         return (
                             <div
                                 key={viagem.id}
-                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all"
+                                onClick={() => navigate(`/admin/viagens/${viagem.id}`)}
+                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer group"
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                            <Bus size={28} className="text-white" />
-                                        </div>
+                                        {viagem.imagem_capa ? (
+                                            <img
+                                                src={viagem.imagem_capa}
+                                                alt={viagem.titulo}
+                                                className="w-16 h-16 rounded-lg object-cover shadow-sm"
+                                            />
+                                        ) : (
+                                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                                                <Bus size={28} className="text-white" />
+                                            </div>
+                                        )}
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                                 {viagem.titulo}
