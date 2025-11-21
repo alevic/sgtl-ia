@@ -23,6 +23,7 @@ export enum TipoDocumento {
   RG = 'RG',
   CPF = 'CPF',
   PASSAPORTE = 'PASSAPORTE',
+  CNH = 'CNH',
   RNE = 'RNE',
   OUTRO = 'OUTRO'
 }
@@ -33,6 +34,12 @@ export enum Moeda {
   EUR = 'EUR',
   PYG = 'PYG', // Guarani
   ARS = 'ARS'  // Peso Argentino
+}
+
+export enum TipoParada {
+  EMBARQUE = 'EMBARQUE',
+  DESEMBARQUE = 'DESEMBARQUE',
+  PARADA_TECNICA = 'PARADA_TECNICA'
 }
 
 export interface IEmpresa {
@@ -67,11 +74,42 @@ export interface ICliente {
   id: string;
   nome: string;
   email: string;
+  telefone?: string;
   saldo_creditos: number;
   historico_viagens: number;
   documento_tipo: TipoDocumento;
   documento_numero: string;
   nacionalidade: string;
+  data_cadastro: string; // ISO Date
+  data_nascimento?: string; // ISO Date
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  pais: string;
+  segmento: 'VIP' | 'REGULAR' | 'NOVO' | 'INATIVO';
+  tags: string[];
+  ultima_viagem?: string; // ISO Date
+  valor_total_gasto: number;
+  observacoes?: string;
+}
+
+export interface IInteracao {
+  id: string;
+  cliente_id: string;
+  tipo: 'EMAIL' | 'TELEFONE' | 'WHATSAPP' | 'PRESENCIAL' | 'SISTEMA';
+  descricao: string;
+  data_hora: string; // ISO Date
+  usuario_responsavel?: string;
+}
+
+export interface INota {
+  id: string;
+  cliente_id: string;
+  titulo: string;
+  conteudo: string;
+  data_criacao: string; // ISO Date
+  criado_por: string;
+  importante: boolean;
 }
 
 export interface IParada {
