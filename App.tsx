@@ -22,6 +22,8 @@ import { NovoVeiculo } from './pages/NovoVeiculo';
 import { VeiculoDetalhes } from './pages/VeiculoDetalhes';
 import { Manutencao } from './pages/Manutencao';
 import { NovaManutencao } from './pages/NovaManutencao';
+import { Rotas } from './pages/Rotas';
+import { NovaRota } from './pages/NovaRota';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -69,6 +71,9 @@ const App: React.FC = () => {
                 <Route path="frota/:id" element={<VeiculoDetalhes />} />
                 <Route path="manutencao" element={<Manutencao />} />
                 <Route path="manutencao/nova" element={<NovaManutencao />} />
+                <Route path="rotas" element={<Rotas />} />
+                <Route path="rotas/nova" element={<NovaRota />} />
+                <Route path="rotas/:id" element={<NovaRota />} />
                 <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
               </Routes>
             </AdminLayout>

@@ -144,22 +144,57 @@ export interface IParada {
   tipo: 'EMBARQUE' | 'DESEMBARQUE' | 'PARADA_TECNICA';
 }
 
+// Sistema de Rotas v2.0
+export interface IPontoRota {
+  id: string;
+  nome: string; // Nome da cidade ou local
+  ordem: number; // Ordem na sequência da rota (0 = origem, last = destino)
+  horario_chegada?: string; // ISO Date - opcional para origem
+  horario_partida?: string; // ISO Date - opcional para destino
+  tipo: 'ORIGEM' | 'PARADA_INTERMEDIARIA' | 'DESTINO';
+  permite_embarque: boolean;
+  permite_desembarque: boolean;
+  observacoes?: string;
+}
+
+export interface IRota {
+  id: string;
+  nome?: string; // Nome descritivo da rota (ex: "São Paulo → Rio via Curitiba")
+  tipo_rota: 'IDA' | 'VOLTA';
+  pontos: IPontoRota[]; // Lista ordenada de pontos (origem, paradas, destino)
+  distancia_total_km?: number;
+  duracao_estimada_minutos?: number;
+  ativa: boolean; // Indica se a rota está ativa para uso
+}
+
 export interface IViagem {
   id: string;
   titulo: string;
   origem: string;
   destino: string;
   paradas: IParada[]; // Lista ordenada de paradas
+
+  // Sistema de Rotas v2.0
+  rota_ida_id?: string; // ID da rota template selecionada
+  rota_volta_id?: string; // ID da rota template selecionada
+  rota_ida?: IRota; // Dados completos da rota (populados)
+  rota_volta?: IRota; // Dados completos da rota (populados)
+  usa_sistema_rotas: boolean; // Flag para indicar se usa novo sistema
+
   data_partida: string; // ISO Date
   data_chegada_prevista: string; // ISO Date
   status: 'AGENDADA' | 'CONFIRMADA' | 'EM_CURSO' | 'FINALIZADA' | 'CANCELADA';
   veiculo_id?: string;
-  motorista_id?: string;
-  motorista_auxiliar_id?: string; // Para viagens longas
+
+  // Motoristas - Suporte para múltiplos motoristas
+  motorista_ids: string[]; // Array de IDs de motoristas
+  motorista_id?: string; // DEPRECATED - mantido para retrocompatibilidade
+  motorista_auxiliar_id?: string; // DEPRECATED - mantido para retrocompatibilidade
+
   ocupacao_percent: number;
   internacional: boolean;
   moeda_base: Moeda;
-  tipo_viagem: 'IDA' | 'VOLTA' | 'IDA_E_VOLTA';
+  tipo_viagem: 'IDA_E_VOLTA' | 'IDA' | 'VOLTA'; // Ordem: IDA_E_VOLTA primeiro
   precos_por_tipo: Record<string, number>;
   imagem_capa?: string;
   galeria?: string[];
