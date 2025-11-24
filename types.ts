@@ -81,6 +81,7 @@ export interface IVeiculo {
   capacidade_carga?: number; // só para caminhão (toneladas)
   mapa_assentos?: IAssento[]; // só para ônibus
   mapa_configurado?: boolean; // indica se o mapa foi configurado
+  precos_assentos?: Record<TipoAssento, number>; // preço por tipo de assento
 }
 
 export interface IMotorista {
@@ -206,18 +207,32 @@ export interface IAssento {
   passageiro_nome?: string;
 }
 
+// Passageiro individual em uma reserva
+export interface IPassageiroReserva {
+  id: string;
+  cliente_id: string; // Referência ao cliente
+  assento_numero: string;
+  tipo_assento: TipoAssento;
+  valor: number;
+}
+
 export interface IReserva {
   id: string;
   codigo: string;
   viagem_id: string;
-  cliente_id: string;
-  assento_numero: string;
+  responsavel_id: string; // Quem fez a compra/reserva
+  passageiros: IPassageiroReserva[]; // Lista de passageiros
   data_reserva: string; // ISO Date
   status: 'PENDENTE' | 'CONFIRMADA' | 'CANCELADA' | 'UTILIZADA';
-  valor_pago: number;
+  valor_total: number; // Soma dos valores dos passageiros
   moeda: Moeda;
   forma_pagamento?: 'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO';
   observacoes?: string;
+  
+  // @deprecated - Campos mantidos para compatibilidade
+  cliente_id?: string;
+  assento_numero?: string;
+  valor_pago?: number;
 }
 
 export enum TipoEncomenda {

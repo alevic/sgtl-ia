@@ -17,7 +17,7 @@ const MOCK_VEICULOS: IVeiculo[] = [
     }
 ];
 
-const MOCK_MOTORISTAS: IMotorista[] = [
+export const MOCK_MOTORISTAS: IMotorista[] = [
     {
         id: 'M001',
         nome: 'Carlos Silva',
@@ -34,20 +34,12 @@ export const MOCK_VIAGENS: IViagem[] = [
         titulo: 'São Paulo → Florianópolis',
         origem: 'São Paulo, SP',
         destino: 'Florianópolis, SC',
-        paradas: [
-            {
-                id: 'P1',
-                nome: 'Curitiba, PR',
-                horario_chegada: '2023-11-25T02:00:00',
-                horario_partida: '2023-11-25T02:30:00',
-                tipo: 'PARADA_TECNICA'
-            }
-        ],
+        paradas: [], // Calculado via rotas
         data_partida: '2023-11-24T22:00:00',
         data_chegada_prevista: '2023-11-25T08:00:00',
         status: 'CONFIRMADA',
         veiculo_id: 'V001',
-        motorista_id: 'M001',
+        motorista_ids: ['M001'],
         ocupacao_percent: 75,
         internacional: false,
         moeda_base: Moeda.BRL,
@@ -57,34 +49,58 @@ export const MOCK_VIAGENS: IViagem[] = [
         galeria: [
             'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1000',
             'https://images.unsplash.com/photo-1570125909232-eb2be3b11374?auto=format&fit=crop&q=80&w=1000'
-        ]
+        ],
+        usa_sistema_rotas: true,
+        rota_ida: {
+            id: 'R003',
+            nome: 'SP → Florianópolis (via Curitiba)',
+            tipo_rota: 'IDA',
+            ativa: true,
+            pontos: [
+                {
+                    id: 'P6',
+                    nome: 'São Paulo, SP',
+                    ordem: 0,
+                    tipo: 'ORIGEM',
+                    horario_partida: '2023-11-24T22:00:00',
+                    permite_embarque: true,
+                    permite_desembarque: false
+                },
+                {
+                    id: 'P7',
+                    nome: 'Curitiba, PR',
+                    ordem: 1,
+                    tipo: 'PARADA_INTERMEDIARIA',
+                    horario_chegada: '2023-11-25T04:00:00',
+                    horario_partida: '2023-11-25T04:30:00',
+                    permite_embarque: true,
+                    permite_desembarque: true
+                },
+                {
+                    id: 'P8',
+                    nome: 'Florianópolis, SC',
+                    ordem: 2,
+                    tipo: 'DESTINO',
+                    horario_chegada: '2023-11-25T09:00:00',
+                    permite_embarque: false,
+                    permite_desembarque: true
+                }
+            ],
+            duracao_estimada_minutos: 660,
+            distancia_total_km: 700
+        }
     },
     {
         id: 'V002',
         titulo: 'Rio de Janeiro → Buenos Aires',
         origem: 'Rio de Janeiro, RJ',
         destino: 'Buenos Aires, Argentina',
-        paradas: [
-            {
-                id: 'P2',
-                nome: 'Curitiba, PR',
-                horario_chegada: '2023-12-01T08:00:00',
-                horario_partida: '2023-12-01T09:00:00',
-                tipo: 'EMBARQUE'
-            },
-            {
-                id: 'P3',
-                nome: 'Porto Alegre, RS',
-                horario_chegada: '2023-12-01T18:00:00',
-                horario_partida: '2023-12-01T19:00:00',
-                tipo: 'EMBARQUE'
-            }
-        ],
+        paradas: [], // Calculado via rotas
         data_partida: '2023-12-01T00:00:00',
         data_chegada_prevista: '2023-12-02T14:00:00',
         status: 'AGENDADA',
         veiculo_id: 'V001',
-        motorista_id: 'M001',
+        motorista_ids: ['M001', 'M002'],
         ocupacao_percent: 20,
         internacional: true,
         moeda_base: Moeda.USD,
@@ -93,7 +109,84 @@ export const MOCK_VIAGENS: IViagem[] = [
         imagem_capa: 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?auto=format&fit=crop&q=80&w=1000',
         galeria: [
             'https://images.unsplash.com/photo-1612294037637-ec328d0e075e?auto=format&fit=crop&q=80&w=1000'
-        ]
+        ],
+        usa_sistema_rotas: true,
+        rota_ida: {
+            id: 'R_INT_01',
+            nome: 'RJ → Buenos Aires (Ida)',
+            tipo_rota: 'IDA',
+            ativa: true,
+            pontos: [
+                {
+                    id: 'P_INT_1',
+                    nome: 'Rio de Janeiro, RJ',
+                    ordem: 0,
+                    tipo: 'ORIGEM',
+                    horario_partida: '2023-12-01T00:00:00',
+                    permite_embarque: true,
+                    permite_desembarque: false
+                },
+                {
+                    id: 'P_INT_2',
+                    nome: 'Curitiba, PR',
+                    ordem: 1,
+                    tipo: 'PARADA_INTERMEDIARIA',
+                    horario_chegada: '2023-12-01T08:00:00',
+                    horario_partida: '2023-12-01T09:00:00',
+                    permite_embarque: true,
+                    permite_desembarque: true
+                },
+                {
+                    id: 'P_INT_3',
+                    nome: 'Porto Alegre, RS',
+                    ordem: 2,
+                    tipo: 'PARADA_INTERMEDIARIA',
+                    horario_chegada: '2023-12-01T18:00:00',
+                    horario_partida: '2023-12-01T19:00:00',
+                    permite_embarque: true,
+                    permite_desembarque: true
+                },
+                {
+                    id: 'P_INT_4',
+                    nome: 'Buenos Aires, AR',
+                    ordem: 3,
+                    tipo: 'DESTINO',
+                    horario_chegada: '2023-12-02T14:00:00',
+                    permite_embarque: false,
+                    permite_desembarque: true
+                }
+            ],
+            duracao_estimada_minutos: 2280,
+            distancia_total_km: 2600
+        },
+        rota_volta: {
+            id: 'R_INT_02',
+            nome: 'Buenos Aires → RJ (Volta)',
+            tipo_rota: 'VOLTA',
+            ativa: true,
+            pontos: [
+                {
+                    id: 'P_INT_5',
+                    nome: 'Buenos Aires, AR',
+                    ordem: 0,
+                    tipo: 'ORIGEM',
+                    horario_partida: '2023-12-05T08:00:00',
+                    permite_embarque: true,
+                    permite_desembarque: false
+                },
+                {
+                    id: 'P_INT_6',
+                    nome: 'Rio de Janeiro, RJ',
+                    ordem: 1,
+                    tipo: 'DESTINO',
+                    horario_chegada: '2023-12-06T22:00:00',
+                    permite_embarque: false,
+                    permite_desembarque: true
+                }
+            ],
+            duracao_estimada_minutos: 2280,
+            distancia_total_km: 2600
+        }
     }
 ];
 

@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Bus, User, DollarSign, Clock, Users, Globe } from 'lucide-react';
-import { MOCK_VIAGENS } from './Viagens';
+import { MOCK_VIAGENS, MOCK_MOTORISTAS } from './Viagens';
+import { VisualizadorRota } from '../components/Rotas/VisualizadorRota';
 
 export const ViagemDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const viagem = MOCK_VIAGENS.find(v => v.id === id);
+    const [abaRotaAtiva, setAbaRotaAtiva] = useState<'IDA' | 'VOLTA'>('IDA');
 
     if (!viagem) {
         return (
@@ -22,6 +24,13 @@ export const ViagemDetalhes: React.FC = () => {
         );
     }
 
+    // Buscar motoristas
+    const motoristasViagem = viagem.motorista_ids
+        ? viagem.motorista_ids.map(id => MOCK_MOTORISTAS.find(m => m.id === id)).filter(Boolean)
+        : viagem.motorista_id
+            ? [MOCK_MOTORISTAS.find(m => m.id === viagem.motorista_id)].filter(Boolean)
+            : [];
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header */}
@@ -36,8 +45,8 @@ export const ViagemDetalhes: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{viagem.titulo}</h1>
                     <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${viagem.status === 'CONFIRMADA' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
-                                viagem.status === 'AGENDADA' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
-                                    'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                            viagem.status === 'AGENDADA' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
+                                'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
                             }`}>
                             {viagem.status}
                         </span>
@@ -67,46 +76,52 @@ export const ViagemDetalhes: React.FC = () => {
                             <MapPin size={20} className="text-blue-600" />
                             Rota
                         </h3>
-                        <div className="relative pl-8 space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700">
-                            <div className="relative">
-                                <div className="absolute -left-[2.15rem] w-4 h-4 rounded-full bg-green-500 border-4 border-white dark:border-slate-800 shadow-sm"></div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Origem</p>
-                                <p className="font-semibold text-slate-800 dark:text-white text-lg">{viagem.origem}</p>
-                                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                    <Calendar size={14} />
-                                    {new Date(viagem.data_partida).toLocaleDateString()}
-                                    <Clock size={14} className="ml-2" />
-                                    {new Date(viagem.data_partida).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
-                            </div>
 
-                            {viagem.paradas.map((parada, index) => (
-                                <div key={index} className="relative">
-                                    <div className="absolute -left-[2.15rem] w-4 h-4 rounded-full bg-slate-300 dark:bg-slate-600 border-4 border-white dark:border-slate-800 shadow-sm"></div>
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{parada.tipo.replace('_', ' ')}</p>
-                                            <p className="font-medium text-slate-700 dark:text-slate-200">{parada.nome}</p>
-                                        </div>
-                                        <div className="text-right text-sm text-slate-500 dark:text-slate-400">
-                                            <p>{new Date(parada.horario_chegada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            <div className="relative">
-                                <div className="absolute -left-[2.15rem] w-4 h-4 rounded-full bg-red-500 border-4 border-white dark:border-slate-800 shadow-sm"></div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Destino</p>
-                                <p className="font-semibold text-slate-800 dark:text-white text-lg">{viagem.destino}</p>
-                                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                    <Calendar size={14} />
-                                    {new Date(viagem.data_chegada_prevista).toLocaleDateString()}
-                                    <Clock size={14} className="ml-2" />
-                                    {new Date(viagem.data_chegada_prevista).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
+                        {/* Tabs para Ida e Volta */}
+                        {viagem.tipo_viagem === 'IDA_E_VOLTA' && (
+                            <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 mb-6">
+                                <button
+                                    onClick={() => setAbaRotaAtiva('IDA')}
+                                    className={`px-4 py-2 font-medium transition-colors border-b-2 ${abaRotaAtiva === 'IDA'
+                                            ? 'border-green-600 text-green-600 dark:text-green-400'
+                                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    Rota de Ida
+                                </button>
+                                <button
+                                    onClick={() => setAbaRotaAtiva('VOLTA')}
+                                    className={`px-4 py-2 font-medium transition-colors border-b-2 ${abaRotaAtiva === 'VOLTA'
+                                            ? 'border-orange-600 text-orange-600 dark:text-orange-400'
+                                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    Rota de Volta
+                                </button>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Visualização da Rota */}
+                        {viagem.usa_sistema_rotas ? (
+                            <>
+                                {(viagem.tipo_viagem === 'IDA' || (viagem.tipo_viagem === 'IDA_E_VOLTA' && abaRotaAtiva === 'IDA')) && viagem.rota_ida && (
+                                    <VisualizadorRota rota={viagem.rota_ida} />
+                                )}
+                                {(viagem.tipo_viagem === 'VOLTA' || (viagem.tipo_viagem === 'IDA_E_VOLTA' && abaRotaAtiva === 'VOLTA')) && viagem.rota_volta && (
+                                    <VisualizadorRota rota={viagem.rota_volta} />
+                                )}
+                                {((viagem.tipo_viagem === 'IDA' && !viagem.rota_ida) ||
+                                    (viagem.tipo_viagem === 'VOLTA' && !viagem.rota_volta)) && (
+                                        <p className="text-slate-500 dark:text-slate-400">Rota não definida</p>
+                                    )}
+                            </>
+                        ) : (
+                            // Fallback para sistema antigo (se houver)
+                            <div className="relative pl-8 space-y-8 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700">
+                                {/* Renderização manual antiga... mantida apenas como fallback se necessário, mas idealmente migrada */}
+                                <p className="text-slate-500">Visualização legado não suportada nesta versão.</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Gallery */}
@@ -146,11 +161,21 @@ export const ViagemDetalhes: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                                <User className="text-orange-600" size={20} />
+                            <div className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                                <User className="text-orange-600 mt-1" size={20} />
                                 <div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Motorista</p>
-                                    <p className="font-medium text-slate-800 dark:text-white">Carlos Silva</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">Motorista(s)</p>
+                                    {motoristasViagem.length > 0 ? (
+                                        <div className="flex flex-col gap-1">
+                                            {motoristasViagem.map((m, idx) => (
+                                                <p key={idx} className="font-medium text-slate-800 dark:text-white">
+                                                    {m?.nome}
+                                                </p>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="font-medium text-slate-800 dark:text-white">Não atribuído</p>
+                                    )}
                                 </div>
                             </div>
 
