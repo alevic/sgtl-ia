@@ -9,14 +9,14 @@ export interface IMotoristaSelector {
     status?: string;
 }
 
-interface SeletorMultiploProps {
+interface SeletorMotoristaMultiploProps {
     motoristas: IMotoristaSelector[];
     selecionados: string[];
     onChange: (ids: string[]) => void;
     maxHeight?: string;
 }
 
-export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
+export const SeletorMotoristaMultiplo: React.FC<SeletorMotoristaMultiploProps> = ({
     motoristas,
     selecionados,
     onChange,
@@ -26,7 +26,6 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
 
     const motoristasFiltrados = useMemo(() => {
         if (!busca.trim()) return motoristas;
-
         const termoBusca = busca.toLowerCase();
         return motoristas.filter(m =>
             m.nome.toLowerCase().includes(termoBusca) ||
@@ -51,9 +50,7 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
         }
     };
 
-    const limparSelecao = () => {
-        onChange([]);
-    };
+    const limparSelecao = () => onChange([]);
 
     const todosSelecionados = selecionados.length === motoristas.length && motoristas.length > 0;
     const algunsSelecionados = selecionados.length > 0 && !todosSelecionados;
@@ -66,7 +63,7 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
                 <input
                     type="text"
                     value={busca}
-                    onChange={(e) => setBusca(e.target.value)}
+                    onChange={e => setBusca(e.target.value)}
                     placeholder="Buscar motorista..."
                     className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                 />
@@ -80,18 +77,13 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
                             type="checkbox"
                             checked={todosSelecionados}
                             ref={input => {
-                                if (input) {
-                                    input.indeterminate = algunsSelecionados;
-                                }
+                                if (input) input.indeterminate = algunsSelecionados;
                             }}
                             onChange={handleToggleTodos}
                             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                         />
-                        <span className="font-medium text-slate-700 dark:text-slate-300">
-                            Selecionar todos
-                        </span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">Selecionar todos</span>
                     </label>
-
                     {selecionados.length > 0 && (
                         <button
                             onClick={limparSelecao}
@@ -102,17 +94,11 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
                         </button>
                     )}
                 </div>
-
-                <span className="text-slate-500 dark:text-slate-400">
-                    {selecionados.length} de {motoristas.length}
-                </span>
+                <span className="text-slate-500 dark:text-slate-400">{selecionados.length} de {motoristas.length}</span>
             </div>
 
             {/* Lista de motoristas */}
-            <div
-                className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-y-auto"
-                style={{ maxHeight }}
-            >
+            <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-y-auto" style={{ maxHeight }}>
                 {motoristasFiltrados.length === 0 ? (
                     <div className="p-8 text-center">
                         <Users size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
@@ -122,16 +108,12 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
                     </div>
                 ) : (
                     <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {motoristasFiltrados.map((motorista) => {
+                        {motoristasFiltrados.map(motorista => {
                             const estaSelecionado = selecionados.includes(motorista.id);
-
                             return (
                                 <label
                                     key={motorista.id}
-                                    className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${estaSelecionado
-                                            ? 'bg-blue-50 dark:bg-blue-900/20'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800'
-                                        }`}
+                                    className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${estaSelecionado ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                                 >
                                     <div className="relative">
                                         <input
@@ -147,28 +129,17 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
                                             />
                                         )}
                                     </div>
-
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-sm font-medium truncate ${estaSelecionado
-                                                ? 'text-blue-700 dark:text-blue-400'
-                                                : 'text-slate-700 dark:text-slate-300'
-                                            }`}>
-                                            {motorista.nome}
-                                        </p>
+                                        <p className={`text-sm font-medium truncate ${estaSelecionado ? 'text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}>{motorista.nome}</p>
                                         {(motorista.categoria_cnh || motorista.status) && (
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 {motorista.categoria_cnh && (
-                                                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                        CNH: {motorista.categoria_cnh}
-                                                    </span>
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400">CNH: {motorista.categoria_cnh}</span>
                                                 )}
                                                 {motorista.status && (
                                                     <span className={`text-xs px-1.5 py-0.5 rounded ${motorista.status === 'DISPONIVEL'
-                                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                                        }`}>
-                                                        {motorista.status}
-                                                    </span>
+                                                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>{motorista.status}</span>
                                                 )}
                                             </div>
                                         )}
@@ -190,19 +161,11 @@ export const SeletorMultiplo: React.FC<SeletorMultiploProps> = ({
                         {selecionados.slice(0, 3).map(id => {
                             const motorista = motoristas.find(m => m.id === id);
                             return motorista ? (
-                                <span
-                                    key={id}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded text-xs"
-                                >
+                                <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded text-xs">
                                     {motorista.nome}
                                 </span>
                             ) : null;
                         })}
-                        {selecionados.length > 3 && (
-                            <span className="inline-flex items-center px-2 py-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded text-xs">
-                                +{selecionados.length - 3} mais
-                            </span>
-                        )}
                     </div>
                 </div>
             )}

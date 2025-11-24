@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota } from '../types';
-import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock } from 'lucide-react';
+import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota, ICliente } from '../types';
+import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock, Mail } from 'lucide-react';
 import { SeletorRota } from '../components/Rotas/SeletorRota';
+import { SeletorCliente, ClienteFretamento } from '../components/Selectors/SeletorCliente';
 
 // Mock data - Em produção, viriam de API
-const MOCK_CLIENTES: IClienteCorporativo[] = [
+const MOCK_CLIENTES: ClienteFretamento[] = [
     {
         id: '1',
         razao_social: 'Tech Solutions Ltda',
@@ -21,11 +22,30 @@ const MOCK_CLIENTES: IClienteCorporativo[] = [
         razao_social: 'Construtora ABC S/A',
         cnpj: '98.765.432/0001-10',
         contato_nome: 'Ana Paula Costa',
-        contato_email: 'ana@constru torabc.com',
+        contato_email: 'ana@construtorabc.com',
         contato_telefone: '(11) 4444-5555',
         credito_disponivel: 100000,
         dia_vencimento_fatura: 15
-    }
+    },
+    {
+        id: '3',
+        nome: 'João da Silva',
+        email: 'joao.silva@email.com',
+        documento_numero: '123.456.789-00',
+        documento_tipo: 'CPF',
+        nacionalidade: 'Brasileira',
+        pais: 'Brasil',
+        segmento: 'REGULAR',
+        tags: [],
+        valor_total_gasto: 0,
+        saldo_creditos: 0,
+        historico_viagens: 0,
+        data_cadastro: new Date().toISOString(),
+        telefone: '(11) 99999-9999',
+        endereco: 'Rua das Flores, 123',
+        cidade: 'São Paulo',
+        estado: 'SP'
+    } as ICliente
 ];
 
 const MOCK_VEICULOS: IVeiculo[] = [
@@ -372,21 +392,11 @@ export const NovoFretamento: React.FC = () => {
 
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Selecione o Cliente *
-                            </label>
-                            <select
-                                value={clienteId}
-                                onChange={(e) => setClienteId(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">-- Selecione um cliente --</option>
-                                {MOCK_CLIENTES.map((cliente) => (
-                                    <option key={cliente.id} value={cliente.id}>
-                                        {cliente.razao_social} - CNPJ: {cliente.cnpj}
-                                    </option>
-                                ))}
-                            </select>
+                            <SeletorCliente
+                                clientes={MOCK_CLIENTES}
+                                clienteSelecionado={clienteSelecionado}
+                                onSelecionarCliente={(cliente) => setClienteId(cliente?.id || '')}
+                            />
                         </div>
 
                         {clienteSelecionado && (
@@ -394,19 +404,25 @@ export const NovoFretamento: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                                     <div>
                                         <p className="text-slate-600 dark:text-slate-400 mb-1">Contato</p>
-                                        <p className="font-semibold text-slate-800 dark:text-white">{clienteSelecionado.contato_nome}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{clienteSelecionado.contato_email}</p>
+                                        <p className="font-semibold text-slate-800 dark:text-white">
+                                            {'contato_nome' in clienteSelecionado ? clienteSelecionado.contato_nome : clienteSelecionado.nome}
+                                        </p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            {'contato_email' in clienteSelecionado ? clienteSelecionado.contato_email : clienteSelecionado.email}
+                                        </p>
                                     </div>
                                     <div>
                                         <p className="text-slate-600 dark:text-slate-400 mb-1">Telefone</p>
-                                        <p className="font-semibold text-slate-800 dark:text-white">{clienteSelecionado.contato_telefone}</p>
+                                        <p className="font-semibold text-slate-800 dark:text-white">
+                                            {'contato_telefone' in clienteSelecionado ? clienteSelecionado.contato_telefone : clienteSelecionado.telefone || '-'}
+                                        </p>
                                     </div>
                                     <div>
                                         <p className="text-slate-600 dark:text-slate-400 mb-1">Crédito Disponível</p>
                                         <div className="flex items-center gap-1">
                                             <DollarSign size={16} className="text-green-600" />
                                             <p className="font-bold text-green-600 dark:text-green-400">
-                                                R$ {clienteSelecionado.credito_disponivel.toLocaleString('pt-BR')}
+                                                R$ {('credito_disponivel' in clienteSelecionado ? clienteSelecionado.credito_disponivel : (clienteSelecionado as ICliente).saldo_creditos || 0).toLocaleString('pt-BR')}
                                             </p>
                                         </div>
                                     </div>

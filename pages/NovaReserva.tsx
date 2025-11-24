@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IViagem, IVeiculo, ICliente, IPassageiroReserva, Moeda, TipoAssento, TipoDocumento } from '../types';
-import { SeletorViagem } from '../components/Reservas/SeletorViagem';
-import { SeletorPassageiro } from '../components/Reservas/SeletorPassageiro';
-import { MapaAssentosReserva } from '../components/Reservas/MapaAssentosReserva';
+import { SeletorViagem } from '../components/Selectors/SeletorViagem';
+import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
+import { MapaAssentosReserva } from '../components/Veiculos/MapaAssentosReserva';
 import { MOCK_VIAGENS } from './Viagens';
 import { Calendar, MapPin, CreditCard, ArrowRight, ArrowLeft, Check, Users, X } from 'lucide-react';
 

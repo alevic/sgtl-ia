@@ -46,36 +46,32 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                         type="text"
                         placeholder="Buscar por origem, destino ou título..."
                         value={busca}
-                        onChange={(e) => setBusca(e.target.value)}
+                        onChange={e => setBusca(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
-
                 <div className="flex gap-2">
                     <button
                         onClick={() => setFiltroStatus('TODOS')}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filtroStatus === 'TODOS'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
-                            }`}
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
                         Todas
                     </button>
                     <button
                         onClick={() => setFiltroStatus('AGENDADA')}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filtroStatus === 'AGENDADA'
-                                ? 'bg-yellow-600 text-white'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
-                            }`}
+                            ? 'bg-yellow-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
                         Agendadas
                     </button>
                     <button
                         onClick={() => setFiltroStatus('CONFIRMADA')}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filtroStatus === 'CONFIRMADA'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
-                            }`}
+                            ? 'bg-green-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
                         Confirmadas
                     </button>
@@ -86,9 +82,7 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
             {viagemSelecionada && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">
-                            Viagem Selecionada
-                        </span>
+                        <span className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Viagem Selecionada</span>
                         <Check size={20} className="text-blue-600 dark:text-blue-400" />
                     </div>
                     <h4 className="font-bold text-slate-800 dark:text-white mb-2">{viagemSelecionada.titulo}</h4>
@@ -120,7 +114,7 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                             <p>Nenhuma viagem disponível</p>
                         </div>
                     ) : (
-                        viagensFiltradas.map((viagem) => (
+                        viagensFiltradas.map(viagem => (
                             <button
                                 key={viagem.id}
                                 onClick={() => onChange(viagem)}
@@ -128,23 +122,15 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                             >
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex-1">
-                                        <h4 className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                            {viagem.titulo}
-                                        </h4>
+                                        <h4 className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{viagem.titulo}</h4>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className={`px-2 py-0.5 rounded text-xs font-semibold ${viagem.status === 'CONFIRMADA'
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                                }`}>
-                                                {viagem.status}
-                                            </span>
-                                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded">
-                                                {viagem.tipo_viagem === 'IDA_E_VOLTA' ? 'Ida e Volta' : viagem.tipo_viagem}
-                                            </span>
+                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>{viagem.status}</span>
+                                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded">{viagem.tipo_viagem === 'IDA_E_VOLTA' ? 'Ida e Volta' : viagem.tipo_viagem}</span>
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
                                     <div className="flex items-center gap-1">
                                         <MapPin size={14} className="text-green-600" />

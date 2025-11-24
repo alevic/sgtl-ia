@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { IVeiculo, VeiculoStatus } from '../types';
-import { MapaAssentos } from '../components/MapaAssentos';
+import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,
     Bus, Truck, Gauge, Calendar, Edit, CheckCircle

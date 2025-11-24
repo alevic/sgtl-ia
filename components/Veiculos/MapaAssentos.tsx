@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../types';
+import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../../types';
 import { Plus, X, Bus as BusIcon, Save, PaintBucket, Type, MousePointer2 } from 'lucide-react';
 
 interface MapaAssentosProps {
@@ -286,8 +286,8 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                             <button
                                 onClick={() => setEditMode('NUMBER')}
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'NUMBER'
-                                        ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                     }`}
                             >
                                 <Type size={16} />
@@ -296,8 +296,8 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                             <button
                                 onClick={() => setEditMode('TYPE')}
                                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'TYPE'
-                                        ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                    ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                     }`}
                             >
                                 <PaintBucket size={16} />
@@ -315,8 +315,8 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                                         key={tipo}
                                         onClick={() => setSelectedType(tipo)}
                                         className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${selectedType === tipo
-                                                ? 'ring-2 ring-blue-500 ring-offset-2 ' + SEAT_COLORS[tipo]
-                                                : 'hover:bg-slate-50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-600'
+                                            ? 'ring-2 ring-blue-500 ring-offset-2 ' + SEAT_COLORS[tipo]
+                                            : 'hover:bg-slate-50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-600'
                                             }`}
                                     >
                                         <div className={`w-3 h-3 rounded-full border border-slate-300 ${SEAT_COLORS[tipo].split(' ')[0]}`} />

@@ -5,7 +5,7 @@ import {
     ArrowLeft, Bus, Save, DollarSign, Image, Route, Clock, MapPin, Users, X, Plus, Calendar
 } from 'lucide-react';
 import { SeletorRota } from '../components/Rotas/SeletorRota';
-import { SeletorMultiplo } from '../components/Motoristas/SeletorMultiplo';
+import { SeletorMotoristaMultiplo } from '../components/Selectors/SeletorMotoristaMultiplo';
 import { calcularCamposViagem } from '../utils/rotaValidation';
 
 const MOCK_VEICULOS = [
@@ -784,7 +784,7 @@ export const NovaViagem: React.FC = () => {
                             Motoristas
                         </h3>
 
-                        <SeletorMultiplo
+                        <SeletorMotoristaMultiplo
                             motoristas={MOCK_MOTORISTAS}
                             selecionados={motoristaIds}
                             onChange={setMotoristaIds}
