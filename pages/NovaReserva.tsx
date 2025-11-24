@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { IViagem, IVeiculo, ICliente, IPassageiroReserva, Moeda, TipoAssento, TipoDocumento } from '../types';
 import { SeletorViagem } from '../components/Reservas/SeletorViagem';
 import { SeletorPassageiro } from '../components/Reservas/SeletorPassageiro';
@@ -175,12 +176,22 @@ export const NovaReserva: React.FC = () => {
     return cliente?.nome || 'Cliente não encontrado';
   };
 
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Nova Reserva</h1>
-        <p className="text-slate-500 dark:text-slate-400">Crie uma reserva para múltiplos passageiros</p>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate('/admin/reservas')}
+          className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+        >
+          <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Nova Reserva</h1>
+          <p className="text-slate-500 dark:text-slate-400">Crie uma reserva para múltiplos passageiros</p>
+        </div>
       </div>
 
       {/* Stepper */}
