@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { IFretamento, IClienteCorporativo, Moeda } from '../types';
 import { Bus, Building2, Calendar, DollarSign, FileText, CheckCircle } from 'lucide-react';
 
@@ -66,6 +67,7 @@ const StatusBadge: React.FC<{ status: IFretamento['status'] }> = ({ status }) =>
 };
 
 export const Fretamento: React.FC = () => {
+    const navigate = useNavigate();
     const [fretamentos] = useState<IFretamento[]>(MOCK_FRETAMENTOS);
     const [clientes] = useState<IClienteCorporativo[]>(MOCK_CLIENTES);
 
@@ -80,7 +82,10 @@ export const Fretamento: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Fretamento B2B</h1>
                     <p className="text-slate-500 dark:text-slate-400">Gestão de aluguel de frota para empresas</p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                <button
+                    onClick={() => navigate('/admin/fretamento/novo')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
                     <FileText size={18} />
                     Nova Solicitação
                 </button>
