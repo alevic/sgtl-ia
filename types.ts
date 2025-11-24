@@ -51,6 +51,51 @@ export enum TipoAssento {
   CAMA_MASTER = 'CAMA_MASTER'
 }
 
+// ===== FINANCIAL ENUMS =====
+export enum TipoTransacao {
+  RECEITA = 'RECEITA',
+  DESPESA = 'DESPESA',
+  TRANSFERENCIA = 'TRANSFERENCIA'
+}
+
+export enum CategoriaReceita {
+  VENDA_PASSAGEM = 'VENDA_PASSAGEM',
+  FRETAMENTO = 'FRETAMENTO',
+  ENCOMENDA = 'ENCOMENDA',
+  OUTROS = 'OUTROS'
+}
+
+export enum CategoriaDespesa {
+  COMBUSTIVEL = 'COMBUSTIVEL',
+  MANUTENCAO = 'MANUTENCAO',
+  PECAS = 'PECAS',
+  SALARIOS = 'SALARIOS',
+  FOLHA_PAGAMENTO = 'FOLHA_PAGAMENTO',
+  IMPOSTOS = 'IMPOSTOS',
+  PEDAGIO = 'PEDAGIO',
+  SEGURO = 'SEGURO',
+  ALUGUEL = 'ALUGUEL',
+  OUTROS = 'OUTROS'
+}
+
+export enum StatusTransacao {
+  PENDENTE = 'PENDENTE',
+  PAGA = 'PAGA',
+  VENCIDA = 'VENCIDA',
+  CANCELADA = 'CANCELADA',
+  PARCIALMENTE_PAGA = 'PARCIALMENTE_PAGA'
+}
+
+export enum FormaPagamento {
+  DINHEIRO = 'DINHEIRO',
+  CARTAO_CREDITO = 'CARTAO_CREDITO',
+  CARTAO_DEBITO = 'CARTAO_DEBITO',
+  PIX = 'PIX',
+  BOLETO = 'BOLETO',
+  TRANSFERENCIA = 'TRANSFERENCIA',
+  CHEQUE = 'CHEQUE'
+}
+
 export interface IEmpresa {
   id: string;
   nome_fantasia: string;
@@ -98,25 +143,21 @@ export interface IMotorista {
   // Contatos
   telefone?: string;
   email?: string;
-  telefone_emergencia?: string;
-  contato_emergencia_nome?: string;
-  contato_emergencia_relacao?: string; // Ex: "Esposa", "Pai", "Irmão"
 
   // Endereço
   endereco?: string;
   cidade?: string;
   estado?: string;
-  cep?: string;
   pais?: string;
 
-  // Status e Disponibilidade
-  status: 'DISPONIVEL' | 'EM_VIAGEM' | 'FERIAS' | 'AFASTADO';
+  // Status e disponibilidade
+  status: 'DISPONIVEL' | 'EM_VIAGEM' | 'FOLGA' | 'AFASTADO';
+  data_contratacao: string; // ISO Date
+  salario?: number;
 
-  // Informações para Escalas e Gestão
-  data_admissao?: string; // ISO Date
-  jornada_trabalho?: 'DIURNA' | 'NOTURNA' | 'MISTA' | 'FLEXIVEL';
-  horas_semanais?: number; // Ex: 44, 40
-  disponivel_viagens_longas?: boolean;
+  // Experiência
+  anos_experiencia?: number;
+  viagens_internacionais?: number;
   disponivel_internacional?: boolean;
 
   // Observações
@@ -357,4 +398,114 @@ export interface IManutencao {
   responsavel?: string;
   observacoes?: string;
   anexos?: string[];
+}
+
+// ===== FINANCIAL INTERFACES =====
+
+export interface ITransacao {
+  id: string;
+  tipo: TipoTransacao;
+  descricao: string;
+  valor: number;
+  moeda: Moeda;
+  data_emissao: string; // ISO Date
+  data_vencimento: string; // ISO Date
+  data_pagamento?: string; // ISO Date
+  status: StatusTransacao;
+  forma_pagamento?: FormaPagamento;
+
+  // Categorização
+  categoria_receita?: CategoriaReceita;
+  categoria_despesa?: CategoriaDespesa;
+
+  // Referências
+  cliente_id?: string;
+  fornecedor_id?: string;
+  viagem_id?: string;
+  reserva_id?: string;
+  manutencao_id?: string;
+  fretamento_id?: string;
+
+  // Dados adicionais
+  numero_documento?: string;
+  observacoes?: string;
+  anexos?: string[];
+  centro_custo?: string;
+
+  // Parcelas (se aplicável)
+  parcela_atual?: number;
+  total_parcelas?: number;
+
+  // Auditoria
+  criado_por: string;
+  criado_em: string; // ISO Date
+  atualizado_em?: string; // ISO Date
+}
+
+export interface IContaPagar {
+  id: string;
+  fornecedor: string;
+  descricao: string;
+  valor_total: number;
+  valor_pago: number;
+  moeda: Moeda;
+  data_emissao: string;
+  data_vencimento: string;
+  status: StatusTransacao;
+  categoria: CategoriaDespesa;
+  numero_documento?: string;
+  observacoes?: string;
+  anexos?: string[];
+}
+
+export interface IContaReceber {
+  id: string;
+  cliente_nome: string;
+  cliente_id?: string;
+  descricao: string;
+  valor_total: number;
+  valor_recebido: number;
+  moeda: Moeda;
+  data_emissao: string;
+  data_vencimento: string;
+  status: StatusTransacao;
+  categoria: CategoriaReceita;
+  numero_documento?: string;
+  observacoes?: string;
+}
+
+export interface IFatura {
+  id: string;
+  numero: string;
+  cliente_id: string;
+  cliente_nome: string;
+  data_emissao: string;
+  data_vencimento: string;
+  valor_total: number;
+  valor_pago: number;
+  moeda: Moeda;
+  status: StatusTransacao;
+  itens: IItemFatura[];
+  observacoes?: string;
+}
+
+export interface IItemFatura {
+  id: string;
+  descricao: string;
+  quantidade: number;
+  valor_unitario: number;
+  valor_total: number;
+  referencia_id?: string; // ID da reserva, fretamento, etc.
+  referencia_tipo?: 'RESERVA' | 'FRETAMENTO' | 'ENCOMENDA';
+}
+
+export interface IRelatorioFinanceiro {
+  periodo_inicio: string;
+  periodo_fim: string;
+  total_receitas: number;
+  total_despesas: number;
+  saldo: number;
+  moeda: Moeda;
+  receitas_por_categoria: Record<CategoriaReceita, number>;
+  despesas_por_categoria: Record<CategoriaDespesa, number>;
 }
