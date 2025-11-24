@@ -87,12 +87,40 @@ export interface IVeiculo {
 export interface IMotorista {
   id: string;
   nome: string;
+
+  // Documentação
   cnh: string;
   categoria_cnh: string;
   validade_cnh: string; // ISO Date
   passaporte?: string;
   validade_passaporte?: string; // ISO Date
+
+  // Contatos
+  telefone?: string;
+  email?: string;
+  telefone_emergencia?: string;
+  contato_emergencia_nome?: string;
+  contato_emergencia_relacao?: string; // Ex: "Esposa", "Pai", "Irmão"
+
+  // Endereço
+  endereco?: string;
+  cidade?: string;
+  estado?: string;
+  cep?: string;
+  pais?: string;
+
+  // Status e Disponibilidade
   status: 'DISPONIVEL' | 'EM_VIAGEM' | 'FERIAS' | 'AFASTADO';
+
+  // Informações para Escalas e Gestão
+  data_admissao?: string; // ISO Date
+  jornada_trabalho?: 'DIURNA' | 'NOTURNA' | 'MISTA' | 'FLEXIVEL';
+  horas_semanais?: number; // Ex: 44, 40
+  disponivel_viagens_longas?: boolean;
+  disponivel_internacional?: boolean;
+
+  // Observações
+  observacoes?: string;
 }
 
 export interface ICliente {
@@ -228,7 +256,7 @@ export interface IReserva {
   moeda: Moeda;
   forma_pagamento?: 'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO';
   observacoes?: string;
-  
+
   // @deprecated - Campos mantidos para compatibilidade
   cliente_id?: string;
   assento_numero?: string;

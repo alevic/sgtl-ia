@@ -6,6 +6,7 @@ import { Header } from './components/Layout/Header';
 import { Dashboard } from './pages/Dashboard';
 import { NovaReserva } from './pages/NovaReserva';
 import { Motoristas } from './pages/Motoristas';
+import { NovoMotorista } from './pages/NovoMotorista';
 import { Encomendas } from './pages/Encomendas';
 import { Fretamento } from './pages/Fretamento';
 import { Reservas } from './pages/Reservas';
@@ -59,6 +60,7 @@ const App: React.FC = () => {
                 <Route path="reservas" element={<Reservas />} />
                 <Route path="reservas/nova" element={<NovaReserva />} />
                 <Route path="motoristas" element={<Motoristas />} />
+                <Route path="motoristas/novo" element={<NovoMotorista />} />
                 <Route path="encomendas" element={<Encomendas />} />
                 <Route path="fretamento" element={<Fretamento />} />
                 <Route path="clientes" element={<CRM />} />

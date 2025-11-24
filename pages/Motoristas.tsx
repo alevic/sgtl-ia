@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { IMotorista } from '../types';
 import { User, Calendar, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 
@@ -53,6 +54,7 @@ const StatusBadge: React.FC<{ status: IMotorista['status'] }> = ({ status }) => 
 };
 
 export const Motoristas: React.FC = () => {
+    const navigate = useNavigate();
     const [motoristas] = useState<IMotorista[]>(MOCK_MOTORISTAS);
 
     const verificarValidade = (dataValidade: string) => {
@@ -72,7 +74,10 @@ export const Motoristas: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Motoristas</h1>
                     <p className="text-slate-500 dark:text-slate-400">Gestão de motoristas e documentação</p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                <button
+                    onClick={() => navigate('/admin/motoristas/novo')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
                     <User size={18} />
                     Novo Motorista
                 </button>
