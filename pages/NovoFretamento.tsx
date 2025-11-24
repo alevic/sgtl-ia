@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota } from '../types';
-import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign } from 'lucide-react';
+import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock } from 'lucide-react';
 import { SeletorRota } from '../components/Rotas/SeletorRota';
 
 // Mock data - Em produção, viriam de API
@@ -193,6 +193,7 @@ export const NovoFretamento: React.FC = () => {
     const [rotaSelecionada, setRotaSelecionada] = useState<IRota | null>(null);
     const [temRotaVolta, setTemRotaVolta] = useState(false);
     const [rotaVoltaSelecionada, setRotaVoltaSelecionada] = useState<IRota | null>(null);
+    const [abaRotaAtiva, setAbaRotaAtiva] = useState<'IDA' | 'VOLTA'>('IDA');
     const [dataInicio, setDataInicio] = useState('');
     const [horaInicio, setHoraInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
@@ -204,6 +205,72 @@ export const NovoFretamento: React.FC = () => {
     const clienteSelecionado = MOCK_CLIENTES.find(c => c.id === clienteId);
     const veiculoSelecionado = MOCK_VEICULOS.find(v => v.id === veiculoId);
     const motoristaSelecionado = MOCK_MOTORISTAS.find(m => m.id === motoristaId);
+
+    const formatarDataHora = (isoDate?: string) => {
+        if (!isoDate) return '--';
+        const data = new Date(isoDate);
+        return data.toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    // Campos calculados automaticamente das rotas (Resumo)
+    const resumoViagem = useMemo(() => {
+        // Se tem rota de volta, precisamos de ambas
+        if (temRotaVolta) {
+            if (!rotaSelecionada || !rotaVoltaSelecionada) {
+                // Se ainda não selecionou ambas, mostra parcial se tiver ida
+                if (rotaSelecionada) {
+                    const origem = rotaSelecionada.pontos[0];
+                    const destino = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1];
+                    const numParadas = rotaSelecionada.pontos.length - 2;
+
+                    return {
+                        origem: origem.nome || '(não definido)',
+                        destino: destino.nome || '(não definido)',
+                        dataPartida: origem.horario_partida,
+                        dataChegada: destino.horario_chegada,
+                        dataRetorno: null,
+                        horaRetorno: null,
+                        numParadas,
+                        incompleto: 'Selecione também a rota de volta'
+                    };
+                }
+                return null;
+            }
+
+            // Ambas selecionadas: combinar informações
+            const origemIda = rotaSelecionada.pontos[0];
+            const destinoIda = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1];
+            const destinoVolta = rotaVoltaSelecionada.pontos[rotaVoltaSelecionada.pontos.length - 1];
+            const numParadasIda = rotaSelecionada.pontos.length - 2;
+            const numParadasVolta = rotaVoltaSelecionada.pontos.length - 2;
+
+            return {
+                origem: origemIda.nome || '(não definido)',
+                destino: destinoIda.nome || '(não definido)',
+                dataPartida: origemIda.horario_partida,
+                dataChegada: destinoIda.horario_chegada,
+                dataRetorno: rotaVoltaSelecionada.pontos[0].horario_partida,
+                horaRetorno: destinoVolta.horario_chegada,
+                numParadas: numParadasIda + numParadasVolta,
+                numParadasIda,
+                numParadasVolta
+            };
+        }
+
+        // Apenas Ida
+        if (!rotaSelecionada || rotaSelecionada.pontos.length < 2) {
+            return null;
+        }
+
+        const origem = rotaSelecionada.pontos[0];
+        const destino = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1];
+    }, [rotaSelecionada, rotaVoltaSelecionada, temRotaVolta]);
 
     const calcularDuracao = () => {
         if (!dataInicio || !dataFim) return '';
@@ -404,52 +471,187 @@ export const NovoFretamento: React.FC = () => {
                         Rota e Localização
                     </h3>
 
-                    <div className="space-y-6">
-                        <div>
-                            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rota de Ida</h4>
-                            <SeletorRota
-                                rotas={MOCK_ROTAS}
-                                tipoFiltro="IDA"
-                                rotaSelecionada={rotaSelecionada}
-                                onChange={setRotaSelecionada}
-                            />
-                        </div>
+                    {/* Resumo da Viagem (Calculado) */}
+                    {resumoViagem && (
+                        <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-800 p-6">
+                            <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                                <Route size={20} className="text-blue-600" />
+                                Resumo da Viagem (calculado das rotas)
+                            </h3>
 
-                        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                            <label className="flex items-center gap-2 mb-4 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={temRotaVolta}
-                                    onChange={(e) => {
-                                        setTemRotaVolta(e.target.checked);
-                                        if (!e.target.checked) setRotaVoltaSelecionada(null);
-                                    }}
-                                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
-                                />
-                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Incluir Rota de Volta
-                                </span>
-                            </label>
-
-                            {temRotaVolta && (
-                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rota de Volta</h4>
-                                    <SeletorRota
-                                        rotas={MOCK_ROTAS}
-                                        tipoFiltro="VOLTA"
-                                        rotaSelecionada={rotaVoltaSelecionada}
-                                        onChange={setRotaVoltaSelecionada}
-                                    />
+                            {/* Mensagem de incompleto */}
+                            {(resumoViagem as any).incompleto && (
+                                <div className="mb-4 p-3 bg-amber-100 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-lg">
+                                    <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                                        ⚠️ {(resumoViagem as any).incompleto}
+                                    </p>
                                 </div>
                             )}
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Origem</p>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-200">{resumoViagem.origem}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Destino</p>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-200">{resumoViagem.destino}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                        <Calendar size={14} />
+                                        Partida (Ida)
+                                    </p>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-200">
+                                        {formatarDataHora(resumoViagem.dataPartida)}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                        <Clock size={14} />
+                                        Chegada (Ida)
+                                    </p>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-200">
+                                        {formatarDataHora(resumoViagem.dataChegada)}
+                                    </p>
+                                </div>
+
+                                {/* Informações de retorno (se houver) */}
+                                {resumoViagem.dataRetorno && (
+                                    <>
+                                        <div>
+                                            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                                <Calendar size={14} />
+                                                Partida (Volta)
+                                            </p>
+                                            <p className="font-semibold text-green-700 dark:text-green-400">
+                                                {formatarDataHora(resumoViagem.dataRetorno)}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                                <Clock size={14} />
+                                                Chegada (Volta)
+                                            </p>
+                                            <p className="font-semibold text-green-700 dark:text-green-400">
+                                                {formatarDataHora(resumoViagem.horaRetorno)}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
+                                {(resumoViagem as any).numParadasIda !== undefined ? (
+                                    // Detalhamento para ida e volta
+                                    <div className="space-y-1">
+                                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                                            <strong>{(resumoViagem as any).numParadasIda}</strong> parada{(resumoViagem as any).numParadasIda !== 1 ? 's' : ''} na ida
+                                            {' • '}
+                                            <strong>{(resumoViagem as any).numParadasVolta}</strong> parada{(resumoViagem as any).numParadasVolta !== 1 ? 's' : ''} na volta
+                                        </p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-500">
+                                            Total: <strong>{resumoViagem.numParadas}</strong> paradas intermediárias
+                                        </p>
+                                    </div>
+                                ) : (
+                                    // Simples para ida ou volta apenas
+                                    <p className="text-sm text-slate-600 dark:text-slate-400">
+                                        <strong>{resumoViagem.numParadas}</strong> parada{resumoViagem.numParadas !== 1 ? 's' : ''} intermediária{resumoViagem.numParadas !== 1 ? 's' : ''}
+                                    </p>
+                                )}
+                            </div>
                         </div>
+                    )}
+
+                    {/* Seleção de Sentido (Radio Buttons) */}
+                    <div className="mb-6">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Sentido da Viagem
+                        </label>
+                        <div className="flex gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="sentido"
+                                    checked={!temRotaVolta}
+                                    onChange={() => {
+                                        setTemRotaVolta(false);
+                                        setAbaRotaAtiva('IDA');
+                                        setRotaVoltaSelecionada(null);
+                                    }}
+                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-slate-700 dark:text-slate-300">Somente Ida</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="sentido"
+                                    checked={temRotaVolta}
+                                    onChange={() => {
+                                        setTemRotaVolta(true);
+                                    }}
+                                    className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="text-slate-700 dark:text-slate-300">Ida e Volta</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 mb-6">
+                        <button
+                            onClick={() => setAbaRotaAtiva('IDA')}
+                            className={`px-4 py-2 font-medium transition-colors border-b-2 ${abaRotaAtiva === 'IDA'
+                                ? 'border-green-600 text-green-600 dark:text-green-400'
+                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            Rota de Ida
+                        </button>
+                        {temRotaVolta && (
+                            <button
+                                onClick={() => setAbaRotaAtiva('VOLTA')}
+                                className={`px-4 py-2 font-medium transition-colors border-b-2 ${abaRotaAtiva === 'VOLTA'
+                                    ? 'border-orange-600 text-orange-600 dark:text-orange-400'
+                                    : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                    }`}
+                            >
+                                Rota de Volta
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Seletor de Rota (Condicional) */}
+                    <div>
+                        {abaRotaAtiva === 'IDA' && (
+                            <div className="animate-in fade-in duration-300">
+                                <SeletorRota
+                                    rotas={MOCK_ROTAS}
+                                    tipoFiltro="IDA"
+                                    rotaSelecionada={rotaSelecionada}
+                                    onChange={setRotaSelecionada}
+                                />
+                            </div>
+                        )}
+                        {abaRotaAtiva === 'VOLTA' && temRotaVolta && (
+                            <div className="animate-in fade-in duration-300">
+                                <SeletorRota
+                                    rotas={MOCK_ROTAS}
+                                    tipoFiltro="VOLTA"
+                                    rotaSelecionada={rotaVoltaSelecionada}
+                                    onChange={setRotaVoltaSelecionada}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Veículo e Motorista */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                     <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <Bus size={20} className="text-purple-600" />
+                        <Bus size={20} className="text-blue-600" />
                         Veículo e Motorista
                     </h3>
 
@@ -515,7 +717,6 @@ export const NovoFretamento: React.FC = () => {
                         Período
                     </h3>
 
-
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-4">
                             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -579,7 +780,6 @@ export const NovoFretamento: React.FC = () => {
                         </div>
                     </div>
 
-
                     {dataInicio && dataFim && (
                         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                             <p className="text-sm text-blue-700 dark:text-blue-300">
@@ -593,7 +793,7 @@ export const NovoFretamento: React.FC = () => {
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                     <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                         <FileText size={20} className="text-slate-600" />
-                        Detalhes e Observ ações
+                        Detalhes e Observações
                     </h3>
 
                     <div>
