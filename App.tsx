@@ -15,8 +15,7 @@ import { NovoCliente } from './pages/NovoCliente';
 import { Viagens } from './pages/Viagens';
 import { NovaViagem } from './pages/NovaViagem';
 import { ViagemDetalhes } from './pages/ViagemDetalhes';
-import { ParadasIntermediarias } from './pages/ParadasIntermediarias';
-import { NovaParada } from './pages/NovaParada';
+
 import { Frota } from './pages/Frota';
 import { NovoVeiculo } from './pages/NovoVeiculo';
 import { VeiculoDetalhes } from './pages/VeiculoDetalhes';
@@ -56,8 +55,7 @@ const App: React.FC = () => {
                 <Route path="viagens" element={<Viagens />} />
                 <Route path="viagens/nova" element={<NovaViagem />} />
                 <Route path="viagens/:id" element={<ViagemDetalhes />} />
-                <Route path="paradas" element={<ParadasIntermediarias />} />
-                <Route path="paradas/nova" element={<NovaParada />} />
+
                 <Route path="reservas" element={<Reservas />} />
                 <Route path="reservas/nova" element={<NovaReserva />} />
                 <Route path="motoristas" element={<Motoristas />} />
