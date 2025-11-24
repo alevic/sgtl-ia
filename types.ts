@@ -318,6 +318,8 @@ export interface IFretamento {
   data_inicio: string; // ISO Date
   data_fim: string; // ISO Date
   tipo: 'PONTUAL' | 'RECORRENTE';
+  rota_ida_id?: string;
+  rota_volta_id?: string;
   status: 'SOLICITACAO' | 'ORCAMENTO_ENVIADO' | 'CONFIRMADO' | 'EM_ANDAMENTO' | 'CONCLUIDO' | 'CANCELADO';
   valor_total: number;
   moeda: Moeda;

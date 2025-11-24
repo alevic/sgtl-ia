@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus } from '../types';
+import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota } from '../types';
 import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign } from 'lucide-react';
+import { SeletorRota } from '../components/Rotas/SeletorRota';
 
 // Mock data - Em produção, viriam de API
 const MOCK_CLIENTES: IClienteCorporativo[] = [
@@ -67,14 +68,131 @@ const MOCK_MOTORISTAS: IMotorista[] = [
     }
 ];
 
+// Mock de rotas disponíveis
+const MOCK_ROTAS: IRota[] = [
+    {
+        id: 'R001',
+        nome: 'São Paulo → Campinas',
+        tipo_rota: 'IDA',
+        ativa: true,
+        pontos: [
+            {
+                id: 'P1',
+                nome: 'São Paulo, SP',
+                ordem: 0,
+                tipo: 'ORIGEM',
+                horario_partida: '2024-01-15T07:00:00',
+                permite_embarque: true,
+                permite_desembarque: false
+            },
+            {
+                id: 'P2',
+                nome: 'Campinas, SP',
+                ordem: 1,
+                tipo: 'DESTINO',
+                horario_chegada: '2024-01-15T09:00:00',
+                permite_embarque: false,
+                permite_desembarque: true
+            }
+        ],
+        duracao_estimada_minutos: 120,
+        distancia_total_km: 100
+    },
+    {
+        id: 'R002',
+        nome: 'São Paulo → Santos',
+        tipo_rota: 'IDA',
+        ativa: true,
+        pontos: [
+            {
+                id: 'P3',
+                nome: 'São Paulo, SP',
+                ordem: 0,
+                tipo: 'ORIGEM',
+                horario_partida: '2024-01-15T08:00:00',
+                permite_embarque: true,
+                permite_desembarque: false
+            },
+            {
+                id: 'P4',
+                nome: 'Santos, SP',
+                ordem: 1,
+                tipo: 'DESTINO',
+                horario_chegada: '2024-01-15T09:30:00',
+                permite_embarque: false,
+                permite_desembarque: true
+            }
+        ],
+        duracao_estimada_minutos: 90,
+        distancia_total_km: 75
+    },
+    {
+        id: 'R003',
+        nome: 'São Paulo → Rio de Janeiro',
+        tipo_rota: 'IDA',
+        ativa: true,
+        pontos: [
+            {
+                id: 'P5',
+                nome: 'São Paulo, SP',
+                ordem: 0,
+                tipo: 'ORIGEM',
+                horario_partida: '2024-01-15T22:00:00',
+                permite_embarque: true,
+                permite_desembarque: false
+            },
+            {
+                id: 'P6',
+                nome: 'Rio de Janeiro, RJ',
+                ordem: 1,
+                tipo: 'DESTINO',
+                horario_chegada: '2024-01-16T04:00:00',
+                permite_embarque: false,
+                permite_desembarque: true
+            }
+        ],
+        duracao_estimada_minutos: 360,
+        distancia_total_km: 430
+    },
+    {
+        id: 'R004',
+        nome: 'Campinas → São Paulo',
+        tipo_rota: 'VOLTA',
+        ativa: true,
+        pontos: [
+            {
+                id: 'P7',
+                nome: 'Campinas, SP',
+                ordem: 0,
+                tipo: 'ORIGEM',
+                horario_partida: '2024-01-15T18:00:00',
+                permite_embarque: true,
+                permite_desembarque: false
+            },
+            {
+                id: 'P8',
+                nome: 'São Paulo, SP',
+                ordem: 1,
+                tipo: 'DESTINO',
+                horario_chegada: '2024-01-15T20:00:00',
+                permite_embarque: false,
+                permite_desembarque: true
+            }
+        ],
+        duracao_estimada_minutos: 120,
+        distancia_total_km: 100
+    }
+];
+
 export const NovoFretamento: React.FC = () => {
     const navigate = useNavigate();
 
     // Estados do formulário
     const [clienteId, setClienteId] = useState('');
     const [tipo, setTipo] = useState<'PONTUAL' | 'RECORRENTE'>('PONTUAL');
-    const [origem, setOrigem] = useState('');
-    const [destino, setDestino] = useState('');
+    const [rotaSelecionada, setRotaSelecionada] = useState<IRota | null>(null);
+    const [temRotaVolta, setTemRotaVolta] = useState(false);
+    const [rotaVoltaSelecionada, setRotaVoltaSelecionada] = useState<IRota | null>(null);
     const [dataInicio, setDataInicio] = useState('');
     const [horaInicio, setHoraInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
@@ -107,12 +225,12 @@ export const NovoFretamento: React.FC = () => {
             alert('Selecione um cliente corporativo');
             return;
         }
-        if (!origem.trim()) {
-            alert('Informe a origem');
+        if (!rotaSelecionada) {
+            alert('Selecione uma rota de ida');
             return;
         }
-        if (!destino.trim()) {
-            alert('Informe o destino');
+        if (temRotaVolta && !rotaVoltaSelecionada) {
+            alert('Selecione uma rota de volta');
             return;
         }
         if (!dataInicio) {
@@ -128,6 +246,9 @@ export const NovoFretamento: React.FC = () => {
             return;
         }
 
+        const origem = rotaSelecionada.pontos[0]?.nome || '';
+        const destino = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1]?.nome || '';
+
         const fretamento = {
             id: `FRET-${Date.now()}`,
             cliente_corporativo_id: clienteId,
@@ -135,6 +256,8 @@ export const NovoFretamento: React.FC = () => {
             motorista_id: motoristaId || undefined,
             origem,
             destino,
+            rota_ida_id: rotaSelecionada.id,
+            rota_volta_id: temRotaVolta ? rotaVoltaSelecionada?.id : undefined,
             data_inicio: dataInicio + (horaInicio ? `T${horaInicio}:00` : 'T00:00:00'),
             data_fim: dataFim + (horaFim ? `T${horaFim}:00` : 'T23:59:59'),
             tipo,
@@ -281,31 +404,44 @@ export const NovoFretamento: React.FC = () => {
                         Rota e Localização
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Origem *
-                            </label>
-                            <input
-                                type="text"
-                                value={origem}
-                                onChange={(e) => setOrigem(e.target.value)}
-                                placeholder="Ex: São Paulo, SP"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rota de Ida</h4>
+                            <SeletorRota
+                                rotas={MOCK_ROTAS}
+                                tipoFiltro="IDA"
+                                rotaSelecionada={rotaSelecionada}
+                                onChange={setRotaSelecionada}
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Destino *
+                        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                            <label className="flex items-center gap-2 mb-4 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={temRotaVolta}
+                                    onChange={(e) => {
+                                        setTemRotaVolta(e.target.checked);
+                                        if (!e.target.checked) setRotaVoltaSelecionada(null);
+                                    }}
+                                    className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+                                />
+                                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    Incluir Rota de Volta
+                                </span>
                             </label>
-                            <input
-                                type="text"
-                                value={destino}
-                                onChange={(e) => setDestino(e.target.value)}
-                                placeholder="Ex: Campinas, SP"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
+
+                            {temRotaVolta && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rota de Volta</h4>
+                                    <SeletorRota
+                                        rotas={MOCK_ROTAS}
+                                        tipoFiltro="VOLTA"
+                                        rotaSelecionada={rotaVoltaSelecionada}
+                                        onChange={setRotaVoltaSelecionada}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
