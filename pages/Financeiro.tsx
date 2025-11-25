@@ -274,7 +274,7 @@ export const Financeiro: React.FC = () => {
                 </button>
 
                 <button
-                    onClick={() => navigate('/admin/financeiro/relatorios')}
+                    onClick={() => navigate('/admin/relatorios')}
                     className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
                 >
                     <div className="flex items-center gap-3">
