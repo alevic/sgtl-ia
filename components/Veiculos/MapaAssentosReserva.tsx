@@ -23,6 +23,46 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     // Verificar se tem preços configurados
     const temPrecos = Object.keys(precos).length > 0;
 
+    // Definição de estilos por tipo de assento
+    const SEAT_STYLES: Record<TipoAssento, { bg: string; border: string; text: string; label: string }> = {
+        [TipoAssento.CONVENCIONAL]: {
+            bg: 'bg-white dark:bg-slate-800',
+            border: 'border-slate-300 dark:border-slate-600',
+            text: 'text-slate-700 dark:text-slate-300',
+            label: 'Convencional'
+        },
+        [TipoAssento.EXECUTIVO]: {
+            bg: 'bg-blue-50 dark:bg-blue-900/20',
+            border: 'border-blue-300 dark:border-blue-700',
+            text: 'text-blue-700 dark:text-blue-300',
+            label: 'Executivo'
+        },
+        [TipoAssento.SEMI_LEITO]: {
+            bg: 'bg-cyan-50 dark:bg-cyan-900/20',
+            border: 'border-cyan-300 dark:border-cyan-700',
+            text: 'text-cyan-700 dark:text-cyan-300',
+            label: 'Semi-Leito'
+        },
+        [TipoAssento.LEITO]: {
+            bg: 'bg-purple-50 dark:bg-purple-900/20',
+            border: 'border-purple-300 dark:border-purple-700',
+            text: 'text-purple-700 dark:text-purple-300',
+            label: 'Leito'
+        },
+        [TipoAssento.CAMA]: {
+            bg: 'bg-indigo-50 dark:bg-indigo-900/20',
+            border: 'border-indigo-300 dark:border-indigo-700',
+            text: 'text-indigo-700 dark:text-indigo-300',
+            label: 'Cama'
+        },
+        [TipoAssento.CAMA_MASTER]: {
+            bg: 'bg-rose-50 dark:bg-rose-900/20',
+            border: 'border-rose-300 dark:border-rose-700',
+            text: 'text-rose-700 dark:text-rose-300',
+            label: 'Cama Master'
+        },
+    };
+
     const getPrecoAssento = (tipo: TipoAssento): number => {
         return precos[tipo] || 0;
     };
@@ -54,6 +94,9 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     };
 
     const assentosPorAndar = assentos.filter(a => a.andar === andarAtivo);
+
+    // Identificar tipos de assentos presentes neste andar para a legenda
+    const tiposPresentes = Array.from(new Set(assentosPorAndar.map(a => a.tipo)));
 
     // Organizar assentos em grid
     const maxY = Math.max(...assentosPorAndar.map(a => a.posicao_y), 0);
@@ -164,6 +207,8 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
 
                                     const assento = cell as IAssento;
                                     const status = getAssentoStatus(assento);
+                                    const style = SEAT_STYLES[assento.tipo];
+                                    const preco = getPrecoAssento(assento.tipo);
 
                                     // Estilos baseados no status
                                     let buttonClasses = "relative w-12 h-12 rounded-lg transition-all duration-200 border flex flex-col items-center justify-center ";
@@ -176,8 +221,9 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                                         buttonClasses += "bg-red-100 border-red-200 dark:bg-red-900/20 dark:border-red-800 cursor-not-allowed";
                                         textClasses += "text-red-400 dark:text-red-500";
                                     } else {
-                                        buttonClasses += "bg-white border-slate-300 hover:border-blue-400 hover:shadow-md cursor-pointer dark:bg-slate-800 dark:border-slate-600";
-                                        textClasses += "text-slate-700 dark:text-slate-300";
+                                        // Usa estilo específico do tipo
+                                        buttonClasses += `${style.bg} ${style.border} hover:border-blue-400 hover:shadow-md cursor-pointer`;
+                                        textClasses += style.text;
                                     }
 
                                     return (
@@ -186,6 +232,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                                             onClick={() => handleClickAssento(assento)}
                                             disabled={status === 'reservado'}
                                             className={buttonClasses}
+                                            title={`${style.label} - R$ ${preco.toFixed(2)}`}
                                         >
                                             <span className={textClasses}>
                                                 {assento.numero}
@@ -198,20 +245,30 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                     </div>
                 </div>
 
-                {/* Legenda */}
-                <div className="flex items-center justify-center gap-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                {/* Legenda Dinâmica */}
+                <div className="flex flex-wrap justify-center gap-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    {/* Status Básicos */}
                     <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded border border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-600"></div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Livre</span>
+                        <div className="w-3 h-3 rounded bg-blue-600 border border-blue-600"></div>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Selecionado</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-blue-600 border border-blue-600"></div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Selecionado</span>
+                        <div className="w-3 h-3 rounded bg-red-100 border border-red-200 dark:bg-red-900/20 dark:border-red-800"></div>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">Ocupado</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded bg-red-100 border border-red-200 dark:bg-red-900/20 dark:border-red-800"></div>
-                        <span className="text-xs text-slate-500 dark:text-slate-400">Ocupado</span>
-                    </div>
+
+                    {/* Tipos Presentes */}
+                    {tiposPresentes.map(tipo => {
+                        const style = SEAT_STYLES[tipo];
+                        return (
+                            <div key={tipo} className="flex items-center gap-2">
+                                <div className={`w-3 h-3 rounded ${style.bg} ${style.border} border`}></div>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                                    {style.label}
+                                </span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>
