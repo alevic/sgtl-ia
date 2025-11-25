@@ -96,6 +96,21 @@ export enum FormaPagamento {
   CHEQUE = 'CHEQUE'
 }
 
+// Centros de Custo
+export enum CentroCusto {
+  ESTOQUE = 'ESTOQUE',           // Equipamentos e produtos
+  VENDAS = 'VENDAS',             // Serviços prestados (receitas + custos)
+  ADMINISTRATIVO = 'ADMINISTRATIVO' // RH, Financeiro, Marketing, etc.
+}
+
+// Classificação Contábil
+export enum ClassificacaoContabil {
+  CUSTO_FIXO = 'CUSTO_FIXO',           // Ex: Depreciação de veículos, Seguro
+  CUSTO_VARIAVEL = 'CUSTO_VARIAVEL',   // Ex: Combustível, peças, manutenção
+  DESPESA_FIXA = 'DESPESA_FIXA',       // Ex: Salários, aluguel
+  DESPESA_VARIAVEL = 'DESPESA_VARIAVEL' // Ex: Comissões, marketing variável
+}
+
 export interface IEmpresa {
   id: string;
   nome_fantasia: string;
@@ -430,7 +445,10 @@ export interface ITransacao {
   numero_documento?: string;
   observacoes?: string;
   anexos?: string[];
-  centro_custo?: string;
+
+  // Centros de Custo
+  centro_custo?: CentroCusto;
+  classificacao_contabil?: ClassificacaoContabil;
 
   // Parcelas (se aplicável)
   parcela_atual?: number;
@@ -456,6 +474,8 @@ export interface IContaPagar {
   numero_documento?: string;
   observacoes?: string;
   anexos?: string[];
+  centro_custo?: CentroCusto;
+  classificacao_contabil?: ClassificacaoContabil;
 }
 
 export interface IContaReceber {
@@ -472,6 +492,7 @@ export interface IContaReceber {
   categoria: CategoriaReceita;
   numero_documento?: string;
   observacoes?: string;
+  centro_custo?: CentroCusto; // Sempre VENDAS para receitas
 }
 
 export interface IFatura {

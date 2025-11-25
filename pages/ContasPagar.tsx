@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, AlertCircle, Check, X, Download
 } from 'lucide-react';
-import { IContaPagar, StatusTransacao, CategoriaDespesa, Moeda } from '../types';
+import { IContaPagar, StatusTransacao, CategoriaDespesa, Moeda, CentroCusto } from '../types';
 
 // Mock data
 const MOCK_CONTAS_PAGAR: IContaPagar[] = [
@@ -67,6 +67,7 @@ export const ContasPagar: React.FC = () => {
     const [busca, setBusca] = useState('');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
     const [filtroCategoria, setFiltroCategoria] = useState<CategoriaDespesa | 'TODAS'>('TODAS');
+    const [filtroCentroCusto, setFiltroCentroCusto] = useState<CentroCusto | 'TODOS'>('TODOS');
 
     const contasFiltradas = useMemo(() => {
         return MOCK_CONTAS_PAGAR.filter(conta => {
@@ -77,10 +78,11 @@ export const ContasPagar: React.FC = () => {
 
             const matchStatus = filtroStatus === 'TODAS' || conta.status === filtroStatus;
             const matchCategoria = filtroCategoria === 'TODAS' || conta.categoria === filtroCategoria;
+            const matchCentroCusto = filtroCentroCusto === 'TODOS' || conta.centro_custo === filtroCentroCusto;
 
-            return matchBusca && matchStatus && matchCategoria;
+            return matchBusca && matchStatus && matchCategoria && matchCentroCusto;
         });
-    }, [busca, filtroStatus, filtroCategoria]);
+    }, [busca, filtroStatus, filtroCategoria, filtroCentroCusto]);
 
     const resumo = useMemo(() => {
         const total = MOCK_CONTAS_PAGAR.reduce((sum, c) => sum + c.valor_total, 0);
@@ -292,6 +294,14 @@ export const ContasPagar: React.FC = () => {
                                                 <>
                                                     <span>•</span>
                                                     <span>Doc: {conta.numero_documento}</span>
+                                                </>
+                                            )}
+                                            {conta.centro_custo && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 font-medium">
+                                                        {conta.centro_custo}
+                                                    </span>
                                                 </>
                                             )}
                                         </div>

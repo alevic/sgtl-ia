@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, Check, Download
 } from 'lucide-react';
-import { IContaReceber, StatusTransacao, CategoriaReceita, Moeda } from '../types';
+import { IContaReceber, StatusTransacao, CategoriaReceita, Moeda, CentroCusto } from '../types';
 
 // Mock data
 const MOCK_CONTAS_RECEBER: IContaReceber[] = [
@@ -296,6 +296,14 @@ export const ContasReceber: React.FC = () => {
                                                 <>
                                                     <span>•</span>
                                                     <span>Doc: {conta.numero_documento}</span>
+                                                </>
+                                            )}
+                                            {conta.centro_custo && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 font-medium">
+                                                        {conta.centro_custo}
+                                                    </span>
                                                 </>
                                             )}
                                         </div>

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     DollarSign, TrendingUp, TrendingDown, Calendar, Plus, FileText,
-    CreditCard, AlertCircle, ArrowUpRight, ArrowDownRight
+    CreditCard, AlertCircle, ArrowUpRight, ArrowDownRight, PieChart
 } from 'lucide-react';
 import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa } from '../types';
 
@@ -137,8 +137,8 @@ export const Financeiro: React.FC = () => {
                 <button
                     onClick={() => setPeriodoSelecionado('mes')}
                     className={`px-4 py-2 font-medium transition-colors border-b-2 ${periodoSelecionado === 'mes'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
                     Este Mês
@@ -146,8 +146,8 @@ export const Financeiro: React.FC = () => {
                 <button
                     onClick={() => setPeriodoSelecionado('trimestre')}
                     className={`px-4 py-2 font-medium transition-colors border-b-2 ${periodoSelecionado === 'trimestre'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
                     Trimestre
@@ -155,8 +155,8 @@ export const Financeiro: React.FC = () => {
                 <button
                     onClick={() => setPeriodoSelecionado('ano')}
                     className={`px-4 py-2 font-medium transition-colors border-b-2 ${periodoSelecionado === 'ano'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                         }`}
                 >
                     Este Ano
@@ -234,7 +234,7 @@ export const Financeiro: React.FC = () => {
             </div>
 
             {/* Ações Rápidas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <button
                     onClick={() => navigate('/admin/financeiro/contas-receber')}
                     className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
@@ -291,6 +291,25 @@ export const Financeiro: React.FC = () => {
                         </div>
                     </div>
                 </button>
+
+                <button
+                    onClick={() => navigate('/admin/financeiro/centros-custo')}
+                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <PieChart size={24} className="text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                Centros de Custo
+                            </p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Análise de custos
+                            </p>
+                        </div>
+                    </div>
+                </button>
             </div>
 
             {/* Transações Recentes */}
@@ -312,8 +331,8 @@ export const Financeiro: React.FC = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3 flex-1">
                                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${transacao.tipo === TipoTransacao.RECEITA
-                                            ? 'bg-green-100 dark:bg-green-900/30'
-                                            : 'bg-red-100 dark:bg-red-900/30'
+                                        ? 'bg-green-100 dark:bg-green-900/30'
+                                        : 'bg-red-100 dark:bg-red-900/30'
                                         }`}>
                                         {transacao.tipo === TipoTransacao.RECEITA ? (
                                             <ArrowUpRight size={20} className="text-green-600 dark:text-green-400" />
@@ -333,8 +352,8 @@ export const Financeiro: React.FC = () => {
                                 <div className="flex items-center gap-3">
                                     {getStatusBadge(transacao.status)}
                                     <p className={`text-lg font-semibold ${transacao.tipo === TipoTransacao.RECEITA
-                                            ? 'text-green-600 dark:text-green-400'
-                                            : 'text-red-600 dark:text-red-400'
+                                        ? 'text-green-600 dark:text-green-400'
+                                        : 'text-red-600 dark:text-red-400'
                                         }`}>
                                         {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(transacao.valor)}
                                     </p>

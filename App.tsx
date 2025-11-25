@@ -31,6 +31,7 @@ import { ContasReceber } from './pages/ContasReceber';
 import { NovaTransacao } from './pages/NovaTransacao';
 import { Transacoes } from './pages/Transacoes';
 import { Relatorios } from './pages/Relatorios';
+import { CentrosCusto } from './pages/CentrosCusto';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -88,6 +89,7 @@ const App: React.FC = () => {
                 <Route path="financeiro/transacoes/nova" element={<NovaTransacao />} />
                 <Route path="financeiro/transacoes" element={<Transacoes />} />
                 <Route path="financeiro/relatorios" element={<Relatorios />} />
+                <Route path="financeiro/centros-custo" element={<CentrosCusto />} />
                 <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
               </Routes>
             </AdminLayout>

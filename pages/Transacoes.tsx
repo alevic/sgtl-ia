@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import {
     ITransacao, TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa,
-    FormaPagamento, Moeda
+    FormaPagamento, Moeda, CentroCusto, ClassificacaoContabil
 } from '../types';
 
 // Mock data combining all transactions
@@ -108,6 +108,8 @@ export const Transacoes: React.FC = () => {
     const [busca, setBusca] = useState('');
     const [filtroTipo, setFiltroTipo] = useState<TipoTransacao | 'TODAS'>('TODAS');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
+    const [filtroCentroCusto, setFiltroCentroCusto] = useState<CentroCusto | 'TODOS'>('TODOS');
+    const [filtroClassificacao, setFiltroClassificacao] = useState<ClassificacaoContabil | 'TODAS'>('TODAS');
     const [dataInicio, setDataInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
 
@@ -120,6 +122,8 @@ export const Transacoes: React.FC = () => {
 
             const matchTipo = filtroTipo === 'TODAS' || transacao.tipo === filtroTipo;
             const matchStatus = filtroStatus === 'TODAS' || transacao.status === filtroStatus;
+            const matchCentroCusto = filtroCentroCusto === 'TODOS' || transacao.centro_custo === filtroCentroCusto;
+            const matchClassificacao = filtroClassificacao === 'TODAS' || transacao.classificacao_contabil === filtroClassificacao;
 
             let matchData = true;
             if (dataInicio && dataFim) {
@@ -127,9 +131,9 @@ export const Transacoes: React.FC = () => {
                 matchData = dataEmissao >= new Date(dataInicio) && dataEmissao <= new Date(dataFim);
             }
 
-            return matchBusca && matchTipo && matchStatus && matchData;
+            return matchBusca && matchTipo && matchStatus && matchData && matchCentroCusto && matchClassificacao;
         }).sort((a, b) => new Date(b.data_emissao).getTime() - new Date(a.data_emissao).getTime());
-    }, [busca, filtroTipo, filtroStatus, dataInicio, dataFim]);
+    }, [busca, filtroTipo, filtroStatus, dataInicio, dataFim, filtroCentroCusto, filtroClassificacao]);
 
     const resumo = useMemo(() => {
         const receitas = transacoesFiltradas
@@ -308,6 +312,35 @@ export const Transacoes: React.FC = () => {
                         </select>
                     </div>
 
+                    {/* Filtro Centro de Custo */}
+                    <div>
+                        <select
+                            value={filtroCentroCusto}
+                            onChange={e => setFiltroCentroCusto(e.target.value as CentroCusto | 'TODOS')}
+                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="TODOS">Todos Centros de Custo</option>
+                            <option value={CentroCusto.ESTOQUE}>Estoque</option>
+                            <option value={CentroCusto.VENDAS}>Vendas</option>
+                            <option value={CentroCusto.ADMINISTRATIVO}>Administrativo</option>
+                        </select>
+                    </div>
+
+                    {/* Filtro Classificação */}
+                    <div>
+                        <select
+                            value={filtroClassificacao}
+                            onChange={e => setFiltroClassificacao(e.target.value as ClassificacaoContabil | 'TODAS')}
+                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="TODAS">Todas Classificações</option>
+                            <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Fixo</option>
+                            <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Variável</option>
+                            <option value={ClassificacaoContabil.DESPESA_FIXA}>Despesa Fixa</option>
+                            <option value={ClassificacaoContabil.DESPESA_VARIAVEL}>Despesa Variável</option>
+                        </select>
+                    </div>
+
                     {/* Período */}
                     <div className="md:col-span-5">
                         <div className="grid grid-cols-2 gap-4">
@@ -395,13 +428,21 @@ export const Transacoes: React.FC = () => {
                                             <span>
                                                 Categoria: {transacao.categoria_receita || transacao.categoria_despesa}
                                             </span>
+                                            {transacao.centro_custo && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 font-medium">
+                                                        {transacao.centro_custo}
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="text-right ml-4 flex items-center gap-3">
                                         <div>
                                             <p className={`text-xl font-bold ${transacao.tipo === TipoTransacao.RECEITA
-                                                    ? 'text-green-600 dark:text-green-400'
-                                                    : 'text-red-600 dark:text-red-400'
+                                                ? 'text-green-600 dark:text-green-400'
+                                                : 'text-red-600 dark:text-red-400'
                                                 }`}>
                                                 {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(transacao.valor)}
                                             </p>

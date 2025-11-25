@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Calendar, DollarSign, Tag, FileText, Upload } from 'lucide-react';
 import {
     TipoTransacao, CategoriaReceita, CategoriaDespesa, FormaPagamento,
-    StatusTransacao, Moeda
+    StatusTransacao, Moeda, CentroCusto, ClassificacaoContabil
 } from '../types';
+import { getSugestaoClassificacao } from '../utils/classificacaoContabil';
 
 export const NovaTransacao: React.FC = () => {
     const navigate = useNavigate();
@@ -23,6 +24,23 @@ export const NovaTransacao: React.FC = () => {
     const [numeroDocumento, setNumeroDocumento] = useState('');
     const [observacoes, setObservacoes] = useState('');
 
+    // Centros de Custo
+    const [centroCusto, setCentroCusto] = useState<CentroCusto>(CentroCusto.VENDAS);
+    const [classificacaoContabil, setClassificacaoContabil] = useState<ClassificacaoContabil>(ClassificacaoContabil.CUSTO_VARIAVEL);
+
+    // Auto-sugerir classificação quando categoria de despesa mudar
+    useEffect(() => {
+        if (tipo === TipoTransacao.DESPESA) {
+            const sugestao = getSugestaoClassificacao(categoriaDespesa);
+            if (sugestao) {
+                setCentroCusto(sugestao.centro_custo);
+                setClassificacaoContabil(sugestao.classificacao_contabil);
+            }
+        } else if (tipo === TipoTransacao.RECEITA) {
+            setCentroCusto(CentroCusto.VENDAS);
+        }
+    }, [tipo, categoriaDespesa]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -37,6 +55,8 @@ export const NovaTransacao: React.FC = () => {
             forma_pagamento: formaPagamento,
             categoria_receita: tipo === TipoTransacao.RECEITA ? categoriaReceita : undefined,
             categoria_despesa: tipo === TipoTransacao.DESPESA ? categoriaDespesa : undefined,
+            centro_custo: centroCusto,
+            classificacao_contabil: tipo === TipoTransacao.DESPESA ? classificacaoContabil : undefined,
             numero_documento: numeroDocumento,
             observacoes,
             criado_por: 'admin',
@@ -73,8 +93,8 @@ export const NovaTransacao: React.FC = () => {
                             type="button"
                             onClick={() => setTipo(TipoTransacao.RECEITA)}
                             className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.RECEITA
-                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                    : 'border-slate-200 dark:border-slate-700 hover:border-green-300'
+                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                                : 'border-slate-200 dark:border-slate-700 hover:border-green-300'
                                 }`}
                         >
                             <div className="flex items-center justify-center gap-2 mb-2">
@@ -89,8 +109,8 @@ export const NovaTransacao: React.FC = () => {
                             type="button"
                             onClick={() => setTipo(TipoTransacao.DESPESA)}
                             className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.DESPESA
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                    : 'border-slate-200 dark:border-slate-700 hover:border-red-300'
+                                ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                                : 'border-slate-200 dark:border-slate-700 hover:border-red-300'
                                 }`}
                         >
                             <div className="flex items-center justify-center gap-2 mb-2">
@@ -210,6 +230,66 @@ export const NovaTransacao: React.FC = () => {
                                 placeholder="Ex: NF-12345, OS-987"
                                 className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Centros de Custo */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Centros de Custo</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Centro de Custo */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Centro de Custo <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                required
+                                value={centroCusto}
+                                onChange={e => setCentroCusto(e.target.value as CentroCusto)}
+                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value={CentroCusto.ESTOQUE}>Estoque - Equipamentos e Produtos</option>
+                                <option value={CentroCusto.VENDAS}>Vendas - Serviços Prestados</option>
+                                <option value={CentroCusto.ADMINISTRATIVO}>Administrativo - RH, Financeiro, Marketing</option>
+                            </select>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                ✨ Sugestão automática baseada na categoria
+                            </p>
+                        </div>
+
+                        {/* Classificação Contábil (apenas para despesas) */}
+                        {tipo === TipoTransacao.DESPESA && (
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                    Classificação Contábil <span className="text-red-500">*</span>
+                                </label>
+                                <select
+                                    required
+                                    value={classificacaoContabil}
+                                    onChange={e => setClassificacaoContabil(e.target.value as ClassificacaoContabil)}
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Fixo</option>
+                                    <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Variável</option>
+                                    <option value={ClassificacaoContabil.DESPESA_FIXA}>Despesa Fixa</option>
+                                    <option value={ClassificacaoContabil.DESPESA_VARIAVEL}>Despesa Variável</option>
+                                </select>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    ✨ Sugestão automática baseada na categoria
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Info helper */}
+                        <div className="md:col-span-2">
+                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                                <p className="text-sm text-blue-800 dark:text-blue-300">
+                                    <strong>Dica:</strong> {tipo === TipoTransacao.RECEITA
+                                        ? 'Receitas de serviços são VENDAS. Venda de ativos (ex: ônibus) são ESTOQUE.'
+                                        : 'Custos relacionam-se à produção/vendas. Despesas são administrativas.'}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
