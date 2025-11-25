@@ -530,3 +530,24 @@ export interface IRelatorioFinanceiro {
   receitas_por_categoria: Record<CategoriaReceita, number>;
   despesas_por_categoria: Record<CategoriaDespesa, number>;
 }
+
+// ===== BANK RECONCILIATION =====
+
+export interface ITransacaoBancaria {
+  id: string; // ID único do OFX ou gerado hash para CSV
+  data: string; // ISO Date
+  descricao: string;
+  valor: number;
+  tipo: 'CREDITO' | 'DEBITO';
+  id_transacao_sistema?: string; // Link com a transação do sistema se conciliado
+  status: 'PENDENTE' | 'CONCILIADO' | 'IGNORADO';
+}
+
+export interface IExtratoBancario {
+  banco: string;
+  agencia: string;
+  conta: string;
+  saldo_inicial: number;
+  saldo_final: number;
+  transacoes: ITransacaoBancaria[];
+}

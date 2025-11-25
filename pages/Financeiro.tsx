@@ -310,6 +310,25 @@ export const Financeiro: React.FC = () => {
                         </div>
                     </div>
                 </button>
+
+                <button
+                    onClick={() => navigate('/admin/financeiro/conciliacao')}
+                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText size={24} className="text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                Conciliação Bancária
+                            </p>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                Importar extrato
+                            </p>
+                        </div>
+                    </div>
+                </button>
             </div>
 
             {/* Transações Recentes */}
