@@ -18,6 +18,7 @@ import {
     VeiculoStatus
 } from '../types';
 import { MOCK_VEICULOS } from './Frota';
+import { ModalConfirmacao } from '../components/ui/ModalConfirmacao';
 
 export const NovaManutencao: React.FC = () => {
     const navigate = useNavigate();
@@ -48,6 +49,9 @@ export const NovaManutencao: React.FC = () => {
         }));
     };
 
+    const [showFinancialModal, setShowFinancialModal] = useState(false);
+    const [savedMaintenanceData, setSavedMaintenanceData] = useState<{ custoTotal: number, placa: string } | null>(null);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -57,16 +61,64 @@ export const NovaManutencao: React.FC = () => {
 
         console.log('Nova Manutenção:', formData);
 
-        // TODO: Atualizar status do veículo se necessário
+        // Calcular custo total
+        const custoTotal = (formData.custo_pecas || 0) + (formData.custo_mao_de_obra || 0);
+
+        // Se houver custo > 0, mostrar modal de confirmação
+        if (custoTotal > 0) {
+            const selectedVeiculo = MOCK_VEICULOS.find(v => v.id === formData.veiculo_id);
+            const placa = selectedVeiculo ? selectedVeiculo.placa : 'Veículo';
+
+            setSavedMaintenanceData({ custoTotal, placa });
+            setShowFinancialModal(true);
+            setLoading(false);
+            return; // Interrompe navegação para esperar resposta do modal
+        }
 
         setLoading(false);
+        navigate('/admin/manutencao');
+    };
+
+    const handleConfirmFinance = () => {
+        if (savedMaintenanceData) {
+            navigate('/admin/financeiro/transacoes/nova', {
+                state: {
+                    valor: savedMaintenanceData.custoTotal,
+                    descricao: `Manutenção ${savedMaintenanceData.placa} - ${formData.tipo}`,
+                    categoria_despesa: 'MANUTENCAO',
+                    centro_custo: 'VENDAS', // Custo Variável
+                    manutencao_id: 'NEW_ID_MOCK'
+                }
+            });
+        }
+    };
+
+    const handleSkipFinance = () => {
+        setShowFinancialModal(false);
         navigate('/admin/manutencao');
     };
 
     const selectedVeiculo = MOCK_VEICULOS.find(v => v.id === formData.veiculo_id);
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-6 animate-in fade-in duration-500 relative">
+            {/* Modal de Confirmação Financeira */}
+            <ModalConfirmacao
+                isOpen={showFinancialModal}
+                onClose={handleSkipFinance}
+                onConfirm={handleConfirmFinance}
+                title="Manutenção Salva!"
+                message={
+                    <p>
+                        Deseja lançar o custo total de <strong>{formData.moeda} {savedMaintenanceData?.custoTotal.toFixed(2)}</strong> no módulo Financeiro agora?
+                    </p>
+                }
+                confirmText="Sim, lançar"
+                cancelText="Não, pular"
+                icon={<DollarSign size={32} />}
+                variant="success"
+            />
+
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin/manutencao')}
@@ -332,6 +384,6 @@ export const NovaManutencao: React.FC = () => {
                     </button>
                 </div>
             </form>
-        </div>
+        </div >
     );
 };

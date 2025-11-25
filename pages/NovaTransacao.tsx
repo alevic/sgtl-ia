@@ -41,6 +41,20 @@ export const NovaTransacao: React.FC = () => {
         }
     }, [tipo, categoriaDespesa]);
 
+    // Handle initial state from navigation (e.g. from Maintenance module)
+    useEffect(() => {
+        const state = window.history.state?.usr;
+        if (state) {
+            if (state.valor) setValor(state.valor.toString());
+            if (state.descricao) setDescricao(state.descricao);
+            if (state.categoria_despesa) {
+                setTipo(TipoTransacao.DESPESA);
+                setCategoriaDespesa(state.categoria_despesa);
+            }
+            if (state.centro_custo) setCentroCusto(state.centro_custo);
+        }
+    }, []);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
