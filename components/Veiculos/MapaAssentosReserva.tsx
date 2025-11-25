@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../../types';
-import { Bus as BusIcon, X, DollarSign } from 'lucide-react';
+import { Bus as BusIcon } from 'lucide-react';
 
 interface MapaAssentosReservaProps {
     veiculo: IVeiculo;
@@ -22,24 +22,6 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
 
     // Verificar se tem preços configurados
     const temPrecos = Object.keys(precos).length > 0;
-
-    const SEAT_COLORS: Record<TipoAssento, string> = {
-        [TipoAssento.CONVENCIONAL]: 'bg-white dark:bg-slate-700',
-        [TipoAssento.EXECUTIVO]: 'bg-blue-50 dark:bg-blue-900/20',
-        [TipoAssento.SEMI_LEITO]: 'bg-green-50 dark:bg-green-900/20',
-        [TipoAssento.LEITO]: 'bg-purple-50 dark:bg-purple-900/20',
-        [TipoAssento.CAMA]: 'bg-orange-50 dark:bg-orange-900/20',
-        [TipoAssento.CAMA_MASTER]: 'bg-rose-50 dark:bg-rose-900/20',
-    };
-
-    const SEAT_BORDER_COLORS: Record<TipoAssento, string> = {
-        [TipoAssento.CONVENCIONAL]: 'border-slate-300 dark:border-slate-600',
-        [TipoAssento.EXECUTIVO]: 'border-blue-300 dark:border-blue-700',
-        [TipoAssento.SEMI_LEITO]: 'border-green-300 dark:border-green-700',
-        [TipoAssento.LEITO]: 'border-purple-300 dark:border-purple-700',
-        [TipoAssento.CAMA]: 'border-orange-300 dark:border-orange-700',
-        [TipoAssento.CAMA_MASTER]: 'border-rose-300 dark:border-rose-700',
-    };
 
     const getPrecoAssento = (tipo: TipoAssento): number => {
         return precos[tipo] || 0;
@@ -76,16 +58,20 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     // Organizar assentos em grid
     const maxY = Math.max(...assentosPorAndar.map(a => a.posicao_y), 0);
     const maxX = Math.max(...assentosPorAndar.map(a => a.posicao_x), 0);
+    const middleX = Math.ceil((maxX + 1) / 2);
 
     const grid: (IAssento | 'corredor' | null)[][] = [];
     for (let y = 0; y <= maxY; y++) {
         const row: (IAssento | 'corredor' | null)[] = [];
         for (let x = 0; x <= maxX; x++) {
+            // Adicionar corredor no meio
+            if (x === middleX) {
+                row.push('corredor');
+            }
+
             const assento = assentosPorAndar.find(a => a.posicao_y === y && a.posicao_x === x);
             if (assento) {
                 row.push(assento);
-            } else if (x === Math.floor(maxX / 2)) {
-                row.push('corredor');
             } else {
                 row.push(null);
             }
@@ -121,150 +107,113 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     }
 
     return (
-        <div className="space-y-4">
-            {/* Tabs para andares (se double deck) */}
-            {veiculo.is_double_deck && (
-                <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
-                    <button
-                        onClick={() => setAndarAtivo(1)}
-                        className={`px-4 py-2 font-medium transition-colors border-b-2 ${andarAtivo === 1
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                            }`}
-                    >
-                        Térreo
-                    </button>
-                    <button
-                        onClick={() => setAndarAtivo(2)}
-                        className={`px-4 py-2 font-medium transition-colors border-b-2 ${andarAtivo === 2
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                            }`}
-                    >
-                        Superior
-                    </button>
-                </div>
-            )}
+        <div className="bg-white dark:bg-slate-800 shadow-lg rounded-xl p-6 border border-slate-100 dark:border-slate-700 max-w-md mx-auto">
+            <div className="border border-slate-100 dark:border-slate-700 rounded-xl p-6 bg-slate-50/50 dark:bg-slate-800/50">
+                {/* Tabs para andares (se double deck) */}
+                {veiculo.is_double_deck && (
+                    <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700 mb-6 justify-center">
+                        <button
+                            onClick={() => setAndarAtivo(1)}
+                            className={`px-4 py-2 font-medium transition-colors border-b-2 ${andarAtivo === 1
+                                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            Térreo
+                        </button>
+                        <button
+                            onClick={() => setAndarAtivo(2)}
+                            className={`px-4 py-2 font-medium transition-colors border-b-2 ${andarAtivo === 2
+                                ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                                : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            Superior
+                        </button>
+                    </div>
+                )}
 
-            {/* Legenda */}
-            <div className="flex flex-wrap gap-3 text-xs">
-                <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-4 rounded border-2 border-slate-300 bg-white dark:bg-slate-700"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Livre</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-4 rounded border-2 border-red-400 bg-red-100 dark:bg-red-900/30"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Reservado</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-4 rounded border-2 border-blue-500 bg-blue-200 dark:bg-blue-600"></div>
-                    <span className="text-slate-600 dark:text-slate-400">Selecionado</span>
-                </div>
-            </div>
-
-            {/* Frente do ônibus */}
-            <div className="text-center">
-                <div className="inline-block px-6 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg">
-                    <p className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <BusIcon size={20} />
+                {/* Frente do ônibus */}
+                <div className="text-center mb-8">
+                    <div className="w-16 h-8 bg-slate-200 dark:bg-slate-600 rounded-lg mx-auto mb-2"></div>
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                         Frente do Ônibus
                     </p>
+                    <div className="w-full h-px bg-slate-200 dark:bg-slate-700 mt-4"></div>
                 </div>
-            </div>
 
-            {/* Grid de assentos */}
-            <div className="overflow-x-auto pb-4">
-                <div className="space-y-3 min-w-max flex flex-col items-center">
-                    {grid.map((row, rowIndex) => (
-                        <div key={rowIndex} className="flex items-center gap-3">
-                            {row.map((cell, colIndex) => {
-                                if (cell === 'corredor') {
-                                    return (
-                                        <div key={colIndex} className="w-12 h-12 flex items-center justify-center">
-                                            <div className="w-full h-full flex items-center justify-center bg-slate-50/50 dark:bg-slate-800/30 border-x-2 border-dashed border-slate-200 dark:border-slate-700 rounded-sm">
-                                                <span className="text-[9px] text-slate-300 dark:text-slate-600 font-bold tracking-widest rotate-90 select-none whitespace-nowrap">
-                                                    CORREDOR
+                {/* Grid de assentos */}
+                <div className="flex justify-center mb-8">
+                    <div className="space-y-3">
+                        {grid.map((row, rowIndex) => (
+                            <div key={rowIndex} className="flex items-center gap-3">
+                                {row.map((cell, colIndex) => {
+                                    if (cell === 'corredor') {
+                                        return (
+                                            <div key={colIndex} className="w-12 h-12 flex items-center justify-center">
+                                                <span className="text-slate-300 dark:text-slate-600 font-bold text-sm">
+                                                    {rowIndex + 1}
                                                 </span>
                                             </div>
-                                        </div>
-                                    );
-                                }
+                                        );
+                                    }
 
-                                if (!cell) {
-                                    return <div key={colIndex} className="w-12 h-12"></div>;
-                                }
+                                    if (!cell) {
+                                        return <div key={colIndex} className="w-12 h-12"></div>;
+                                    }
 
-                                const assento = cell as IAssento;
-                                const status = getAssentoStatus(assento);
-                                const preco = getPrecoAssento(assento.tipo);
+                                    const assento = cell as IAssento;
+                                    const status = getAssentoStatus(assento);
 
-                                return (
-                                    <button
-                                        key={colIndex}
-                                        onClick={() => handleClickAssento(assento)}
-                                        disabled={status === 'reservado'}
-                                        className={`relative w-12 h-12 rounded-lg transition-all duration-200 border-2 shadow-sm flex flex-col items-center justify-center ${status === 'selecionado'
-                                            ? 'border-blue-500 bg-blue-200 dark:bg-blue-600 ring-2 ring-blue-400 scale-105'
-                                            : status === 'reservado'
-                                                ? 'border-red-400 bg-red-100 dark:bg-red-900/30 cursor-not-allowed opacity-50'
-                                                : `${SEAT_COLORS[assento.tipo]} ${SEAT_BORDER_COLORS[assento.tipo]} hover:ring-2 hover:ring-blue-400 cursor-pointer`
-                                            }`}
-                                    >
-                                        <span className={`text-xs font-bold ${status === 'selecionado'
-                                            ? 'text-white'
-                                            : 'text-slate-700 dark:text-slate-200'
-                                            }`}>
-                                            {assento.numero}
-                                        </span>
-                                        {preco > 0 && (
-                                            <span className={`text-[9px] font-medium ${status === 'selecionado'
-                                                ? 'text-white'
-                                                : 'text-slate-500 dark:text-slate-400'
-                                                }`}>
-                                                R$ {preco}
+                                    // Estilos baseados no status
+                                    let buttonClasses = "relative w-12 h-12 rounded-lg transition-all duration-200 border flex flex-col items-center justify-center ";
+                                    let textClasses = "text-sm font-bold ";
+
+                                    if (status === 'selecionado') {
+                                        buttonClasses += "bg-blue-600 border-blue-600 shadow-md scale-105 z-10";
+                                        textClasses += "text-white";
+                                    } else if (status === 'reservado') {
+                                        buttonClasses += "bg-red-100 border-red-200 dark:bg-red-900/20 dark:border-red-800 cursor-not-allowed";
+                                        textClasses += "text-red-400 dark:text-red-500";
+                                    } else {
+                                        buttonClasses += "bg-white border-slate-300 hover:border-blue-400 hover:shadow-md cursor-pointer dark:bg-slate-800 dark:border-slate-600";
+                                        textClasses += "text-slate-700 dark:text-slate-300";
+                                    }
+
+                                    return (
+                                        <button
+                                            key={colIndex}
+                                            onClick={() => handleClickAssento(assento)}
+                                            disabled={status === 'reservado'}
+                                            className={buttonClasses}
+                                        >
+                                            <span className={textClasses}>
+                                                {assento.numero}
                                             </span>
-                                        )}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ))}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Legenda */}
+                <div className="flex items-center justify-center gap-6 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded border border-slate-300 bg-white dark:bg-slate-800 dark:border-slate-600"></div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Livre</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-blue-600 border border-blue-600"></div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Selecionado</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded bg-red-100 border border-red-200 dark:bg-red-900/20 dark:border-red-800"></div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">Ocupado</span>
+                    </div>
                 </div>
             </div>
-
-            {/* Informação do assento selecionado */}
-            {assentoSelecionado && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide mb-1">
-                                Assento Selecionado
-                            </p>
-                            <p className="font-bold text-slate-800 dark:text-white text-lg">
-                                {assentoSelecionado.numero}
-                            </p>
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                {assentoSelecionado.tipo.replace('_', ' ')}
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <div className="flex items-center gap-1 text-green-700 dark:text-green-400">
-                                <DollarSign size={18} />
-                                <span className="text-2xl font-bold">
-                                    {assentoSelecionado.valor.toFixed(2)}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        onClick={() => onSelecionarAssento(null)}
-                        className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
-                    >
-                        <X size={14} />
-                        Limpar seleção
-                    </button>
-                </div>
-            )}
         </div>
     );
 };
