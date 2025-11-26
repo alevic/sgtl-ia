@@ -35,6 +35,7 @@ import { CentrosCusto } from './pages/CentrosCusto';
 import { ConciliacaoBancaria } from './pages/ConciliacaoBancaria';
 import { Configuracoes } from './pages/Configuracoes';
 import { Documentos } from './pages/Documentos';
+import { AtividadesRecentes } from './pages/AtividadesRecentes';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -96,6 +97,7 @@ const App: React.FC = () => {
                 <Route path="financeiro/centros-custo" element={<CentrosCusto />} />
                 <Route path="financeiro/conciliacao" element={<ConciliacaoBancaria />} />
                 <Route path="configuracoes" element={<Configuracoes />} />
+                <Route path="atividades" element={<AtividadesRecentes />} />
                 <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
               </Routes>
             </AdminLayout>

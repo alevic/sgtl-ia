@@ -240,7 +240,12 @@ export const Dashboard: React.FC = () => {
                 <Activity size={20} className="text-blue-500" />
                 Atividade Recente
               </h3>
-              <button className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400">Ver tudo</button>
+              <button
+                onClick={() => navigate('/admin/atividades')}
+                className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+              >
+                Ver tudo
+              </button>
             </div>
             <div className="space-y-6">
               {RECENT_ACTIVITY.map((item) => (
@@ -249,8 +254,8 @@ export const Dashboard: React.FC = () => {
                   <div className="absolute left-[19px] top-8 bottom-[-24px] w-0.5 bg-slate-100 dark:bg-slate-700 last:hidden"></div>
 
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 ${item.type === 'success' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                      item.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                        'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                    item.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                      'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
                     }`}>
                     <item.icon size={18} />
                   </div>
