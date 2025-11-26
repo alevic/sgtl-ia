@@ -19,6 +19,9 @@ export const Relatorios: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'gerencial' | 'operacional' | 'financeiro'>('gerencial');
     const [periodoInicio, setPeriodoInicio] = useState('2024-11-01');
     const [periodoFim, setPeriodoFim] = useState('2024-11-30');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('todos');
+    const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
     // --- MOCK DATA & LOGIC ---
 
@@ -97,6 +100,32 @@ export const Relatorios: React.FC = () => {
         { id: 'E002', rota: 'Rota Sul', entregas: 32, pendentes: 0, status: 'Concluído', motorista: 'Marcos Oliveira' },
         { id: 'E003', rota: 'Rota Leste', entregas: 28, pendentes: 28, status: 'Carregando', motorista: 'Roberto Costa' },
     ];
+
+    const filteredManifestos = useMemo(() => {
+        return manifestosTurismo.filter(item => {
+            const matchesSearch = item.rota.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.motorista.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.id.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'todos' ||
+                (statusFilter === 'ativo' && item.status === 'Em Trânsito') ||
+                (statusFilter === 'pendente' && item.status === 'Agendado') ||
+                (statusFilter === 'concluido' && item.status === 'Concluído'); // Adjust mapping as needed
+            return matchesSearch && matchesStatus;
+        });
+    }, [manifestosTurismo, searchTerm, statusFilter]);
+
+    const filteredEntregas = useMemo(() => {
+        return entregasExpress.filter(item => {
+            const matchesSearch = item.rota.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.motorista.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.id.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus = statusFilter === 'todos' ||
+                (statusFilter === 'ativo' && item.status === 'Em Rota') ||
+                (statusFilter === 'pendente' && (item.status === 'Carregando' || item.status === 'Pendente')) ||
+                (statusFilter === 'concluido' && item.status === 'Concluído');
+            return matchesSearch && matchesStatus;
+        });
+    }, [entregasExpress, searchTerm, statusFilter]);
 
     // --- HELPERS ---
     const formatCurrency = (value: number) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -273,12 +302,42 @@ export const Relatorios: React.FC = () => {
                 {/* --- TAB OPERACIONAL --- */}
                 {activeTab === 'operacional' && (
                     <div className="space-y-6">
+                        {/* Filtros e Ações */}
+                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <div className="flex gap-4 w-full md:w-auto">
+                                <div className="relative flex-1 md:w-64">
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar por rota, motorista ou ID..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                    />
+                                    <List size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                </div>
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) => setStatusFilter(e.target.value)}
+                                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                                >
+                                    <option value="todos">Todos os Status</option>
+                                    <option value="ativo">Em Andamento</option>
+                                    <option value="pendente">Pendente</option>
+                                    <option value="concluido">Concluído</option>
+                                </select>
+                            </div>
+                            <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors w-full md:w-auto justify-center">
+                                <FileText size={18} />
+                                <span>Exportar Manifesto</span>
+                            </button>
+                        </div>
+
+                        {/* Tabela Principal */}
                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                             <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                                 <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
                                     {currentContext === EmpresaContexto.TURISMO ? 'Manifesto de Viagens' : 'Controle de Rotas'}
                                 </h3>
-                                <button className="text-sm text-blue-600 hover:underline">Ver Todos</button>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-sm text-left">
@@ -294,7 +353,7 @@ export const Relatorios: React.FC = () => {
                                     </thead>
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                                         {currentContext === EmpresaContexto.TURISMO ? (
-                                            manifestosTurismo.map((item) => (
+                                            filteredManifestos.map((item) => (
                                                 <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30">
                                                     <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">{item.id}</td>
                                                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.rota}</td>
@@ -302,18 +361,23 @@ export const Relatorios: React.FC = () => {
                                                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.motorista}</td>
                                                     <td className="px-6 py-4">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'Em Trânsito' ? 'bg-blue-100 text-blue-700' :
-                                                                item.status === 'Agendado' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700'
+                                                            item.status === 'Agendado' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700'
                                                             }`}>
                                                             {item.status}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <button className="text-blue-600 hover:text-blue-800">Detalhes</button>
+                                                        <button
+                                                            onClick={() => setSelectedItem(item)}
+                                                            className="text-blue-600 hover:text-blue-800 font-medium"
+                                                        >
+                                                            Detalhes
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))
                                         ) : (
-                                            entregasExpress.map((item) => (
+                                            filteredEntregas.map((item) => (
                                                 <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30">
                                                     <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">{item.id}</td>
                                                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.rota}</td>
@@ -323,13 +387,18 @@ export const Relatorios: React.FC = () => {
                                                     <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.motorista}</td>
                                                     <td className="px-6 py-4">
                                                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'Em Rota' ? 'bg-blue-100 text-blue-700' :
-                                                                item.status === 'Concluído' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                                                            item.status === 'Concluído' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
                                                             }`}>
                                                             {item.status}
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <button className="text-blue-600 hover:text-blue-800">Rastrear</button>
+                                                        <button
+                                                            onClick={() => setSelectedItem(item)}
+                                                            className="text-blue-600 hover:text-blue-800 font-medium"
+                                                        >
+                                                            Rastrear
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             ))
@@ -337,6 +406,123 @@ export const Relatorios: React.FC = () => {
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
+
+                        {/* Visualizações Secundárias (Context-Aware) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {currentContext === EmpresaContexto.TURISMO ? (
+                                <>
+                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                            <Users size={20} />
+                                            Escala de Motoristas
+                                        </h3>
+                                        <div className="space-y-4">
+                                            {[
+                                                { nome: 'João Silva', status: 'Em Viagem', destino: 'Rio de Janeiro', retorno: '26/11' },
+                                                { nome: 'Carlos Souza', status: 'Folga', destino: '-', retorno: '27/11' },
+                                                { nome: 'Ana Lima', status: 'Aguardando', destino: 'Curitiba', retorno: '26/11' },
+                                            ].map((mot, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg">
+                                                    <div>
+                                                        <p className="font-medium text-slate-800 dark:text-white">{mot.nome}</p>
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400">Retorno: {mot.retorno}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${mot.status === 'Em Viagem' ? 'bg-blue-100 text-blue-700' :
+                                                            mot.status === 'Folga' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-700'
+                                                            }`}>
+                                                            {mot.status}
+                                                        </span>
+                                                        <p className="text-xs text-slate-500 mt-1">{mot.destino}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                            <AlertTriangle size={20} />
+                                            Alertas de Manutenção
+                                        </h3>
+                                        <div className="space-y-3">
+                                            <div className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
+                                                <AlertTriangle size={18} className="text-red-600 mt-0.5" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-red-800 dark:text-red-300">Ônibus 104 - Freios</p>
+                                                    <p className="text-xs text-red-600 dark:text-red-400">Revisão crítica necessária (Vencido há 2 dias)</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                                                <Clock size={18} className="text-amber-600 mt-0.5" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Ônibus 108 - Troca de Óleo</p>
+                                                    <p className="text-xs text-amber-600 dark:text-amber-400">Agendado para 28/11</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                            <Truck size={20} />
+                                            Status da Frota
+                                        </h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">12</p>
+                                                <p className="text-sm text-green-700 dark:text-green-300">Disponíveis</p>
+                                            </div>
+                                            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                                                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">8</p>
+                                                <p className="text-sm text-blue-700 dark:text-blue-300">Em Rota</p>
+                                            </div>
+                                            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-center">
+                                                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">3</p>
+                                                <p className="text-sm text-amber-700 dark:text-amber-300">Manutenção</p>
+                                            </div>
+                                            <div className="p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg text-center">
+                                                <p className="text-2xl font-bold text-slate-600 dark:text-slate-400">23</p>
+                                                <p className="text-sm text-slate-700 dark:text-slate-300">Total</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                            <Package size={20} />
+                                            Entregas Críticas
+                                        </h3>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
+                                                <div className="flex items-center gap-3">
+                                                    <AlertTriangle size={18} className="text-red-600" />
+                                                    <div>
+                                                        <p className="text-sm font-medium text-red-800 dark:text-red-300">#E9821 - Atrasado</p>
+                                                        <p className="text-xs text-red-600 dark:text-red-400">Rota Norte - Cliente Ausente</p>
+                                                    </div>
+                                                </div>
+                                                <button className="text-xs bg-white dark:bg-slate-800 px-2 py-1 rounded border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400">
+                                                    Resolver
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30">
+                                                <div className="flex items-center gap-3">
+                                                    <Clock size={18} className="text-amber-600" />
+                                                    <div>
+                                                        <p className="text-sm font-medium text-amber-800 dark:text-amber-300">#E9844 - Prioridade</p>
+                                                        <p className="text-xs text-amber-600 dark:text-amber-400">Entrega agendada até 14h</p>
+                                                    </div>
+                                                </div>
+                                                <button className="text-xs bg-white dark:bg-slate-800 px-2 py-1 rounded border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400">
+                                                    Ver
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 )}
@@ -393,6 +579,75 @@ export const Relatorios: React.FC = () => {
                     </div>
                 )}
             </div>
+            {/* Modal de Detalhes */}
+            {selectedItem && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-lg w-full p-6 animate-in fade-in zoom-in duration-200">
+                        <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-700 pb-4">
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+                                Detalhes: {selectedItem.id}
+                            </h3>
+                            <button
+                                onClick={() => setSelectedItem(null)}
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            >
+                                <span className="sr-only">Fechar</span>
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">Rota</p>
+                                    <p className="font-medium text-slate-800 dark:text-white">{selectedItem.rota}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">Motorista</p>
+                                    <p className="font-medium text-slate-800 dark:text-white">{selectedItem.motorista}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold mt-1 ${selectedItem.status.includes('Concluído') || selectedItem.status.includes('Agendado') ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                                        }`}>
+                                        {selectedItem.status}
+                                    </span>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                        {currentContext === EmpresaContexto.TURISMO ? 'Passageiros' : 'Entregas'}
+                                    </p>
+                                    <p className="font-medium text-slate-800 dark:text-white">
+                                        {currentContext === EmpresaContexto.TURISMO ? selectedItem.passageiros : selectedItem.entregas}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
+                                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Informações Adicionais</p>
+                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                    {currentContext === EmpresaContexto.TURISMO
+                                        ? 'Lista de passageiros e assentos disponível no manifesto completo.'
+                                        : 'Rastreamento em tempo real ativado. Previsão de entrega atualizada.'}
+                                </p>
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-4">
+                                <button
+                                    onClick={() => setSelectedItem(null)}
+                                    className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                >
+                                    Fechar
+                                </button>
+                                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                                    Ver Completo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
