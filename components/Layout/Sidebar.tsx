@@ -86,6 +86,8 @@ export const Sidebar: React.FC = () => {
         <SidebarItem icon={CreditCard} label="Financeiro" to="/admin/financeiro" colorClass={themeColor} />
         <SidebarItem icon={TrendingUp} label="Relatórios" to="/admin/relatorios" colorClass={themeColor} />
         <SidebarItem icon={FileText} label="Documentos" to="/admin/documentos" colorClass={themeColor} />
+        <SidebarItem icon={Users} label="Usuários" to="/admin/usuarios" colorClass={themeColor} />
+        <SidebarItem icon={Settings} label="Configurações" to="/admin/configuracoes" colorClass={themeColor} />
 
       </div>
     </div>

@@ -18,7 +18,6 @@ import { Viagens } from './pages/Viagens';
 import { NovaViagem } from './pages/NovaViagem';
 import { ViagemDetalhes } from './pages/ViagemDetalhes';
 import { Login } from './pages/Login';
-import { Signup } from './pages/Signup';
 
 import { Frota } from './pages/Frota';
 import { NovoVeiculo } from './pages/NovoVeiculo';
@@ -39,6 +38,9 @@ import { Configuracoes } from './pages/Configuracoes';
 import { Documentos } from './pages/Documentos';
 import { AtividadesRecentes } from './pages/AtividadesRecentes';
 import { Perfil } from './pages/Perfil';
+import { Usuarios } from './pages/Usuarios';
+import { NovoUsuario } from './pages/NovoUsuario';
+import { EditarUsuario } from './pages/EditarUsuario';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -64,7 +66,6 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
 
           {/* Admin Routes */}
           <Route path="/admin/*" element={
@@ -106,6 +107,9 @@ const App: React.FC = () => {
                   <Route path="configuracoes" element={<Configuracoes />} />
                   <Route path="atividades" element={<AtividadesRecentes />} />
                   <Route path="perfil" element={<Perfil />} />
+                  <Route path="usuarios" element={<Usuarios />} />
+                  <Route path="usuarios/novo" element={<NovoUsuario />} />
+                  <Route path="usuarios/:id" element={<EditarUsuario />} />
                   <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
                 </Routes>
               </AdminLayout>

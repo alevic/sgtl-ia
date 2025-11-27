@@ -1,10 +1,11 @@
 import { betterAuth } from "better-auth";
+import { admin } from "better-auth/plugins";
 import pg from "pg";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const pool = new pg.Pool({
+export const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
@@ -18,5 +19,8 @@ export const auth = betterAuth({
     advanced: {
         useSecureCookies: false, // Force false for localhost
     },
+    plugins: [
+        admin()
+    ],
     trustedOrigins: ["http://localhost:3000", "http://localhost:8080"],
 });
