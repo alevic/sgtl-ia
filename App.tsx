@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Sidebar } from './components/Layout/Sidebar';
 import { Header } from './components/Layout/Header';
+import { Footer } from './components/Layout/Footer';
 import { Dashboard } from './pages/Dashboard';
 import { NovaReserva } from './pages/NovaReserva';
 import { Motoristas } from './pages/Motoristas';
@@ -53,10 +54,11 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 overflow-y-auto flex flex-col">
+          <div className="max-w-7xl mx-auto w-full p-6 flex-1">
             {children}
           </div>
+          <Footer />
         </main>
       </div>
     </div>
