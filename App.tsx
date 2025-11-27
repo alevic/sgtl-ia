@@ -22,6 +22,7 @@ import { Login } from './pages/Login';
 import { Frota } from './pages/Frota';
 import { NovoVeiculo } from './pages/NovoVeiculo';
 import { VeiculoDetalhes } from './pages/VeiculoDetalhes';
+import { EditarVeiculo } from './pages/EditarVeiculo';
 import { Manutencao } from './pages/Manutencao';
 import { NovaManutencao } from './pages/NovaManutencao';
 import { Rotas } from './pages/Rotas';
@@ -95,6 +96,7 @@ const App: React.FC = () => {
                   <Route path="frota" element={<Frota />} />
                   <Route path="frota/novo" element={<NovoVeiculo />} />
                   <Route path="frota/:id" element={<VeiculoDetalhes />} />
+                  <Route path="frota/:id/editar" element={<EditarVeiculo />} />
                   <Route path="manutencao" element={<Manutencao />} />
                   <Route path="manutencao/nova" element={<NovaManutencao />} />
                   <Route path="rotas" element={<Rotas />} />

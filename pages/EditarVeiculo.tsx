@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { VeiculoStatus } from '../types';
 import { ArrowLeft, Save, Bus, Truck, FileText, Gauge, Calendar, Wrench } from 'lucide-react';
 
-export const NovoVeiculo: React.FC = () => {
+export const EditarVeiculo: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
     const [placa, setPlaca] = useState('');
@@ -18,6 +19,47 @@ export const NovoVeiculo: React.FC = () => {
     const [capacidadeCarga, setCapacidadeCarga] = useState('');
     const [observacoes, setObservacoes] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
+
+    useEffect(() => {
+        const fetchVehicle = async () => {
+            if (!id) return;
+
+            setIsFetching(true);
+            try {
+                const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch vehicle');
+                }
+
+                const data = await response.json();
+
+                // Pre-populate form
+                setPlaca(data.placa || '');
+                setModelo(data.modelo || '');
+                setTipo(data.tipo || 'ONIBUS');
+                setStatus(data.status || VeiculoStatus.ATIVO);
+                setAno(data.ano?.toString() || '');
+                setKmAtual(data.km_atual?.toString() || '');
+                setProximaRevisaoKm(data.proxima_revisao_km?.toString() || '');
+                setUltimaRevisao(data.ultima_revisao || '');
+                setCapacidadePassageiros(data.capacidade_passageiros?.toString() || '');
+                setCapacidadeCarga(data.capacidade_carga?.toString() || '');
+                setObservacoes(data.observacoes || '');
+            } catch (error) {
+                console.error("Erro ao buscar veículo:", error);
+                alert('Erro ao carregar veículo. Redirecionando...');
+                navigate('/admin/frota');
+            } finally {
+                setIsFetching(false);
+            }
+        };
+
+        fetchVehicle();
+    }, [id, navigate]);
 
     const handleSalvar = async () => {
         setIsLoading(true);
@@ -37,8 +79,8 @@ export const NovoVeiculo: React.FC = () => {
                 observacoes: observacoes || null
             };
 
-            const response = await fetch('http://localhost:4000/api/fleet/vehicles', {
-                method: 'POST',
+            const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -47,31 +89,38 @@ export const NovoVeiculo: React.FC = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create vehicle');
+                throw new Error('Failed to update vehicle');
             }
 
-            const createdVehicle = await response.json();
-            navigate(`/admin/frota/${createdVehicle.id}`);
+            navigate(`/admin/frota/${id}`);
         } catch (error) {
-            console.error("Erro ao salvar veículo:", error);
-            alert('Erro ao salvar veículo. Por favor, tente novamente.');
+            console.error("Erro ao atualizar veículo:", error);
+            alert('Erro ao atualizar veículo. Por favor, tente novamente.');
         } finally {
             setIsLoading(false);
         }
     };
 
+    if (isFetching) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-slate-500 dark:text-slate-400">Carregando veículo...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex items-center gap-4">
                 <button
-                    onClick={() => navigate('/admin/frota')}
+                    onClick={() => navigate(`/admin/frota/${id}`)}
                     className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 >
                     <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Novo Veículo</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Cadastre um novo veículo na frota</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Editar Veículo</h1>
+                    <p className="text-slate-500 dark:text-slate-400">Atualize as informações do veículo</p>
                 </div>
                 <button
                     onClick={handleSalvar}
@@ -79,7 +128,7 @@ export const NovoVeiculo: React.FC = () => {
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                     <Save size={18} />
-                    {isLoading ? 'Salvando...' : 'Salvar Veículo'}
+                    {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
             </div>
 
@@ -265,27 +314,6 @@ export const NovoVeiculo: React.FC = () => {
                             rows={4}
                             className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
-                    </div>
-                </div>
-
-                {/* Informação */}
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                    <div className="flex items-start gap-3">
-                        {tipo === 'ONIBUS' ? (
-                            <Bus size={20} className="text-blue-600 dark:text-blue-400 mt-0.5" />
-                        ) : (
-                            <Truck size={20} className="text-blue-600 dark:text-blue-400 mt-0.5" />
-                        )}
-                        <div>
-                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
-                                Cadastro de {tipo === 'ONIBUS' ? 'Ônibus' : 'Caminhão'}
-                            </p>
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
-                                {tipo === 'ONIBUS'
-                                    ? 'Este veículo ficará disponível para alocação em viagens de turismo. Certifique-se de preencher a capacidade de passageiros corretamente.'
-                                    : 'Este veículo ficará disponível para transporte de cargas expressas. Especifique a capacidade de carga em toneladas.'}
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>

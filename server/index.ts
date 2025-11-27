@@ -225,10 +225,342 @@ app.put("/api/finance/transactions/:id", async (req, res) => {
     }
 });
 
+
 app.get("/health", (req, res) => {
     res.json({ status: "ok" });
 });
 
+// ===== FLEET MANAGEMENT ENDPOINTS =====
+
+// GET all vehicles for organization
+app.get("/api/fleet/vehicles", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+
+        const result = await pool.query(
+            `SELECT * FROM vehicle WHERE organization_id = $1 ORDER BY created_at DESC`,
+            [orgId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching vehicles:", error);
+        res.status(500).json({ error: "Failed to fetch vehicles" });
+    }
+});
+
+// GET single vehicle by ID
+app.get("/api/fleet/vehicles/:id", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT * FROM vehicle WHERE id = $1 AND organization_id = $2`,
+            [id, orgId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching vehicle:", error);
+        res.status(500).json({ error: "Failed to fetch vehicle" });
+    }
+});
+
+// POST create new vehicle
+app.post("/api/fleet/vehicles", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const userId = session.user.id;
+
+        const {
+            placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
+            ultima_revisao, is_double_deck, capacidade_passageiros,
+            capacidade_carga, observacoes, motorista_atual
+        } = req.body;
+
+        const result = await pool.query(
+            `INSERT INTO vehicle (
+                placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
+                ultima_revisao, is_double_deck, capacidade_passageiros,
+                capacidade_carga, observacoes, motorista_atual,
+                organization_id, created_by
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING *`,
+            [
+                placa, modelo, tipo, status, ano, km_atual || 0, proxima_revisao_km,
+                ultima_revisao || null, is_double_deck || false, capacidade_passageiros || null,
+                capacidade_carga || null, observacoes || null, motorista_atual || null,
+                orgId, userId
+            ]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error creating vehicle:", error);
+        res.status(500).json({ error: "Failed to create vehicle" });
+    }
+});
+
+// PUT update vehicle
+app.put("/api/fleet/vehicles/:id", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const check = await pool.query(
+            "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
+
+        const {
+            placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
+            ultima_revisao, is_double_deck, capacidade_passageiros,
+            capacidade_carga, observacoes, motorista_atual
+        } = req.body;
+
+        const result = await pool.query(
+            `UPDATE vehicle SET
+                placa = $1, modelo = $2, tipo = $3, status = $4, ano = $5,
+                km_atual = $6, proxima_revisao_km = $7, ultima_revisao = $8,
+                is_double_deck = $9, capacidade_passageiros = $10,
+                capacidade_carga = $11, observacoes = $12, motorista_atual = $13,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $14 AND organization_id = $15
+            RETURNING *`,
+            [
+                placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
+                ultima_revisao || null, is_double_deck || false, capacidade_passageiros || null,
+                capacidade_carga || null, observacoes || null, motorista_atual || null,
+                id, orgId
+            ]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error updating vehicle:", error);
+        res.status(500).json({ error: "Failed to update vehicle" });
+    }
+});
+
+// DELETE vehicle
+app.delete("/api/fleet/vehicles/:id", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const check = await pool.query(
+            "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
+
+        await pool.query("DELETE FROM vehicle WHERE id = $1 AND organization_id = $2", [id, orgId]);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting vehicle:", error);
+        res.status(500).json({ error: "Failed to delete vehicle" });
+    }
+});
+
+// GET seats for a vehicle
+app.get("/api/fleet/vehicles/:id/seats", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const vehicleCheck = await pool.query(
+            "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (vehicleCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
+
+        const result = await pool.query(
+            `SELECT * FROM seat WHERE vehicle_id = $1 ORDER BY andar, posicao_y, posicao_x`,
+            [id]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching seats:", error);
+        res.status(500).json({ error: "Failed to fetch seats" });
+    }
+});
+
+// POST save/update seat map configuration
+app.post("/api/fleet/vehicles/:id/seats", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+        const { seats } = req.body;
+
+        const vehicleCheck = await pool.query(
+            "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (vehicleCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
+
+        await pool.query("BEGIN");
+
+        try {
+            await pool.query("DELETE FROM seat WHERE vehicle_id = $1", [id]);
+
+            for (const seat of seats) {
+                await pool.query(
+                    `INSERT INTO seat (
+                        vehicle_id, numero, andar, posicao_x, posicao_y, tipo, status, preco
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                    [
+                        id, seat.numero, seat.andar, seat.posicao_x, seat.posicao_y,
+                        seat.tipo, seat.status || 'LIVRE', seat.preco || null
+                    ]
+                );
+            }
+
+            await pool.query(
+                "UPDATE vehicle SET mapa_configurado = true WHERE id = $1",
+                [id]
+            );
+
+            await pool.query("COMMIT");
+
+            const result = await pool.query(
+                "SELECT * FROM seat WHERE vehicle_id = $1 ORDER BY andar, posicao_y, posicao_x",
+                [id]
+            );
+
+            res.json(result.rows);
+        } catch (error) {
+            await pool.query("ROLLBACK");
+            throw error;
+        }
+    } catch (error) {
+        console.error("Error saving seat map:", error);
+        res.status(500).json({ error: "Failed to save seat map" });
+    }
+});
+
+// PUT update individual seat
+app.put("/api/fleet/vehicles/:vehicleId/seats/:seatId", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { vehicleId, seatId } = req.params;
+        const { tipo, status, preco } = req.body;
+
+        const vehicleCheck = await pool.query(
+            "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
+            [vehicleId, orgId]
+        );
+
+        if (vehicleCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
+
+        const result = await pool.query(
+            `UPDATE seat SET
+                tipo = COALESCE($1, tipo),
+                status = COALESCE($2, status),
+                preco = COALESCE($3, preco),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $4 AND vehicle_id = $5
+            RETURNING *`,
+            [tipo || null, status || null, preco || null, seatId, vehicleId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Seat not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error updating seat:", error);
+        res.status(500).json({ error: "Failed to update seat" });
+    }
+});
+
+// DELETE all seats for a vehicle
+app.delete("/api/fleet/vehicles/:id/seats", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const vehicleCheck = await pool.query(
+            "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (vehicleCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Vehicle not found" });
+        }
+
+        await pool.query("DELETE FROM seat WHERE vehicle_id = $1", [id]);
+
+        await pool.query(
+            "UPDATE vehicle SET mapa_configurado = false WHERE id = $1",
+            [id]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error clearing seat map:", error);
+        res.status(500).json({ error: "Failed to clear seat map" });
+    }
+});
+
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 });

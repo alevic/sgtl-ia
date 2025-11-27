@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { IVeiculo, VeiculoStatus } from '../types';
+import { IVeiculo, VeiculoStatus, IAssento } from '../types';
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,
@@ -37,9 +37,95 @@ export const VeiculoDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<TabType>('info');
-    const [veiculo] = useState(MOCK_VEICULO);
+    const [veiculo, setVeiculo] = useState<typeof MOCK_VEICULO | null>(null);
+    const [seats, setSeats] = useState<IAssento[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const isOnibus = veiculo.tipo === 'ONIBUS';
+    const fetchVehicle = async () => {
+        if (!id) return;
+
+        setIsLoading(true);
+        try {
+            const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}`, {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch vehicle');
+            }
+
+            const data = await response.json();
+            setVeiculo(data);
+
+            // Fetch seats if it's a bus
+            if (data.tipo === 'ONIBUS') {
+                const seatsResponse = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}/seats`, {
+                    credentials: 'include'
+                });
+
+                if (seatsResponse.ok) {
+                    const seatsData = await seatsResponse.json();
+                    setSeats(seatsData);
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao buscar veículo:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleSaveSeats = async (newSeats: IAssento[]) => {
+        if (!id) return;
+
+        try {
+            const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}/seats`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ seats: newSeats })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save seat map');
+            }
+
+            const savedSeats = await response.json();
+            setSeats(savedSeats);
+
+            // Refresh vehicle to update mapa_configurado flag
+            await fetchVehicle();
+
+            alert('Mapa de assentos salvo com sucesso!');
+        } catch (error) {
+            console.error("Erro ao salvar mapa de assentos:", error);
+            alert('Erro ao salvar mapa de assentos. Por favor, tente novamente.');
+        }
+    };
+
+    useEffect(() => {
+        fetchVehicle();
+    }, [id]);
+
+    const isOnibus = veiculo?.tipo === 'ONIBUS';
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-slate-500 dark:text-slate-400">Carregando veículo...</p>
+            </div>
+        );
+    }
+
+    if (!veiculo) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-slate-500 dark:text-slate-400">Veículo não encontrado</p>
+            </div>
+        );
+    }
 
     const tabs = [
         { id: 'info' as TabType, label: 'Informações Gerais', icon: FileText },
@@ -53,7 +139,7 @@ export const VeiculoDetalhes: React.FC = () => {
             case 'info':
                 return <InfoGeralTab veiculo={veiculo} />;
             case 'mapa':
-                return isOnibus ? <MapaAssentos veiculo={veiculo} /> : null;
+                return isOnibus ? <MapaAssentos veiculo={veiculo} seats={seats} onSave={handleSaveSeats} /> : null;
             case 'manutencao':
                 return <ManutencaoTab veiculo={veiculo} />;
             case 'historico':

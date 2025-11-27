@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { IVeiculo, VeiculoStatus } from '../types';
+import { useAppContext } from '../context/AppContext';
 import {
     Bus, Truck, Plus, Search, Filter, Gauge, Calendar,
     Wrench, CheckCircle, AlertTriangle, XCircle, TrendingUp
@@ -109,10 +110,36 @@ const StatusBadge: React.FC<{ status: VeiculoStatus }> = ({ status }) => {
 };
 
 export const Frota: React.FC = () => {
-    const [veiculos] = useState(MOCK_VEICULOS);
+    const { currentContext } = useAppContext();
+    const [veiculos, setVeiculos] = useState<(IVeiculo & { km_atual: number; ano: number; ultima_revisao: string; motorista_atual?: string })[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<'TODOS' | VeiculoStatus>('TODOS');
     const [filtroTipo, setFiltroTipo] = useState<'TODOS' | 'ONIBUS' | 'CAMINHAO'>('TODOS');
     const [busca, setBusca] = useState('');
+
+    const fetchVeiculos = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:4000/api/fleet/vehicles', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch vehicles');
+            }
+
+            const data = await response.json();
+            setVeiculos(data);
+        } catch (error) {
+            console.error("Erro ao buscar veículos:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchVeiculos();
+    }, [currentContext]);
 
     const veiculosFiltrados = veiculos.filter(v => {
         const matchStatus = filtroStatus === 'TODOS' || v.status === filtroStatus;
@@ -265,7 +292,11 @@ export const Frota: React.FC = () => {
 
             {/* Lista de Veículos */}
             <div className="grid gap-4">
-                {veiculosFiltrados.length === 0 ? (
+                {isLoading ? (
+                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+                        <p className="text-slate-500 dark:text-slate-400">Carregando veículos...</p>
+                    </div>
+                ) : veiculosFiltrados.length === 0 ? (
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
                         <Bus size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-slate-500 dark:text-slate-400">Nenhum veículo encontrado</p>
