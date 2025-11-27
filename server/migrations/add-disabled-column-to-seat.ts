@@ -1,4 +1,12 @@
-import pool from '../db';
+import pkg from 'pg';
+const { Pool } = pkg;
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL
+});
 
 async function addDisabledColumnToSeat() {
     try {
@@ -13,6 +21,8 @@ async function addDisabledColumnToSeat() {
     } catch (error) {
         console.error('Error adding disabled column:', error);
         throw error;
+    } finally {
+        await pool.end();
     }
 }
 

@@ -134,6 +134,7 @@ export interface IAssento {
   posicao_y: number; // linha/fileira
   tipo: TipoAssento;
   status: AssentoStatus;
+  disabled?: boolean; // Assento desabilitado (escada, frigobar, manutenção, etc)
 }
 
 export interface IVeiculo {

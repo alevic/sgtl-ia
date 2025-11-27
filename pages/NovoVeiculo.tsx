@@ -17,6 +17,7 @@ export const NovoVeiculo: React.FC = () => {
     const [capacidadePassageiros, setCapacidadePassageiros] = useState('');
     const [capacidadeCarga, setCapacidadeCarga] = useState('');
     const [observacoes, setObservacoes] = useState('');
+    const [isDoubleDeck, setIsDoubleDeck] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSalvar = async () => {
@@ -31,7 +32,7 @@ export const NovoVeiculo: React.FC = () => {
                 km_atual: parseInt(kmAtual),
                 proxima_revisao_km: parseInt(proximaRevisaoKm),
                 ultima_revisao: ultimaRevisao || null,
-                is_double_deck: false,
+                is_double_deck: isDoubleDeck,
                 capacidade_passageiros: tipo === 'ONIBUS' ? parseInt(capacidadePassageiros) : null,
                 capacidade_carga: tipo === 'CAMINHAO' ? parseFloat(capacidadeCarga) : null,
                 observacoes: observacoes || null
@@ -164,20 +165,37 @@ export const NovoVeiculo: React.FC = () => {
                         </div>
 
                         {tipo === 'ONIBUS' ? (
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
-                                    <Bus size={14} className="text-blue-600" />
-                                    Capacidade de Passageiros
-                                </label>
-                                <input
-                                    type="number"
-                                    value={capacidadePassageiros}
-                                    onChange={(e) => setCapacidadePassageiros(e.target.value)}
-                                    placeholder="46"
-                                    min="1"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
+                                        <Bus size={14} className="text-blue-600" />
+                                        Capacidade de Passageiros
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={capacidadePassageiros}
+                                        onChange={(e) => setCapacidadePassageiros(e.target.value)}
+                                        placeholder="46"
+                                        min="1"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    />
+                                </div>
+
+                                <div className="flex items-center h-full pt-6">
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={isDoubleDeck}
+                                            onChange={(e) => setIsDoubleDeck(e.target.checked)}
+                                            className="sr-only peer"
+                                        />
+                                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                                        <span className="ml-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                                            Possui dois andares (Double Deck)?
+                                        </span>
+                                    </label>
+                                </div>
+                            </>
                         ) : (
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">

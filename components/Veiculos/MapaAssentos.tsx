@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../../types';
 import { Plus, X, Bus as BusIcon, Save, PaintBucket, Type, MousePointer2 } from 'lucide-react';
 
@@ -8,12 +8,13 @@ interface MapaAssentosProps {
         ano?: number;
         capacidade_passageiros?: number;
     };
+    seats?: IAssento[];
     onSave?: (assentos: IAssento[]) => void;
 }
 
 type DriverPosition = 'Left' | 'Right';
 
-export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) => {
+export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [], onSave }) => {
     const [showUpperDeck, setShowUpperDeck] = useState(false);
     const [hasSeatPlan, setHasSeatPlan] = useState(true);
     const [driverPosition, setDriverPosition] = useState<DriverPosition>('Left');
@@ -21,6 +22,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
     const [seatColumns, setSeatColumns] = useState(5);
     const [lowerDeckSeats, setLowerDeckSeats] = useState<string[][]>([]);
     const [upperDeckSeats, setUpperDeckSeats] = useState<string[][]>([]);
+    const [activeTab, setActiveTab] = useState<'LOWER' | 'UPPER'>('LOWER');
 
     // Novos estados para configuração de tipos
     const [editMode, setEditMode] = useState<'NUMBER' | 'TYPE'>('NUMBER');
@@ -34,6 +36,63 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
         [TipoAssento.LEITO]: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700',
         [TipoAssento.CAMA]: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700',
         [TipoAssento.CAMA_MASTER]: 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700',
+    };
+
+    useEffect(() => {
+        if (seats && seats.length > 0) {
+            loadSavedSeats();
+        }
+    }, [seats]);
+
+    const loadSavedSeats = () => {
+        try {
+            // Find dimensions
+            let maxRow = 0;
+            let maxCol = 0;
+            const types: Record<string, TipoAssento> = {};
+
+            seats.forEach(seat => {
+                if (seat.posicao_y > maxRow) maxRow = seat.posicao_y;
+                if (seat.posicao_x > maxCol) maxCol = seat.posicao_x;
+                if (seat.numero && !seat.numero.startsWith('DISABLED_')) {
+                    types[seat.numero] = seat.tipo;
+                }
+            });
+
+            // Update dimensions state
+            setSeatRows(maxRow + 1);
+            setSeatColumns(maxCol + 1);
+            setSeatTypes(types);
+
+            // Check if upper deck has seats
+            const hasUpper = seats.some(s => s.andar === 2);
+            setShowUpperDeck(hasUpper);
+
+            // Initialize grids
+            const lower: string[][] = Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill('Blank'));
+            // Only initialize upper grid if there are seats for it, otherwise keep it empty to show "Generate" button
+            const upper: string[][] = hasUpper
+                ? Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill('Blank'))
+                : [];
+
+            // Populate grids
+            seats.forEach(seat => {
+                const grid = seat.andar === 1 ? lower : upper;
+                // Safety check: grid might be empty if we decided not to init it above, but logic shouldn't reach here for upper if hasUpper is false
+                if (grid && grid.length > 0 && grid[seat.posicao_y]) {
+                    if (seat.disabled || (seat.numero && seat.numero.startsWith('DISABLED_'))) {
+                        grid[seat.posicao_y][seat.posicao_x] = ''; // Empty string for disabled
+                    } else {
+                        grid[seat.posicao_y][seat.posicao_x] = seat.numero || 'Blank';
+                    }
+                }
+            });
+
+            setLowerDeckSeats(lower);
+            setUpperDeckSeats(upper);
+        } catch (error) {
+            console.error("Error loading saved seats:", error);
+        }
     };
 
     const generateBusSeats = (isUpperDeck: boolean = false) => {
@@ -51,7 +110,8 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                 } else {
                     // Ajustar numeração considerando o corredor
                     const seatNumber = col < Math.floor(seatColumns / 2) ? col + 1 : col;
-                    rowSeats.push(`${rowLetter}${seatNumber}`);
+                    const prefix = isUpperDeck ? 'S' : 'T';
+                    rowSeats.push(`${prefix}${rowLetter}${seatNumber}`);
                 }
             }
             seats.push(rowSeats);
@@ -77,7 +137,8 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                 newRow.push('Blank');
             } else {
                 const seatNumber = col < Math.floor(seatColumns / 2) ? col + 1 : col;
-                newRow.push(`${rowLetter}${seatNumber}`);
+                const prefix = isUpperDeck ? 'S' : 'T';
+                newRow.push(`${prefix}${rowLetter}${seatNumber}`);
             }
         }
 
@@ -91,8 +152,6 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
         const newSeats = currentSeats.filter((_, index) => index !== rowIndex);
         setSeats(newSeats);
     };
-
-
 
     const updateSeatName = (rowIndex: number, colIndex: number, newName: string, isUpperDeck: boolean = false) => {
         const currentSeats = isUpperDeck ? upperDeckSeats : lowerDeckSeats;
@@ -126,16 +185,22 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
         const processDeck = (seats: string[][], deck: 1 | 2) => {
             seats.forEach((row, rowIndex) => {
                 row.forEach((seat, colIndex) => {
-                    if (seat !== 'Blank') {
-                        allSeats.push({
-                            numero: seat,
-                            andar: deck,
-                            posicao_x: colIndex,
-                            posicao_y: rowIndex,
-                            tipo: seatTypes[seat] || TipoAssento.CONVENCIONAL,
-                            status: AssentoStatus.LIVRE
-                        } as IAssento);
+                    if (seat === 'Blank' || seat === 'Driver') {
+                        // Skip corridors and driver position
+                        return;
                     }
+
+                    const isEmpty = seat.trim() === '';
+
+                    allSeats.push({
+                        numero: isEmpty ? `DISABLED_D${deck}_R${rowIndex}_C${colIndex}` : seat.trim(),
+                        andar: deck,
+                        posicao_x: colIndex,
+                        posicao_y: rowIndex,
+                        tipo: seatTypes[seat] || TipoAssento.CONVENCIONAL,
+                        status: AssentoStatus.LIVRE,
+                        disabled: isEmpty
+                    } as IAssento);
                 });
             });
         };
@@ -177,48 +242,71 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                     <div className="space-y-3 min-w-max flex flex-col items-center">
                         {seats.map((row, rowIndex) => (
                             <div key={rowIndex} className="flex items-center gap-3">
-                                {row.map((seat, colIndex) => (
-                                    seat === 'Blank' ? (
-                                        <div key={colIndex} className="w-14 h-14 flex items-center justify-center">
-                                            <div className="w-full h-full flex items-center justify-center bg-slate-50/50 dark:bg-slate-800/30 border-x-2 border-dashed border-slate-200 dark:border-slate-700 rounded-sm">
-                                                <span className="text-[9px] text-slate-300 dark:text-slate-600 font-bold tracking-widest rotate-90 select-none whitespace-nowrap">
-                                                    CORREDOR
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div
-                                            key={colIndex}
-                                            className="relative group cursor-pointer"
-                                            onClick={() => handleSeatClick(seat)}
-                                        >
-                                            <div className={`w-14 h-14 rounded-lg transition-all duration-200 border-2 shadow-sm flex items-center justify-center ${SEAT_COLORS[getSeatType(seat)]} ${editMode === 'TYPE' ? 'hover:ring-2 hover:ring-offset-2 ring-blue-500' : ''}`}>
-                                                {editMode === 'NUMBER' ? (
-                                                    <input
-                                                        type="text"
-                                                        value={seat}
-                                                        onChange={(e) => updateSeatName(rowIndex, colIndex, e.target.value, isUpperDeck)}
-                                                        className="w-full h-full bg-transparent text-center text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none"
-                                                        placeholder="..."
-                                                    />
-                                                ) : (
-                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 select-none">
-                                                        {seat}
+                                {row.map((seat, colIndex) => {
+                                    // Safety check
+                                    if (typeof seat !== 'string') {
+                                        return null;
+                                    }
+
+                                    const isEmpty = seat.trim() === '';
+                                    const isBlank = seat === 'Blank';
+
+                                    if (isBlank) {
+                                        // Render corridor
+                                        return (
+                                            <div key={colIndex} className="w-14 h-14 flex items-center justify-center">
+                                                <div className="w-full h-full flex items-center justify-center bg-slate-50/50 dark:bg-slate-800/30 border-x-2 border-dashed border-slate-200 dark:border-slate-700 rounded-sm">
+                                                    <span className="text-[9px] text-slate-300 dark:text-slate-600 font-bold tracking-widest rotate-90 select-none whitespace-nowrap">
+                                                        CORREDOR
                                                     </span>
-                                                )}
+                                                </div>
                                             </div>
+                                        );
+                                    } else if (isEmpty && editMode !== 'NUMBER') {
+                                        // Render disabled seat
+                                        return (
+                                            <div key={colIndex} className="w-14 h-14 flex items-center justify-center">
+                                                <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg opacity-50">
+                                                    <X size={20} className="text-slate-400 dark:text-slate-500" />
+                                                </div>
+                                            </div>
+                                        );
+                                    } else {
+                                        // Render normal seat
+                                        return (
+                                            <div
+                                                key={colIndex}
+                                                className="relative group cursor-pointer"
+                                                onClick={() => handleSeatClick(seat)}
+                                            >
+                                                <div className={`w-14 h-14 rounded-lg transition-all duration-200 border-2 shadow-sm flex items-center justify-center ${SEAT_COLORS[getSeatType(seat)]} ${editMode === 'TYPE' ? 'hover:ring-2 hover:ring-offset-2 ring-blue-500' : ''}`}>
+                                                    {editMode === 'NUMBER' ? (
+                                                        <input
+                                                            type="text"
+                                                            value={seat}
+                                                            onChange={(e) => updateSeatName(rowIndex, colIndex, e.target.value, isUpperDeck)}
+                                                            className="w-full h-full bg-transparent text-center text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none"
+                                                            placeholder="..."
+                                                        />
+                                                    ) : (
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200 select-none">
+                                                            {seat}
+                                                        </span>
+                                                    )}
+                                                </div>
 
-                                            {/* Tooltip do Tipo */}
-                                            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                                                {getSeatType(seat).replace('_', ' ')}
-                                            </div>
+                                                {/* Tooltip do Tipo */}
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                                    {getSeatType(seat).replace('_', ' ')}
+                                                </div>
 
-                                            <div className="absolute -top-2 -right-2 w-5 h-5 bg-slate-100 dark:bg-slate-600 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-500 shadow-sm pointer-events-none">
-                                                <span className="text-[10px] text-slate-500 dark:text-slate-300 font-medium">{colIndex + 1}</span>
+                                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-slate-100 dark:bg-slate-600 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-500 shadow-sm pointer-events-none">
+                                                    <span className="text-[10px] text-slate-500 dark:text-slate-300 font-medium">{colIndex + 1}</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )
-                                ))}
+                                        );
+                                    }
+                                })}
 
                                 <div className="flex gap-2 flex-shrink-0 ml-8 opacity-50 hover:opacity-100 transition-opacity">
                                     <button
@@ -253,11 +341,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                 <p className="text-sm text-slate-500 dark:text-slate-400">Configure o layout dos assentos do ônibus.</p>
             </div>
 
-            {/* Seat Information */}
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Informações dos Assentos</h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Aqui você pode planejar os assentos do ônibus.</p>
-            </div>
+
 
             {/* Seat Type - Optional */}
             <div>
@@ -277,165 +361,171 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
                 </p>
             </div>
 
-            {/* Toolbar de Edição */}
-            {hasSeatPlan && (
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-4">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200">Ferramentas de Edição</h3>
-                        <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-lg">
-                            <button
-                                onClick={() => setEditMode('NUMBER')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'NUMBER'
-                                    ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                    }`}
-                            >
-                                <Type size={16} />
-                                Editar Numeração
-                            </button>
-                            <button
-                                onClick={() => setEditMode('TYPE')}
-                                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'TYPE'
-                                    ? 'bg-white dark:bg-slate-600 text-blue-600 dark:text-blue-400 shadow-sm'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                    }`}
-                            >
-                                <PaintBucket size={16} />
-                                Definir Tipos
-                            </button>
-                        </div>
-                    </div>
-
-                    {editMode === 'TYPE' && (
-                        <div className="animate-in fade-in slide-in-from-top-2">
-                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Selecione um tipo e clique nos assentos para aplicar:</p>
-                            <div className="flex flex-wrap gap-2">
-                                {Object.values(TipoAssento).map((tipo) => (
-                                    <button
-                                        key={tipo}
-                                        onClick={() => setSelectedType(tipo)}
-                                        className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${selectedType === tipo
-                                            ? 'ring-2 ring-blue-500 ring-offset-2 ' + SEAT_COLORS[tipo]
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-600'
-                                            }`}
-                                    >
-                                        <div className={`w-3 h-3 rounded-full border border-slate-300 ${SEAT_COLORS[tipo].split(' ')[0]}`} />
-                                        {tipo.replace('_', ' ')}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
 
             {hasSeatPlan ? (
                 <>
-                    {/* Lower Deck Configuration */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Andar Térreo</h3>
-                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">Plano de assentos do andar térreo</p>
+                    {/* Tabs */}
+                    <div className="border-b border-slate-200 dark:border-slate-700">
+                        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                            <button
+                                onClick={() => setActiveTab('LOWER')}
+                                className={`
+                                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                                    ${activeTab === 'LOWER'
+                                        ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'}
+                                `}
+                            >
+                                Andar Térreo
+                            </button>
+                            {veiculo.is_double_deck && (
+                                <button
+                                    onClick={() => setActiveTab('UPPER')}
+                                    className={`
+                                        whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                                        ${activeTab === 'UPPER'
+                                            ? 'border-purple-500 text-purple-600 dark:text-purple-400'
+                                            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'}
+                                    `}
+                                >
+                                    Andar Superior
+                                </button>
+                            )}
+                        </nav>
+                    </div>
 
-                        {/* Show Upper Deck Toggle */}
-                        {veiculo.is_double_deck && (
-                            <div className="flex items-center justify-between mb-6 pb-6 border-b border-slate-200 dark:border-slate-700">
+                    <div className="mt-6">
+                        {/* Configuration Controls (Shared Inputs, but applied on Generate) */}
+                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-6">
+                            <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-4">
+                                Parâmetros de Geração ({activeTab === 'LOWER' ? 'Térreo' : 'Superior'})
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <p className="font-medium text-slate-700 dark:text-slate-200">Mostrar Andar Superior</p>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">Ative ou desative o plano do andar superior</p>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Posição do Motorista
+                                    </label>
+                                    <select
+                                        value={driverPosition}
+                                        onChange={(e) => setDriverPosition(e.target.value as DriverPosition)}
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    >
+                                        <option value="Left">Esquerda</option>
+                                        <option value="Right">Direita</option>
+                                    </select>
                                 </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Linhas de Assentos
+                                    </label>
                                     <input
-                                        type="checkbox"
-                                        checked={showUpperDeck}
-                                        onChange={(e) => setShowUpperDeck(e.target.checked)}
-                                        className="sr-only peer"
+                                        type="number"
+                                        value={seatRows}
+                                        onChange={(e) => setSeatRows(parseInt(e.target.value) || 0)}
+                                        min="1"
+                                        max="20"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                                     />
-                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
-                                </label>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                        Colunas de Assentos
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={seatColumns}
+                                        onChange={(e) => setSeatColumns(parseInt(e.target.value) || 0)}
+                                        min="3"
+                                        max="7"
+                                        step="2"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        Use números ímpares (3, 5, 7) para corredor central
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Toolbar de Edição */}
+                        <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
+                            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4 mb-4">
+                                <h3 className="font-bold text-slate-700 dark:text-slate-200">Ferramentas de Edição</h3>
+                                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <button
+                                        onClick={() => setEditMode('NUMBER')}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'NUMBER'
+                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                            }`}
+                                    >
+                                        <Type size={16} />
+                                        Editar Numeração
+                                    </button>
+                                    <button
+                                        onClick={() => setEditMode('TYPE')}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'TYPE'
+                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                                            }`}
+                                    >
+                                        <PaintBucket size={16} />
+                                        Definir Tipos
+                                    </button>
+                                </div>
+                            </div>
+
+                            {editMode === 'TYPE' && (
+                                <div className="animate-in fade-in slide-in-from-top-2">
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Selecione um tipo e clique nos assentos para aplicar:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.values(TipoAssento).map((tipo) => (
+                                            <button
+                                                key={tipo}
+                                                onClick={() => setSelectedType(tipo)}
+                                                className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${selectedType === tipo
+                                                    ? 'ring-2 ring-blue-500 ring-offset-2 ' + SEAT_COLORS[tipo]
+                                                    : 'hover:bg-white dark:hover:bg-slate-800 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800'
+                                                    }`}
+                                            >
+                                                <div className={`w-3 h-3 rounded-full border border-slate-300 ${SEAT_COLORS[tipo].split(' ')[0]}`} />
+                                                {tipo.replace('_', ' ')}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Active Tab Content */}
+                        {activeTab === 'LOWER' && (
+                            <div className="animate-in fade-in slide-in-from-left-2 duration-300">
+                                <button
+                                    onClick={() => generateBusSeats(false)}
+                                    className="mb-6 w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
+                                >
+                                    <Plus size={18} />
+                                    Gerar Assentos (Térreo)
+                                </button>
+                                {renderSeatGrid(lowerDeckSeats, false, 'andar térreo')}
                             </div>
                         )}
 
-                        {/* Configuration Controls */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                    Posição do Motorista
-                                </label>
-                                <select
-                                    value={driverPosition}
-                                    onChange={(e) => setDriverPosition(e.target.value as DriverPosition)}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        {activeTab === 'UPPER' && veiculo.is_double_deck && (
+                            <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                                <button
+                                    onClick={() => generateBusSeats(true)}
+                                    className="mb-6 w-full px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
                                 >
-                                    <option value="Left">Esquerda</option>
-                                    <option value="Right">Direita</option>
-                                </select>
+                                    <Plus size={18} />
+                                    Gerar Assentos (Superior)
+                                </button>
+                                {renderSeatGrid(upperDeckSeats, true, 'andar superior')}
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                    Linhas de Assentos
-                                </label>
-                                <input
-                                    type="number"
-                                    value={seatRows}
-                                    onChange={(e) => setSeatRows(parseInt(e.target.value) || 0)}
-                                    min="1"
-                                    max="20"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                    Colunas de Assentos
-                                </label>
-                                <input
-                                    type="number"
-                                    value={seatColumns}
-                                    onChange={(e) => setSeatColumns(parseInt(e.target.value) || 0)}
-                                    min="3"
-                                    max="7"
-                                    step="2"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    Use números ímpares (3, 5, 7) para corredor central
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Generate Button for Lower Deck */}
-                        <button
-                            onClick={() => generateBusSeats(false)}
-                            className="mb-6 px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                        >
-                            <Plus size={18} />
-                            Gerar Assentos - Andar Térreo
-                        </button>
-
-                        {/* Seat Grid for Lower Deck */}
-                        {renderSeatGrid(lowerDeckSeats, false, 'andar térreo')}
+                        )}
                     </div>
-
-                    {/* Upper Deck Configuration */}
-                    {veiculo.is_double_deck && showUpperDeck && (
-                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                            <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-2">Andar Superior</h3>
-                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">Plano de assentos do andar superior (Double Deck)</p>
-
-                            {/* Generate Button for Upper Deck */}
-                            <button
-                                onClick={() => generateBusSeats(true)}
-                                className="mb-6 px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                            >
-                                <Plus size={18} />
-                                Gerar Assentos - Andar Superior
-                            </button>
-
-                            {/* Seat Grid for Upper Deck */}
-                            {renderSeatGrid(upperDeckSeats, true, 'andar superior')}
-                        </div>
-                    )}
                 </>
             ) : (
                 <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700 border-dashed">
@@ -449,20 +539,22 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, onSave }) =
             )}
 
             {/* Save Button */}
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
                 <button
                     onClick={() => {
-                        setLowerDeckSeats([]);
-                        setUpperDeckSeats([]);
+                        if (confirm('Tem certeza que deseja limpar todos os assentos?')) {
+                            setLowerDeckSeats([]);
+                            setUpperDeckSeats([]);
+                        }
                     }}
-                    className="px-6 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    className="px-6 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                     <X size={18} />
                     Limpar Tudo
                 </button>
                 <button
                     onClick={handleSave}
-                    className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm"
                 >
                     <Save size={18} />
                     Salvar Configuração

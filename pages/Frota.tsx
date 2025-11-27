@@ -6,6 +6,7 @@ import {
     Bus, Truck, Plus, Search, Filter, Gauge, Calendar,
     Wrench, CheckCircle, AlertTriangle, XCircle, TrendingUp
 } from 'lucide-react';
+import { VehicleActions } from '../components/Frota/VehicleActions';
 
 // Mock data - em produção virá do backend
 export const MOCK_VEICULOS: (IVeiculo & {
@@ -340,6 +341,9 @@ export const Frota: React.FC = () => {
                                             Manutenção Próxima
                                         </div>
                                     )}
+                                    <div onClick={(e) => e.preventDefault()}>
+                                        <VehicleActions veiculo={veiculo} onUpdate={fetchVeiculos} />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">

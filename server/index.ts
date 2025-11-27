@@ -454,11 +454,11 @@ app.post("/api/fleet/vehicles/:id/seats", async (req, res) => {
             for (const seat of seats) {
                 await pool.query(
                     `INSERT INTO seat (
-                        vehicle_id, numero, andar, posicao_x, posicao_y, tipo, status, preco
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                        vehicle_id, numero, andar, posicao_x, posicao_y, tipo, status, preco, disabled
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
                     [
                         id, seat.numero, seat.andar, seat.posicao_x, seat.posicao_y,
-                        seat.tipo, seat.status || 'LIVRE', seat.preco || null
+                        seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false
                     ]
                 );
             }
