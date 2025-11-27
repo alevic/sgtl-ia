@@ -2,20 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { EmpresaContexto } from '../../types';
-import {
-  LayoutDashboard,
-  Bus,
-  Ticket,
-  Users,
-  Truck,
-  Package,
-  Settings,
-  FileText,
-  MapPin,
-  TrendingUp,
-  Wrench,
-  CreditCard
-} from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Settings, LogOut, Menu, X, Bus, Calendar, DollarSign, FileText, User, ChevronRight, Building2, Ticket, Truck, Package, MapPin, TrendingUp, Wrench, CreditCard } from 'lucide-react';
 
 const SidebarItem: React.FC<{ icon: React.ElementType; label: string; to: string; colorClass: string }> = ({ icon: Icon, label, to, colorClass }) => {
   const location = useLocation();
@@ -46,7 +33,7 @@ export const Sidebar: React.FC = () => {
   const canAccess = (roles: string[]) => roles.includes(userRole);
 
   return (
-    <div className="w-64 h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col sticky top-0 left-0 shrink-0 transition-colors">
+    <div className="w-64 h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col sticky top-0 left-0 shrink-0 transition-colors z-50">
       <div className="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-700">
         <div className={`w-8 h-8 rounded bg-${themeColor}-600 flex items-center justify-center text-white font-bold mr-3`}>
           JJ
@@ -102,6 +89,7 @@ export const Sidebar: React.FC = () => {
         {canAccess(['admin']) && (
           <>
             <SidebarItem icon={Users} label="Usuários" to="/admin/usuarios" colorClass={themeColor} />
+            <SidebarItem icon={Building2} label="Organizações" to="/admin/organizacoes" colorClass={themeColor} />
             <SidebarItem icon={Settings} label="Configurações" to="/admin/configuracoes" colorClass={themeColor} />
           </>
         )}

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     DollarSign, TrendingUp, TrendingDown, Calendar, Plus, FileText,
@@ -7,77 +7,62 @@ import {
 import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa } from '../types';
 
 // Mock data - em produção viria do backend
-const MOCK_TRANSACOES: ITransacao[] = [
-    {
-        id: 'T001',
-        tipo: TipoTransacao.RECEITA,
-        descricao: 'Venda de Passagem #12345',
-        valor: 350.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-20',
-        data_vencimento: '2024-11-20',
-        data_pagamento: '2024-11-20',
-        status: StatusTransacao.PAGA,
-        categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
-        reserva_id: 'R001',
-        criado_por: 'admin',
-        criado_em: '2024-11-20T10:00:00'
-    },
-    {
-        id: 'T002',
-        tipo: TipoTransacao.DESPESA,
-        descricao: 'Manutenção Preventiva - ABC-1234',
-        valor: 1200.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-22',
-        data_vencimento: '2024-11-25',
-        status: StatusTransacao.PENDENTE,
-        categoria_despesa: CategoriaDespesa.MANUTENCAO,
-        manutencao_id: 'M001',
-        criado_por: 'admin',
-        criado_em: '2024-11-22T14:30:00'
-    },
-    {
-        id: 'T003',
-        tipo: TipoTransacao.RECEITA,
-        descricao: 'Fretamento Corporativo - Tech Solutions',
-        valor: 5000.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-23',
-        data_vencimento: '2024-12-05',
-        status: StatusTransacao.PENDENTE,
-        categoria_receita: CategoriaReceita.FRETAMENTO,
-        fretamento_id: 'F001',
-        criado_por: 'admin',
-        criado_em: '2024-11-23T09:15:00'
-    }
-];
+import { authClient } from '../lib/auth-client';
+import { useApp } from '../context/AppContext';
+import { TransactionActions } from '../components/Financeiro/TransactionActions';
 
 export const Financeiro: React.FC = () => {
     const navigate = useNavigate();
+    const { currentContext } = useApp();
     const [periodoSelecionado, setPeriodoSelecionado] = useState<'mes' | 'trimestre' | 'ano'>('mes');
+    const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchTransacoes = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:4000/api/finance/transactions', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao buscar transações');
+            }
+
+            const data = await response.json();
+            setTransacoes(data);
+        } catch (error) {
+            console.error("Erro ao buscar transações:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTransacoes();
+    }, [currentContext]); // Refetch when context changes (which changes active org)
 
     // Cálculos financeiros
     const resumo = useMemo(() => {
-        const receitas = MOCK_TRANSACOES
+        const receitas = transacoes
             .filter(t => t.tipo === TipoTransacao.RECEITA)
-            .reduce((sum, t) => sum + t.valor, 0);
+            .reduce((sum, t) => sum + Number(t.valor), 0);
 
-        const despesas = MOCK_TRANSACOES
+        const despesas = transacoes
             .filter(t => t.tipo === TipoTransacao.DESPESA)
-            .reduce((sum, t) => sum + t.valor, 0);
+            .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const saldo = receitas - despesas;
 
-        const receitasPagas = MOCK_TRANSACOES
+        const receitasPagas = transacoes
             .filter(t => t.tipo === TipoTransacao.RECEITA && t.status === StatusTransacao.PAGA)
-            .reduce((sum, t) => sum + t.valor, 0);
+            .reduce((sum, t) => sum + Number(t.valor), 0);
 
-        const despesasPagas = MOCK_TRANSACOES
+        const despesasPagas = transacoes
             .filter(t => t.tipo === TipoTransacao.DESPESA && t.status === StatusTransacao.PAGA)
-            .reduce((sum, t) => sum + t.valor, 0);
+            .reduce((sum, t) => sum + Number(t.valor), 0);
 
-        const contasVencidas = MOCK_TRANSACOES.filter(t => {
+        const contasVencidas = transacoes.filter(t => {
             if (t.status !== StatusTransacao.PENDENTE) return false;
             const vencimento = new Date(t.data_vencimento);
             return vencimento < new Date();
@@ -91,7 +76,7 @@ export const Financeiro: React.FC = () => {
             despesasPagas,
             contasVencidas
         };
-    }, []);
+    }, [transacoes]);
 
     const formatCurrency = (value: number) => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -212,7 +197,7 @@ export const Financeiro: React.FC = () => {
                         {formatCurrency(resumo.saldo)}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {resumo.saldo >= 0 ? 'Superá vit' : 'Déficit'}
+                        {resumo.saldo >= 0 ? 'Superávit' : 'Déficit'}
                     </p>
                 </div>
 
@@ -345,41 +330,48 @@ export const Financeiro: React.FC = () => {
                     </div>
                 </div>
                 <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {MOCK_TRANSACOES.slice(0, 5).map((transacao) => (
-                        <div key={transacao.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3 flex-1">
-                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${transacao.tipo === TipoTransacao.RECEITA
-                                        ? 'bg-green-100 dark:bg-green-900/30'
-                                        : 'bg-red-100 dark:bg-red-900/30'
-                                        }`}>
-                                        {transacao.tipo === TipoTransacao.RECEITA ? (
-                                            <ArrowUpRight size={20} className="text-green-600 dark:text-green-400" />
-                                        ) : (
-                                            <ArrowDownRight size={20} className="text-red-600 dark:text-red-400" />
-                                        )}
+                    {isLoading ? (
+                        <div className="p-8 text-center text-slate-500">Carregando transações...</div>
+                    ) : transacoes.length === 0 ? (
+                        <div className="p-8 text-center text-slate-500">Nenhuma transação encontrada.</div>
+                    ) : (
+                        transacoes.slice(0, 5).map((transacao) => (
+                            <div key={transacao.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 flex-1">
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${transacao.tipo === TipoTransacao.RECEITA
+                                            ? 'bg-green-100 dark:bg-green-900/30'
+                                            : 'bg-red-100 dark:bg-red-900/30'
+                                            }`}>
+                                            {transacao.tipo === TipoTransacao.RECEITA ? (
+                                                <ArrowUpRight size={20} className="text-green-600 dark:text-green-400" />
+                                            ) : (
+                                                <ArrowDownRight size={20} className="text-red-600 dark:text-red-400" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-slate-800 dark:text-white truncate">
+                                                {transacao.descricao}
+                                            </p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                {new Date(transacao.data_emissao).toLocaleDateString('pt-BR')}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-slate-800 dark:text-white truncate">
-                                            {transacao.descricao}
+                                    <div className="flex items-center gap-3">
+                                        {getStatusBadge(transacao.status)}
+                                        <p className={`text-lg font-semibold ${transacao.tipo === TipoTransacao.RECEITA
+                                            ? 'text-green-600 dark:text-green-400'
+                                            : 'text-red-600 dark:text-red-400'
+                                            }`}>
+                                            {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
                                         </p>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            {new Date(transacao.data_emissao).toLocaleDateString('pt-BR')}
-                                        </p>
+                                        <TransactionActions transacao={transacao} onUpdate={fetchTransacoes} />
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    {getStatusBadge(transacao.status)}
-                                    <p className={`text-lg font-semibold ${transacao.tipo === TipoTransacao.RECEITA
-                                        ? 'text-green-600 dark:text-green-400'
-                                        : 'text-red-600 dark:text-red-400'
-                                        }`}>
-                                        {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(transacao.valor)}
-                                    </p>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Download, Calendar, Filter, ArrowUpRight, ArrowDownRight, Eye
@@ -7,104 +7,16 @@ import {
     ITransacao, TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa,
     FormaPagamento, Moeda, CentroCusto, ClassificacaoContabil
 } from '../types';
-
-// Mock data combining all transactions
-const MOCK_TODAS_TRANSACOES: ITransacao[] = [
-    {
-        id: 'T001',
-        tipo: TipoTransacao.RECEITA,
-        descricao: 'Reserva #12345 - São Paulo → Rio de Janeiro',
-        valor: 350.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-20',
-        data_vencimento: '2024-11-20',
-        data_pagamento: '2024-11-20',
-        status: StatusTransacao.PAGA,
-        forma_pagamento: FormaPagamento.PIX,
-        categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
-        reserva_id: 'R001',
-        numero_documento: 'RES-12345',
-        criado_por: 'admin',
-        criado_em: '2024-11-20T10:00:00'
-    },
-    {
-        id: 'T002',
-        tipo: TipoTransacao.DESPESA,
-        descricao: 'Abastecimento Frota - Novembro',
-        valor: 3500.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-20',
-        data_vencimento: '2024-12-05',
-        status: StatusTransacao.PENDENTE,
-        categoria_despesa: CategoriaDespesa.COMBUSTIVEL,
-        numero_documento: 'NF-45678',
-        criado_por: 'admin',
-        criado_em: '2024-11-20T14:30:00'
-    },
-    {
-        id: 'T003',
-        tipo: TipoTransacao.RECEITA,
-        descricao: 'Fretamento Corporativo - Tech Solutions',
-        valor: 5000.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-23',
-        data_vencimento: '2024-12-05',
-        status: StatusTransacao.PENDENTE,
-        categoria_receita: CategoriaReceita.FRETAMENTO,
-        fretamento_id: 'F001',
-        numero_documento: 'FRET-001',
-        criado_por: 'admin',
-        criado_em: '2024-11-23T09:15:00'
-    },
-    {
-        id: 'T004',
-        tipo: TipoTransacao.DESPESA,
-        descricao: 'Manutenção Preventiva - ABC-1234',
-        valor: 1200.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-15',
-        data_vencimento: '2024-11-20',
-        data_pagamento: '2024-11-20',
-        status: StatusTransacao.PAGA,
-        forma_pagamento: FormaPagamento.TRANSFERENCIA,
-        categoria_despesa: CategoriaDespesa.MANUTENCAO,
-        manutencao_id: 'M001',
-        numero_documento: 'OS-9876',
-        criado_por: 'admin',
-        criado_em: '2024-11-15T11:00:00'
-    },
-    {
-        id: 'T005',
-        tipo: TipoTransacao.DESPESA,
-        descricao: 'Compra de Peças - Freios e Filtros',
-        valor: 850.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-18',
-        data_vencimento: '2024-11-25',
-        status: StatusTransacao.VENCIDA,
-        categoria_despesa: CategoriaDespesa.PECAS,
-        numero_documento: 'NF-12345',
-        criado_por: 'admin',
-        criado_em: '2024-11-18T16:20:00'
-    },
-    {
-        id: 'T006',
-        tipo: TipoTransacao.RECEITA,
-        descricao: 'Transporte de Encomenda - Curitiba',
-        valor: 120.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-15',
-        data_vencimento: '2024-11-22',
-        status: StatusTransacao.VENCIDA,
-        categoria_receita: CategoriaReceita.ENCOMENDA,
-        numero_documento: 'ENC-789',
-        criado_por: 'admin',
-        criado_em: '2024-11-15T13:45:00'
-    }
-];
+import { useApp } from '../context/AppContext';
+import { TransactionActions } from '../components/Financeiro/TransactionActions';
 
 export const Transacoes: React.FC = () => {
     const navigate = useNavigate();
+    const { currentContext } = useApp();
+    const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Filtros
     const [busca, setBusca] = useState('');
     const [filtroTipo, setFiltroTipo] = useState<TipoTransacao | 'TODAS'>('TODAS');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
@@ -113,8 +25,32 @@ export const Transacoes: React.FC = () => {
     const [dataInicio, setDataInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
 
+    const fetchTransacoes = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:4000/api/finance/transactions', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao buscar transações');
+            }
+
+            const data = await response.json();
+            setTransacoes(data);
+        } catch (error) {
+            console.error("Erro ao buscar transações:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTransacoes();
+    }, [currentContext]);
+
     const transacoesFiltradas = useMemo(() => {
-        return MOCK_TODAS_TRANSACOES.filter(transacao => {
+        return transacoes.filter(transacao => {
             const matchBusca = busca === '' ||
                 transacao.descricao.toLowerCase().includes(busca.toLowerCase()) ||
                 transacao.numero_documento?.toLowerCase().includes(busca.toLowerCase()) ||
@@ -128,21 +64,26 @@ export const Transacoes: React.FC = () => {
             let matchData = true;
             if (dataInicio && dataFim) {
                 const dataEmissao = new Date(transacao.data_emissao);
-                matchData = dataEmissao >= new Date(dataInicio) && dataEmissao <= new Date(dataFim);
+                // Ajuste para comparar datas ignorando horas se necessário, mas new Date(string) funciona bem
+                // Adicionando um dia ao fim para incluir o dia selecionado
+                const fim = new Date(dataFim);
+                fim.setHours(23, 59, 59, 999);
+
+                matchData = dataEmissao >= new Date(dataInicio) && dataEmissao <= fim;
             }
 
             return matchBusca && matchTipo && matchStatus && matchData && matchCentroCusto && matchClassificacao;
         }).sort((a, b) => new Date(b.data_emissao).getTime() - new Date(a.data_emissao).getTime());
-    }, [busca, filtroTipo, filtroStatus, dataInicio, dataFim, filtroCentroCusto, filtroClassificacao]);
+    }, [transacoes, busca, filtroTipo, filtroStatus, dataInicio, dataFim, filtroCentroCusto, filtroClassificacao]);
 
     const resumo = useMemo(() => {
         const receitas = transacoesFiltradas
             .filter(t => t.tipo === TipoTransacao.RECEITA)
-            .reduce((sum, t) => sum + t.valor, 0);
+            .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesas = transacoesFiltradas
             .filter(t => t.tipo === TipoTransacao.DESPESA)
-            .reduce((sum, t) => sum + t.valor, 0);
+            .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const saldo = receitas - despesas;
 
@@ -155,10 +96,6 @@ export const Transacoes: React.FC = () => {
 
     const formatDate = (date: string) => {
         return new Date(date).toLocaleDateString('pt-BR');
-    };
-
-    const formatDateTime = (date: string) => {
-        return new Date(date).toLocaleString('pt-BR');
     };
 
     const getStatusBadge = (status: StatusTransacao) => {
@@ -385,7 +322,11 @@ export const Transacoes: React.FC = () => {
                 </div>
 
                 <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {transacoesFiltradas.length === 0 ? (
+                    {isLoading ? (
+                        <div className="p-12 text-center">
+                            <p className="text-slate-500 dark:text-slate-400">Carregando transações...</p>
+                        </div>
+                    ) : transacoesFiltradas.length === 0 ? (
                         <div className="p-12 text-center">
                             <Filter size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
                             <p className="text-slate-500 dark:text-slate-400">Nenhuma transação encontrada</p>
@@ -444,12 +385,13 @@ export const Transacoes: React.FC = () => {
                                                 ? 'text-green-600 dark:text-green-400'
                                                 : 'text-red-600 dark:text-red-400'
                                                 }`}>
-                                                {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(transacao.valor)}
+                                                {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
                                             </p>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                                 {transacao.moeda}
                                             </p>
                                         </div>
+                                        <TransactionActions transacao={transacao} onUpdate={fetchTransacoes} />
                                     </div>
                                 </div>
                             </div>

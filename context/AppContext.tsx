@@ -55,6 +55,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const { data: session } = authClient.useSession();
 
+  // Sync active organization if missing
+  useEffect(() => {
+    if (session && !session.session.activeOrganizationId) {
+      authClient.organization.list().then(({ data }) => {
+        if (data && data.length > 0) {
+          // Default to Turismo if available, otherwise first one
+          const defaultOrg = data.find(o => o.slug.toLowerCase().includes('turismo')) || data[0];
+          console.log("Setting default active organization:", defaultOrg.name);
+          authClient.organization.setActive({ organizationId: defaultOrg.id });
+        }
+      });
+    }
+  }, [session]);
+
   const user = {
     name: session?.user?.name || "Usuário",
     role: "Administrador", // Role management can be added later

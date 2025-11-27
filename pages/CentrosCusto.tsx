@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, PieChart, TrendingUp, TrendingDown, DollarSign,
@@ -7,94 +7,56 @@ import {
 import {
     ITransacao, TipoTransacao, CentroCusto, ClassificacaoContabil, Moeda, StatusTransacao
 } from '../types';
-
-// Mock data for demonstration
-const MOCK_TRANSACOES: ITransacao[] = [
-    // Receitas (Vendas)
-    {
-        id: 'T001', tipo: TipoTransacao.RECEITA, descricao: 'Venda de Passagens', valor: 15000, moeda: Moeda.BRL,
-        data_emissao: '2024-11-01', data_vencimento: '2024-11-01', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.VENDAS, criado_por: 'admin', criado_em: '2024-11-01T10:00:00'
-    },
-    {
-        id: 'T002', tipo: TipoTransacao.RECEITA, descricao: 'Fretamento Escolar', valor: 8000, moeda: Moeda.BRL,
-        data_emissao: '2024-11-05', data_vencimento: '2024-11-05', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.VENDAS, criado_por: 'admin', criado_em: '2024-11-05T14:00:00'
-    },
-    // Custos Variáveis (Vendas/Operação)
-    {
-        id: 'T003', tipo: TipoTransacao.DESPESA, descricao: 'Combustível Frota', valor: 4500, moeda: Moeda.BRL,
-        data_emissao: '2024-11-02', data_vencimento: '2024-11-10', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.VENDAS, classificacao_contabil: ClassificacaoContabil.CUSTO_VARIAVEL,
-        criado_por: 'admin', criado_em: '2024-11-02T09:00:00'
-    },
-    {
-        id: 'T004', tipo: TipoTransacao.DESPESA, descricao: 'Manutenção Corretiva', valor: 1200, moeda: Moeda.BRL,
-        data_emissao: '2024-11-08', data_vencimento: '2024-11-15', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.VENDAS, classificacao_contabil: ClassificacaoContabil.CUSTO_VARIAVEL,
-        criado_por: 'admin', criado_em: '2024-11-08T11:00:00'
-    },
-    // Custos Fixos (Vendas/Operação)
-    {
-        id: 'T005', tipo: TipoTransacao.DESPESA, descricao: 'Seguro da Frota', valor: 2000, moeda: Moeda.BRL,
-        data_emissao: '2024-11-01', data_vencimento: '2024-11-05', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.VENDAS, classificacao_contabil: ClassificacaoContabil.CUSTO_FIXO,
-        criado_por: 'admin', criado_em: '2024-11-01T08:00:00'
-    },
-    {
-        id: 'T006', tipo: TipoTransacao.DESPESA, descricao: 'Salários Motoristas', valor: 6000, moeda: Moeda.BRL,
-        data_emissao: '2024-11-05', data_vencimento: '2024-11-05', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.VENDAS, classificacao_contabil: ClassificacaoContabil.CUSTO_FIXO,
-        criado_por: 'admin', criado_em: '2024-11-05T09:00:00'
-    },
-    // Despesas Administrativas
-    {
-        id: 'T007', tipo: TipoTransacao.DESPESA, descricao: 'Aluguel Escritório', valor: 1500, moeda: Moeda.BRL,
-        data_emissao: '2024-11-01', data_vencimento: '2024-11-05', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.ADMINISTRATIVO, classificacao_contabil: ClassificacaoContabil.DESPESA_FIXA,
-        criado_por: 'admin', criado_em: '2024-11-01T10:00:00'
-    },
-    {
-        id: 'T008', tipo: TipoTransacao.DESPESA, descricao: 'Internet e Telefone', valor: 300, moeda: Moeda.BRL,
-        data_emissao: '2024-11-10', data_vencimento: '2024-11-15', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.ADMINISTRATIVO, classificacao_contabil: ClassificacaoContabil.DESPESA_FIXA,
-        criado_por: 'admin', criado_em: '2024-11-10T14:00:00'
-    },
-    {
-        id: 'T009', tipo: TipoTransacao.DESPESA, descricao: 'Material de Escritório', valor: 150, moeda: Moeda.BRL,
-        data_emissao: '2024-11-12', data_vencimento: '2024-11-12', status: StatusTransacao.PAGA,
-        centro_custo: CentroCusto.ADMINISTRATIVO, classificacao_contabil: ClassificacaoContabil.DESPESA_VARIAVEL,
-        criado_por: 'admin', criado_em: '2024-11-12T16:00:00'
-    },
-    // Estoque
-    {
-        id: 'T010', tipo: TipoTransacao.DESPESA, descricao: 'Compra de Pneus', valor: 2000, moeda: Moeda.BRL,
-        data_emissao: '2024-11-15', data_vencimento: '2024-11-20', status: StatusTransacao.PENDENTE,
-        centro_custo: CentroCusto.ESTOQUE, classificacao_contabil: ClassificacaoContabil.CUSTO_VARIAVEL,
-        criado_por: 'admin', criado_em: '2024-11-15T11:00:00'
-    }
-];
+import { authClient } from '../lib/auth-client';
+import { useApp } from '../context/AppContext';
 
 export const CentrosCusto: React.FC = () => {
     const navigate = useNavigate();
+    const { currentContext } = useApp();
     const [periodoInicio, setPeriodoInicio] = useState('2024-11-01');
     const [periodoFim, setPeriodoFim] = useState('2024-11-30');
+    const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchTransacoes = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:4000/api/finance/transactions', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao buscar transações');
+            }
+
+            const data = await response.json();
+            setTransacoes(data);
+        } catch (error) {
+            console.error("Erro ao buscar transações:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTransacoes();
+    }, [currentContext]);
 
     const dadosFiltrados = useMemo(() => {
-        return MOCK_TRANSACOES.filter(t => {
+        return transacoes.filter(t => {
             const data = new Date(t.data_emissao);
             return data >= new Date(periodoInicio) && data <= new Date(periodoFim);
         });
-    }, [periodoInicio, periodoFim]);
+    }, [transacoes, periodoInicio, periodoFim]);
 
     const kpis = useMemo(() => {
         const receitas = dadosFiltrados
             .filter(t => t.tipo === TipoTransacao.RECEITA)
-            .reduce((acc, t) => acc + t.valor, 0);
+            .reduce((acc, t) => acc + Number(t.valor), 0);
 
         const despesas = dadosFiltrados
             .filter(t => t.tipo === TipoTransacao.DESPESA)
-            .reduce((acc, t) => acc + t.valor, 0);
+            .reduce((acc, t) => acc + Number(t.valor), 0);
 
         const resultado = receitas - despesas;
         const margem = receitas > 0 ? (resultado / receitas) * 100 : 0;
@@ -107,7 +69,7 @@ export const CentrosCusto: React.FC = () => {
         return centros.map(centro => {
             const total = dadosFiltrados
                 .filter(t => t.tipo === TipoTransacao.DESPESA && t.centro_custo === centro)
-                .reduce((acc, t) => acc + t.valor, 0);
+                .reduce((acc, t) => acc + Number(t.valor), 0);
 
             const percentual = kpis.despesas > 0 ? (total / kpis.despesas) * 100 : 0;
 

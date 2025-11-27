@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Save, Calendar, DollarSign, Tag, FileText, Upload } from 'lucide-react';
 import {
     TipoTransacao, CategoriaReceita, CategoriaDespesa, FormaPagamento,
     StatusTransacao, Moeda, CentroCusto, ClassificacaoContabil
 } from '../types';
 import { getSugestaoClassificacao } from '../utils/classificacaoContabil';
+import { authClient } from '../lib/auth-client';
 
 export const NovaTransacao: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     // Form state
+    const [id, setId] = useState<string | null>(null);
     const [tipo, setTipo] = useState<TipoTransacao>(TipoTransacao.DESPESA);
     const [descricao, setDescricao] = useState('');
     const [valor, setValor] = useState('');
@@ -41,21 +44,46 @@ export const NovaTransacao: React.FC = () => {
         }
     }, [tipo, categoriaDespesa]);
 
-    // Handle initial state from navigation (e.g. from Maintenance module)
+    // Handle initial state from navigation
     useEffect(() => {
-        const state = window.history.state?.usr;
-        if (state) {
-            if (state.valor) setValor(state.valor.toString());
-            if (state.descricao) setDescricao(state.descricao);
-            if (state.categoria_despesa) {
-                setTipo(TipoTransacao.DESPESA);
-                setCategoriaDespesa(state.categoria_despesa);
-            }
-            if (state.centro_custo) setCentroCusto(state.centro_custo);
-        }
-    }, []);
+        const state = location.state as any;
 
-    const handleSubmit = (e: React.FormEvent) => {
+        if (state) {
+            if (state.id) {
+                setId(state.id);
+                setTipo(state.tipo);
+                setDescricao(state.descricao);
+                setValor(state.valor.toString());
+                setMoeda(state.moeda);
+                setDataEmissao(state.data_emissao.split('T')[0]);
+                setDataVencimento(state.data_vencimento.split('T')[0]);
+                setStatus(state.status);
+                setFormaPagamento(state.forma_pagamento);
+                setNumeroDocumento(state.numero_documento || '');
+                setObservacoes(state.observacoes || '');
+
+                if (state.tipo === TipoTransacao.RECEITA) {
+                    setCategoriaReceita(state.categoria_receita);
+                } else {
+                    setCategoriaDespesa(state.categoria_despesa);
+                    setCentroCusto(state.centro_custo);
+                    setClassificacaoContabil(state.classificacao_contabil);
+                }
+            }
+            else {
+                if (state.tipo) setTipo(state.tipo);
+                if (state.valor) setValor(state.valor.toString());
+                if (state.descricao) setDescricao(state.descricao);
+                if (state.categoria_despesa) {
+                    setTipo(TipoTransacao.DESPESA);
+                    setCategoriaDespesa(state.categoria_despesa);
+                }
+                if (state.centro_custo) setCentroCusto(state.centro_custo);
+            }
+        }
+    }, [location]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const transacao = {
@@ -73,13 +101,40 @@ export const NovaTransacao: React.FC = () => {
             classificacao_contabil: tipo === TipoTransacao.DESPESA ? classificacaoContabil : undefined,
             numero_documento: numeroDocumento,
             observacoes,
-            criado_por: 'admin',
-            criado_em: new Date().toISOString()
+            // criado_por and criado_em are handled by the backend
         };
 
-        console.log('Nova transação:', transacao);
-        alert('Transação registrada com sucesso!');
-        navigate('/admin/financeiro');
+        try {
+            const url = id
+                ? `http://localhost:4000/api/finance/transactions/${id}`
+                : 'http://localhost:4000/api/finance/transactions';
+
+            const method = id ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(transacao),
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error("Erro ao salvar transação:", errorData);
+                throw new Error(errorData.error || 'Erro ao salvar transação');
+            }
+
+            const data = await response.json();
+
+            console.log('Transação salva:', data);
+            alert(id ? 'Transação atualizada com sucesso!' : 'Transação registrada com sucesso!');
+            navigate('/admin/financeiro');
+        } catch (err) {
+            console.error("Erro inesperado:", err);
+            alert('Erro ao salvar transação. Tente novamente.');
+        }
     };
 
     return (
@@ -93,8 +148,12 @@ export const NovaTransacao: React.FC = () => {
                     <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Nova Transação</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Registrar receita ou despesa manualmente</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                        {id ? 'Editar Transação' : 'Nova Transação'}
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        {id ? 'Atualizar dados da transação' : 'Registrar receita ou despesa manualmente'}
+                    </p>
                 </div>
             </div>
 

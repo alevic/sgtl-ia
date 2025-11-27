@@ -1,97 +1,74 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, AlertCircle, Check, X, Download
 } from 'lucide-react';
-import { IContaPagar, StatusTransacao, CategoriaDespesa, Moeda, CentroCusto } from '../types';
-
-// Mock data
-const MOCK_CONTAS_PAGAR: IContaPagar[] = [
-    {
-        id: 'CP001',
-        fornecedor: 'Posto Combustível ABC',
-        descricao: 'Abastecimento Frota - Novembro',
-        valor_total: 3500.00,
-        valor_pago: 0,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-20',
-        data_vencimento: '2024-12-05',
-        status: StatusTransacao.PENDENTE,
-        categoria: CategoriaDespesa.COMBUSTIVEL,
-        numero_documento: 'NF-45678'
-    },
-    {
-        id: 'CP002',
-        fornecedor: 'Oficina Central Ltda',
-        descricao: 'Manutenção Preventiva - ABC-1234',
-        valor_total: 1200.00,
-        valor_pago: 1200.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-15',
-        data_vencimento: '2024-11-20',
-        status: StatusTransacao.PAGA,
-        categoria: CategoriaDespesa.MANUTENCAO,
-        numero_documento: 'OS-9876',
-        observacoes: 'Manutenção preventiva completa'
-    },
-    {
-        id: 'CP003',
-        fornecedor: 'Auto Peças Express',
-        descricao: 'Compra de Peças - Freios e Filtros',
-        valor_total: 850.00,
-        valor_pago: 0,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-18',
-        data_vencimento: '2024-11-25',
-        status: StatusTransacao.VENCIDA,
-        categoria: CategoriaDespesa.PECAS,
-        numero_documento: 'NF-12345'
-    },
-    {
-        id: 'CP004',
-        fornecedor: 'Seguradora Total',
-        descricao: 'Seguro Frota - Mensalidade Novembro',
-        valor_total: 2200.00,
-        valor_pago: 0,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-01',
-        data_vencimento: '2024-11-30',
-        status: StatusTransacao.PENDENTE,
-        categoria: CategoriaDespesa.SEGURO,
-        numero_documento: 'APOLICE-78945'
-    }
-];
+import { ITransacao, StatusTransacao, CategoriaDespesa, Moeda, CentroCusto, TipoTransacao } from '../types';
+import { authClient } from '../lib/auth-client';
+import { useApp } from '../context/AppContext';
+import { TransactionActions } from '../components/Financeiro/TransactionActions';
 
 export const ContasPagar: React.FC = () => {
     const navigate = useNavigate();
+    const { currentContext } = useApp();
     const [busca, setBusca] = useState('');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
     const [filtroCategoria, setFiltroCategoria] = useState<CategoriaDespesa | 'TODAS'>('TODAS');
     const [filtroCentroCusto, setFiltroCentroCusto] = useState<CentroCusto | 'TODOS'>('TODOS');
+    const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchTransacoes = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:4000/api/finance/transactions', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao buscar transações');
+            }
+
+            const data = await response.json();
+            setTransacoes(data);
+        } catch (error) {
+            console.error("Erro ao buscar transações:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTransacoes();
+    }, [currentContext]);
 
     const contasFiltradas = useMemo(() => {
-        return MOCK_CONTAS_PAGAR.filter(conta => {
-            const matchBusca = busca === '' ||
-                conta.fornecedor.toLowerCase().includes(busca.toLowerCase()) ||
-                conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-                conta.numero_documento?.toLowerCase().includes(busca.toLowerCase());
+        return transacoes
+            .filter(t => t.tipo === TipoTransacao.DESPESA)
+            .filter(conta => {
+                const matchBusca = busca === '' ||
+                    conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
+                    conta.numero_documento?.toLowerCase().includes(busca.toLowerCase());
 
-            const matchStatus = filtroStatus === 'TODAS' || conta.status === filtroStatus;
-            const matchCategoria = filtroCategoria === 'TODAS' || conta.categoria === filtroCategoria;
-            const matchCentroCusto = filtroCentroCusto === 'TODOS' || conta.centro_custo === filtroCentroCusto;
+                const matchStatus = filtroStatus === 'TODAS' || conta.status === filtroStatus;
+                const matchCategoria = filtroCategoria === 'TODAS' || conta.categoria_despesa === filtroCategoria;
+                const matchCentroCusto = filtroCentroCusto === 'TODOS' || conta.centro_custo === filtroCentroCusto;
 
-            return matchBusca && matchStatus && matchCategoria && matchCentroCusto;
-        });
-    }, [busca, filtroStatus, filtroCategoria, filtroCentroCusto]);
+                return matchBusca && matchStatus && matchCategoria && matchCentroCusto;
+            });
+    }, [transacoes, busca, filtroStatus, filtroCategoria, filtroCentroCusto]);
 
     const resumo = useMemo(() => {
-        const total = MOCK_CONTAS_PAGAR.reduce((sum, c) => sum + c.valor_total, 0);
-        const pago = MOCK_CONTAS_PAGAR.reduce((sum, c) => sum + c.valor_pago, 0);
+        const despesas = transacoes.filter(t => t.tipo === TipoTransacao.DESPESA);
+        const total = despesas.reduce((sum, c) => sum + Number(c.valor), 0);
+        const pago = despesas
+            .filter(c => c.status === StatusTransacao.PAGA)
+            .reduce((sum, c) => sum + Number(c.valor), 0);
         const pendente = total - pago;
-        const vencidas = MOCK_CONTAS_PAGAR.filter(c => c.status === StatusTransacao.VENCIDA).length;
+        const vencidas = despesas.filter(c => c.status === StatusTransacao.VENCIDA).length;
 
         return { total, pago, pendente, vencidas };
-    }, []);
+    }, [transacoes]);
 
     const formatCurrency = (value: number) => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -141,7 +118,7 @@ export const ContasPagar: React.FC = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => navigate('/admin/financeiro/transacoes/nova')}
+                    onClick={() => navigate('/admin/financeiro/transacoes/nova', { state: { tipo: TipoTransacao.DESPESA } })}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                     <Plus size={18} />
@@ -272,7 +249,7 @@ export const ContasPagar: React.FC = () => {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
                                             <h3 className="font-semibold text-slate-800 dark:text-white">
-                                                {conta.fornecedor}
+                                                {conta.descricao}
                                             </h3>
                                             {getStatusBadge(conta.status)}
                                             {isVencendo(conta.data_vencimento) && conta.status === StatusTransacao.PENDENTE && (
@@ -281,11 +258,13 @@ export const ContasPagar: React.FC = () => {
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-                                            {conta.descricao}
-                                        </p>
+                                        {conta.observacoes && (
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                                                {conta.observacoes}
+                                            </p>
+                                        )}
                                         <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                                            <span>Categoria: {conta.categoria}</span>
+                                            <span>Categoria: {conta.categoria_despesa}</span>
                                             <span>•</span>
                                             <span>Emissão: {formatDate(conta.data_emissao)}</span>
                                             <span>•</span>
@@ -306,15 +285,13 @@ export const ContasPagar: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
-                                    <div className="text-right ml-4">
-                                        <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-1">
-                                            {formatCurrency(conta.valor_total)}
-                                        </p>
-                                        {conta.valor_pago > 0 && (
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                Pago: {formatCurrency(conta.valor_pago)}
+                                    <div className="flex items-center gap-4 ml-4">
+                                        <div className="text-right">
+                                            <p className="text-xl font-bold text-red-600 dark:text-red-400 mb-1">
+                                                {formatCurrency(Number(conta.valor))}
                                             </p>
-                                        )}
+                                        </div>
+                                        <TransactionActions transacao={conta} onUpdate={fetchTransacoes} />
                                     </div>
                                 </div>
                             </div>

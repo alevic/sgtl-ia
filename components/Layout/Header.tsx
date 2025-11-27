@@ -4,10 +4,34 @@ import { useApp } from '../../context/AppContext';
 import { EmpresaContexto } from '../../types';
 import { Menu, Bell, ChevronDown, Search, Moon, Sun, LogOut, User, Settings } from 'lucide-react';
 
+import { authClient } from '../../lib/auth-client';
+
 export const Header: React.FC = () => {
   const { currentContext, switchContext, currentEmpresa, user, toggleSidebar, theme, toggleTheme } = useApp();
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [orgs, setOrgs] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    authClient.organization.list().then(({ data }) => {
+      if (data) setOrgs(data);
+    });
+  }, []);
+
+  const handleContextChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newContext = e.target.value as EmpresaContexto;
+
+    // Find matching organization
+    const targetSlug = newContext === EmpresaContexto.TURISMO ? 'turismo' : 'express';
+    const org = orgs.find(o => o.slug.includes(targetSlug));
+
+    if (org) {
+      await authClient.organization.setActive({ organizationId: org.id });
+      switchContext(newContext);
+    } else {
+      console.warn("Usuário não tem acesso a esta organização");
+    }
+  };
 
   return (
     <header className="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 sticky top-0 z-20 transition-colors">
@@ -22,10 +46,20 @@ export const Header: React.FC = () => {
           <select
             className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
             value={currentContext}
-            onChange={(e) => switchContext(e.target.value as EmpresaContexto)}
+            onChange={handleContextChange}
           >
-            <option value={EmpresaContexto.TURISMO}>JJê Turismo (B2C/Fretamento)</option>
-            <option value={EmpresaContexto.EXPRESS}>JJê Express (Logística)</option>
+            <option
+              value={EmpresaContexto.TURISMO}
+              disabled={!orgs.some(o => o.slug.toLowerCase().includes('turismo'))}
+            >
+              JJê Turismo (B2C/Fretamento) {orgs.some(o => o.slug.toLowerCase().includes('turismo')) ? '' : '(Sem Acesso)'}
+            </option>
+            <option
+              value={EmpresaContexto.EXPRESS}
+              disabled={!orgs.some(o => o.slug.toLowerCase().includes('express'))}
+            >
+              JJê Express (Logística) {orgs.some(o => o.slug.toLowerCase().includes('express')) ? '' : '(Sem Acesso)'}
+            </option>
           </select>
         </div>
       </div>

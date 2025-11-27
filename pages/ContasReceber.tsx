@@ -1,112 +1,72 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, Check, Download
 } from 'lucide-react';
-import { IContaReceber, StatusTransacao, CategoriaReceita, Moeda, CentroCusto } from '../types';
-
-// Mock data
-const MOCK_CONTAS_RECEBER: IContaReceber[] = [
-    {
-        id: 'CR001',
-        cliente_nome: 'Maria Silva',
-        cliente_id: 'C001',
-        descricao: 'Reserva #12345 - São Paulo → Rio de Janeiro',
-        valor_total: 350.00,
-        valor_recebido: 350.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-20',
-        data_vencimento: '2024-11-20',
-        status: StatusTransacao.PAGA,
-        categoria: CategoriaReceita.VENDA_PASSAGEM,
-        numero_documento: 'RES-12345'
-    },
-    {
-        id: 'CR002',
-        cliente_nome: 'Tech Solutions Ltda',
-        cliente_id: 'CC001',
-        descricao: 'Fretamento Corporativo - Evento Empresa',
-        valor_total: 5000.00,
-        valor_recebido: 0,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-23',
-        data_vencimento: '2024-12-05',
-        status: StatusTransacao.PENDENTE,
-        categoria: CategoriaReceita.FRETAMENTO,
-        numero_documento: 'FRET-001'
-    },
-    {
-        id: 'CR003',
-        cliente_nome: 'João Santos',
-        cliente_id: 'C002',
-        descricao: 'Transporte de Encomenda - Curitiba',
-        valor_total: 120.00,
-        valor_recebido: 0,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-15',
-        data_vencimento: '2024-11-22',
-        status: StatusTransacao.VENCIDA,
-        categoria: CategoriaReceita.ENCOMENDA,
-        numero_documento: 'ENC-789'
-    },
-    {
-        id: 'CR004',
-        cliente_nome: 'Ana Paula Oliveira',
-        cliente_id: 'C003',
-        descricao: 'Reserva #12350 - Curitiba → Florianópolis',
-        valor_total: 280.00,
-        valor_recebido: 0,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-24',
-        data_vencimento: '2024-11-24',
-        status: StatusTransacao.PENDENTE,
-        categoria: CategoriaReceita.VENDA_PASSAGEM,
-        numero_documento: 'RES-12350'
-    },
-    {
-        id: 'CR005',
-        cliente_nome: 'Indústrias ABC S.A.',
-        cliente_id: 'CC002',
-        descricao: 'Fretamento Mensal - Transporte Funcionários',
-        valor_total: 8500.00,
-        valor_recebido: 4250.00,
-        moeda: Moeda.BRL,
-        data_emissao: '2024-11-01',
-        data_vencimento: '2024-11-30',
-        status: StatusTransacao.PARCIALMENTE_PAGA,
-        categoria: CategoriaReceita.FRETAMENTO,
-        numero_documento: 'FRET-002'
-    }
-];
+import { ITransacao, StatusTransacao, CategoriaReceita, Moeda, CentroCusto, TipoTransacao } from '../types';
+import { authClient } from '../lib/auth-client';
+import { useApp } from '../context/AppContext';
+import { TransactionActions } from '../components/Financeiro/TransactionActions';
 
 export const ContasReceber: React.FC = () => {
     const navigate = useNavigate();
+    const { currentContext } = useApp();
     const [busca, setBusca] = useState('');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
     const [filtroCategoria, setFiltroCategoria] = useState<CategoriaReceita | 'TODAS'>('TODAS');
+    const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchTransacoes = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:4000/api/finance/transactions', {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Falha ao buscar transações');
+            }
+
+            const data = await response.json();
+            setTransacoes(data);
+        } catch (error) {
+            console.error("Erro ao buscar transações:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTransacoes();
+    }, [currentContext]);
 
     const contasFiltradas = useMemo(() => {
-        return MOCK_CONTAS_RECEBER.filter(conta => {
-            const matchBusca = busca === '' ||
-                conta.cliente_nome.toLowerCase().includes(busca.toLowerCase()) ||
-                conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-                conta.numero_documento?.toLowerCase().includes(busca.toLowerCase());
+        return transacoes
+            .filter(t => t.tipo === TipoTransacao.RECEITA)
+            .filter(conta => {
+                const matchBusca = busca === '' ||
+                    conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
+                    conta.numero_documento?.toLowerCase().includes(busca.toLowerCase());
 
-            const matchStatus = filtroStatus === 'TODAS' || conta.status === filtroStatus;
-            const matchCategoria = filtroCategoria === 'TODAS' || conta.categoria === filtroCategoria;
+                const matchStatus = filtroStatus === 'TODAS' || conta.status === filtroStatus;
+                const matchCategoria = filtroCategoria === 'TODAS' || conta.categoria_receita === filtroCategoria;
 
-            return matchBusca && matchStatus && matchCategoria;
-        });
-    }, [busca, filtroStatus, filtroCategoria]);
+                return matchBusca && matchStatus && matchCategoria;
+            });
+    }, [transacoes, busca, filtroStatus, filtroCategoria]);
 
     const resumo = useMemo(() => {
-        const total = MOCK_CONTAS_RECEBER.reduce((sum, c) => sum + c.valor_total, 0);
-        const recebido = MOCK_CONTAS_RECEBER.reduce((sum, c) => sum + c.valor_recebido, 0);
+        const receitas = transacoes.filter(t => t.tipo === TipoTransacao.RECEITA);
+        const total = receitas.reduce((sum, c) => sum + Number(c.valor), 0);
+        const recebido = receitas
+            .filter(c => c.status === StatusTransacao.PAGA)
+            .reduce((sum, c) => sum + Number(c.valor), 0);
         const pendente = total - recebido;
-        const vencidas = MOCK_CONTAS_RECEBER.filter(c => c.status === StatusTransacao.VENCIDA).length;
+        const vencidas = receitas.filter(c => c.status === StatusTransacao.VENCIDA).length;
 
         return { total, recebido, pendente, vencidas };
-    }, []);
+    }, [transacoes]);
 
     const formatCurrency = (value: number) => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -149,7 +109,7 @@ export const ContasReceber: React.FC = () => {
                     </div>
                 </div>
                 <button
-                    onClick={() => navigate('/admin/financeiro/transacoes/nova')}
+                    onClick={() => navigate('/admin/financeiro/transacoes/nova', { state: { tipo: TipoTransacao.RECEITA } })}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                     <Plus size={18} />
@@ -271,6 +231,8 @@ export const ContasReceber: React.FC = () => {
                         </div>
                     ) : (
                         contasFiltradas.map(conta => (
+
+
                             <div
                                 key={conta.id}
                                 className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
@@ -279,15 +241,17 @@ export const ContasReceber: React.FC = () => {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
                                             <h3 className="font-semibold text-slate-800 dark:text-white">
-                                                {conta.cliente_nome}
+                                                {conta.descricao}
                                             </h3>
                                             {getStatusBadge(conta.status)}
                                         </div>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-                                            {conta.descricao}
-                                        </p>
+                                        {conta.observacoes && (
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                                                {conta.observacoes}
+                                            </p>
+                                        )}
                                         <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                                            <span>Categoria: {conta.categoria}</span>
+                                            <span>Categoria: {conta.categoria_receita}</span>
                                             <span>•</span>
                                             <span>Emissão: {formatDate(conta.data_emissao)}</span>
                                             <span>•</span>
@@ -307,31 +271,14 @@ export const ContasReceber: React.FC = () => {
                                                 </>
                                             )}
                                         </div>
-                                        {conta.status === StatusTransacao.PARCIALMENTE_PAGA && (
-                                            <div className="mt-2">
-                                                <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                                                    <span>Recebido: {formatCurrency(conta.valor_recebido)}</span>
-                                                    <span>•</span>
-                                                    <span>Restante: {formatCurrency(conta.valor_total - conta.valor_recebido)}</span>
-                                                </div>
-                                                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 mt-1">
-                                                    <div
-                                                        className="bg-blue-600 h-1.5 rounded-full"
-                                                        style={{ width: `${(conta.valor_recebido / conta.valor_total) * 100}%` }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
                                     </div>
-                                    <div className="text-right ml-4">
-                                        <p className="text-xl font-bold text-green-600 dark:text-green-400 mb-1">
-                                            {formatCurrency(conta.valor_total)}
-                                        </p>
-                                        {conta.valor_recebido > 0 && conta.status !== StatusTransacao.PAGA && (
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                Recebido: {formatCurrency(conta.valor_recebido)}
+                                    <div className="flex items-center gap-4 ml-4">
+                                        <div className="text-right">
+                                            <p className="text-xl font-bold text-green-600 dark:text-green-400 mb-1">
+                                                {formatCurrency(Number(conta.valor))}
                                             </p>
-                                        )}
+                                        </div>
+                                        <TransactionActions transacao={conta} onUpdate={fetchTransacoes} />
                                     </div>
                                 </div>
                             </div>

@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { admin } from "better-auth/plugins";
+import { admin, organization } from "better-auth/plugins";
 import pg from "pg";
 import dotenv from "dotenv";
 
@@ -26,7 +26,8 @@ export const auth = betterAuth({
         useSecureCookies: false, // Force false for localhost
     },
     plugins: [
-        admin()
+        admin(),
+        organization()
     ],
     trustedOrigins: ["http://localhost:3000", "http://localhost:8080"],
 });

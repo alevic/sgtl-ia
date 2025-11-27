@@ -43,6 +43,7 @@ import { NovoUsuario } from './pages/NovoUsuario';
 import { EditarUsuario } from './pages/EditarUsuario';
 import { EsqueciSenha } from './pages/EsqueciSenha';
 import { RedefinirSenha } from './pages/RedefinirSenha';
+import { Organizacoes } from './pages/Organizacoes';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -131,6 +132,11 @@ const App: React.FC = () => {
                         <Route path="novo" element={<NovoUsuario />} />
                         <Route path=":id" element={<EditarUsuario />} />
                       </Routes>
+                    </ProtectedRoute>
+                  } />
+                  <Route path="organizacoes" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Organizacoes />
                     </ProtectedRoute>
                   } />
                   <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
