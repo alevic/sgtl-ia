@@ -88,11 +88,17 @@ export const Header: React.FC = () => {
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{user.name}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400">{user.role}</p>
             </div>
-            <img
-              src={user.avatar}
-              alt="User"
-              className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-slate-600 shadow-sm"
-            />
+            {user.avatar ? (
+              <img
+                src={user.avatar}
+                alt="User"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-slate-600 shadow-sm"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center border-2 border-white dark:border-slate-600 shadow-sm text-slate-500 dark:text-slate-400">
+                <User size={20} />
+              </div>
+            )}
             <ChevronDown size={16} className="text-slate-400" />
           </button>
 

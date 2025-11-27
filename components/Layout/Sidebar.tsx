@@ -35,8 +35,8 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="w-64 h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col sticky top-0 left-0 shrink-0 transition-colors z-50">
       <div className="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-700">
-        <div className={`w-8 h-8 rounded bg-${themeColor}-600 flex items-center justify-center text-white font-bold mr-3`}>
-          JJ
+        <div className={`w-8 h-8 rounded bg-${themeColor}-600 flex items-center justify-center text-white font-bold mr-3 shadow-md shadow-${themeColor}-600/20`}>
+          <Bus size={18} />
         </div>
         <span className="font-bold text-slate-800 dark:text-white text-lg">SGTL v2.1</span>
       </div>

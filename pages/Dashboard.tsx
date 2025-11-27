@@ -78,7 +78,7 @@ const QuickAction = ({ icon: Icon, label, onClick, color }: any) => (
 );
 
 export const Dashboard: React.FC = () => {
-  const { currentContext } = useApp();
+  const { currentContext, user } = useApp();
   const navigate = useNavigate();
   const isTurismo = currentContext === EmpresaContexto.TURISMO;
 
@@ -93,7 +93,7 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">
-            Olá, <span className="text-blue-600 dark:text-blue-400">João</span> 👋
+            Olá, <span className="text-blue-600 dark:text-blue-400">{user.name.split(' ')[0]}</span> 👋
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
             <Calendar size={16} />
