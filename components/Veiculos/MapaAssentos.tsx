@@ -229,19 +229,22 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
 
         return (
             <div className="space-y-4">
-                <div className="text-center">
-                    <div className="inline-block px-6 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg">
-                        <p className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <BusIcon size={20} />
-                            Frente do Ônibus
-                        </p>
-                    </div>
-                </div>
-
-                <div className="overflow-x-auto pb-4">
+                <div className="overflow-x-auto pb-4 pr-16">
                     <div className="space-y-3 min-w-max flex flex-col items-center">
+                        {/* Frente do Ônibus */}
+                        <div className="mb-4">
+                            <div className="inline-block px-6 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg">
+                                <p className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <BusIcon size={20} />
+                                    Frente do Ônibus
+                                </p>
+                            </div>
+                        </div>
+
                         {seats.map((row, rowIndex) => (
                             <div key={rowIndex} className="flex items-center gap-3">
+                                {/* Ghost element for centering */}
+                                <div className="w-[42px] flex-shrink-0 opacity-0 pointer-events-none" aria-hidden="true" />
                                 {row.map((seat, colIndex) => {
                                     // Safety check
                                     if (typeof seat !== 'string') {
@@ -300,15 +303,13 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                                     {getSeatType(seat).replace('_', ' ')}
                                                 </div>
 
-                                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-slate-100 dark:bg-slate-600 rounded-full flex items-center justify-center border border-slate-200 dark:border-slate-500 shadow-sm pointer-events-none">
-                                                    <span className="text-[10px] text-slate-500 dark:text-slate-300 font-medium">{colIndex + 1}</span>
-                                                </div>
+
                                             </div>
                                         );
                                     }
                                 })}
 
-                                <div className="flex gap-2 flex-shrink-0 ml-8 opacity-50 hover:opacity-100 transition-opacity">
+                                <div className="flex gap-2 flex-shrink-0 ml-4 opacity-50 hover:opacity-100 transition-opacity w-[42px] justify-center">
                                     <button
                                         onClick={() => deleteRow(rowIndex, isUpperDeck)}
                                         className="p-2 bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-600 rounded-lg transition-colors border border-slate-200 hover:border-red-200"
@@ -324,9 +325,11 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
 
                 <button
                     onClick={() => addNewRow(isUpperDeck)}
-                    className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                    className="w-full px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl font-medium transition-all flex items-center justify-center gap-2 group"
                 >
-                    <Plus size={18} />
+                    <div className="bg-slate-100 dark:bg-slate-700 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 p-1 rounded-full transition-colors">
+                        <Plus size={16} />
+                    </div>
                     Adicionar Nova Linha
                 </button>
             </div>
@@ -365,29 +368,35 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
             {hasSeatPlan ? (
                 <>
                     {/* Tabs */}
-                    <div className="border-b border-slate-200 dark:border-slate-700">
+                    <div className="border-b border-slate-200 dark:border-slate-700 mb-6">
                         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
                             <button
                                 onClick={() => setActiveTab('LOWER')}
                                 className={`
-                                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                                    group inline-flex items-center py-4 px-1 border-b-2 font-bold text-lg transition-all duration-200
                                     ${activeTab === 'LOWER'
                                         ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                                         : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'}
                                 `}
                             >
+                                <span className={`flex items-center justify-center w-6 h-6 rounded-full mr-3 text-xs ${activeTab === 'LOWER' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'}`}>
+                                    1
+                                </span>
                                 Andar Térreo
                             </button>
                             {veiculo.is_double_deck && (
                                 <button
                                     onClick={() => setActiveTab('UPPER')}
                                     className={`
-                                        whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm
+                                        group inline-flex items-center py-4 px-1 border-b-2 font-bold text-lg transition-all duration-200
                                         ${activeTab === 'UPPER'
                                             ? 'border-purple-500 text-purple-600 dark:text-purple-400'
                                             : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'}
                                     `}
                                 >
+                                    <span className={`flex items-center justify-center w-6 h-6 rounded-full mr-3 text-xs ${activeTab === 'UPPER' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'}`}>
+                                        2
+                                    </span>
                                     Andar Superior
                                 </button>
                             )}
@@ -450,36 +459,46 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                         </div>
 
                         {/* Toolbar de Edição */}
-                        <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-6">
-                            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4 mb-4">
-                                <h3 className="font-bold text-slate-700 dark:text-slate-200">Ferramentas de Edição</h3>
-                                <div className="flex bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
+                                <div>
+                                    <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                        <MousePointer2 size={18} className="text-blue-500" />
+                                        Ferramentas de Edição
+                                    </h3>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                        Escolha uma ferramenta para interagir com o mapa
+                                    </p>
+                                </div>
+                                <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg">
                                     <button
                                         onClick={() => setEditMode('NUMBER')}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'NUMBER'
-                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'NUMBER'
+                                            ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
                                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                             }`}
                                     >
                                         <Type size={16} />
-                                        Editar Numeração
+                                        Numeração
                                     </button>
                                     <button
                                         onClick={() => setEditMode('TYPE')}
-                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'TYPE'
-                                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'TYPE'
+                                            ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
                                             : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                             }`}
                                     >
                                         <PaintBucket size={16} />
-                                        Definir Tipos
+                                        Tipos
                                     </button>
                                 </div>
                             </div>
 
                             {editMode === 'TYPE' && (
-                                <div className="animate-in fade-in slide-in-from-top-2">
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">Selecione um tipo e clique nos assentos para aplicar:</p>
+                                <div className="animate-in fade-in slide-in-from-top-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
+                                        Selecione um tipo de assento para aplicar:
+                                    </p>
                                     <div className="flex flex-wrap gap-2">
                                         {Object.values(TipoAssento).map((tipo) => (
                                             <button
@@ -487,7 +506,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                                 onClick={() => setSelectedType(tipo)}
                                                 className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${selectedType === tipo
                                                     ? 'ring-2 ring-blue-500 ring-offset-2 ' + SEAT_COLORS[tipo]
-                                                    : 'hover:bg-white dark:hover:bg-slate-800 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800'
+                                                    : 'hover:bg-white dark:hover:bg-slate-800 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                                                     }`}
                                             >
                                                 <div className={`w-3 h-3 rounded-full border border-slate-300 ${SEAT_COLORS[tipo].split(' ')[0]}`} />
@@ -502,26 +521,32 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                         {/* Active Tab Content */}
                         {activeTab === 'LOWER' && (
                             <div className="animate-in fade-in slide-in-from-left-2 duration-300">
-                                <button
-                                    onClick={() => generateBusSeats(false)}
-                                    className="mb-6 w-full px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
-                                >
-                                    <Plus size={18} />
-                                    Gerar Assentos (Térreo)
-                                </button>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h4 className="text-lg font-bold text-slate-800 dark:text-white">Mapa do Andar Térreo</h4>
+                                    <button
+                                        onClick={() => generateBusSeats(false)}
+                                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                                    >
+                                        <Plus size={18} />
+                                        Gerar Assentos Térreo
+                                    </button>
+                                </div>
                                 {renderSeatGrid(lowerDeckSeats, false, 'andar térreo')}
                             </div>
                         )}
 
                         {activeTab === 'UPPER' && veiculo.is_double_deck && (
                             <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-                                <button
-                                    onClick={() => generateBusSeats(true)}
-                                    className="mb-6 w-full px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm"
-                                >
-                                    <Plus size={18} />
-                                    Gerar Assentos (Superior)
-                                </button>
+                                <div className="flex items-center justify-between mb-6">
+                                    <h4 className="text-lg font-bold text-slate-800 dark:text-white">Mapa do Andar Superior</h4>
+                                    <button
+                                        onClick={() => generateBusSeats(true)}
+                                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                                    >
+                                        <Plus size={18} />
+                                        Gerar Assentos Superior
+                                    </button>
+                                </div>
                                 {renderSeatGrid(upperDeckSeats, true, 'andar superior')}
                             </div>
                         )}
