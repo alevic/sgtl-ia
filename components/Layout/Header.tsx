@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { EmpresaContexto } from '../../types';
 import { Menu, Bell, ChevronDown, Search, Moon, Sun, LogOut, User, Settings } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const { currentContext, switchContext, currentEmpresa, user, toggleSidebar, theme, toggleTheme } = useApp();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
@@ -71,7 +73,10 @@ export const Header: React.FC = () => {
               <button className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
                 <User size={16} /> Perfil
               </button>
-              <button className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2">
+              <button
+                onClick={() => { setIsMenuOpen(false); navigate('/admin/configuracoes'); }}
+                className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+              >
                 <Settings size={16} /> Configurações
               </button>
 

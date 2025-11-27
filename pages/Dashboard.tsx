@@ -271,34 +271,7 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Mini Fleet Status */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl"></div>
-            <div className="relative z-10">
-              <h3 className="font-bold text-lg mb-1">Status da Frota</h3>
-              <p className="text-slate-400 text-sm mb-6">Visão geral da disponibilidade</p>
 
-              <div className="flex items-end gap-2 mb-2">
-                <span className="text-4xl font-bold">18</span>
-                <span className="text-slate-400 text-sm mb-1">/ 20 veículos</span>
-              </div>
-
-              <div className="w-full bg-slate-700/50 h-2 rounded-full mb-4 overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full" style={{ width: '90%' }}></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-slate-300">Em Operação</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                  <span className="text-slate-300">Manutenção</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
         </div>
       </div>
