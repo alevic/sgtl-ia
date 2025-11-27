@@ -11,6 +11,17 @@ services:
       - db
     restart: always
 
+  api:
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@db:5432/${POSTGRES_DB:-sgtl_db}
+      - PORT=4000
+    depends_on:
+      - db
+    restart: always
+
   db:
     image: postgres:15-alpine
     ports:

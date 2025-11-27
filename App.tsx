@@ -17,6 +17,8 @@ import { NovoCliente } from './pages/NovoCliente';
 import { Viagens } from './pages/Viagens';
 import { NovaViagem } from './pages/NovaViagem';
 import { ViagemDetalhes } from './pages/ViagemDetalhes';
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
 
 import { Frota } from './pages/Frota';
 import { NovoVeiculo } from './pages/NovoVeiculo';
@@ -36,6 +38,8 @@ import { ConciliacaoBancaria } from './pages/ConciliacaoBancaria';
 import { Configuracoes } from './pages/Configuracoes';
 import { Documentos } from './pages/Documentos';
 import { AtividadesRecentes } from './pages/AtividadesRecentes';
+import { Perfil } from './pages/Perfil';
+import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -59,48 +63,53 @@ const App: React.FC = () => {
       <HashRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
 
           {/* Admin Routes */}
           <Route path="/admin/*" element={
-            <AdminLayout>
-              <Routes>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="viagens" element={<Viagens />} />
-                <Route path="viagens/nova" element={<NovaViagem />} />
-                <Route path="viagens/:id" element={<ViagemDetalhes />} />
+            <ProtectedRoute>
+              <AdminLayout>
+                <Routes>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="viagens" element={<Viagens />} />
+                  <Route path="viagens/nova" element={<NovaViagem />} />
+                  <Route path="viagens/:id" element={<ViagemDetalhes />} />
 
-                <Route path="reservas" element={<Reservas />} />
-                <Route path="reservas/nova" element={<NovaReserva />} />
-                <Route path="motoristas" element={<Motoristas />} />
-                <Route path="motoristas/novo" element={<NovoMotorista />} />
-                <Route path="encomendas" element={<Encomendas />} />
-                <Route path="fretamento" element={<Fretamento />} />
-                <Route path="fretamento/novo" element={<NovoFretamento />} />
-                <Route path="clientes" element={<CRM />} />
-                <Route path="clientes/novo" element={<NovoCliente />} />
-                <Route path="clientes/:id" element={<ClienteDetalhes />} />
-                <Route path="frota" element={<Frota />} />
-                <Route path="frota/novo" element={<NovoVeiculo />} />
-                <Route path="frota/:id" element={<VeiculoDetalhes />} />
-                <Route path="manutencao" element={<Manutencao />} />
-                <Route path="manutencao/nova" element={<NovaManutencao />} />
-                <Route path="rotas" element={<Rotas />} />
-                <Route path="rotas/nova" element={<NovaRota />} />
-                <Route path="rotas/:id" element={<NovaRota />} />
-                <Route path="financeiro" element={<Financeiro />} />
-                <Route path="financeiro/contas-pagar" element={<ContasPagar />} />
-                <Route path="financeiro/contas-receber" element={<ContasReceber />} />
-                <Route path="financeiro/transacoes/nova" element={<NovaTransacao />} />
-                <Route path="financeiro/transacoes" element={<Transacoes />} />
-                <Route path="relatorios" element={<Relatorios />} />
-                <Route path="documentos" element={<Documentos />} />
-                <Route path="financeiro/centros-custo" element={<CentrosCusto />} />
-                <Route path="financeiro/conciliacao" element={<ConciliacaoBancaria />} />
-                <Route path="configuracoes" element={<Configuracoes />} />
-                <Route path="atividades" element={<AtividadesRecentes />} />
-                <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
-              </Routes>
-            </AdminLayout>
+                  <Route path="reservas" element={<Reservas />} />
+                  <Route path="reservas/nova" element={<NovaReserva />} />
+                  <Route path="motoristas" element={<Motoristas />} />
+                  <Route path="motoristas/novo" element={<NovoMotorista />} />
+                  <Route path="encomendas" element={<Encomendas />} />
+                  <Route path="fretamento" element={<Fretamento />} />
+                  <Route path="fretamento/novo" element={<NovoFretamento />} />
+                  <Route path="clientes" element={<CRM />} />
+                  <Route path="clientes/novo" element={<NovoCliente />} />
+                  <Route path="clientes/:id" element={<ClienteDetalhes />} />
+                  <Route path="frota" element={<Frota />} />
+                  <Route path="frota/novo" element={<NovoVeiculo />} />
+                  <Route path="frota/:id" element={<VeiculoDetalhes />} />
+                  <Route path="manutencao" element={<Manutencao />} />
+                  <Route path="manutencao/nova" element={<NovaManutencao />} />
+                  <Route path="rotas" element={<Rotas />} />
+                  <Route path="rotas/nova" element={<NovaRota />} />
+                  <Route path="rotas/:id" element={<NovaRota />} />
+                  <Route path="financeiro" element={<Financeiro />} />
+                  <Route path="financeiro/contas-pagar" element={<ContasPagar />} />
+                  <Route path="financeiro/contas-receber" element={<ContasReceber />} />
+                  <Route path="financeiro/transacoes/nova" element={<NovaTransacao />} />
+                  <Route path="financeiro/transacoes" element={<Transacoes />} />
+                  <Route path="relatorios" element={<Relatorios />} />
+                  <Route path="documentos" element={<Documentos />} />
+                  <Route path="financeiro/centros-custo" element={<CentrosCusto />} />
+                  <Route path="financeiro/conciliacao" element={<ConciliacaoBancaria />} />
+                  <Route path="configuracoes" element={<Configuracoes />} />
+                  <Route path="atividades" element={<AtividadesRecentes />} />
+                  <Route path="perfil" element={<Perfil />} />
+                  <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
+                </Routes>
+              </AdminLayout>
+            </ProtectedRoute>
           } />
 
           {/* Portal Cliente Route (Placeholder) */}

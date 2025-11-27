@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { EmpresaContexto, IEmpresa } from '../types';
+import { authClient } from '../lib/auth-client';
 
 type Theme = 'light' | 'dark';
 
@@ -7,7 +8,7 @@ interface AppContextType {
   currentContext: EmpresaContexto;
   switchContext: (context: EmpresaContexto) => void;
   currentEmpresa: IEmpresa;
-  user: { name: string; role: string; avatar: string };
+  user: { name: string; role: string; avatar: string; email: string };
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   theme: Theme;
@@ -52,16 +53,19 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [theme]);
 
+  const { data: session } = authClient.useSession();
+
   const user = {
-    name: "Admin Operacional",
-    role: "Gerente Geral",
-    avatar: "https://picsum.photos/100/100"
+    name: session?.user?.name || "Usuário",
+    role: "Administrador", // Role management can be added later
+    avatar: session?.user?.image || "",
+    email: session?.user?.email || ""
   };
 
   return (
-    <AppContext.Provider value={{ 
-      currentContext, 
-      switchContext, 
+    <AppContext.Provider value={{
+      currentContext,
+      switchContext,
       currentEmpresa: MOCK_EMPRESAS[currentContext],
       user,
       isSidebarOpen,
