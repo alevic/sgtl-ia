@@ -43,6 +43,18 @@ app.delete("/api/users/:id", async (req, res) => {
     }
 });
 
+app.put("/api/users/:id", async (req, res) => {
+    const { id } = req.params;
+    const { name, role } = req.body;
+    try {
+        await pool.query('UPDATE "user" SET name = $1, role = $2 WHERE id = $3', [name, role, id]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ error: "Failed to update user" });
+    }
+});
+
 app.get("/health", (req, res) => {
     res.json({ status: "ok" });
 });

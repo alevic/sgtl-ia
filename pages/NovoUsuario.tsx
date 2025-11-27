@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authClient } from '../lib/auth-client';
-import { User, Lock, Mail, Loader2, Save, ArrowLeft } from 'lucide-react';
+import { User, Lock, Mail, Loader2, Save, ArrowLeft, Shield } from 'lucide-react';
+import { UserRole } from '../types';
 
 export const NovoUsuario: React.FC = () => {
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState<string>(UserRole.USER);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -16,10 +18,11 @@ export const NovoUsuario: React.FC = () => {
         setIsLoading(true);
         setError('');
 
-        await authClient.signUp.email({
+        await authClient.admin.createUser({
             email,
             password,
             name,
+            role,
         }, {
             onSuccess: () => {
                 navigate('/admin/usuarios');
@@ -72,6 +75,23 @@ export const NovoUsuario: React.FC = () => {
                                 placeholder="email@empresa.com"
                                 required
                             />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Função (Role)</label>
+                        <div className="relative">
+                            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <select
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white appearance-none"
+                            >
+                                <option value={UserRole.USER}>Usuário Padrão</option>
+                                <option value={UserRole.ADMIN}>Administrador</option>
+                                <option value={UserRole.FINANCEIRO}>Financeiro</option>
+                                <option value={UserRole.OPERACIONAL}>Operacional</option>
+                            </select>
                         </div>
                     </div>
 

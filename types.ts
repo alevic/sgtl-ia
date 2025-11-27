@@ -1,6 +1,13 @@
 // PRD v2.1 Schema Reflection
 // Using Enums and Interfaces to strictly type the application
 
+export enum UserRole {
+  ADMIN = 'admin',
+  FINANCEIRO = 'financeiro',
+  OPERACIONAL = 'operacional',
+  USER = 'user'
+}
+
 export enum EmpresaContexto {
   TURISMO = 'TURISMO',
   EXPRESS = 'EXPRESS'

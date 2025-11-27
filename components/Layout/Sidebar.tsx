@@ -29,13 +29,21 @@ const SidebarItem: React.FC<{ icon: React.ElementType; label: string; to: string
   );
 };
 
+import { authClient } from '../../lib/auth-client';
+
+// ... imports ...
+
 export const Sidebar: React.FC = () => {
   const { currentContext, isSidebarOpen } = useApp();
+  const { data: session } = authClient.useSession();
+  const userRole = session?.user?.role || 'user';
 
   // Dynamic color based on context (Blue for Turismo, Orange for Express)
   const themeColor = currentContext === EmpresaContexto.TURISMO ? 'blue' : 'orange';
 
   if (!isSidebarOpen) return null;
+
+  const canAccess = (roles: string[]) => roles.includes(userRole);
 
   return (
     <div className="w-64 h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col sticky top-0 left-0 shrink-0 transition-colors">
@@ -83,11 +91,20 @@ export const Sidebar: React.FC = () => {
         <div className="px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
           Gestão
         </div>
-        <SidebarItem icon={CreditCard} label="Financeiro" to="/admin/financeiro" colorClass={themeColor} />
+
+        {canAccess(['admin', 'financeiro']) && (
+          <SidebarItem icon={CreditCard} label="Financeiro" to="/admin/financeiro" colorClass={themeColor} />
+        )}
+
         <SidebarItem icon={TrendingUp} label="Relatórios" to="/admin/relatorios" colorClass={themeColor} />
         <SidebarItem icon={FileText} label="Documentos" to="/admin/documentos" colorClass={themeColor} />
-        <SidebarItem icon={Users} label="Usuários" to="/admin/usuarios" colorClass={themeColor} />
-        <SidebarItem icon={Settings} label="Configurações" to="/admin/configuracoes" colorClass={themeColor} />
+
+        {canAccess(['admin']) && (
+          <>
+            <SidebarItem icon={Users} label="Usuários" to="/admin/usuarios" colorClass={themeColor} />
+            <SidebarItem icon={Settings} label="Configurações" to="/admin/configuracoes" colorClass={themeColor} />
+          </>
+        )}
 
       </div>
     </div>

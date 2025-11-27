@@ -119,8 +119,10 @@ export const EditarUsuario: React.FC = () => {
                                 onChange={(e) => setRole(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white appearance-none"
                             >
-                                <option value="user">Usuário</option>
+                                <option value="user">Usuário Padrão</option>
                                 <option value="admin">Administrador</option>
+                                <option value="financeiro">Financeiro</option>
+                                <option value="operacional">Operacional</option>
                             </select>
                         </div>
                     </div>

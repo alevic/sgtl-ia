@@ -2,8 +2,29 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Plus, Search, Trash2, Shield, Mail, Calendar, Edit } from 'lucide-react';
 import { authClient } from '../lib/auth-client';
+import { UserRole } from '../types';
+
+const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
+    const config = {
+        [UserRole.ADMIN]: { label: 'Administrador', color: 'purple' },
+        [UserRole.FINANCEIRO]: { label: 'Financeiro', color: 'green' },
+        [UserRole.OPERACIONAL]: { label: 'Operacional', color: 'orange' },
+        [UserRole.USER]: { label: 'Usuário', color: 'blue' },
+    };
+
+    const { label, color } = config[role as UserRole] || config[UserRole.USER];
+
+    return (
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-${color}-100 text-${color}-700 dark:bg-${color}-900/30 dark:text-${color}-400`}>
+            <Shield size={10} />
+            {label}
+        </span>
+    );
+};
 
 export const Usuarios: React.FC = () => {
+    // ... existing code ...
+
     const navigate = useNavigate();
     const [users, setUsers] = React.useState<any[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -104,10 +125,7 @@ export const Usuarios: React.FC = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-800 dark:text-white">{user.name || 'Sem nome'}</h3>
-                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
-                                                <Shield size={10} />
-                                                {user.role === 'admin' ? 'Administrador' : 'Usuário'}
-                                            </span>
+                                            <RoleBadge role={user.role} />
                                         </div>
                                     </div>
                                 </div>

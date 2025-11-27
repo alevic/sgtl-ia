@@ -15,6 +15,12 @@ export const auth = betterAuth({
     baseURL: process.env.BETTER_AUTH_URL,
     emailAndPassword: {
         enabled: true,
+        requireEmailVerification: false,
+        async sendResetPassword(data, request) {
+            console.log("========================================");
+            console.log("RESET PASSWORD LINK:", data.url);
+            console.log("========================================");
+        },
     },
     advanced: {
         useSecureCookies: false, // Force false for localhost

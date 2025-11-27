@@ -41,6 +41,8 @@ import { Perfil } from './pages/Perfil';
 import { Usuarios } from './pages/Usuarios';
 import { NovoUsuario } from './pages/NovoUsuario';
 import { EditarUsuario } from './pages/EditarUsuario';
+import { EsqueciSenha } from './pages/EsqueciSenha';
+import { RedefinirSenha } from './pages/RedefinirSenha';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -66,8 +68,10 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
-          {/* Admin Routes */}
+          {/* Protected Admin Routes */}
           <Route path="/admin/*" element={
             <ProtectedRoute>
               <AdminLayout>
@@ -95,21 +99,40 @@ const App: React.FC = () => {
                   <Route path="rotas" element={<Rotas />} />
                   <Route path="rotas/nova" element={<NovaRota />} />
                   <Route path="rotas/:id" element={<NovaRota />} />
-                  <Route path="financeiro" element={<Financeiro />} />
-                  <Route path="financeiro/contas-pagar" element={<ContasPagar />} />
-                  <Route path="financeiro/contas-receber" element={<ContasReceber />} />
-                  <Route path="financeiro/transacoes/nova" element={<NovaTransacao />} />
-                  <Route path="financeiro/transacoes" element={<Transacoes />} />
+                  {/* Financeiro - Admin & Financeiro */}
+                  <Route path="financeiro/*" element={
+                    <ProtectedRoute allowedRoles={['admin', 'financeiro']}>
+                      <Routes>
+                        <Route path="/" element={<Financeiro />} />
+                        <Route path="contas-pagar" element={<ContasPagar />} />
+                        <Route path="contas-receber" element={<ContasReceber />} />
+                        <Route path="transacoes/nova" element={<NovaTransacao />} />
+                        <Route path="transacoes" element={<Transacoes />} />
+                        <Route path="centros-custo" element={<CentrosCusto />} />
+                        <Route path="conciliacao" element={<ConciliacaoBancaria />} />
+                      </Routes>
+                    </ProtectedRoute>
+                  } />
                   <Route path="relatorios" element={<Relatorios />} />
                   <Route path="documentos" element={<Documentos />} />
-                  <Route path="financeiro/centros-custo" element={<CentrosCusto />} />
-                  <Route path="financeiro/conciliacao" element={<ConciliacaoBancaria />} />
-                  <Route path="configuracoes" element={<Configuracoes />} />
                   <Route path="atividades" element={<AtividadesRecentes />} />
                   <Route path="perfil" element={<Perfil />} />
-                  <Route path="usuarios" element={<Usuarios />} />
-                  <Route path="usuarios/novo" element={<NovoUsuario />} />
-                  <Route path="usuarios/:id" element={<EditarUsuario />} />
+
+                  {/* Admin Only */}
+                  <Route path="configuracoes" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Configuracoes />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="usuarios/*" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Routes>
+                        <Route path="/" element={<Usuarios />} />
+                        <Route path="novo" element={<NovoUsuario />} />
+                        <Route path=":id" element={<EditarUsuario />} />
+                      </Routes>
+                    </ProtectedRoute>
+                  } />
                   <Route path="*" element={<div className="p-10 text-center text-slate-500 dark:text-slate-400">Página em construção...</div>} />
                 </Routes>
               </AdminLayout>
