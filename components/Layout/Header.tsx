@@ -18,20 +18,7 @@ export const Header: React.FC = () => {
     });
   }, []);
 
-  const handleContextChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newContext = e.target.value as EmpresaContexto;
 
-    // Find matching organization
-    const targetSlug = newContext === EmpresaContexto.TURISMO ? 'turismo' : 'express';
-    const org = orgs.find(o => o.slug.includes(targetSlug));
-
-    if (org) {
-      await authClient.organization.setActive({ organizationId: org.id });
-      switchContext(newContext);
-    } else {
-      console.warn("Usuário não tem acesso a esta organização");
-    }
-  };
 
   return (
     <header className="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-6 sticky top-0 z-20 transition-colors">
@@ -45,21 +32,28 @@ export const Header: React.FC = () => {
           <span className="text-sm text-slate-500 dark:text-slate-400">Empresa:</span>
           <select
             className="bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2"
-            value={currentContext}
-            onChange={handleContextChange}
+            value={orgs.find(o => o.slug.includes(currentContext === EmpresaContexto.TURISMO ? 'turismo' : 'express'))?.id || ''}
+            onChange={async (e) => {
+              const orgId = e.target.value;
+              const org = orgs.find(o => o.id === orgId);
+              if (org) {
+                await authClient.organization.setActive({ organizationId: org.id });
+                // Infer context for UI compatibility
+                if (org.slug.toLowerCase().includes('turismo')) {
+                  switchContext(EmpresaContexto.TURISMO);
+                } else {
+                  switchContext(EmpresaContexto.EXPRESS);
+                }
+                window.location.reload(); // Ensure full context switch
+              }
+            }}
           >
-            <option
-              value={EmpresaContexto.TURISMO}
-              disabled={!orgs.some(o => o.slug.toLowerCase().includes('turismo'))}
-            >
-              JJê Turismo (B2C/Fretamento) {orgs.some(o => o.slug.toLowerCase().includes('turismo')) ? '' : '(Sem Acesso)'}
-            </option>
-            <option
-              value={EmpresaContexto.EXPRESS}
-              disabled={!orgs.some(o => o.slug.toLowerCase().includes('express'))}
-            >
-              JJê Express (Logística) {orgs.some(o => o.slug.toLowerCase().includes('express')) ? '' : '(Sem Acesso)'}
-            </option>
+            {orgs.length === 0 && <option value="">Carregando...</option>}
+            {orgs.map(org => (
+              <option key={org.id} value={org.id}>
+                {org.name}
+              </option>
+            ))}
           </select>
         </div>
       </div>

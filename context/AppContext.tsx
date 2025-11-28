@@ -55,17 +55,33 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const { data: session } = authClient.useSession();
 
-  // Sync active organization if missing
+  // Sync active organization and context
   useEffect(() => {
-    if (session && !session.session.activeOrganizationId) {
-      authClient.organization.list().then(({ data }) => {
-        if (data && data.length > 0) {
-          // Default to Turismo if available, otherwise first one
-          const defaultOrg = data.find(o => o.slug.toLowerCase().includes('turismo')) || data[0];
-          console.log("Setting default active organization:", defaultOrg.name);
-          authClient.organization.setActive({ organizationId: defaultOrg.id });
-        }
-      });
+    if (session) {
+      if (session.session.activeOrganizationId) {
+        // Sync context with active org
+        authClient.organization.list().then(({ data }) => {
+          const activeOrg = data?.find(o => o.id === session.session.activeOrganizationId);
+          if (activeOrg) {
+            if (activeOrg.slug.toLowerCase().includes('express')) {
+              setCurrentContext(EmpresaContexto.EXPRESS);
+            } else {
+              setCurrentContext(EmpresaContexto.TURISMO);
+            }
+          }
+        });
+      } else {
+        // No active org, set default
+        authClient.organization.list().then(({ data }) => {
+          if (data && data.length > 0) {
+            const defaultOrg = data.find(o => o.slug.toLowerCase().includes('turismo')) || data[0];
+            console.log("Setting default active organization:", defaultOrg.name);
+            authClient.organization.setActive({ organizationId: defaultOrg.id });
+            // Context will be synced in next render or we can set it here if needed, 
+            // but let's rely on the session update or default state.
+          }
+        });
+      }
     }
   }, [session]);
 
