@@ -839,6 +839,78 @@ app.put("/api/organization/members/:userId", authorize(['admin']), async (req, r
     }
 });
 
+// Get organization details (Company Info)
+app.get("/api/organization/:id/details", authorize(['admin', 'user']), async (req, res) => {
+    const { id } = req.params;
+    try {
+        const session = (req as any).session;
+        if (session.session.activeOrganizationId !== id) {
+            return res.status(403).json({ error: "You can only view details of the active organization" });
+        }
+
+        // Fetch organization basic info + company details
+        const orgResult = await pool.query('SELECT id, name, slug FROM "organization" WHERE id = $1', [id]);
+        if (orgResult.rows.length === 0) {
+            return res.status(404).json({ error: "Organization not found" });
+        }
+
+        const companyResult = await pool.query('SELECT * FROM "companies" WHERE organization_id = $1', [id]);
+
+        // Combine info
+        const org = orgResult.rows[0];
+        const company = companyResult.rows[0] || {};
+
+        res.json({
+            id: org.id,
+            name: org.name,
+            slug: org.slug,
+            legal_name: company.legal_name,
+            cnpj: company.cnpj,
+            address: company.address,
+            contact_email: company.contact_email,
+            phone: company.phone,
+            website: company.website
+        });
+    } catch (error) {
+        console.error("Error fetching organization details:", error);
+        res.status(500).json({ error: "Failed to fetch organization details" });
+    }
+});
+
+// Update organization details (Company Info)
+app.put("/api/organization/:id/details", authorize(['admin', 'user']), async (req, res) => {
+    const { id } = req.params;
+    const { legal_name, cnpj, address, contact_email, phone, website } = req.body;
+
+    try {
+        const session = (req as any).session;
+        if (session.session.activeOrganizationId !== id) {
+            return res.status(403).json({ error: "You can only update the active organization" });
+        }
+
+        // Upsert company details
+        await pool.query(
+            `INSERT INTO "companies" (organization_id, legal_name, cnpj, address, contact_email, phone, website, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+             ON CONFLICT (organization_id) 
+             DO UPDATE SET 
+                legal_name = EXCLUDED.legal_name,
+                cnpj = EXCLUDED.cnpj,
+                address = EXCLUDED.address,
+                contact_email = EXCLUDED.contact_email,
+                phone = EXCLUDED.phone,
+                website = EXCLUDED.website,
+                updated_at = NOW()`,
+            [id, legal_name, cnpj, address, contact_email, phone, website]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error updating organization details:", error);
+        res.status(500).json({ error: "Failed to update organization details" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

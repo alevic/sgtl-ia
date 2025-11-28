@@ -1,0 +1,4 @@
+ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "cnpj" VARCHAR(20);
+ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "address" TEXT;
+ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "contact_email" VARCHAR(255);
+ALTER TABLE "organization" ADD COLUMN IF NOT EXISTS "phone" VARCHAR(20);
