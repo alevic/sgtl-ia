@@ -32,7 +32,9 @@ export const Usuarios: React.FC = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('http://localhost:4000/api/users');
+            const response = await fetch('http://localhost:4000/api/users', {
+                credentials: 'include'
+            });
             if (response.ok) {
                 const data = await response.json();
                 setUsers(data);
@@ -54,6 +56,7 @@ export const Usuarios: React.FC = () => {
         try {
             const response = await fetch(`http://localhost:4000/api/users/${userId}`, {
                 method: 'DELETE',
+                credentials: 'include'
             });
 
             if (response.ok) {

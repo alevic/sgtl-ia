@@ -15,17 +15,16 @@ export const EditarUsuario: React.FC = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const response = await fetch('http://localhost:4000/api/users');
+                const response = await fetch(`http://localhost:4000/api/users/${id}`, {
+                    credentials: 'include'
+                });
                 if (response.ok) {
-                    const users = await response.json();
-                    const user = users.find((u: any) => u.id === id);
-                    if (user) {
-                        setName(user.name);
-                        setEmail(user.email);
-                        setRole(user.role || 'user');
-                    } else {
-                        setError('Usuário não encontrado');
-                    }
+                    const user = await response.json();
+                    setName(user.name);
+                    setEmail(user.email);
+                    setRole(user.role || 'user');
+                } else {
+                    setError('Usuário não encontrado');
                 }
             } catch (err) {
                 setError('Erro ao carregar usuário');
@@ -48,6 +47,7 @@ export const EditarUsuario: React.FC = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({ name, role }),
             });
 

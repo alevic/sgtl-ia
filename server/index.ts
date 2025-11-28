@@ -3,6 +3,7 @@ import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 import { auth, pool } from "./auth";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -16,9 +17,39 @@ app.use(cors({
 
 app.use(express.json());
 
+// Middleware for Role-Based Access Control (RBAC)
+const authorize = (allowedRoles: string[]) => {
+    return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+            const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+            if (!session) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            // Check if user has active organization
+            if (!session.session.activeOrganizationId) {
+                return res.status(401).json({ error: "Unauthorized: No active organization" });
+            }
+
+            const userRole = (session.user as any).role || 'user'; // Default to 'user' if undefined
+
+            if (!allowedRoles.includes(userRole)) {
+                return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
+            }
+
+            // Attach session to request for use in handlers
+            (req as any).session = session;
+            next();
+        } catch (error) {
+            console.error("Auth middleware error:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    };
+};
+
 app.all("/api/auth/*", toNodeHandler(auth));
 
-app.get("/api/users", async (req, res) => {
+app.get("/api/users", authorize(['admin']), async (req, res) => {
     try {
         const result = await pool.query('SELECT id, name, email, role, "createdAt" FROM "user"');
         res.json(result.rows);
@@ -28,13 +59,23 @@ app.get("/api/users", async (req, res) => {
     }
 });
 
-app.delete("/api/users/:id", async (req, res) => {
+app.get("/api/users/:id", authorize(['admin']), async (req, res) => {
     const { id } = req.params;
     try {
-        // Optional: Check if the requester is an admin (requires parsing session cookie)
-        // For now, we'll assume the frontend protection is enough for this MVP step
-        // but in production you MUST verify the session here.
+        const result = await pool.query('SELECT id, name, email, role, "createdAt" FROM "user" WHERE id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ error: "Failed to fetch user" });
+    }
+});
 
+app.delete("/api/users/:id", authorize(['admin']), async (req, res) => {
+    const { id } = req.params;
+    try {
         await pool.query('DELETE FROM "user" WHERE id = $1', [id]);
         res.json({ success: true });
     } catch (error) {
@@ -43,7 +84,7 @@ app.delete("/api/users/:id", async (req, res) => {
     }
 });
 
-app.put("/api/users/:id", async (req, res) => {
+app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
     const { id } = req.params;
     const { name, role } = req.body;
     try {
@@ -57,12 +98,9 @@ app.put("/api/users/:id", async (req, res) => {
 
 // Finance Endpoints
 // Finance Endpoints
-app.get("/api/finance/transactions", async (req, res) => {
+app.get("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
 
         const result = await pool.query(
@@ -97,21 +135,11 @@ app.get("/api/finance/transactions", async (req, res) => {
     }
 });
 
-app.post("/api/finance/transactions", async (req, res) => {
+app.post("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
     try {
-        console.log("POST /api/finance/transactions called");
-        console.log("Request body:", req.body);
-
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        console.log("Session found:", !!session);
-
-        if (!session || !session.session.activeOrganizationId) {
-            console.error("Unauthorized: No active organization");
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const userId = session.user.id;
-        console.log("OrgID:", orgId, "UserID:", userId);
 
         const {
             tipo, descricao, valor, moeda, data_emissao,
@@ -138,7 +166,6 @@ app.post("/api/finance/transactions", async (req, res) => {
             ]
         );
 
-        console.log("Transaction inserted successfully");
         res.json({ success: true });
     } catch (error) {
         console.error("Error creating transaction:", error);
@@ -146,12 +173,9 @@ app.post("/api/finance/transactions", async (req, res) => {
     }
 });
 
-app.delete("/api/finance/transactions/:id", async (req, res) => {
+app.delete("/api/finance/transactions/:id", authorize(['admin', 'financeiro']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -173,12 +197,9 @@ app.delete("/api/finance/transactions/:id", async (req, res) => {
     }
 });
 
-app.put("/api/finance/transactions/:id", async (req, res) => {
+app.put("/api/finance/transactions/:id", authorize(['admin', 'financeiro']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
         const {
@@ -187,10 +208,6 @@ app.put("/api/finance/transactions/:id", async (req, res) => {
             categoria_receita, categoria_despesa, centro_custo,
             classificacao_contabil, numero_documento, observacoes
         } = req.body;
-
-        console.log("PUT /api/finance/transactions/:id called");
-        console.log("ID:", id);
-        console.log("Body:", req.body);
 
         // Verify transaction belongs to organization
         const check = await pool.query(
@@ -233,12 +250,9 @@ app.get("/health", (req, res) => {
 // ===== FLEET MANAGEMENT ENDPOINTS =====
 
 // GET all vehicles for organization
-app.get("/api/fleet/vehicles", async (req, res) => {
+app.get("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
 
         const result = await pool.query(
@@ -254,12 +268,9 @@ app.get("/api/fleet/vehicles", async (req, res) => {
 });
 
 // GET single vehicle by ID
-app.get("/api/fleet/vehicles/:id", async (req, res) => {
+app.get("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -280,12 +291,9 @@ app.get("/api/fleet/vehicles/:id", async (req, res) => {
 });
 
 // POST create new vehicle
-app.post("/api/fleet/vehicles", async (req, res) => {
+app.post("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const userId = session.user.id;
 
@@ -319,12 +327,9 @@ app.post("/api/fleet/vehicles", async (req, res) => {
 });
 
 // PUT update vehicle
-app.put("/api/fleet/vehicles/:id", async (req, res) => {
+app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -368,12 +373,9 @@ app.put("/api/fleet/vehicles/:id", async (req, res) => {
 });
 
 // DELETE vehicle
-app.delete("/api/fleet/vehicles/:id", async (req, res) => {
+app.delete("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -396,12 +398,9 @@ app.delete("/api/fleet/vehicles/:id", async (req, res) => {
 });
 
 // GET seats for a vehicle
-app.get("/api/fleet/vehicles/:id/seats", async (req, res) => {
+app.get("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -427,12 +426,9 @@ app.get("/api/fleet/vehicles/:id/seats", async (req, res) => {
 });
 
 // POST save/update seat map configuration
-app.post("/api/fleet/vehicles/:id/seats", async (req, res) => {
+app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
         const { seats } = req.body;
@@ -487,12 +483,9 @@ app.post("/api/fleet/vehicles/:id/seats", async (req, res) => {
 });
 
 // PUT update individual seat
-app.put("/api/fleet/vehicles/:vehicleId/seats/:seatId", async (req, res) => {
+app.put("/api/fleet/vehicles/:vehicleId/seats/:seatId", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { vehicleId, seatId } = req.params;
         const { tipo, status, preco } = req.body;
@@ -529,12 +522,9 @@ app.put("/api/fleet/vehicles/:vehicleId/seats/:seatId", async (req, res) => {
 });
 
 // DELETE all seats for a vehicle
-app.delete("/api/fleet/vehicles/:id/seats", async (req, res) => {
+app.delete("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -563,12 +553,9 @@ app.delete("/api/fleet/vehicles/:id/seats", async (req, res) => {
 
 // ===== DRIVER MANAGEMENT ENDPOINTS =====
 // GET all drivers for organization
-app.get("/api/fleet/drivers", async (req, res) => {
+app.get("/api/fleet/drivers", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
 
         const result = await pool.query(
@@ -584,12 +571,9 @@ app.get("/api/fleet/drivers", async (req, res) => {
 });
 
 // GET single driver by ID
-app.get("/api/fleet/drivers/:id", async (req, res) => {
+app.get("/api/fleet/drivers/:id", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -610,12 +594,9 @@ app.get("/api/fleet/drivers/:id", async (req, res) => {
 });
 
 // POST create new driver
-app.post("/api/fleet/drivers", async (req, res) => {
+app.post("/api/fleet/drivers", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const userId = session.user.id;
 
@@ -652,12 +633,9 @@ app.post("/api/fleet/drivers", async (req, res) => {
 });
 
 // PUT update driver
-app.put("/api/fleet/drivers/:id", async (req, res) => {
+app.put("/api/fleet/drivers/:id", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -704,12 +682,9 @@ app.put("/api/fleet/drivers/:id", async (req, res) => {
 });
 
 // DELETE driver
-app.delete("/api/fleet/drivers/:id", async (req, res) => {
+app.delete("/api/fleet/drivers/:id", authorize(['admin', 'operacional']), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-        if (!session || !session.session.activeOrganizationId) {
-            return res.status(401).json({ error: "Unauthorized: No active organization" });
-        }
+        const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
 
@@ -728,6 +703,139 @@ app.delete("/api/fleet/drivers/:id", async (req, res) => {
     } catch (error) {
         console.error("Error deleting driver:", error);
         res.status(500).json({ error: "Failed to delete driver" });
+    }
+});
+
+// ===== ORGANIZATION MEMBERS MANAGEMENT =====
+
+// GET members of active organization
+app.get("/api/organization/members", authorize(['admin']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+
+        const result = await pool.query(
+            `SELECT u.id, u.name, u.email, m.role, m."createdAt" as "joinedAt"
+             FROM "member" m
+             JOIN "user" u ON m."userId" = u.id
+             WHERE m."organizationId" = $1`,
+            [orgId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching members:", error);
+        res.status(500).json({ error: "Failed to fetch members" });
+    }
+});
+
+// GET search users to add to organization
+app.get("/api/organization/candidates", authorize(['admin']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { q } = req.query;
+
+        if (!q || typeof q !== 'string' || q.length < 2) {
+            return res.json([]);
+        }
+
+        // Find users matching query who are NOT already members of this org
+        const result = await pool.query(
+            `SELECT id, name, email FROM "user"
+             WHERE (LOWER(name) LIKE LOWER($1) OR LOWER(email) LIKE LOWER($1))
+             AND id NOT IN (SELECT "userId" FROM "member" WHERE "organizationId" = $2)
+             LIMIT 5`,
+            [`%${q}%`, orgId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error searching candidates:", error);
+        res.status(500).json({ error: "Failed to search candidates" });
+    }
+});
+
+// POST add member to organization (by email)
+app.post("/api/organization/members", authorize(['admin']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { email, role } = req.body;
+
+        // 1. Find user by email
+        const userResult = await pool.query('SELECT id FROM "user" WHERE email = $1', [email]);
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: "User not found with this email" });
+        }
+        const userId = userResult.rows[0].id;
+
+        // 2. Check if already a member
+        const memberCheck = await pool.query(
+            'SELECT id FROM "member" WHERE "userId" = $1 AND "organizationId" = $2',
+            [userId, orgId]
+        );
+
+        if (memberCheck.rows.length > 0) {
+            return res.status(400).json({ error: "User is already a member of this organization" });
+        }
+
+        // 3. Add to organization
+        const memberId = crypto.randomUUID();
+        await pool.query(
+            `INSERT INTO "member" (id, "userId", "organizationId", role, "createdAt")
+             VALUES ($1, $2, $3, $4, NOW())`,
+            [memberId, userId, orgId, role || 'user']
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error adding member:", error);
+        res.status(500).json({ error: "Failed to add member" });
+    }
+});
+
+// DELETE remove member from organization
+app.delete("/api/organization/members/:userId", authorize(['admin']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { userId } = req.params;
+
+        // Prevent removing yourself (optional but recommended)
+        if (userId === session.user.id) {
+            return res.status(400).json({ error: "You cannot remove yourself from the organization" });
+        }
+
+        await pool.query(
+            'DELETE FROM "member" WHERE "userId" = $1 AND "organizationId" = $2',
+            [userId, orgId]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error removing member:", error);
+        res.status(500).json({ error: "Failed to remove member" });
+    }
+});
+
+// PUT update member role
+app.put("/api/organization/members/:userId", authorize(['admin']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { userId } = req.params;
+        const { role } = req.body;
+
+        await pool.query(
+            'UPDATE "member" SET role = $1 WHERE "userId" = $2 AND "organizationId" = $3',
+            [role, userId, orgId]
+        );
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error updating member role:", error);
+        res.status(500).json({ error: "Failed to update member role" });
     }
 });
 
