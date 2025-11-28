@@ -144,6 +144,7 @@ export interface IVeiculo {
   tipo: 'ONIBUS' | 'CAMINHAO';
   status: VeiculoStatus;
   proxima_revisao_km: number;
+  ultima_revisao?: string; // ISO Date
   is_double_deck?: boolean; // só para ônibus
   capacidade_passageiros?: number; // só para ônibus
   capacidade_carga?: number; // só para caminhão (toneladas)

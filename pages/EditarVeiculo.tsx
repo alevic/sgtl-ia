@@ -46,7 +46,7 @@ export const EditarVeiculo: React.FC = () => {
                 setAno(data.ano?.toString() || '');
                 setKmAtual(data.km_atual?.toString() || '');
                 setProximaRevisaoKm(data.proxima_revisao_km?.toString() || '');
-                setUltimaRevisao(data.ultima_revisao || '');
+                setUltimaRevisao(data.ultima_revisao ? data.ultima_revisao.split('T')[0] : '');
                 setIsDoubleDeck(data.is_double_deck || false);
                 setCapacidadePassageiros(data.capacidade_passageiros?.toString() || '');
                 setCapacidadeCarga(data.capacidade_carga?.toString() || '');

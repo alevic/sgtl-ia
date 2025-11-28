@@ -12,7 +12,7 @@ import { VehicleActions } from '../components/Frota/VehicleActions';
 export const MOCK_VEICULOS: (IVeiculo & {
     km_atual: number;
     ano: number;
-    ultima_revisao: string;
+    ultima_revisao?: string;
     motorista_atual?: string;
 })[] = [
         {
@@ -366,7 +366,7 @@ export const Frota: React.FC = () => {
                                         <div>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">Última Revisão</p>
                                             <p className="font-bold text-slate-800 dark:text-white">
-                                                {new Date(veiculo.ultima_revisao).toLocaleDateString('pt-BR')}
+                                                {veiculo.ultima_revisao ? new Date(veiculo.ultima_revisao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'N/A'}
                                             </p>
                                         </div>
                                     </div>
