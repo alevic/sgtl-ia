@@ -7,7 +7,7 @@
     "scripts": {
         "start": "tsx index.ts",
         "dev": "tsx watch index.ts",
-        "migrate": "npx @better-auth/cli migrate --yes"
+        "migrate": "npx @better-auth/cli migrate --yes && tsx setup-db.ts"
     },
     "dependencies": {
         "better-auth": "^1.0.0",

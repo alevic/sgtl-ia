@@ -99,6 +99,46 @@ async function setup() {
             CREATE INDEX IF NOT EXISTS idx_seat_status ON seat(status);
         `);
 
+        // Create Driver table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS driver (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                nome TEXT NOT NULL,
+                cnh TEXT NOT NULL,
+                categoria_cnh TEXT NOT NULL,
+                validade_cnh DATE NOT NULL,
+                passaporte TEXT,
+                validade_passaporte DATE,
+                telefone TEXT,
+                email TEXT,
+                endereco TEXT,
+                cidade TEXT,
+                estado TEXT,
+                pais TEXT,
+                status TEXT NOT NULL CHECK (status IN ('DISPONIVEL', 'EM_VIAGEM', 'FOLGA', 'AFASTADO')),
+                data_contratacao DATE NOT NULL,
+                salario DECIMAL(10, 2),
+                anos_experiencia INTEGER,
+                viagens_internacionais INTEGER DEFAULT 0,
+                disponivel_internacional BOOLEAN DEFAULT FALSE,
+                observacoes TEXT,
+                
+                organization_id TEXT NOT NULL,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        console.log("Driver table created successfully.");
+
+        // Create indexes for driver
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_driver_organization ON driver(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_driver_status ON driver(status);
+            CREATE INDEX IF NOT EXISTS idx_driver_cnh ON driver(cnh);
+        `);
+
         console.log("Indexes created successfully.");
         console.log("Database setup completed successfully!");
         process.exit(0);

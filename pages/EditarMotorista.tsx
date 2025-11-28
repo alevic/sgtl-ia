@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase } from 'lucide-react';
 
-export const NovoMotorista: React.FC = () => {
+export const EditarMotorista: React.FC = () => {
+    const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
     // Dados Pessoais
@@ -40,6 +41,55 @@ export const NovoMotorista: React.FC = () => {
     // Observações
     const [observacoes, setObservacoes] = useState('');
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [isFetching, setIsFetching] = useState(true);
+
+    useEffect(() => {
+        const fetchMotorista = async () => {
+            if (!id) return;
+
+            setIsFetching(true);
+            try {
+                const response = await fetch(`http://localhost:4000/api/fleet/drivers/${id}`, {
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch driver');
+                }
+
+                const data = await response.json();
+
+                // Populate form
+                setNome(data.nome || '');
+                setStatus(data.status || 'DISPONIVEL');
+                setCnh(data.cnh || '');
+                setCategoriaCnh(data.categoria_cnh || 'D');
+                setValidadeCnh(data.validade_cnh ? data.validade_cnh.split('T')[0] : '');
+                setPassaporte(data.passaporte || '');
+                setValidadePassaporte(data.validade_passaporte ? data.validade_passaporte.split('T')[0] : '');
+                setTelefone(data.telefone || '');
+                setEmail(data.email || '');
+                setEndereco(data.endereco || '');
+                setCidade(data.cidade || '');
+                setEstado(data.estado || '');
+                setPais(data.pais || 'Brasil');
+                setDataAdmissao(data.data_contratacao ? data.data_contratacao.split('T')[0] : '');
+                setDisponivelInternacional(data.disponivel_internacional || false);
+                setObservacoes(data.observacoes || '');
+
+            } catch (error) {
+                console.error("Erro ao buscar motorista:", error);
+                alert('Erro ao carregar motorista. Redirecionando...');
+                navigate('/admin/motoristas');
+            } finally {
+                setIsFetching(false);
+            }
+        };
+
+        fetchMotorista();
+    }, [id, navigate]);
+
     const verificarValidade = (dataValidade: string): { texto: string; cor: string } | null => {
         if (!dataValidade) return null;
 
@@ -54,8 +104,6 @@ export const NovoMotorista: React.FC = () => {
 
     const cnhValidade = verificarValidade(validadeCnh);
     const passaporteValidadeInfo = verificarValidade(validadePassaporte);
-
-    const [isLoading, setIsLoading] = useState(false);
 
     const handleSalvar = async () => {
         // Validações básicas
@@ -84,25 +132,18 @@ export const NovoMotorista: React.FC = () => {
                 validade_passaporte: validadePassaporte || null,
                 telefone: telefone || null,
                 email: email || null,
-                // telefone_emergencia: telefoneEmergencia || null, // Not in DB schema yet
-                // contato_emergencia_nome: contatoEmergenciaNome || null, // Not in DB schema yet
-                // contato_emergencia_relacao: contatoEmergenciaRelacao || null, // Not in DB schema yet
                 endereco: endereco || null,
                 cidade: cidade || null,
                 estado: estado || null,
-                // cep: cep || null, // Not in DB schema yet
                 pais: pais || null,
                 status,
                 data_contratacao: dataAdmissao || new Date().toISOString().split('T')[0],
-                // jornada_trabalho: jornadaTrabalho, // Not in DB schema yet
-                // horas_semanais: horasSemanais ? parseInt(horasSemanais) : null, // Not in DB schema yet
-                // disponivel_viagens_longas: disponivelViagensLongas, // Not in DB schema yet
                 disponivel_internacional: disponivelInternacional,
                 observacoes: observacoes || null
             };
 
-            const response = await fetch('http://localhost:4000/api/fleet/drivers', {
-                method: 'POST',
+            const response = await fetch(`http://localhost:4000/api/fleet/drivers/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -111,32 +152,40 @@ export const NovoMotorista: React.FC = () => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create driver');
+                throw new Error('Failed to update driver');
             }
 
-            alert(`Motorista ${nome} cadastrado com sucesso!`);
-            navigate('/admin/motoristas');
+            alert(`Motorista ${nome} atualizado com sucesso!`);
+            navigate(`/admin/motoristas/${id}`);
         } catch (error) {
-            console.error("Erro ao cadastrar motorista:", error);
-            alert('Erro ao cadastrar motorista. Por favor, tente novamente.');
+            console.error("Erro ao atualizar motorista:", error);
+            alert('Erro ao atualizar motorista. Por favor, tente novamente.');
         } finally {
             setIsLoading(false);
         }
     };
+
+    if (isFetching) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-slate-500 dark:text-slate-400">Carregando motorista...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex items-center gap-4">
                 <button
-                    onClick={() => navigate('/admin/motoristas')}
+                    onClick={() => navigate(`/admin/motoristas/${id}`)}
                     className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                 >
                     <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Novo Motorista</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Cadastre um novo motorista no sistema</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Editar Motorista</h1>
+                    <p className="text-slate-500 dark:text-slate-400">Atualize as informações do motorista</p>
                 </div>
                 <button
                     onClick={handleSalvar}
@@ -144,7 +193,7 @@ export const NovoMotorista: React.FC = () => {
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                     <Save size={18} />
-                    {isLoading ? 'Salvando...' : 'Salvar Motorista'}
+                    {isLoading ? 'Salvando...' : 'Salvar Alterações'}
                 </button>
             </div>
 
@@ -292,52 +341,6 @@ export const NovoMotorista: React.FC = () => {
                                 placeholder="motorista@email.com"
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <div className="border-t border-slate-200 dark:border-slate-600 pt-4 mt-2">
-                                <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">Contato de Emergência</h4>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            Nome
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={contatoEmergenciaNome}
-                                            onChange={(e) => setContatoEmergenciaNome(e.target.value)}
-                                            placeholder="Maria Silva"
-                                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            Relação
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={contatoEmergenciaRelacao}
-                                            onChange={(e) => setContatoEmergenciaRelacao(e.target.value)}
-                                            placeholder="Esposa, Pai, Mãe..."
-                                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                            Telefone
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            value={telefoneEmergencia}
-                                            onChange={(e) => setTelefoneEmergencia(e.target.value)}
-                                            placeholder="(11) 99999-9999"
-                                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

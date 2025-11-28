@@ -561,6 +561,176 @@ app.delete("/api/fleet/vehicles/:id/seats", async (req, res) => {
     }
 });
 
+// ===== DRIVER MANAGEMENT ENDPOINTS =====
+// GET all drivers for organization
+app.get("/api/fleet/drivers", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+
+        const result = await pool.query(
+            `SELECT * FROM driver WHERE organization_id = $1 ORDER BY created_at DESC`,
+            [orgId]
+        );
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching drivers:", error);
+        res.status(500).json({ error: "Failed to fetch drivers" });
+    }
+});
+
+// GET single driver by ID
+app.get("/api/fleet/drivers/:id", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT * FROM driver WHERE id = $1 AND organization_id = $2`,
+            [id, orgId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Driver not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching driver:", error);
+        res.status(500).json({ error: "Failed to fetch driver" });
+    }
+});
+
+// POST create new driver
+app.post("/api/fleet/drivers", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const userId = session.user.id;
+
+        const {
+            nome, cnh, categoria_cnh, validade_cnh, passaporte, validade_passaporte,
+            telefone, email, endereco, cidade, estado, pais, status,
+            data_contratacao, salario, anos_experiencia, viagens_internacionais,
+            disponivel_internacional, observacoes
+        } = req.body;
+
+        const result = await pool.query(
+            `INSERT INTO driver (
+                nome, cnh, categoria_cnh, validade_cnh, passaporte, validade_passaporte,
+                telefone, email, endereco, cidade, estado, pais, status,
+                data_contratacao, salario, anos_experiencia, viagens_internacionais,
+                disponivel_internacional, observacoes,
+                organization_id, created_by
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+            RETURNING *`,
+            [
+                nome, cnh, categoria_cnh, validade_cnh, passaporte || null, validade_passaporte || null,
+                telefone || null, email || null, endereco || null, cidade || null, estado || null, pais || null,
+                status, data_contratacao, salario || null, anos_experiencia || null, viagens_internacionais || 0,
+                disponivel_internacional || false, observacoes || null,
+                orgId, userId
+            ]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error creating driver:", error);
+        res.status(500).json({ error: "Failed to create driver" });
+    }
+});
+
+// PUT update driver
+app.put("/api/fleet/drivers/:id", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const check = await pool.query(
+            "SELECT id FROM driver WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Driver not found" });
+        }
+
+        const {
+            nome, cnh, categoria_cnh, validade_cnh, passaporte, validade_passaporte,
+            telefone, email, endereco, cidade, estado, pais, status,
+            data_contratacao, salario, anos_experiencia, viagens_internacionais,
+            disponivel_internacional, observacoes
+        } = req.body;
+
+        const result = await pool.query(
+            `UPDATE driver SET
+                nome = $1, cnh = $2, categoria_cnh = $3, validade_cnh = $4,
+                passaporte = $5, validade_passaporte = $6, telefone = $7, email = $8,
+                endereco = $9, cidade = $10, estado = $11, pais = $12, status = $13,
+                data_contratacao = $14, salario = $15, anos_experiencia = $16,
+                viagens_internacionais = $17, disponivel_internacional = $18, observacoes = $19,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $20 AND organization_id = $21
+            RETURNING *`,
+            [
+                nome, cnh, categoria_cnh, validade_cnh, passaporte || null, validade_passaporte || null,
+                telefone || null, email || null, endereco || null, cidade || null, estado || null, pais || null,
+                status, data_contratacao, salario || null, anos_experiencia || null, viagens_internacionais || 0,
+                disponivel_internacional || false, observacoes || null,
+                id, orgId
+            ]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error updating driver:", error);
+        res.status(500).json({ error: "Failed to update driver" });
+    }
+});
+
+// DELETE driver
+app.delete("/api/fleet/drivers/:id", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+        if (!session || !session.session.activeOrganizationId) {
+            return res.status(401).json({ error: "Unauthorized: No active organization" });
+        }
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const check = await pool.query(
+            "SELECT id FROM driver WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Driver not found" });
+        }
+
+        await pool.query("DELETE FROM driver WHERE id = $1 AND organization_id = $2", [id, orgId]);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting driver:", error);
+        res.status(500).json({ error: "Failed to delete driver" });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
