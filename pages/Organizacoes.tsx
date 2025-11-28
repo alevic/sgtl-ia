@@ -291,7 +291,35 @@ export const Organizacoes: React.FC = () => {
                                 </div>
                             )}
 
-                            <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-700">
+                            <div className="flex justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        if (!window.confirm('Tem certeza que deseja excluir esta organização? Esta ação não pode ser desfeita.')) return;
+
+                                        setIsSaving(true); // Reuse saving state for loading indicator
+                                        await authClient.organization.delete({
+                                            organizationId: orgDetails.id
+                                        }, {
+                                            onSuccess: () => {
+                                                setSelectedOrgId(null);
+                                                setOrgDetails(null);
+                                                fetchOrgs();
+                                                setIsSaving(false);
+                                            },
+                                            onError: (ctx) => {
+                                                setError(ctx.error.message);
+                                                setIsSaving(false);
+                                            }
+                                        });
+                                    }}
+                                    disabled={isSaving}
+                                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 px-4 py-2 rounded-lg transition-colors disabled:opacity-70"
+                                >
+                                    <Trash2 size={18} />
+                                    <span>Excluir Organização</span>
+                                </button>
+
                                 <button
                                     type="submit"
                                     disabled={isSaving}
