@@ -46,7 +46,7 @@ export const VeiculoDetalhes: React.FC = () => {
 
         setIsLoading(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${id}`, {
                 credentials: 'include'
             });
 
@@ -59,7 +59,7 @@ export const VeiculoDetalhes: React.FC = () => {
 
             // Fetch seats if it's a bus
             if (data.tipo === 'ONIBUS') {
-                const seatsResponse = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}/seats`, {
+                const seatsResponse = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${id}/seats`, {
                     credentials: 'include'
                 });
 
@@ -79,7 +79,7 @@ export const VeiculoDetalhes: React.FC = () => {
         if (!id) return;
 
         try {
-            const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}/seats`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${id}/seats`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -20,7 +20,7 @@ export const ContasReceber: React.FC = () => {
     const fetchTransacoes = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:4000/api/finance/transactions', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, {
                 credentials: 'include'
             });
 

@@ -16,7 +16,7 @@ export const MotoristaDetalhes: React.FC = () => {
 
             setIsLoading(true);
             try {
-                const response = await fetch(`http://localhost:4000/api/fleet/drivers/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/drivers/${id}`, {
                     credentials: 'include'
                 });
 
@@ -43,7 +43,7 @@ export const MotoristaDetalhes: React.FC = () => {
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/fleet/drivers/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/drivers/${id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });

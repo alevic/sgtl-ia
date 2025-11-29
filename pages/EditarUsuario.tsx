@@ -15,7 +15,7 @@ export const EditarUsuario: React.FC = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const response = await fetch(`http://localhost:4000/api/users/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${id}`, {
                     credentials: 'include'
                 });
                 if (response.ok) {
@@ -42,7 +42,7 @@ export const EditarUsuario: React.FC = () => {
         setError('');
 
         try {
-            const response = await fetch(`http://localhost:4000/api/users/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

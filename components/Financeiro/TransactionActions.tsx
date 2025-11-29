@@ -18,7 +18,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
 
         setIsDeleting(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/finance/transactions/${transacao.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions/${transacao.id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
@@ -37,7 +37,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
 
     const handleStatusChange = async (newStatus: StatusTransacao) => {
         try {
-            const response = await fetch(`http://localhost:4000/api/finance/transactions/${transacao.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions/${transacao.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...transacao, status: newStatus }),

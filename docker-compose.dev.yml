@@ -11,6 +11,7 @@ services:
       - "3000:3000"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:4000}
     command: sh -c "npm install && npm run dev"
     depends_on:
       - db
@@ -25,9 +26,10 @@ services:
       - "4000:4000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@db:5432/${POSTGRES_DB:-sgtl_db}
-      - PORT=4000
-      - BETTER_AUTH_SECRET=sgtl_secret_key_123456
-      - BETTER_AUTH_URL=http://localhost:4000
+      - PORT=${PORT:-4000}
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-sgtl_secret_key_123456}
+      - BETTER_AUTH_URL=${BETTER_AUTH_URL:-http://localhost:4000}
+      - CLIENT_URL=${CLIENT_URL:-http://localhost:3000,http://localhost:8080}
     command: sh -c "npm install && npm run migrate && npm run dev"
     depends_on:
       - db

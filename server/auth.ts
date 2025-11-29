@@ -29,5 +29,5 @@ export const auth = betterAuth({
         admin(),
         organization()
     ],
-    trustedOrigins: ["http://localhost:3000", "http://localhost:8080"],
+    trustedOrigins: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : ["http://localhost:3000", "http://localhost:8080"],
 });

@@ -101,7 +101,7 @@ export const NovoMotorista: React.FC = () => {
                 observacoes: observacoes || null
             };
 
-            const response = await fetch('http://localhost:4000/api/fleet/drivers', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/drivers`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

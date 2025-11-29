@@ -24,7 +24,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
     const fetchMembers = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:4000/api/organization/members', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/members`, {
                 credentials: 'include'
             });
             if (response.ok) {
@@ -48,7 +48,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
             if (newMemberEmail.length >= 2 && !newMemberEmail.includes('@')) { // Only search if not typing a full email manually yet
                 setIsSearching(true);
                 try {
-                    const response = await fetch(`http://localhost:4000/api/organization/candidates?q=${newMemberEmail}`, {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/candidates?q=${newMemberEmail}`, {
                         credentials: 'include'
                     });
                     if (response.ok) {
@@ -77,7 +77,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
         setSuccess('');
 
         try {
-            const response = await fetch('http://localhost:4000/api/organization/members', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/members`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
@@ -104,7 +104,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
         if (!confirm('Tem certeza que deseja remover este membro da equipe?')) return;
 
         try {
-            const response = await fetch(`http://localhost:4000/api/organization/members/${userId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/members/${userId}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });

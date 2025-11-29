@@ -28,7 +28,7 @@ export const EditarVeiculo: React.FC = () => {
 
             setIsFetching(true);
             try {
-                const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${id}`, {
                     credentials: 'include'
                 });
 
@@ -81,7 +81,7 @@ export const EditarVeiculo: React.FC = () => {
                 observacoes: observacoes || null
             };
 
-            const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

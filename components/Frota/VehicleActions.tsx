@@ -21,7 +21,7 @@ export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdat
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            const response = await fetch(`http://localhost:4000/api/fleet/vehicles/${veiculo.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${veiculo.id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });

@@ -106,8 +106,8 @@ export const NovaTransacao: React.FC = () => {
 
         try {
             const url = id
-                ? `http://localhost:4000/api/finance/transactions/${id}`
-                : 'http://localhost:4000/api/finance/transactions';
+                ? `${import.meta.env.VITE_API_URL}/api/finance/transactions/${id}`
+                : `${import.meta.env.VITE_API_URL}/api/finance/transactions`;
 
             const method = id ? 'PUT' : 'POST';
 

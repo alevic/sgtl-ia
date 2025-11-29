@@ -32,7 +32,7 @@ export const Usuarios: React.FC = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('http://localhost:4000/api/users', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
                 credentials: 'include'
             });
             if (response.ok) {
@@ -54,7 +54,7 @@ export const Usuarios: React.FC = () => {
         if (!confirm('Tem certeza que deseja excluir este usuário?')) return;
 
         try {
-            const response = await fetch(`http://localhost:4000/api/users/${userId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${userId}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });

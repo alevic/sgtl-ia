@@ -50,7 +50,7 @@ export const EditarMotorista: React.FC = () => {
 
             setIsFetching(true);
             try {
-                const response = await fetch(`http://localhost:4000/api/fleet/drivers/${id}`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/drivers/${id}`, {
                     credentials: 'include'
                 });
 
@@ -142,7 +142,7 @@ export const EditarMotorista: React.FC = () => {
                 observacoes: observacoes || null
             };
 
-            const response = await fetch(`http://localhost:4000/api/fleet/drivers/${id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/drivers/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

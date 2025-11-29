@@ -121,7 +121,7 @@ export const Frota: React.FC = () => {
     const fetchVeiculos = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('http://localhost:4000/api/fleet/vehicles', {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles`, {
                 credentials: 'include'
             });
 

@@ -48,7 +48,7 @@ export const Organizacoes: React.FC = () => {
         try {
             await authClient.organization.setActive({ organizationId: id });
 
-            const response = await fetch(`http://localhost:4000/api/organization/${id}/details`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${id}/details`, {
                 credentials: 'include',
                 headers: {
                     ...await authClient.getHeaders()
@@ -112,7 +112,7 @@ export const Organizacoes: React.FC = () => {
         setSuccess('');
 
         try {
-            const response = await fetch(`http://localhost:4000/api/organization/${orgDetails.id}/details`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${orgDetails.id}/details`, {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
