@@ -6,7 +6,7 @@ import { GeminiInsights } from '../components/Gemini/GeminiInsights';
 import {
   TrendingUp, Users, Bus, Package, ArrowUpRight, ArrowDownRight,
   Clock, Calendar, ChevronRight, Plus, Activity, AlertCircle,
-  MapPin, Truck, Wallet, Bell
+  MapPin, Truck, Wallet
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -101,10 +101,7 @@ export const Dashboard: React.FC = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors relative">
-            <Bell size={20} />
-            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
-          </button>
+
           <div className="h-10 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm">
             <div className={`w-2 h-2 rounded-full ${isTurismo ? 'bg-blue-500' : 'bg-orange-500'}`}></div>
             {isTurismo ? 'Turismo B2C' : 'Logística Express'}
