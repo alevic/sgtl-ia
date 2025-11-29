@@ -4,6 +4,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth, pool } from "./auth";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import clientsRouter from "./routes/clients";
 
 dotenv.config();
 
@@ -96,7 +97,9 @@ app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
     }
 });
 
-// Finance Endpoints
+// Clients Routes
+app.use("/api/clients", clientsRouter);
+
 // Finance Endpoints
 app.get("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
     try {

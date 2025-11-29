@@ -1,92 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ICliente, TipoDocumento } from '../types';
+import { ICliente } from '../types';
 import {
     Users, Search, Filter, UserPlus, Star, TrendingUp,
     Phone, Mail, MapPin, Calendar, Award, Tag
 } from 'lucide-react';
-
-const MOCK_CLIENTES: ICliente[] = [
-    {
-        id: '1',
-        nome: 'Maria Oliveira Santos',
-        email: 'maria.santos@email.com',
-        telefone: '(11) 98765-4321',
-        saldo_creditos: 250,
-        historico_viagens: 15,
-        documento_tipo: TipoDocumento.CPF,
-        documento_numero: '123.456.789-00',
-        nacionalidade: 'Brasileira',
-        data_cadastro: '2022-03-15',
-        data_nascimento: '1985-06-20',
-        endereco: 'Rua das Flores, 123',
-        cidade: 'São Paulo',
-        estado: 'SP',
-        pais: 'Brasil',
-        segmento: 'VIP',
-        tags: ['Frequente', 'Turismo'],
-        ultima_viagem: '2023-10-15',
-        valor_total_gasto: 8500.00,
-        observacoes: 'Cliente preferencial, sempre viaja em datas comemorativas'
-    },
-    {
-        id: '2',
-        nome: 'João Pedro Silva',
-        email: 'joao.silva@empresa.com',
-        telefone: '(21) 99876-5432',
-        saldo_creditos: 100,
-        historico_viagens: 8,
-        documento_tipo: TipoDocumento.CPF,
-        documento_numero: '987.654.321-00',
-        nacionalidade: 'Brasileira',
-        data_cadastro: '2023-01-10',
-        cidade: 'Rio de Janeiro',
-        estado: 'RJ',
-        pais: 'Brasil',
-        segmento: 'REGULAR',
-        tags: ['Negócios'],
-        ultima_viagem: '2023-09-20',
-        valor_total_gasto: 3200.00
-    },
-    {
-        id: '3',
-        nome: 'Ana Paula Costa',
-        email: 'ana.costa@email.com',
-        telefone: '(48) 98888-7777',
-        saldo_creditos: 500,
-        historico_viagens: 25,
-        documento_tipo: TipoDocumento.CPF,
-        documento_numero: '456.789.123-00',
-        nacionalidade: 'Brasileira',
-        data_cadastro: '2021-06-01',
-        data_nascimento: '1990-11-15',
-        cidade: 'Florianópolis',
-        estado: 'SC',
-        pais: 'Brasil',
-        segmento: 'VIP',
-        tags: ['Frequente', 'Fidelidade', 'Turismo'],
-        ultima_viagem: '2023-10-18',
-        valor_total_gasto: 15000.00,
-        observacoes: 'Cliente VIP, utiliza programa de fidelidade'
-    },
-    {
-        id: '4',
-        nome: 'Carlos Eduardo Lima',
-        email: 'carlos.lima@email.com',
-        saldo_creditos: 0,
-        historico_viagens: 1,
-        documento_tipo: TipoDocumento.CPF,
-        documento_numero: '111.222.333-44',
-        nacionalidade: 'Brasileira',
-        data_cadastro: '2023-10-01',
-        cidade: 'Curitiba',
-        estado: 'PR',
-        pais: 'Brasil',
-        segmento: 'NOVO',
-        tags: ['Novo'],
-        valor_total_gasto: 180.00
-    }
-];
 
 const SegmentoBadge: React.FC<{ segmento: ICliente['segmento'] }> = ({ segmento }) => {
     const configs = {
@@ -96,7 +14,7 @@ const SegmentoBadge: React.FC<{ segmento: ICliente['segmento'] }> = ({ segmento 
         INATIVO: { color: 'slate', icon: Users, label: 'Inativo' }
     };
 
-    const config = configs[segmento];
+    const config = configs[segmento] || configs.NOVO;
     const Icon = config.icon;
 
     return (
@@ -108,16 +26,38 @@ const SegmentoBadge: React.FC<{ segmento: ICliente['segmento'] }> = ({ segmento 
 };
 
 export const CRM: React.FC = () => {
-    const [clientes, setClientes] = useState<ICliente[]>(MOCK_CLIENTES);
+    const [clientes, setClientes] = useState<ICliente[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [filtroSegmento, setFiltroSegmento] = useState<'TODOS' | ICliente['segmento']>('TODOS');
     const [busca, setBusca] = useState('');
+
+    useEffect(() => {
+        fetchClientes();
+    }, []);
+
+    const fetchClientes = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients`);
+            if (response.ok) {
+                const data = await response.json();
+                setClientes(data);
+            } else {
+                console.error('Failed to fetch clients');
+            }
+        } catch (error) {
+            console.error('Error fetching clients:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const clientesFiltrados = clientes.filter(c => {
         const matchSegmento = filtroSegmento === 'TODOS' || c.segmento === filtroSegmento;
         const matchBusca = busca === '' ||
             c.nome.toLowerCase().includes(busca.toLowerCase()) ||
             c.email.toLowerCase().includes(busca.toLowerCase()) ||
-            c.documento_numero.includes(busca) ||
+            c.documento_numero?.includes(busca) ||
             c.telefone?.includes(busca);
         return matchSegmento && matchBusca;
     });
@@ -125,8 +65,8 @@ export const CRM: React.FC = () => {
     // Estatísticas
     const totalClientes = clientes.length;
     const clientesVIP = clientes.filter(c => c.segmento === 'VIP').length;
-    const totalViagens = clientes.reduce((sum, c) => sum + c.historico_viagens, 0);
-    const valorTotal = clientes.reduce((sum, c) => sum + c.valor_total_gasto, 0);
+    const totalViagens = clientes.reduce((sum, c) => sum + (c.historico_viagens || 0), 0);
+    const valorTotal = clientes.reduce((sum, c) => sum + Number(c.valor_total_gasto || 0), 0);
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -244,7 +184,9 @@ export const CRM: React.FC = () => {
 
             {/* Lista de Clientes */}
             <div className="grid gap-4">
-                {clientesFiltrados.length === 0 ? (
+                {isLoading ? (
+                    <div className="text-center p-12 text-slate-500">Carregando clientes...</div>
+                ) : clientesFiltrados.length === 0 ? (
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
                         <Users size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-slate-500 dark:text-slate-400">Nenhum cliente encontrado</p>
@@ -302,20 +244,20 @@ export const CRM: React.FC = () => {
                                 <div className="flex gap-4">
                                     <div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Viagens</p>
-                                        <p className="font-bold text-slate-800 dark:text-white">{cliente.historico_viagens}</p>
+                                        <p className="font-bold text-slate-800 dark:text-white">{cliente.historico_viagens || 0}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Créditos</p>
-                                        <p className="font-bold text-green-600 dark:text-green-400">{cliente.saldo_creditos}</p>
+                                        <p className="font-bold text-green-600 dark:text-green-400">{Number(cliente.saldo_creditos || 0).toFixed(2)}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400">Total Gasto</p>
                                         <p className="font-bold text-blue-600 dark:text-blue-400">
-                                            R$ {cliente.valor_total_gasto.toLocaleString('pt-BR')}
+                                            R$ {Number(cliente.valor_total_gasto || 0).toLocaleString('pt-BR')}
                                         </p>
                                     </div>
                                 </div>
-                                {cliente.tags.length > 0 && (
+                                {cliente.tags && cliente.tags.length > 0 && (
                                     <div className="flex gap-1 flex-wrap">
                                         {cliente.tags.slice(0, 3).map((tag, index) => (
                                             <span
@@ -336,3 +278,4 @@ export const CRM: React.FC = () => {
         </div>
     );
 };
+

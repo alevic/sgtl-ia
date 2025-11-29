@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda } from '../types';
+import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento } from '../types';
+import { useAppContext } from '../context/AppContext';
 import {
     ArrowLeft, User, Mail, Phone, MapPin, Calendar, DollarSign,
     FileText, MessageSquare, History, Star, Edit, Plus, Check, X
@@ -83,35 +84,69 @@ const MOCK_RESERVAS: IReserva[] = [
         id: '1',
         codigo: 'RSV-2023-001',
         viagem_id: 'V001',
-        cliente_id: '1',
-        assento_numero: '12',
+        responsavel_id: '1',
+        passageiros: [
+            {
+                id: 'p1',
+                cliente_id: '1',
+                assento_numero: '12',
+                tipo_assento: TipoAssento.CONVENCIONAL,
+                valor: 180.00
+            }
+        ],
         data_reserva: '2023-10-15T14:30:00',
         status: 'UTILIZADA',
-        valor_pago: 180.00,
+        valor_total: 180.00,
         moeda: Moeda.BRL,
-        forma_pagamento: 'PIX'
+        forma_pagamento: 'PIX',
+        cliente_id: '1',
+        assento_numero: '12',
+        valor_pago: 180.00
     },
     {
         id: '2',
         codigo: 'RSV-2023-045',
         viagem_id: 'V005',
-        cliente_id: '1',
-        assento_numero: '08',
+        responsavel_id: '1',
+        passageiros: [
+            {
+                id: 'p2',
+                cliente_id: '1',
+                assento_numero: '08',
+                tipo_assento: TipoAssento.LEITO,
+                valor: 220.00
+            }
+        ],
         data_reserva: '2023-09-20T10:15:00',
         status: 'UTILIZADA',
-        valor_pago: 220.00,
+        valor_total: 220.00,
         moeda: Moeda.BRL,
-        forma_pagamento: 'CARTAO'
+        forma_pagamento: 'CARTAO',
+        cliente_id: '1',
+        assento_numero: '08',
+        valor_pago: 220.00
     }
 ];
 
 export const ClienteDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const { user } = useAppContext();
     const [activeTab, setActiveTab] = useState<'perfil' | 'historico' | 'interacoes' | 'notas'>('perfil');
-    const [cliente] = useState<ICliente>(MOCK_CLIENTE);
-    const [interacoes] = useState<IInteracao[]>(MOCK_INTERACOES);
-    const [notas] = useState<INota[]>(MOCK_NOTAS);
-    const [reservas] = useState<IReserva[]>(MOCK_RESERVAS);
+    const [cliente, setCliente] = useState<ICliente | null>(null);
+    const [interacoes, setInteracoes] = useState<IInteracao[]>([]);
+    const [notas, setNotas] = useState<INota[]>([]);
+    const [reservas, setReservas] = useState<IReserva[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Modal states
+    const [showInteractionModal, setShowInteractionModal] = useState(false);
+    const [showNoteModal, setShowNoteModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+
+    // New item states
+    const [newInteraction, setNewInteraction] = useState({ tipo: 'TELEFONE', descricao: '' });
+    const [newNote, setNewNote] = useState({ titulo: '', conteudo: '', importante: false });
+    const [editFormData, setEditFormData] = useState<Partial<ICliente>>({});
 
     const getTipoIcon = (tipo: IInteracao['tipo']) => {
         switch (tipo) {
@@ -120,8 +155,143 @@ export const ClienteDetalhes: React.FC = () => {
             case 'WHATSAPP': return <MessageSquare size={16} className="text-green-600" />;
             case 'PRESENCIAL': return <User size={16} className="text-purple-600" />;
             case 'SISTEMA': return <History size={16} className="text-slate-600" />;
+            default: return <MessageSquare size={16} className="text-slate-600" />;
         }
     };
+
+    const fetchData = async () => {
+        setIsLoading(true);
+        try {
+            console.log('Fetching client details for ID:', id);
+            const [clientRes, interactionsRes, notesRes] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}`),
+                fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/interactions`),
+                fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/notes`)
+            ]);
+
+            if (clientRes.ok) {
+                const clientData = await clientRes.json();
+                console.log('Client data received:', clientData);
+                setCliente(clientData);
+            } else {
+                console.error('Failed to fetch client:', clientRes.status, clientRes.statusText);
+            }
+
+            if (interactionsRes.ok) {
+                const interactionsData = await interactionsRes.json();
+                console.log('Interactions data received:', interactionsData);
+                setInteracoes(interactionsData);
+            }
+
+            if (notesRes.ok) {
+                const notesData = await notesRes.json();
+                console.log('Notes data received:', notesData);
+                setNotas(notesData);
+            }
+
+            // Mock reservations for now
+            setReservas(MOCK_RESERVAS as any);
+
+        } catch (error) {
+            console.error('Error fetching client details:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (id) {
+            fetchData();
+        }
+    }, [id]);
+
+    const handleAddInteraction = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/interactions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...newInteraction,
+                    usuario_responsavel: user.name
+                })
+            });
+
+            if (response.ok) {
+                const addedInteraction = await response.json();
+                setInteracoes([addedInteraction, ...interacoes]);
+                setShowInteractionModal(false);
+                setNewInteraction({ tipo: 'TELEFONE', descricao: '' });
+            }
+        } catch (error) {
+            console.error('Error adding interaction:', error);
+        }
+    };
+
+    const handleAddNote = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...newNote,
+                    criado_por: user.name
+                })
+            });
+
+            if (response.ok) {
+                const addedNote = await response.json();
+                setNotas([addedNote, ...notas]);
+                setShowNoteModal(false);
+                setNewNote({ titulo: '', conteudo: '', importante: false });
+            }
+        } catch (error) {
+            console.error('Error adding note:', error);
+        }
+    };
+
+    const handleEditClick = () => {
+        if (cliente) {
+            setEditFormData({
+                ...cliente,
+                // Ensure dates are formatted for input type="date"
+                data_nascimento: cliente.data_nascimento ? new Date(cliente.data_nascimento).toISOString().split('T')[0] : ''
+            });
+            setShowEditModal(true);
+        }
+    };
+
+    const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setEditFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSaveEdit = async () => {
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editFormData)
+            });
+
+            if (response.ok) {
+                const updatedClient = await response.json();
+                setCliente(updatedClient);
+                setShowEditModal(false);
+            } else {
+                console.error('Failed to update client');
+            }
+        } catch (error) {
+            console.error('Error updating client:', error);
+        }
+    };
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Carregando...</div>;
+    }
+
+    if (!cliente) {
+        return <div className="p-8 text-center">Cliente não encontrado</div>;
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -139,11 +309,194 @@ export const ClienteDetalhes: React.FC = () => {
                         Cliente desde {new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
                     </p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2">
+                <button
+                    onClick={handleEditClick}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
                     <Edit size={18} />
                     Editar
                 </button>
             </div>
+
+            {/* Edit Modal */}
+            {showEditModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Editar Cliente</h2>
+                            <button onClick={() => setShowEditModal(false)} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
+                                <input
+                                    type="text"
+                                    name="nome"
+                                    value={editFormData.nome || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={editFormData.email || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
+                                <input
+                                    type="text"
+                                    name="telefone"
+                                    value={editFormData.telefone || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo de Documento</label>
+                                <select
+                                    name="documento_tipo"
+                                    value={editFormData.documento_tipo || TipoDocumento.CPF}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                >
+                                    <option value={TipoDocumento.CPF}>CPF</option>
+                                    <option value={TipoDocumento.RG}>RG</option>
+                                    <option value={TipoDocumento.PASSAPORTE}>Passaporte</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número do Documento</label>
+                                <input
+                                    type="text"
+                                    name="documento_numero"
+                                    value={editFormData.documento_numero || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nacionalidade</label>
+                                <input
+                                    type="text"
+                                    name="nacionalidade"
+                                    value={editFormData.nacionalidade || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Data de Nascimento</label>
+                                <input
+                                    type="date"
+                                    name="data_nascimento"
+                                    value={editFormData.data_nascimento ? new Date(editFormData.data_nascimento).toISOString().split('T')[0] : ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Endereço</label>
+                                <input
+                                    type="text"
+                                    name="endereco"
+                                    value={editFormData.endereco || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cidade</label>
+                                <input
+                                    type="text"
+                                    name="cidade"
+                                    value={editFormData.cidade || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Estado</label>
+                                <input
+                                    type="text"
+                                    name="estado"
+                                    value={editFormData.estado || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">País</label>
+                                <input
+                                    type="text"
+                                    name="pais"
+                                    value={editFormData.pais || ''}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Segmento</label>
+                                <select
+                                    name="segmento"
+                                    value={editFormData.segmento || 'Standard'}
+                                    onChange={handleEditChange}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                >
+                                    <option value="Standard">Standard</option>
+                                    <option value="VIP">VIP</option>
+                                    <option value="Corporativo">Corporativo</option>
+                                </select>
+                            </div>
+
+                            <div className="col-span-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Observações</label>
+                                <textarea
+                                    name="observacoes"
+                                    value={editFormData.observacoes || ''}
+                                    onChange={handleEditChange}
+                                    rows={3}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 mt-6">
+                            <button
+                                onClick={() => setShowEditModal(false)}
+                                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all"
+                            >
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Card Principal */}
             <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white">
@@ -159,7 +512,7 @@ export const ClienteDetalhes: React.FC = () => {
                                     <Star size={14} />
                                     {cliente.segmento}
                                 </span>
-                                {cliente.tags.map((tag, index) => (
+                                {cliente.tags && cliente.tags.length > 0 && cliente.tags.map((tag, index) => (
                                     <span key={index} className="px-2 py-1 bg-white/10 rounded text-xs">
                                         {tag}
                                     </span>
@@ -169,18 +522,18 @@ export const ClienteDetalhes: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="grid grid cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-white/10 rounded-lg p-4">
                         <p className="text-sm opacity-80">Total de Viagens</p>
-                        <p className="text-3xl font-bold">{cliente.historico_viagens}</p>
+                        <p className="text-3xl font-bold">{cliente.historico_viagens || 0}</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4">
                         <p className="text-sm opacity-80">Créditos</p>
-                        <p className="text-3xl font-bold">{cliente.saldo_creditos}</p>
+                        <p className="text-3xl font-bold">{cliente.saldo_creditos || 0}</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4">
                         <p className="text-sm opacity-80">Total Gasto</p>
-                        <p className="text-2xl font-bold">R$ {cliente.valor_total_gasto.toLocaleString('pt-BR')}</p>
+                        <p className="text-2xl font-bold">R$ {Number(cliente.valor_total_gasto || 0).toLocaleString('pt-BR')}</p>
                     </div>
                     <div className="bg-white/10 rounded-lg p-4">
                         <p className="text-sm opacity-80">Última Viagem</p>
@@ -192,7 +545,7 @@ export const ClienteDetalhes: React.FC = () => {
             </div>
 
             {/* Tabs */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            < div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm" >
                 <div className="border-b border-slate-200 dark:border-slate-700">
                     <div className="flex gap-2 p-2">
                         <button
@@ -324,12 +677,12 @@ export const ClienteDetalhes: React.FC = () => {
                                         <div>
                                             <p className="font-bold text-slate-800 dark:text-white">{reserva.codigo}</p>
                                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                Assento {reserva.assento_numero} • {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}
+                                                Assento {reserva.passageiros?.map(p => p.assento_numero).join(', ') || reserva.assento_numero} • {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-green-600 dark:text-green-400">
-                                                {reserva.moeda} {reserva.valor_pago.toFixed(2)}
+                                                {reserva.moeda} {(reserva.valor_total || reserva.valor_pago || 0).toFixed(2)}
                                             </p>
                                             <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
                                                 {reserva.status}
@@ -346,11 +699,60 @@ export const ClienteDetalhes: React.FC = () => {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="font-bold text-slate-700 dark:text-slate-200">Histórico de Interações</h3>
-                                <button className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowInteractionModal(true)}
+                                    className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+                                >
                                     <Plus size={16} />
                                     Nova Interação
                                 </button>
                             </div>
+
+                            {showInteractionModal && (
+                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-4 shadow-sm">
+                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-3">Nova Interação</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
+                                            <select
+                                                value={newInteraction.tipo}
+                                                onChange={(e) => setNewInteraction({ ...newInteraction, tipo: e.target.value })}
+                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                            >
+                                                <option value="TELEFONE">Telefone</option>
+                                                <option value="EMAIL">Email</option>
+                                                <option value="WHATSAPP">WhatsApp</option>
+                                                <option value="PRESENCIAL">Presencial</option>
+                                                <option value="SISTEMA">Sistema</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+                                            <textarea
+                                                value={newInteraction.descricao}
+                                                onChange={(e) => setNewInteraction({ ...newInteraction, descricao: e.target.value })}
+                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                                rows={3}
+                                                placeholder="Descreva a interação..."
+                                            />
+                                        </div>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => setShowInteractionModal(false)}
+                                                className="px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={handleAddInteraction}
+                                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
+                                            >
+                                                Salvar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {interacoes.map((interacao) => (
                                 <div
                                     key={interacao.id}
@@ -379,11 +781,66 @@ export const ClienteDetalhes: React.FC = () => {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="font-bold text-slate-700 dark:text-slate-200">Notas do Cliente</h3>
-                                <button className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowNoteModal(true)}
+                                    className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
+                                >
                                     <Plus size={16} />
                                     Nova Nota
                                 </button>
                             </div>
+
+                            {showNoteModal && (
+                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-4 shadow-sm">
+                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-3">Nova Nota</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Título</label>
+                                            <input
+                                                type="text"
+                                                value={newNote.titulo}
+                                                onChange={(e) => setNewNote({ ...newNote, titulo: e.target.value })}
+                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                                placeholder="Título da nota"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Conteúdo</label>
+                                            <textarea
+                                                value={newNote.conteudo}
+                                                onChange={(e) => setNewNote({ ...newNote, conteudo: e.target.value })}
+                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                                rows={3}
+                                                placeholder="Conteúdo da nota..."
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                id="importante"
+                                                checked={newNote.importante}
+                                                onChange={(e) => setNewNote({ ...newNote, importante: e.target.checked })}
+                                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                            />
+                                            <label htmlFor="importante" className="text-sm text-slate-700 dark:text-slate-300">Marcar como importante</label>
+                                        </div>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => setShowNoteModal(false)}
+                                                className="px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={handleAddNote}
+                                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
+                                            >
+                                                Salvar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {notas.map((nota) => (
                                 <div
                                     key={nota.id}
@@ -405,7 +862,7 @@ export const ClienteDetalhes: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };

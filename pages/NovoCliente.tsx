@@ -20,23 +20,45 @@ export const NovoCliente: React.FC = () => {
     const [segmento, setSegmento] = useState<'VIP' | 'REGULAR' | 'NOVO' | 'INATIVO'>('NOVO');
     const [observacoes, setObservacoes] = useState('');
 
-    const handleSalvar = () => {
-        console.log({
-            nome,
-            email,
-            telefone,
-            documento_tipo: documentoTipo,
-            documento_numero: documentoNumero,
-            data_nascimento: dataNascimento,
-            nacionalidade,
-            endereco,
-            cidade,
-            estado,
-            pais,
-            segmento,
-            observacoes
-        });
-        navigate('/admin/clientes');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSalvar = async () => {
+        setIsSaving(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome,
+                    email,
+                    telefone,
+                    documento_tipo: documentoTipo,
+                    documento_numero: documentoNumero,
+                    data_nascimento: dataNascimento,
+                    nacionalidade,
+                    endereco,
+                    cidade,
+                    estado,
+                    pais,
+                    segmento,
+                    observacoes
+                })
+            });
+
+            if (response.ok) {
+                navigate('/admin/clientes');
+            } else {
+                console.error('Failed to create client');
+                alert('Erro ao salvar cliente. Verifique os dados e tente novamente.');
+            }
+        } catch (error) {
+            console.error('Error creating client:', error);
+            alert('Erro de conexão ao salvar cliente.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
