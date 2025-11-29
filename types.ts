@@ -560,3 +560,32 @@ export interface IExtratoBancario {
   saldo_final: number;
   transacoes: ITransacaoBancaria[];
 }
+
+// ===== AUXILIARY REGISTRATIONS =====
+
+export interface IPais {
+  id: string;
+  nome: string;
+  sigla: string; // ISO 3166-1 alpha-2 (BR, US, etc.)
+  ddi: string; // +55, +1, etc.
+}
+
+export interface IEstado {
+  id: string;
+  nome: string;
+  uf: string; // Sigla do estado
+  pais_id: string;
+}
+
+export interface ICidade {
+  id: string;
+  nome: string;
+  estado_id: string;
+  ibge_code?: string;
+}
+
+export interface IBairro {
+  id: string;
+  nome: string;
+  cidade_id: string;
+}

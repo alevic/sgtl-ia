@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { EmpresaContexto } from '../../types';
-import { LayoutDashboard, Users, UserPlus, Settings, LogOut, Menu, X, Bus, Calendar, DollarSign, FileText, User, ChevronRight, Building2, Ticket, Truck, Package, MapPin, TrendingUp, Wrench, CreditCard } from 'lucide-react';
+import { LayoutDashboard, Users, UserPlus, Settings, LogOut, Menu, X, Bus, Calendar, DollarSign, FileText, User, ChevronRight, Building2, Ticket, Truck, Package, MapPin, TrendingUp, Wrench, CreditCard, Database } from 'lucide-react';
 
 const SidebarItem: React.FC<{ icon: React.ElementType; label: string; to: string; colorClass: string }> = ({ icon: Icon, label, to, colorClass }) => {
   const location = useLocation();
@@ -90,6 +90,7 @@ export const Sidebar: React.FC = () => {
           <>
             <SidebarItem icon={Users} label="Usuários" to="/admin/usuarios" colorClass={themeColor} />
             <SidebarItem icon={Building2} label="Organizações" to="/admin/organizacoes" colorClass={themeColor} />
+            <SidebarItem icon={Database} label="Cadastros Auxiliares" to="/admin/cadastros-auxiliares" colorClass={themeColor} />
             <SidebarItem icon={Settings} label="Configurações" to="/admin/configuracoes" colorClass={themeColor} />
           </>
         )}
