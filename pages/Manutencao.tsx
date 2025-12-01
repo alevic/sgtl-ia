@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
     Wrench,
@@ -19,60 +19,54 @@ import {
 } from 'lucide-react';
 import { IManutencao, TipoManutencao, StatusManutencao, Moeda } from '../types';
 
-// Mock Data
-const MOCK_MANUTENCOES: IManutencao[] = [
-    {
-        id: '1',
-        veiculo_id: '1', // Mercedes-Benz O500
-        tipo: TipoManutencao.PREVENTIVA,
-        status: StatusManutencao.AGENDADA,
-        data_agendada: '2024-04-15',
-        km_veiculo: 50000,
-        descricao: 'Revisão de 50.000km - Troca de óleo e filtros',
-        custo_pecas: 1500,
-        custo_mao_de_obra: 800,
-        moeda: Moeda.BRL,
-        oficina: 'Oficina Central Diesel',
-        responsavel: 'João Mecânico'
-    },
-    {
-        id: '2',
-        veiculo_id: '2', // Volvo 9800
-        tipo: TipoManutencao.CORRETIVA,
-        status: StatusManutencao.CONCLUIDA,
-        data_agendada: '2024-03-10',
-        data_inicio: '2024-03-10',
-        data_conclusao: '2024-03-12',
-        km_veiculo: 120000,
-        descricao: 'Troca de pastilhas de freio dianteiras',
-        custo_pecas: 2200,
-        custo_mao_de_obra: 600,
-        moeda: Moeda.BRL,
-        oficina: 'Volvo Service',
-        responsavel: 'Carlos Silva'
-    },
-    {
-        id: '3',
-        veiculo_id: '3', // Scania K440
-        tipo: TipoManutencao.INSPECAO,
-        status: StatusManutencao.EM_ANDAMENTO,
-        data_agendada: '2024-03-20',
-        data_inicio: '2024-03-20',
-        km_veiculo: 85000,
-        descricao: 'Inspeção pré-viagem internacional',
-        custo_pecas: 0,
-        custo_mao_de_obra: 300,
-        moeda: Moeda.BRL,
-        oficina: 'Garagem Interna',
-        responsavel: 'Pedro Santos'
-    }
-];
-
 export const Manutencao: React.FC = () => {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('TODOS');
     const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+    const [manutencoes, setManutencoes] = useState<IManutencao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchMaintenances = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/maintenance`, {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setManutencoes(data);
+            } else {
+                console.error('Failed to fetch maintenances');
+            }
+        } catch (error) {
+            console.error('Error fetching maintenances:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMaintenances();
+    }, []);
+
+    const handleDelete = async (id: string) => {
+        if (window.confirm('Tem certeza que deseja excluir esta manutenção?')) {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/maintenance/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    setManutencoes(prev => prev.filter(m => m.id !== id));
+                } else {
+                    console.error('Failed to delete maintenance');
+                }
+            } catch (error) {
+                console.error('Error deleting maintenance:', error);
+            }
+        }
+    };
 
     const toggleDropdown = (id: string) => {
         if (activeDropdown === id) {
@@ -102,6 +96,34 @@ export const Manutencao: React.FC = () => {
         }
     };
 
+    const filteredMaintenances = manutencoes.filter(m => {
+        const matchesSearch =
+            (m.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+            (m.oficina?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+            ((m as any).placa?.toLowerCase().includes(searchTerm.toLowerCase()) || ''); // Assuming join brings placa
+
+        const matchesStatus = filterStatus === 'TODOS' || m.status === filterStatus;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    // KPIs Calculation
+    const totalMaintenances = manutencoes.length;
+    const inProgress = manutencoes.filter(m => m.status === StatusManutencao.EM_ANDAMENTO).length;
+    const totalCost = manutencoes.reduce((acc, curr) => acc + Number(curr.custo_pecas || 0) + Number(curr.custo_mao_de_obra || 0), 0);
+    const scheduledNext7Days = manutencoes.filter(m => {
+        if (m.status !== StatusManutencao.AGENDADA) return false;
+        const date = new Date(m.data_agendada);
+        const now = new Date();
+        const diffTime = Math.abs(date.getTime() - now.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 7 && date >= now;
+    }).length;
+
+    if (isLoading) {
+        return <div className="p-8 text-center">Carregando manutenções...</div>;
+    }
+
     return (
         <div className="space-y-6" onClick={() => activeDropdown && setActiveDropdown(null)}>
             <div className="flex justify-between items-center">
@@ -127,8 +149,8 @@ export const Manutencao: React.FC = () => {
                         </div>
                         <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Total</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">12</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manutenções este mês</p>
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{totalMaintenances}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manutenções registradas</p>
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -138,7 +160,7 @@ export const Manutencao: React.FC = () => {
                         </div>
                         <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Em Andamento</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">3</h3>
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{inProgress}</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Veículos na oficina</p>
                 </div>
 
@@ -147,10 +169,10 @@ export const Manutencao: React.FC = () => {
                         <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
                             <DollarSign className="text-green-600 dark:text-green-400" size={20} />
                         </div>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Custo</span>
+                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Custo Total</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">R$ 15.400</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Gasto total este mês</p>
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">R$ {totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Investimento em manutenção</p>
                 </div>
 
                 <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -160,7 +182,7 @@ export const Manutencao: React.FC = () => {
                         </div>
                         <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Próximas</span>
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">5</h3>
+                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{scheduledNext7Days}</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Agendadas para 7 dias</p>
                 </div>
             </div>
@@ -208,79 +230,91 @@ export const Manutencao: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                        {MOCK_MANUTENCOES.map((manutencao) => (
-                            <tr key={manutencao.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors relative">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                                            <Wrench className="text-slate-500 dark:text-slate-400" size={20} />
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-slate-800 dark:text-white">Veículo #{manutencao.veiculo_id}</p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">{manutencao.km_veiculo.toLocaleString()} km</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-start gap-2">
-                                        <div className="mt-1">{getTipoIcon(manutencao.tipo)}</div>
-                                        <div>
-                                            <p className="font-medium text-slate-800 dark:text-white">{manutencao.tipo}</p>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{manutencao.descricao}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                                            <Calendar size={14} />
-                                            {new Date(manutencao.data_agendada).toLocaleDateString()}
-                                        </div>
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
-                                            {manutencao.status.replace('_', ' ')}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <p className="font-medium text-slate-800 dark:text-white">
-                                        {manutencao.moeda} {(manutencao.custo_pecas + manutencao.custo_mao_de_obra).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                    </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        Peças: {manutencao.custo_pecas.toLocaleString()} | M.O.: {manutencao.custo_mao_de_obra.toLocaleString()}
-                                    </p>
-                                </td>
-                                <td className="px-6 py-4 text-right relative">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleDropdown(manutencao.id);
-                                        }}
-                                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
-                                    >
-                                        <MoreVertical size={20} />
-                                    </button>
-
-                                    {activeDropdown === manutencao.id && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-10">
-                                            <div className="py-1">
-                                                <button className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
-                                                    <Eye size={16} />
-                                                    Detalhes
-                                                </button>
-                                                <button className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
-                                                    <Edit size={16} />
-                                                    Editar
-                                                </button>
-                                                <button className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2">
-                                                    <Trash2 size={16} />
-                                                    Excluir
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
+                        {filteredMaintenances.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
+                                    Nenhuma manutenção encontrada.
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            filteredMaintenances.map((manutencao) => (
+                                <tr key={manutencao.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors relative">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
+                                                <Wrench className="text-slate-500 dark:text-slate-400" size={20} />
+                                            </div>
+                                            <div>
+                                                <p className="font-medium text-slate-800 dark:text-white">
+                                                    {(manutencao as any).placa ? `${(manutencao as any).placa} - ${(manutencao as any).modelo}` : `Veículo #${manutencao.veiculo_id.substring(0, 8)}`}
+                                                </p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">{manutencao.km_veiculo.toLocaleString()} km</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-start gap-2">
+                                            <div className="mt-1">{getTipoIcon(manutencao.tipo)}</div>
+                                            <div>
+                                                <p className="font-medium text-slate-800 dark:text-white">{manutencao.tipo}</p>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{manutencao.descricao}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                                                <Calendar size={14} />
+                                                {new Date(manutencao.data_agendada).toLocaleDateString()}
+                                            </div>
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
+                                                {manutencao.status.replace('_', ' ')}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        <p className="font-medium text-slate-800 dark:text-white">
+                                            {manutencao.moeda} {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                                            Peças: {Number(manutencao.custo_pecas).toLocaleString()} | M.O.: {Number(manutencao.custo_mao_de_obra).toLocaleString()}
+                                        </p>
+                                    </td>
+                                    <td className="px-6 py-4 text-right relative">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleDropdown(manutencao.id);
+                                            }}
+                                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                        >
+                                            <MoreVertical size={20} />
+                                        </button>
+
+                                        {activeDropdown === manutencao.id && (
+                                            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-10">
+                                                <div className="py-1">
+                                                    <button
+                                                        onClick={() => navigate(`/admin/manutencao/${manutencao.id}/editar`)}
+                                                        className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
+                                                    >
+                                                        <Edit size={16} />
+                                                        Editar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(manutencao.id)}
+                                                        className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                        Excluir
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>

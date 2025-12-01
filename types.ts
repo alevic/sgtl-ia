@@ -143,6 +143,7 @@ export interface IVeiculo {
   modelo: string;
   tipo: 'ONIBUS' | 'CAMINHAO';
   status: VeiculoStatus;
+  km_atual: number;
   proxima_revisao_km: number;
   ultima_revisao?: string; // ISO Date
   is_double_deck?: boolean; // só para ônibus

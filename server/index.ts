@@ -5,6 +5,7 @@ import { auth, pool } from "./auth";
 import dotenv from "dotenv";
 import crypto from "crypto";
 import clientsRouter from "./routes/clients";
+import maintenanceRouter from "./routes/maintenance";
 
 dotenv.config();
 
@@ -100,6 +101,9 @@ app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
 // Clients Routes
 app.use("/api/clients", clientsRouter);
 
+// Maintenance Routes
+app.use("/api/maintenance", maintenanceRouter);
+
 // Finance Endpoints
 app.get("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
     try {
@@ -159,13 +163,13 @@ app.post("/api/finance/transactions", authorize(['admin', 'financeiro']), async 
                 type, description, amount, currency, date,
                 due_date, payment_date, status, payment_method, category,
                 cost_center, accounting_classification, document_number, notes,
-                organization_id, created_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+                organization_id, created_by, maintenance_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
             [
                 tipo, descricao, valor, moeda || 'BRL', data_emissao,
                 data_vencimento, data_pagamento || null, status, forma_pagamento || null, (category || null),
                 centro_custo || null, classificacao_contabil || null, numero_documento || null, observacoes || null,
-                orgId, userId
+                orgId, userId, req.body.maintenance_id || null
             ]
         );
 
@@ -257,11 +261,19 @@ app.get("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req, 
     try {
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
+        const { q } = req.query;
 
-        const result = await pool.query(
-            `SELECT * FROM vehicle WHERE organization_id = $1 ORDER BY created_at DESC`,
-            [orgId]
-        );
+        let query = `SELECT * FROM vehicle WHERE organization_id = $1`;
+        const params: any[] = [orgId];
+
+        if (q && typeof q === 'string') {
+            query += ` AND (placa ILIKE $2 OR modelo ILIKE $2)`;
+            params.push(`%${q}%`);
+        }
+
+        query += ` ORDER BY created_at DESC`;
+
+        const result = await pool.query(query, params);
 
         res.json(result.rows);
     } catch (error) {

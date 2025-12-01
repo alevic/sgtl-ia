@@ -31,6 +31,8 @@ export const NovaTransacao: React.FC = () => {
     const [centroCusto, setCentroCusto] = useState<CentroCusto>(CentroCusto.VENDAS);
     const [classificacaoContabil, setClassificacaoContabil] = useState<ClassificacaoContabil>(ClassificacaoContabil.CUSTO_VARIAVEL);
 
+    const [maintenanceId, setMaintenanceId] = useState<string | null>(null);
+
     // Auto-sugerir classificação quando categoria de despesa mudar
     useEffect(() => {
         if (tipo === TipoTransacao.DESPESA) {
@@ -49,6 +51,10 @@ export const NovaTransacao: React.FC = () => {
         const state = location.state as any;
 
         if (state) {
+            if (state.manutencao_id) {
+                setMaintenanceId(state.manutencao_id);
+            }
+
             if (state.id) {
                 setId(state.id);
                 setTipo(state.tipo);
@@ -101,6 +107,7 @@ export const NovaTransacao: React.FC = () => {
             classificacao_contabil: tipo === TipoTransacao.DESPESA ? classificacaoContabil : undefined,
             numero_documento: numeroDocumento,
             observacoes,
+            maintenance_id: maintenanceId
             // criado_por and criado_em are handled by the backend
         };
 

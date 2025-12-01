@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
     ArrowLeft,
     Save,
@@ -15,14 +15,22 @@ import {
     TipoManutencao,
     StatusManutencao,
     Moeda,
-    VeiculoStatus
+    IVeiculo
 } from '../types';
-import { MOCK_VEICULOS } from './Frota';
 import { ModalConfirmacao } from '../components/ui/ModalConfirmacao';
+import { SeletorVeiculo } from '../components/Veiculos/SeletorVeiculo';
+
+// ...
 
 export const NovaManutencao: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { id } = useParams<{ id: string }>();
+    const isEditing = !!id;
     const [loading, setLoading] = useState(false);
+    const [selectedVehicleDetails, setSelectedVehicleDetails] = useState<Partial<IVeiculo> | null>(null);
+    const [isLoadingData, setIsLoadingData] = useState(true);
+    const [originalData, setOriginalData] = useState<Partial<IManutencao> | null>(null);
 
     const [formData, setFormData] = useState<Partial<IManutencao>>({
         tipo: TipoManutencao.PREVENTIVA,
@@ -33,12 +41,109 @@ export const NovaManutencao: React.FC = () => {
         data_agendada: new Date().toISOString().split('T')[0]
     });
 
+    useEffect(() => {
+        const fetchData = async () => {
+            setIsLoadingData(true);
+            try {
+                // If editing, fetch maintenance details
+                if (isEditing) {
+                    const maintenanceRes = await fetch(`${import.meta.env.VITE_API_URL}/api/maintenance/${id}`, {
+                        credentials: 'include'
+                    });
+                    if (maintenanceRes.ok) {
+                        const maintenanceData = await maintenanceRes.json();
+                        const formattedData = {
+                            ...maintenanceData,
+                            data_agendada: maintenanceData.data_agendada ? maintenanceData.data_agendada.split('T')[0] : '',
+                            data_inicio: maintenanceData.data_inicio ? maintenanceData.data_inicio.split('T')[0] : '',
+                            data_conclusao: maintenanceData.data_conclusao ? maintenanceData.data_conclusao.split('T')[0] : '',
+                            veiculo_id: maintenanceData.vehicle_id
+                        };
+                        setFormData(formattedData);
+                        setOriginalData(formattedData);
+
+                        if (maintenanceData.vehicle_id) {
+                            setSelectedVehicleDetails({
+                                id: maintenanceData.vehicle_id,
+                                placa: maintenanceData.placa,
+                                modelo: maintenanceData.modelo,
+                                tipo: maintenanceData.tipo
+                            });
+                        }
+
+                        console.log('Dados da manutenção carregados:', maintenanceData);
+                        console.log('Transaction ID from API:', maintenanceData.transaction_id);
+
+                        if (maintenanceData.transaction_id) {
+                            console.log('Setting transaction info state');
+                            setTransactionInfo({
+                                id: maintenanceData.transaction_id,
+                                status: maintenanceData.transaction_status
+                            });
+                        } else {
+                            console.log('No transaction linked to this maintenance');
+                            setTransactionInfo(null);
+                        }
+                    } else {
+                        console.error('Failed to fetch maintenance details');
+                        navigate('/admin/manutencao');
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setIsLoadingData(false);
+            }
+        };
+
+        fetchData();
+        fetchData();
+    }, [id, isEditing, navigate]);
+
+    // Handle initial vehicle from navigation state (e.g. from Fleet module)
+    useEffect(() => {
+        if (!isEditing && location.state?.initialVehicle && !formData.veiculo_id) {
+            const vehicle = location.state.initialVehicle;
+            setFormData(prev => ({
+                ...prev,
+                veiculo_id: vehicle.id,
+                km_veiculo: vehicle.km_atual
+            }));
+            setSelectedVehicleDetails({
+                id: vehicle.id,
+                placa: vehicle.placa,
+                modelo: vehicle.modelo,
+                tipo: vehicle.tipo
+            });
+        }
+    }, [location.state, isEditing, formData.veiculo_id]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
         }));
+    };
+
+    const handleVehicleChange = (vehicleId: string, vehicle?: IVeiculo) => {
+        setFormData(prev => ({
+            ...prev,
+            veiculo_id: vehicleId
+        }));
+
+        if (vehicle) {
+            setSelectedVehicleDetails(vehicle);
+            // Auto-fill KM if empty
+            if (!formData.km_veiculo) {
+                setFormData(prev => ({
+                    ...prev,
+                    km_veiculo: vehicle.km_atual
+                }));
+            }
+        } else if (!vehicleId) {
+            setSelectedVehicleDetails(null);
+        }
     };
 
     const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,47 +155,202 @@ export const NovaManutencao: React.FC = () => {
     };
 
     const [showFinancialModal, setShowFinancialModal] = useState(false);
-    const [savedMaintenanceData, setSavedMaintenanceData] = useState<{ custoTotal: number, placa: string } | null>(null);
+    const [savedMaintenanceData, setSavedMaintenanceData] = useState<{ custoTotal: number, placa: string, id: string } | null>(null);
+    const [transactionInfo, setTransactionInfo] = useState<{ id: string, status: string } | null>(null);
+    const [financialModalContent, setFinancialModalContent] = useState({
+        title: '',
+        message: <></>,
+        confirmText: '',
+        cancelText: '',
+        onConfirm: () => { },
+        onCancel: () => { }
+    });
+
+    const executeSave = async () => {
+        setLoading(true);
+        setShowFinancialModal(false); // Close modal if open
+
+        try {
+            const url = isEditing
+                ? `${import.meta.env.VITE_API_URL}/api/maintenance/${id}`
+                : `${import.meta.env.VITE_API_URL}/api/maintenance`;
+
+            const method = isEditing ? 'PUT' : 'POST';
+
+            // Map frontend keys to backend expected keys
+            const payload = {
+                ...formData,
+                vehicle_id: formData.veiculo_id
+            };
+
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const savedData = await response.json();
+                console.log('Manutenção salva:', savedData);
+
+                // Calcular custo total
+                const custoTotal = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
+
+                // Scenario: Create Transaction (Only if NO transaction exists)
+                if (custoTotal > 0 && !transactionInfo) {
+                    const placa = selectedVehicleDetails ? selectedVehicleDetails.placa : 'Veículo';
+                    // We don't rely on state for the callback to avoid stale closures
+
+                    setFinancialModalContent({
+                        title: 'Lançar Despesa',
+                        message: (
+                            <div className="space-y-2">
+                                <p>Manutenção salva com sucesso!</p>
+                                <p>
+                                    Deseja lançar o custo total de <strong>{formData.moeda} {custoTotal.toFixed(2)}</strong> no módulo Financeiro agora?
+                                </p>
+                            </div>
+                        ),
+                        confirmText: 'Sim, lançar despesa',
+                        cancelText: 'Não, apenas salvar',
+                        onConfirm: () => {
+                            navigate('/admin/financeiro/transacoes/nova', {
+                                state: {
+                                    valor: custoTotal,
+                                    descricao: `Manutenção ${placa || 'Veículo'} - ${formData.tipo}`,
+                                    categoria_despesa: 'MANUTENCAO',
+                                    centro_custo: 'VENDAS', // Custo Variável
+                                    manutencao_id: savedData.id
+                                }
+                            });
+                        },
+                        onCancel: handleSkipFinance
+                    });
+                    setShowFinancialModal(true);
+                    setLoading(false);
+                    return;
+                }
+
+                // If no new transaction needed, just go back
+                navigate('/admin/manutencao');
+            } else {
+                console.error('Failed to save maintenance');
+                alert('Erro ao salvar manutenção.');
+            }
+        } catch (error) {
+            console.error('Error saving maintenance:', error);
+            alert('Erro ao salvar manutenção.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
 
-        // Simular API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        console.log('Nova Manutenção:', formData);
-
-        // Calcular custo total
-        const custoTotal = (formData.custo_pecas || 0) + (formData.custo_mao_de_obra || 0);
-
-        // Se houver custo > 0, mostrar modal de confirmação
-        if (custoTotal > 0) {
-            const selectedVeiculo = MOCK_VEICULOS.find(v => v.id === formData.veiculo_id);
-            const placa = selectedVeiculo ? selectedVeiculo.placa : 'Veículo';
-
-            setSavedMaintenanceData({ custoTotal, placa });
-            setShowFinancialModal(true);
-            setLoading(false);
-            return; // Interrompe navegação para esperar resposta do modal
+        if (!formData.veiculo_id) {
+            alert('Por favor, selecione um veículo.');
+            return;
         }
 
-        setLoading(false);
-        navigate('/admin/manutencao');
-    };
+        // Check for scenarios requiring pre-save confirmation (Only when Editing with existing transaction)
+        if (isEditing && transactionInfo) {
+            const custoTotal = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
 
-    const handleConfirmFinance = () => {
-        if (savedMaintenanceData) {
-            navigate('/admin/financeiro/transacoes/nova', {
-                state: {
-                    valor: savedMaintenanceData.custoTotal,
-                    descricao: `Manutenção ${savedMaintenanceData.placa} - ${formData.tipo}`,
-                    categoria_despesa: 'MANUTENCAO',
-                    centro_custo: 'VENDAS', // Custo Variável
-                    manutencao_id: 'NEW_ID_MOCK'
+            // Scenario 1: Cancellation
+            if (formData.status === 'CANCELADA') {
+                setFinancialModalContent({
+                    title: 'Cancelar Manutenção e Financeiro',
+                    message: (
+                        <div className="space-y-2">
+                            <p className="text-red-600 font-medium">Atenção!</p>
+                            <p>
+                                Esta manutenção possui uma transação financeira vinculada.
+                                Ao cancelar a manutenção, a transação também será <strong>CANCELADA</strong>.
+                            </p>
+                            <p>Deseja continuar?</p>
+                        </div>
+                    ),
+                    confirmText: 'Sim, cancelar ambos',
+                    cancelText: 'Voltar',
+                    onConfirm: executeSave,
+                    onCancel: () => setShowFinancialModal(false)
+                });
+                setShowFinancialModal(true);
+                return;
+            }
+
+            // Scenario 2: Completion (Pay Pending Transaction)
+            else if (formData.status === 'CONCLUIDA' && transactionInfo.status === 'PENDENTE') {
+                setFinancialModalContent({
+                    title: 'Concluir e Pagar',
+                    message: (
+                        <div className="space-y-2">
+                            <p className="text-green-600 font-medium">Conclusão de Serviço</p>
+                            <p>
+                                Esta manutenção possui uma transação financeira <strong>PENDENTE</strong>.
+                                Ao concluir, a transação será marcada como <strong>PAGA</strong> automaticamente.
+                            </p>
+                            <p>Deseja continuar?</p>
+                        </div>
+                    ),
+                    confirmText: 'Sim, concluir e pagar',
+                    cancelText: 'Voltar',
+                    onConfirm: executeSave,
+                    onCancel: () => setShowFinancialModal(false)
+                });
+                setShowFinancialModal(true);
+                return;
+            }
+
+            // Scenario 3: General Update (Value/Date)
+            else {
+                // Check if financial relevant data changed
+                const originalCusto = (Number(originalData?.custo_pecas) || 0) + (Number(originalData?.custo_mao_de_obra) || 0);
+                const currentCusto = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
+
+                const hasFinancialChanges =
+                    Math.abs(originalCusto - currentCusto) > 0.01 ||
+                    originalData?.data_agendada !== formData.data_agendada ||
+                    originalData?.tipo !== formData.tipo ||
+                    originalData?.veiculo_id !== formData.veiculo_id ||
+                    originalData?.status !== formData.status;
+
+                if (!hasFinancialChanges) {
+                    executeSave();
+                    return;
                 }
-            });
+
+                setFinancialModalContent({
+                    title: 'Atualizar Financeiro',
+                    message: (
+                        <div className="space-y-2">
+                            <p>
+                                Esta manutenção possui uma transação financeira vinculada.
+                                Os dados financeiros serão atualizados para refletir esta manutenção.
+                            </p>
+                            <div className="bg-slate-100 dark:bg-slate-700 p-3 rounded-md">
+                                <p><strong>Novo Valor:</strong> {formData.moeda} {custoTotal.toFixed(2)}</p>
+                                <p><strong>Nova Data:</strong> {formData.data_agendada?.split('-').reverse().join('/')}</p>
+                            </div>
+                            <p>Deseja confirmar a atualização?</p>
+                        </div>
+                    ),
+                    confirmText: 'Sim, atualizar',
+                    cancelText: 'Voltar',
+                    onConfirm: executeSave,
+                    onCancel: () => setShowFinancialModal(false)
+                });
+                setShowFinancialModal(true);
+                return;
+            }
         }
+
+        // If no pre-save confirmation needed, proceed
+        executeSave();
     };
 
     const handleSkipFinance = () => {
@@ -98,23 +358,21 @@ export const NovaManutencao: React.FC = () => {
         navigate('/admin/manutencao');
     };
 
-    const selectedVeiculo = MOCK_VEICULOS.find(v => v.id === formData.veiculo_id);
+    if (isLoadingData) {
+        return <div className="p-8 text-center">Carregando dados...</div>;
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 relative">
             {/* Modal de Confirmação Financeira */}
             <ModalConfirmacao
                 isOpen={showFinancialModal}
-                onClose={handleSkipFinance}
-                onConfirm={handleConfirmFinance}
-                title="Manutenção Salva!"
-                message={
-                    <p>
-                        Deseja lançar o custo total de <strong>{formData.moeda} {savedMaintenanceData?.custoTotal.toFixed(2)}</strong> no módulo Financeiro agora?
-                    </p>
-                }
-                confirmText="Sim, lançar"
-                cancelText="Não, pular"
+                onClose={() => financialModalContent.onCancel()}
+                onConfirm={() => financialModalContent.onConfirm()}
+                title={financialModalContent.title}
+                message={financialModalContent.message}
+                confirmText={financialModalContent.confirmText}
+                cancelText={financialModalContent.cancelText}
                 icon={<DollarSign size={32} />}
                 variant="success"
             />
@@ -127,7 +385,9 @@ export const NovaManutencao: React.FC = () => {
                     <ArrowLeft size={24} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Nova Manutenção</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                        {isEditing ? 'Editar Manutenção' : 'Nova Manutenção'}
+                    </h1>
                     <p className="text-slate-500 dark:text-slate-400">Agendar ou registrar manutenção de veículo</p>
                 </div>
             </div>
@@ -147,33 +407,10 @@ export const NovaManutencao: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Veículo
                                 </label>
-                                <select
-                                    name="veiculo_id"
-                                    required
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                    onChange={handleInputChange}
-                                    value={formData.veiculo_id || ''}
-                                >
-                                    <option value="">Selecione um veículo</option>
-                                    {MOCK_VEICULOS.map(veiculo => (
-                                        <option key={veiculo.id} value={veiculo.id}>
-                                            {veiculo.placa} - {veiculo.modelo}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    KM Atual do Veículo
-                                </label>
-                                <input
-                                    type="number"
-                                    name="km_veiculo"
-                                    required
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                    value={formData.km_veiculo || selectedVeiculo?.km_atual || ''}
-                                    onChange={handleNumberChange}
+                                <SeletorVeiculo
+                                    value={formData.veiculo_id}
+                                    onChange={handleVehicleChange}
+                                    initialVehicle={selectedVehicleDetails || undefined}
                                 />
                             </div>
 
@@ -301,7 +538,7 @@ export const NovaManutencao: React.FC = () => {
                                         Total Estimado
                                     </label>
                                     <div className="px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-white font-bold">
-                                        {formData.moeda} {((formData.custo_pecas || 0) + (formData.custo_mao_de_obra || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        {formData.moeda} {((Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
                                 </div>
                             </div>

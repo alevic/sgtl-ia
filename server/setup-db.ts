@@ -204,6 +204,39 @@ async function setup() {
             CREATE INDEX IF NOT EXISTS idx_clients_documento ON clients(documento_numero);
         `);
 
+        // Create Maintenance Table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS maintenance (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                vehicle_id UUID NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
+                tipo TEXT NOT NULL,
+                status TEXT NOT NULL,
+                data_agendada DATE NOT NULL,
+                data_inicio DATE,
+                data_conclusao DATE,
+                km_veiculo INTEGER NOT NULL,
+                descricao TEXT NOT NULL,
+                custo_pecas DECIMAL(10, 2) DEFAULT 0,
+                custo_mao_de_obra DECIMAL(10, 2) DEFAULT 0,
+                moeda TEXT DEFAULT 'BRL',
+                oficina TEXT,
+                responsavel TEXT,
+                observacoes TEXT,
+                organization_id TEXT NOT NULL,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log("Maintenance table created successfully.");
+
+        // Create indexes for maintenance
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_maintenance_vehicle ON maintenance(vehicle_id);
+            CREATE INDEX IF NOT EXISTS idx_maintenance_organization ON maintenance(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_maintenance_status ON maintenance(status);
+        `);
+
         console.log("Database setup completed successfully!");
         process.exit(0);
     } catch (error) {

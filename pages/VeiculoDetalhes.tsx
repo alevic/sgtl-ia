@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { IVeiculo, VeiculoStatus, IAssento } from '../types';
+import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoManutencao } from '../types';
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,
-    Bus, Truck, Gauge, Calendar, Edit, CheckCircle
+    Bus, Truck, Gauge, Calendar, Edit, CheckCircle, Plus
 } from 'lucide-react';
 
 // Mock data - em produção virá do backend
@@ -308,16 +308,126 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
 
 // Tab: Manutenção
 const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) => {
+    const navigate = useNavigate();
+    const [manutencoes, setManutencoes] = useState<IManutencao[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchMaintenances = async () => {
+            setIsLoading(true);
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/maintenance?vehicle_id=${veiculo.id}`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setManutencoes(data);
+                }
+            } catch (error) {
+                console.error('Error fetching maintenances:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (veiculo.id) {
+            fetchMaintenances();
+        }
+    }, [veiculo.id]);
+
+    const getStatusColor = (status: StatusManutencao) => {
+        switch (status) {
+            case StatusManutencao.AGENDADA: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+            case StatusManutencao.EM_ANDAMENTO: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+            case StatusManutencao.CONCLUIDA: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+            case StatusManutencao.CANCELADA: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+            default: return 'bg-slate-100 text-slate-800';
+        }
+    };
+
+    if (isLoading) {
+        return <div className="text-center py-8">Carregando histórico de manutenção...</div>;
+    }
+
+    if (manutencoes.length === 0) {
+        return (
+            <div className="text-center py-12">
+                <Wrench size={48} className="mx-auto text-slate-300 mb-4" />
+                <p className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
+                    Nenhuma manutenção registrada
+                </p>
+                <p className="text-slate-500 dark:text-slate-400 mb-6">
+                    Este veículo ainda não possui histórico de manutenções.
+                </p>
+                <button
+                    onClick={() => navigate('/admin/manutencao/nova', { state: { initialVehicle: veiculo } })}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
+                >
+                    <Plus size={18} />
+                    Registrar Primeira Manutenção
+                </button>
+            </div>
+        );
+    }
+
     return (
-        <div className="text-center py-12">
-            <Wrench size={48} className="mx-auto text-orange-600 mb-4" />
-            <p className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
-                Histórico de Manutenção
-            </p>
-            <p className="text-slate-500 dark:text-slate-400">
-                Em desenvolvimento...
-            </p>
-        </div>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-white">Histórico de Manutenções</h3>
+                <button
+                    onClick={() => navigate('/admin/manutencao/nova', { state: { initialVehicle: veiculo } })}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                >
+                    <Plus size={18} />
+                    Nova Manutenção
+                </button>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                <table className="w-full text-left">
+                    <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Descrição</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">KM</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Custo Total</th>
+                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                        {manutencoes.map((manutencao) => (
+                            <tr
+                                key={manutencao.id}
+                                onClick={() => navigate(`/admin/manutencao/${manutencao.id}/editar`)}
+                                className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
+                            >
+                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                    {new Date(manutencao.data_agendada).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
+                                    {manutencao.tipo}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                    {manutencao.descricao}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                    {manutencao.km_veiculo.toLocaleString()} km
+                                </td>
+                                <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
+                                    {manutencao.moeda} {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
+                                        {manutencao.status.replace('_', ' ')}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div >
     );
 };
 

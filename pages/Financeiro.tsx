@@ -45,11 +45,11 @@ export const Financeiro: React.FC = () => {
     // Cálculos financeiros
     const resumo = useMemo(() => {
         const receitas = transacoes
-            .filter(t => t.tipo === TipoTransacao.RECEITA)
+            .filter(t => t.tipo === TipoTransacao.RECEITA && t.status !== StatusTransacao.CANCELADA)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesas = transacoes
-            .filter(t => t.tipo === TipoTransacao.DESPESA)
+            .filter(t => t.tipo === TipoTransacao.DESPESA && t.status !== StatusTransacao.CANCELADA)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const saldo = receitas - despesas;
