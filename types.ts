@@ -272,6 +272,7 @@ export interface IViagem {
 
   // Backend Fields
   route_id: string;
+  return_route_id?: string;
   vehicle_id?: string;
   driver_id?: string;
 

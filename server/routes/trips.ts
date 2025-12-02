@@ -263,7 +263,7 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
         const userId = session.user.id;
 
         const {
-            route_id, vehicle_id, driver_id,
+            route_id, return_route_id, vehicle_id, driver_id,
             departure_date, departure_time, arrival_date, arrival_time,
             price_conventional, price_executive, price_semi_sleeper, price_sleeper,
             seats_available, notes
@@ -280,14 +280,14 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
 
         const result = await pool.query(
             `INSERT INTO trips (
-                route_id, vehicle_id, driver_id,
+                route_id, return_route_id, vehicle_id, driver_id,
                 departure_date, departure_time, arrival_date, arrival_time,
                 price_conventional, price_executive, price_semi_sleeper, price_sleeper,
                 seats_available, notes, organization_id, created_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING *`,
             [
-                route_id, vehicle_id || null, driver_id || null,
+                route_id, return_route_id || null, vehicle_id || null, driver_id || null,
                 departure_date, departure_time, arrival_date || null, arrival_time || null,
                 price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null,
                 finalSeats || 0, notes || null, orgId, userId
@@ -309,7 +309,7 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
         const { id } = req.params;
 
         const {
-            vehicle_id, driver_id,
+            return_route_id, vehicle_id, driver_id,
             departure_date, departure_time, arrival_date, arrival_time,
             status,
             price_conventional, price_executive, price_semi_sleeper, price_sleeper,
@@ -318,15 +318,15 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
 
         const result = await pool.query(
             `UPDATE trips SET
-                vehicle_id = $1, driver_id = $2,
-                departure_date = $3, departure_time = $4, arrival_date = $5, arrival_time = $6,
-                status = COALESCE($7, status),
-                price_conventional = $8, price_executive = $9, price_semi_sleeper = $10, price_sleeper = $11,
-                seats_available = $12, notes = $13, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $14 AND organization_id = $15
+                return_route_id = $1, vehicle_id = $2, driver_id = $3,
+                departure_date = $4, departure_time = $5, arrival_date = $6, arrival_time = $7,
+                status = COALESCE($8, status),
+                price_conventional = $9, price_executive = $10, price_semi_sleeper = $11, price_sleeper = $12,
+                seats_available = $13, notes = $14, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $15 AND organization_id = $16
             RETURNING *`,
             [
-                vehicle_id || null, driver_id || null,
+                return_route_id || null, vehicle_id || null, driver_id || null,
                 departure_date, departure_time, arrival_date || null, arrival_time || null,
                 status,
                 price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null,

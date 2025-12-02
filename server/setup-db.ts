@@ -256,6 +256,7 @@ export async function setupDb() {
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 organization_id TEXT NOT NULL,
                 route_id UUID NOT NULL REFERENCES routes(id),
+                return_route_id UUID REFERENCES routes(id),
                 vehicle_id UUID REFERENCES vehicle(id),
                 driver_id UUID REFERENCES driver(id),
                 departure_date DATE NOT NULL,
@@ -278,6 +279,15 @@ export async function setupDb() {
             CREATE INDEX IF NOT EXISTS idx_trips_date ON trips(departure_date);
         `);
         console.log("Trips table created successfully.");
+
+        // Migration: Add return_route_id column if it doesn't exist
+        await pool.query(`
+            ALTER TABLE trips 
+            ADD COLUMN IF NOT EXISTS return_route_id UUID REFERENCES routes(id);
+        `);
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_trips_return_route ON trips(return_route_id);
+        `);
 
         // Create Reservations Table
         await pool.query(`

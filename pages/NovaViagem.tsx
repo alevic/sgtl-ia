@@ -83,15 +83,27 @@ export const NovaViagem: React.FC = () => {
                 if (viagem.price_sleeper) prices['LEITO'] = viagem.price_sleeper;
                 setPrecosPorTipo(prices);
 
-                // Route
+                // Routes
                 const rota = rotasData.find(r => r.id === viagem.route_id);
                 if (rota) {
                     setRotaIdaSelecionada(rota);
                 }
+
+                // Return route (if exists)
+                if (viagem.return_route_id) {
+                    const rotaVolta = rotasData.find(r => r.id === viagem.return_route_id);
+                    if (rotaVolta) {
+                        setRotaVoltaSelecionada(rotaVolta);
+                    }
+                }
             }
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
-            alert('Erro ao carregar dados iniciais.');
+            console.error('Error details:', {
+                message: error instanceof Error ? error.message : 'Unknown error',
+                stack: error instanceof Error ? error.stack : undefined
+            });
+            alert(`Erro ao carregar dados iniciais: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
         } finally {
             setLoading(false);
         }
@@ -142,8 +154,9 @@ export const NovaViagem: React.FC = () => {
     };
 
     const handleSalvar = async () => {
-        if (!rotaIdaSelecionada) {
-            alert('Selecione uma rota.');
+        // Validate: at least one route must be selected
+        if (!rotaIdaSelecionada && !rotaVoltaSelecionada) {
+            alert('Selecione pelo menos uma rota (IDA ou VOLTA).');
             return;
         }
         if (!dataPartida || !horaPartida) {
@@ -154,7 +167,8 @@ export const NovaViagem: React.FC = () => {
         try {
             setSaving(true);
             const viagemData: any = {
-                route_id: rotaIdaSelecionada.id,
+                route_id: rotaIdaSelecionada?.id || rotaVoltaSelecionada?.id, // Primary route
+                return_route_id: rotaVoltaSelecionada?.id || null, // Optional return route
                 vehicle_id: veiculoId || null,
                 driver_id: motoristaIds[0] || null, // Backend supports single driver currently
                 departure_date: dataPartida,
@@ -226,14 +240,40 @@ export const NovaViagem: React.FC = () => {
                     <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                         <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                             <Route size={20} className="text-purple-600" />
-                            Seleção de Rota
+                            Seleção de Rotas
                         </h3>
-                        <SeletorRota
-                            rotas={rotas}
-                            tipoFiltro="IDA"
-                            rotaSelecionada={rotaIdaSelecionada}
-                            onChange={setRotaIdaSelecionada}
-                        />
+
+                        {/* Rota de IDA */}
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Rota de IDA (Opcional)
+                            </label>
+                            <SeletorRota
+                                rotas={rotas}
+                                tipoFiltro="IDA"
+                                rotaSelecionada={rotaIdaSelecionada}
+                                onChange={setRotaIdaSelecionada}
+                            />
+                        </div>
+
+                        {/* Rota de VOLTA */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Rota de VOLTA (Opcional)
+                            </label>
+                            <SeletorRota
+                                rotas={rotas}
+                                tipoFiltro="VOLTA"
+                                rotaSelecionada={rotaVoltaSelecionada}
+                                onChange={setRotaVoltaSelecionada}
+                            />
+                        </div>
+
+                        {!rotaIdaSelecionada && !rotaVoltaSelecionada && (
+                            <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
+                                ⚠️ Selecione pelo menos uma rota (IDA ou VOLTA)
+                            </p>
+                        )}
                     </div>
 
                     {/* Datas e Horários */}
