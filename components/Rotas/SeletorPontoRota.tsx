@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { IPontoRota } from '../../types';
-import { MapPin, Clock, CheckSquare } from 'lucide-react';
+import { MapPin, Clock, CheckSquare, Plus } from 'lucide-react';
+import { locationService, IState, ICity, INeighborhood } from '../../services/locationService';
 
 interface SeletorPontoRotaProps {
     ponto: IPontoRota;
@@ -13,6 +14,143 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
     onChange,
     readonly = false
 }) => {
+    const [states, setStates] = useState<IState[]>([]);
+    const [cities, setCities] = useState<ICity[]>([]);
+    const [neighborhoods, setNeighborhoods] = useState<INeighborhood[]>([]);
+
+    const [selectedState, setSelectedState] = useState<number | ''>('');
+    const [selectedCity, setSelectedCity] = useState<number | ''>('');
+    const [selectedNeighborhood, setSelectedNeighborhood] = useState<number | ''>('');
+
+    const [newNeighborhoodName, setNewNeighborhoodName] = useState('');
+    const [showNewNeighborhoodInput, setShowNewNeighborhoodInput] = useState(false);
+
+    const [newCityName, setNewCityName] = useState('');
+    const [showNewCityInput, setShowNewCityInput] = useState(false);
+
+    // Initial load of states
+    useEffect(() => {
+        if (!readonly) {
+            locationService.getStates().then(setStates).catch(console.error);
+        }
+    }, [readonly]);
+
+    // Parse existing location string to set initial state
+    useEffect(() => {
+        if (ponto.nome && !selectedState && !selectedCity && !selectedNeighborhood && states.length > 0) {
+            // Try to parse "Neighborhood, City - UF" or "City - UF"
+            // This is a best-effort reverse mapping for existing data
+            // For now, we just leave it as is if it doesn't match our structure perfectly
+            // or we could implement a more complex parsing logic if needed.
+        }
+    }, [ponto.nome, states]);
+
+    // Load cities when state changes
+    useEffect(() => {
+        if (selectedState) {
+            locationService.getCities(Number(selectedState)).then(setCities).catch(console.error);
+            setNeighborhoods([]);
+            setSelectedCity('');
+            setSelectedNeighborhood('');
+        }
+    }, [selectedState]);
+
+    // Load neighborhoods when city changes
+    useEffect(() => {
+        if (selectedCity) {
+            locationService.getNeighborhoods(Number(selectedCity)).then(setNeighborhoods).catch(console.error);
+            setSelectedNeighborhood('');
+        }
+    }, [selectedCity]);
+
+    const handleLocationChange = (neighborhoodName: string, cityName: string, stateUf: string) => {
+        const fullName = `${neighborhoodName}, ${cityName} - ${stateUf}`;
+        onChange({ ...ponto, nome: fullName });
+    };
+
+    const handleStateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const stateId = Number(e.target.value);
+        setSelectedState(stateId);
+        // Reset downstream selections
+        setSelectedCity('');
+        setSelectedNeighborhood('');
+    };
+
+    const handleCitySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (value === 'new') {
+            setShowNewCityInput(true);
+            setSelectedCity('');
+            // Reset downstream
+            setSelectedNeighborhood('');
+        } else {
+            const cityId = Number(value);
+            setSelectedCity(cityId);
+            setShowNewCityInput(false);
+            // Reset downstream
+            setSelectedNeighborhood('');
+        }
+    };
+
+    const handleNeighborhoodSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (value === 'new') {
+            setShowNewNeighborhoodInput(true);
+            setSelectedNeighborhood('');
+        } else {
+            const neighborhoodId = Number(value);
+            setSelectedNeighborhood(neighborhoodId);
+            setShowNewNeighborhoodInput(false);
+
+            // Update full name
+            const neighborhood = neighborhoods.find(n => n.id === neighborhoodId);
+            const city = cities.find(c => c.id === Number(selectedCity));
+            const state = states.find(s => s.id === Number(selectedState));
+
+            if (neighborhood && city && state) {
+                handleLocationChange(neighborhood.name, city.name, state.uf);
+            }
+        }
+    };
+
+    const handleCreateCity = async () => {
+        if (!newCityName || !selectedState) return;
+
+        try {
+            const newCity = await locationService.createCity(newCityName, Number(selectedState));
+            setCities([...cities, newCity]);
+            setSelectedCity(newCity.id);
+            setShowNewCityInput(false);
+            setNewCityName('');
+        } catch (error) {
+            console.error("Error creating city:", error);
+            alert("Erro ao criar cidade. Verifique se já existe.");
+        }
+    };
+
+    const handleCreateNeighborhood = async () => {
+        if (!newNeighborhoodName || !selectedCity) return;
+
+        try {
+            const newNeighborhood = await locationService.createNeighborhood(newNeighborhoodName, Number(selectedCity));
+            setNeighborhoods([...neighborhoods, newNeighborhood]);
+            setSelectedNeighborhood(newNeighborhood.id);
+            setShowNewNeighborhoodInput(false);
+            setNewNeighborhoodName('');
+
+            // Update full name
+            const city = cities.find(c => c.id === Number(selectedCity));
+            const state = states.find(s => s.id === Number(selectedState));
+
+            if (city && state) {
+                handleLocationChange(newNeighborhood.name, city.name, state.uf);
+            }
+        } catch (error) {
+            console.error("Error creating neighborhood:", error);
+            alert("Erro ao criar bairro. Verifique se já existe.");
+        }
+    };
+
     const handleChange = (campo: keyof IPontoRota, valor: any) => {
         onChange({ ...ponto, [campo]: valor });
     };
@@ -45,18 +183,127 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                 </span>
             </div>
 
-            {/* Nome do Local */}
+            {/* Seleção de Localidade */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Estado */}
+                <div>
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Estado
+                    </label>
+                    <select
+                        value={selectedState}
+                        onChange={handleStateSelect}
+                        disabled={readonly}
+                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                    >
+                        <option value="">Selecione...</option>
+                        {states.map(state => (
+                            <option key={state.id} value={state.id}>{state.name} ({state.uf})</option>
+                        ))}
+                    </select>
+                </div>
+
+                {/* Cidade */}
+                <div>
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Cidade
+                    </label>
+                    {!showNewCityInput ? (
+                        <select
+                            value={selectedCity}
+                            onChange={handleCitySelect}
+                            disabled={readonly || !selectedState}
+                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                        >
+                            <option value="">Selecione...</option>
+                            {cities.map(city => (
+                                <option key={city.id} value={city.id}>{city.name}</option>
+                            ))}
+                            <option value="new" className="font-semibold text-blue-600">+ Nova Cidade</option>
+                        </select>
+                    ) : (
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newCityName}
+                                onChange={(e) => setNewCityName(e.target.value)}
+                                placeholder="Nome da cidade"
+                                className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                autoFocus
+                            />
+                            <button
+                                onClick={handleCreateCity}
+                                disabled={!newCityName}
+                                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50"
+                            >
+                                <Plus size={16} />
+                            </button>
+                            <button
+                                onClick={() => setShowNewCityInput(false)}
+                                className="p-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
+                            >
+                                <CheckSquare size={16} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Bairro */}
+                <div>
+                    <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                        Bairro
+                    </label>
+                    {!showNewNeighborhoodInput ? (
+                        <select
+                            value={selectedNeighborhood}
+                            onChange={handleNeighborhoodSelect}
+                            disabled={readonly || !selectedCity}
+                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                        >
+                            <option value="">Selecione...</option>
+                            {neighborhoods.map(neighborhood => (
+                                <option key={neighborhood.id} value={neighborhood.id}>{neighborhood.name}</option>
+                            ))}
+                            <option value="new" className="font-semibold text-blue-600">+ Novo Bairro</option>
+                        </select>
+                    ) : (
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newNeighborhoodName}
+                                onChange={(e) => setNewNeighborhoodName(e.target.value)}
+                                placeholder="Nome do bairro"
+                                className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                autoFocus
+                            />
+                            <button
+                                onClick={handleCreateNeighborhood}
+                                disabled={!newNeighborhoodName}
+                                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50"
+                            >
+                                <Plus size={16} />
+                            </button>
+                            <button
+                                onClick={() => setShowNewNeighborhoodInput(false)}
+                                className="p-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
+                            >
+                                <CheckSquare size={16} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Campo Oculto/Readonly para compatibilidade ou visualização do texto completo */}
             <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Cidade / Local
+                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
+                    Local Completo (Gerado)
                 </label>
                 <input
                     type="text"
                     value={ponto.nome}
-                    onChange={(e) => handleChange('nome', e.target.value)}
-                    placeholder="Ex: São Paulo, SP"
-                    disabled={readonly}
-                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    readOnly
+                    className="w-full p-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm"
                 />
             </div>
 

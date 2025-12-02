@@ -7,7 +7,7 @@ const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL || "postgresql://admin:admin123@localhost:5432/sgtl_db",
 });
 
-async function setup() {
+export async function setupDb() {
     try {
         console.log("Setting up database...");
 
@@ -204,6 +204,197 @@ async function setup() {
             CREATE INDEX IF NOT EXISTS idx_clients_documento ON clients(documento_numero);
         `);
 
+        // Create Companies Table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS companies (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                organization_id TEXT NOT NULL UNIQUE,
+                legal_name TEXT,
+                cnpj TEXT,
+                address TEXT,
+                contact_email TEXT,
+                phone TEXT,
+                website TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        console.log("Companies table created successfully.");
+
+        // Create Routes Table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS routes (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                organization_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                origin_city TEXT NOT NULL,
+                origin_state TEXT NOT NULL,
+                destination_city TEXT NOT NULL,
+                destination_state TEXT NOT NULL,
+                distance_km DECIMAL(10, 2),
+                duration_minutes INTEGER,
+                stops JSONB DEFAULT '[]', -- Array of {city, state, arrival_time_offset, departure_time_offset}
+                active BOOLEAN DEFAULT TRUE,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_routes_org ON routes(organization_id);
+        `);
+
+        // Add type column if it doesn't exist (migration)
+        await pool.query(`
+            ALTER TABLE routes 
+            ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'IDA' CHECK (type IN ('IDA', 'VOLTA'));
+        `);
+
+        console.log("Routes table created successfully.");
+
+        // Create Trips Table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS trips (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                organization_id TEXT NOT NULL,
+                route_id UUID NOT NULL REFERENCES routes(id),
+                vehicle_id UUID REFERENCES vehicle(id),
+                driver_id UUID REFERENCES driver(id),
+                departure_date DATE NOT NULL,
+                departure_time TIME NOT NULL,
+                arrival_date DATE,
+                arrival_time TIME,
+                status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'BOARDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED', 'DELAYED')),
+                price_conventional DECIMAL(10, 2),
+                price_executive DECIMAL(10, 2),
+                price_semi_sleeper DECIMAL(10, 2),
+                price_sleeper DECIMAL(10, 2),
+                seats_available INTEGER,
+                notes TEXT,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_trips_org ON trips(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_trips_route ON trips(route_id);
+            CREATE INDEX IF NOT EXISTS idx_trips_date ON trips(departure_date);
+        `);
+        console.log("Trips table created successfully.");
+
+        // Create Reservations Table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS reservations (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                organization_id TEXT NOT NULL,
+                trip_id UUID NOT NULL REFERENCES trips(id),
+                seat_id UUID REFERENCES seat(id), -- Nullable if standing or unassigned
+                
+                passenger_name TEXT NOT NULL,
+                passenger_document TEXT NOT NULL,
+                passenger_email TEXT,
+                passenger_phone TEXT,
+                
+                status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW')),
+                ticket_code TEXT NOT NULL UNIQUE, -- Short code for lookup
+                price DECIMAL(10, 2) NOT NULL,
+                
+                user_id TEXT, -- If booked by a logged-in user
+                client_id UUID REFERENCES clients(id), -- Link to CRM
+                
+                notes TEXT,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_reservations_org ON reservations(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_reservations_trip ON reservations(trip_id);
+            CREATE INDEX IF NOT EXISTS idx_reservations_code ON reservations(ticket_code);
+            CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations(status);
+        `);
+        console.log("Reservations table created successfully.");
+
+        // Create Parcels Table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS parcel_orders (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                organization_id TEXT NOT NULL,
+                
+                sender_name TEXT NOT NULL,
+                sender_document TEXT NOT NULL,
+                sender_phone TEXT NOT NULL,
+                
+                recipient_name TEXT NOT NULL,
+                recipient_document TEXT NOT NULL,
+                recipient_phone TEXT NOT NULL,
+                
+                origin_city TEXT NOT NULL,
+                origin_state TEXT NOT NULL,
+                destination_city TEXT NOT NULL,
+                destination_state TEXT NOT NULL,
+                
+                description TEXT NOT NULL,
+                weight DECIMAL(10, 2),
+                dimensions TEXT,
+                
+                status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'RECEIVED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED')),
+                tracking_code TEXT NOT NULL UNIQUE,
+                price DECIMAL(10, 2) NOT NULL,
+                
+                trip_id UUID REFERENCES trips(id), -- Optional, assigned later
+                user_id TEXT, -- If booked by logged in user
+                client_id UUID REFERENCES clients(id),
+                
+                notes TEXT,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_parcels_org ON parcel_orders(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_parcels_status ON parcel_orders(status);
+            CREATE INDEX IF NOT EXISTS idx_parcels_tracking ON parcel_orders(tracking_code);
+        `);
+        console.log("Parcels table created successfully.");
+
+        // Create Charters Table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS charter_requests (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                organization_id TEXT NOT NULL,
+                
+                contact_name TEXT NOT NULL,
+                contact_email TEXT NOT NULL,
+                contact_phone TEXT NOT NULL,
+                company_name TEXT, -- Optional (if corporate)
+                
+                origin_city TEXT NOT NULL,
+                origin_state TEXT NOT NULL,
+                destination_city TEXT NOT NULL,
+                destination_state TEXT NOT NULL,
+                
+                departure_date DATE NOT NULL,
+                departure_time TIME,
+                return_date DATE,
+                return_time TIME,
+                
+                passenger_count INTEGER NOT NULL,
+                vehicle_type_requested TEXT, -- e.g., 'CONVENTIONAL', 'EXECUTIVE'
+                
+                description TEXT,
+                status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'QUOTED', 'APPROVED', 'REJECTED', 'COMPLETED')),
+                
+                quote_price DECIMAL(10, 2), -- Price offered by admin
+                
+                user_id TEXT, -- If logged in
+                client_id UUID REFERENCES clients(id),
+                
+                notes TEXT,
+                created_by TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_charters_org ON charter_requests(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_charters_status ON charter_requests(status);
+        `);
+        console.log("Charters table created successfully.");
+
         // Create Maintenance Table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS maintenance (
@@ -237,12 +428,69 @@ async function setup() {
             CREATE INDEX IF NOT EXISTS idx_maintenance_status ON maintenance(status);
         `);
 
+        // Create Location Tables
+        console.log("Creating location tables...");
+
+        // States
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS states (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                uf VARCHAR(2) NOT NULL UNIQUE
+            );
+        `);
+
+        // Seed States if empty
+        const statesCount = await pool.query('SELECT COUNT(*) FROM states');
+        if (parseInt(statesCount.rows[0].count) === 0) {
+            console.log("Seeding states...");
+            await pool.query(`
+                INSERT INTO states (name, uf) VALUES 
+                ('Acre', 'AC'), ('Alagoas', 'AL'), ('Amapá', 'AP'), ('Amazonas', 'AM'), ('Bahia', 'BA'),
+                ('Ceará', 'CE'), ('Distrito Federal', 'DF'), ('Espírito Santo', 'ES'), ('Goiás', 'GO'),
+                ('Maranhão', 'MA'), ('Mato Grosso', 'MT'), ('Mato Grosso do Sul', 'MS'), ('Minas Gerais', 'MG'),
+                ('Pará', 'PA'), ('Paraíba', 'PB'), ('Paraná', 'PR'), ('Pernambuco', 'PE'), ('Piauí', 'PI'),
+                ('Rio de Janeiro', 'RJ'), ('Rio Grande do Norte', 'RN'), ('Rio Grande do Sul', 'RS'),
+                ('Rondônia', 'RO'), ('Roraima', 'RR'), ('Santa Catarina', 'SC'), ('São Paulo', 'SP'),
+                ('Sergipe', 'SE'), ('Tocantins', 'TO');
+            `);
+        }
+
+        // Cities
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS cities (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                state_id INTEGER NOT NULL REFERENCES states(id),
+                UNIQUE(name, state_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_cities_state ON cities(state_id);
+        `);
+
+        // Neighborhoods
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS neighborhoods (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                city_id INTEGER NOT NULL REFERENCES cities(id),
+                UNIQUE(name, city_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_neighborhoods_city ON neighborhoods(city_id);
+        `);
+
+        console.log("Location tables created successfully.");
+
         console.log("Database setup completed successfully!");
-        process.exit(0);
+        // process.exit(0); // Don't exit if called from index.ts
     } catch (error) {
         console.error("Error setting up database:", error);
-        process.exit(1);
+        // process.exit(1); // Don't exit if called from index.ts
+        throw error;
     }
 }
 
-setup();
+// Only run if called directly
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    setupDb().then(() => process.exit(0)).catch(() => process.exit(1));
+}

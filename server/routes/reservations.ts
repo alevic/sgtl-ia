@@ -1,0 +1,241 @@
+import express from "express";
+import { pool } from "../auth";
+import { auth } from "../auth";
+import crypto from "crypto";
+
+const router = express.Router();
+
+// Helper for authorization
+const authorize = (allowedRoles: string[]) => {
+    return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+            const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+            if (!session) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            if (!session.session.activeOrganizationId) {
+                return res.status(401).json({ error: "Unauthorized: No active organization" });
+            }
+
+            const userRole = (session.user as any).role || 'user';
+
+            if (!allowedRoles.includes(userRole)) {
+                return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
+            }
+
+            (req as any).session = session;
+            next();
+        } catch (error) {
+            console.error("Auth middleware error:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    };
+};
+
+// GET all reservations
+router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { trip_id, status, ticket_code, passenger_name } = req.query;
+
+        let query = `
+            SELECT r.*, 
+                   t.departure_date, t.departure_time,
+                   route.name as route_name,
+                   s.numero as seat_number, s.tipo as seat_type
+            FROM reservations r
+            JOIN trips t ON r.trip_id = t.id
+            JOIN routes route ON t.route_id = route.id
+            LEFT JOIN seat s ON r.seat_id = s.id
+            WHERE r.organization_id = $1
+        `;
+        const params: any[] = [orgId];
+        let paramCount = 1;
+
+        if (trip_id) {
+            paramCount++;
+            query += ` AND r.trip_id = $${paramCount}`;
+            params.push(trip_id);
+        }
+
+        if (status) {
+            paramCount++;
+            query += ` AND r.status = $${paramCount}`;
+            params.push(status);
+        }
+
+        if (ticket_code) {
+            paramCount++;
+            query += ` AND r.ticket_code ILIKE $${paramCount}`;
+            params.push(`%${ticket_code}%`);
+        }
+
+        if (passenger_name) {
+            paramCount++;
+            query += ` AND r.passenger_name ILIKE $${paramCount}`;
+            params.push(`%${passenger_name}%`);
+        }
+
+        query += ` ORDER BY r.created_at DESC`;
+
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching reservations:", error);
+        res.status(500).json({ error: "Failed to fetch reservations" });
+    }
+});
+
+// GET single reservation
+router.get("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT r.*, 
+                   t.departure_date, t.departure_time,
+                   route.name as route_name, route.origin_city, route.destination_city,
+                   s.numero as seat_number, s.tipo as seat_type
+            FROM reservations r
+            JOIN trips t ON r.trip_id = t.id
+            JOIN routes route ON t.route_id = route.id
+            LEFT JOIN seat s ON r.seat_id = s.id
+            WHERE r.id = $1 AND r.organization_id = $2`,
+            [id, orgId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching reservation:", error);
+        res.status(500).json({ error: "Failed to fetch reservation" });
+    }
+});
+
+// POST create reservation
+router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const userId = session.user.id;
+
+        const {
+            trip_id, seat_id,
+            passenger_name, passenger_document, passenger_email, passenger_phone,
+            price, client_id, notes
+        } = req.body;
+
+        // Verify seat availability if seat_id is provided
+        if (seat_id) {
+            const seatCheck = await pool.query(
+                "SELECT status FROM seat WHERE id = $1",
+                [seat_id]
+            );
+            if (seatCheck.rows.length === 0) {
+                return res.status(404).json({ error: "Seat not found" });
+            }
+            // In a real scenario, we should check if it's already reserved for this trip
+            // But since seats are linked to vehicle, and trip uses vehicle, we need to check reservations for this trip + seat
+            const reservationCheck = await pool.query(
+                "SELECT id FROM reservations WHERE trip_id = $1 AND seat_id = $2 AND status != 'CANCELLED'",
+                [trip_id, seat_id]
+            );
+
+            if (reservationCheck.rows.length > 0) {
+                return res.status(400).json({ error: "Seat already reserved for this trip" });
+            }
+        }
+
+        // Generate Ticket Code (e.g., T-123456)
+        const ticket_code = 'T-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+
+        const result = await pool.query(
+            `INSERT INTO reservations (
+                trip_id, seat_id,
+                passenger_name, passenger_document, passenger_email, passenger_phone,
+                status, ticket_code, price,
+                user_id, client_id, notes,
+                organization_id, created_by
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            RETURNING *`,
+            [
+                trip_id, seat_id || null,
+                passenger_name, passenger_document, passenger_email || null, passenger_phone || null,
+                'CONFIRMED', ticket_code, price,
+                null, client_id || null, notes || null,
+                orgId, userId
+            ]
+        );
+
+        // Update seats available count on trip
+        await pool.query(
+            "UPDATE trips SET seats_available = seats_available - 1 WHERE id = $1",
+            [trip_id]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error creating reservation:", error);
+        res.status(500).json({ error: "Failed to create reservation" });
+    }
+});
+
+// PUT update reservation (e.g., cancel, check-in)
+router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+        const { status, notes, passenger_name, passenger_document } = req.body;
+
+        const currentRes = await pool.query(
+            "SELECT status, trip_id FROM reservations WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (currentRes.rows.length === 0) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+
+        const oldStatus = currentRes.rows[0].status;
+
+        const result = await pool.query(
+            `UPDATE reservations SET
+                status = COALESCE($1, status),
+                notes = COALESCE($2, notes),
+                passenger_name = COALESCE($3, passenger_name),
+                passenger_document = COALESCE($4, passenger_document),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $5 AND organization_id = $6
+            RETURNING *`,
+            [status, notes, passenger_name, passenger_document, id, orgId]
+        );
+
+        // Handle seat count logic if status changes
+        if (status === 'CANCELLED' && oldStatus !== 'CANCELLED') {
+            await pool.query(
+                "UPDATE trips SET seats_available = seats_available + 1 WHERE id = $1",
+                [currentRes.rows[0].trip_id]
+            );
+        } else if (status !== 'CANCELLED' && oldStatus === 'CANCELLED') {
+            await pool.query(
+                "UPDATE trips SET seats_available = seats_available - 1 WHERE id = $1",
+                [currentRes.rows[0].trip_id]
+            );
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error updating reservation:", error);
+        res.status(500).json({ error: "Failed to update reservation" });
+    }
+});
+
+export default router;

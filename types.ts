@@ -264,33 +264,57 @@ export interface IRota {
 
 export interface IViagem {
   id: string;
-  titulo: string;
-  origem: string;
-  destino: string;
-  paradas: IParada[]; // Lista ordenada de paradas
+  organization_id?: string;
 
-  // Sistema de Rotas v2.0
-  rota_ida_id?: string; // ID da rota template selecionada
-  rota_volta_id?: string; // ID da rota template selecionada
-  rota_ida?: IRota; // Dados completos da rota (populados)
-  rota_volta?: IRota; // Dados completos da rota (populados)
-  usa_sistema_rotas: boolean; // Flag para indicar se usa novo sistema
+  // Backend Fields
+  route_id: string;
+  vehicle_id?: string;
+  driver_id?: string;
 
-  data_partida: string; // ISO Date
-  data_chegada_prevista: string; // ISO Date
-  status: 'AGENDADA' | 'CONFIRMADA' | 'EM_CURSO' | 'FINALIZADA' | 'CANCELADA';
-  veiculo_id?: string;
+  departure_date: string; // YYYY-MM-DD
+  departure_time: string; // HH:MM:SS
+  arrival_date?: string; // YYYY-MM-DD
+  arrival_time?: string; // HH:MM:SS
 
-  // Motoristas - Suporte para múltiplos motoristas
-  motorista_ids: string[]; // Array de IDs de motoristas
-  motorista_id?: string; // DEPRECATED - mantido para retrocompatibilidade
-  motorista_auxiliar_id?: string; // DEPRECATED - mantido para retrocompatibilidade
+  status: 'SCHEDULED' | 'BOARDING' | 'IN_TRANSIT' | 'COMPLETED' | 'CANCELLED' | 'DELAYED' | 'AGENDADA' | 'CONFIRMADA' | 'EM_CURSO' | 'FINALIZADA' | 'CONFIRMED'; // Mixed for compatibility
 
-  ocupacao_percent: number;
-  internacional: boolean;
-  moeda_base: Moeda;
-  tipo_viagem: 'IDA_E_VOLTA' | 'IDA' | 'VOLTA'; // Ordem: IDA_E_VOLTA primeiro
-  precos_por_tipo: Record<string, number>;
+  price_conventional?: number;
+  price_executive?: number;
+  price_semi_sleeper?: number;
+  price_sleeper?: number;
+
+  seats_available: number;
+  notes?: string;
+
+  // Joined Fields (Backend)
+  route_name?: string;
+  origin_city?: string;
+  destination_city?: string;
+  vehicle_plate?: string;
+  vehicle_model?: string;
+  driver_name?: string;
+
+  // Frontend Legacy / Derived Fields (Deprecated or Mapped)
+  titulo?: string;
+  origem?: string; // Mapped from origin_city
+  destino?: string; // Mapped from destination_city
+  paradas?: IParada[];
+  data_partida?: string; // ISO Date
+  data_chegada_prevista?: string; // ISO Date
+
+  // Sistema de Rotas v2.0 Legacy
+  rota_ida_id?: string;
+  rota_volta_id?: string;
+  rota_ida?: IRota;
+  rota_volta?: IRota;
+  usa_sistema_rotas?: boolean;
+
+  motorista_ids?: string[];
+  ocupacao_percent?: number;
+  internacional?: boolean;
+  moeda_base?: Moeda;
+  tipo_viagem?: 'IDA_E_VOLTA' | 'IDA' | 'VOLTA';
+  precos_por_tipo?: Record<string, number>;
   imagem_capa?: string;
   galeria?: string[];
 }

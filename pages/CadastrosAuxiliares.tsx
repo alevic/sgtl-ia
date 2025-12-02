@@ -1,55 +1,96 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-    MapPin, Globe, Flag, Building, Plus, Search, Edit, Trash2, Save, X, Check
+    MapPin, Flag, Building, Plus, Search, Edit, Trash2, Save, X
 } from 'lucide-react';
-import { IPais, IEstado, ICidade, IBairro } from '../types';
+import { IEstado, ICidade, IBairro } from '../types';
+import { locationService } from '../services/locationService';
 
-// Mock Data
-const MOCK_PAISES: IPais[] = [
-    { id: '1', nome: 'Brasil', sigla: 'BR', ddi: '+55' },
-    { id: '2', nome: 'Argentina', sigla: 'AR', ddi: '+54' },
-    { id: '3', nome: 'Paraguai', sigla: 'PY', ddi: '+595' },
-    { id: '4', nome: 'Estados Unidos', sigla: 'US', ddi: '+1' },
-];
-
-const MOCK_ESTADOS: IEstado[] = [
-    { id: '1', nome: 'São Paulo', uf: 'SP', pais_id: '1' },
-    { id: '2', nome: 'Rio de Janeiro', uf: 'RJ', pais_id: '1' },
-    { id: '3', nome: 'Minas Gerais', uf: 'MG', pais_id: '1' },
-    { id: '4', nome: 'Santa Catarina', uf: 'SC', pais_id: '1' },
-    { id: '5', nome: 'Buenos Aires', uf: 'BA', pais_id: '2' },
-];
-
-const MOCK_CIDADES: ICidade[] = [
-    { id: '1', nome: 'São Paulo', estado_id: '1', ibge_code: '3550308' },
-    { id: '2', nome: 'Campinas', estado_id: '1', ibge_code: '3509502' },
-    { id: '3', nome: 'Rio de Janeiro', estado_id: '2', ibge_code: '3304557' },
-    { id: '4', nome: 'Florianópolis', estado_id: '4', ibge_code: '4205407' },
-];
-
-const MOCK_BAIRROS: IBairro[] = [
-    { id: '1', nome: 'Centro', cidade_id: '1' },
-    { id: '2', nome: 'Vila Madalena', cidade_id: '1' },
-    { id: '3', nome: 'Copacabana', cidade_id: '3' },
-    { id: '4', nome: 'Centro', cidade_id: '4' },
-];
-
-type TabType = 'paises' | 'estados' | 'cidades' | 'bairros';
+type TabType = 'estados' | 'cidades' | 'bairros';
 
 export const CadastrosAuxiliares: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<TabType>('paises');
+    const [activeTab, setActiveTab] = useState<TabType>('estados');
     const [busca, setBusca] = useState('');
 
-    // State for data (initialized with mocks)
-    const [paises, setPaises] = useState<IPais[]>(MOCK_PAISES);
-    const [estados, setEstados] = useState<IEstado[]>(MOCK_ESTADOS);
-    const [cidades, setCidades] = useState<ICidade[]>(MOCK_CIDADES);
-    const [bairros, setBairros] = useState<IBairro[]>(MOCK_BAIRROS);
+    // State for data
+    const [estados, setEstados] = useState<IEstado[]>([]);
+    const [cidades, setCidades] = useState<ICidade[]>([]);
+    const [bairros, setBairros] = useState<IBairro[]>([]);
 
     // State for editing/creating
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<any>({});
+    const [loading, setLoading] = useState(false);
+
+    // Fetch data on mount and tab change
+    useEffect(() => {
+        loadData();
+    }, [activeTab]);
+
+    const loadData = async () => {
+        setLoading(true);
+        try {
+            if (activeTab === 'estados') {
+                const data = await locationService.getStates();
+                setEstados(data.map(s => ({
+                    id: s.id.toString(),
+                    nome: s.name,
+                    uf: s.uf,
+                    pais_id: '1' // Brasil
+                })));
+            } else if (activeTab === 'cidades') {
+                // Load all cities
+                const states = await locationService.getStates();
+                const allCities: ICidade[] = [];
+                for (const state of states) {
+                    const cities = await locationService.getCities(state.id);
+                    allCities.push(...cities.map(c => ({
+                        id: c.id.toString(),
+                        nome: c.name,
+                        estado_id: c.state_id.toString(),
+                        ibge_code: ''
+                    })));
+                }
+                setCidades(allCities);
+                // Also load states for the dropdown
+                setEstados(states.map(s => ({
+                    id: s.id.toString(),
+                    nome: s.name,
+                    uf: s.uf,
+                    pais_id: '1'
+                })));
+            } else if (activeTab === 'bairros') {
+                // Load all neighborhoods
+                const states = await locationService.getStates();
+                const allCities: ICidade[] = [];
+                const allNeighborhoods: IBairro[] = [];
+                for (const state of states) {
+                    const cities = await locationService.getCities(state.id);
+                    allCities.push(...cities.map(c => ({
+                        id: c.id.toString(),
+                        nome: c.name,
+                        estado_id: c.state_id.toString(),
+                        ibge_code: ''
+                    })));
+                    for (const city of cities) {
+                        const neighborhoods = await locationService.getNeighborhoods(city.id);
+                        allNeighborhoods.push(...neighborhoods.map(n => ({
+                            id: n.id.toString(),
+                            nome: n.name,
+                            cidade_id: n.city_id.toString()
+                        })));
+                    }
+                }
+                setBairros(allNeighborhoods);
+                setCidades(allCities);
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+            alert('Erro ao carregar dados');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleEdit = (item: any) => {
         setFormData(item);
@@ -69,98 +110,65 @@ export const CadastrosAuxiliares: React.FC = () => {
         setFormData({});
     };
 
-    const handleSave = () => {
-        // Logic to save (simulate backend)
-        const newItem = { ...formData, id: editingId || Math.random().toString(36).substr(2, 9) };
-
-        if (activeTab === 'paises') {
-            setPaises(prev => editingId ? prev.map(i => i.id === editingId ? newItem : i) : [...prev, newItem]);
-        } else if (activeTab === 'estados') {
-            setEstados(prev => editingId ? prev.map(i => i.id === editingId ? newItem : i) : [...prev, newItem]);
-        } else if (activeTab === 'cidades') {
-            setCidades(prev => editingId ? prev.map(i => i.id === editingId ? newItem : i) : [...prev, newItem]);
-        } else if (activeTab === 'bairros') {
-            setBairros(prev => editingId ? prev.map(i => i.id === editingId ? newItem : i) : [...prev, newItem]);
+    const handleSave = async () => {
+        try {
+            if (activeTab === 'estados') {
+                alert('Estados são dados do sistema e não podem ser editados.');
+                return;
+            } else if (activeTab === 'cidades') {
+                if (editingId) {
+                    await locationService.updateCity(parseInt(editingId), formData.nome);
+                } else {
+                    if (!formData.estado_id) {
+                        alert('Selecione um estado');
+                        return;
+                    }
+                    await locationService.createCity(formData.nome, parseInt(formData.estado_id));
+                }
+            } else if (activeTab === 'bairros') {
+                if (editingId) {
+                    await locationService.updateNeighborhood(parseInt(editingId), formData.nome);
+                } else {
+                    if (!formData.cidade_id) {
+                        alert('Selecione uma cidade');
+                        return;
+                    }
+                    await locationService.createNeighborhood(formData.nome, parseInt(formData.cidade_id));
+                }
+            }
+            handleCancel();
+            await loadData();
+        } catch (error) {
+            console.error('Error saving:', error);
+            alert('Erro ao salvar');
         }
-
-        handleCancel();
     };
 
-    const handleDelete = (id: string) => {
+    const handleDelete = async (id: string) => {
         if (!confirm('Tem certeza que deseja excluir este item?')) return;
 
-        if (activeTab === 'paises') setPaises(prev => prev.filter(i => i.id !== id));
-        else if (activeTab === 'estados') setEstados(prev => prev.filter(i => i.id !== id));
-        else if (activeTab === 'cidades') setCidades(prev => prev.filter(i => i.id !== id));
-        else if (activeTab === 'bairros') setBairros(prev => prev.filter(i => i.id !== id));
+        try {
+            if (activeTab === 'estados') {
+                alert('Estados são dados do sistema e não podem ser excluídos.');
+                return;
+            } else if (activeTab === 'cidades') {
+                await locationService.deleteCity(parseInt(id));
+            } else if (activeTab === 'bairros') {
+                await locationService.deleteNeighborhood(parseInt(id));
+            }
+            await loadData();
+        } catch (error) {
+            console.error('Error deleting:', error);
+            alert('Erro ao excluir. Verifique se não existem dependências.');
+        }
     };
 
     const renderForm = () => {
         switch (activeTab) {
-            case 'paises':
-                return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome</label>
-                            <input
-                                type="text"
-                                value={formData.nome || ''}
-                                onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Sigla</label>
-                            <input
-                                type="text"
-                                value={formData.sigla || ''}
-                                onChange={e => setFormData({ ...formData, sigla: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">DDI</label>
-                            <input
-                                type="text"
-                                value={formData.ddi || ''}
-                                onChange={e => setFormData({ ...formData, ddi: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                    </div>
-                );
             case 'estados':
                 return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome</label>
-                            <input
-                                type="text"
-                                value={formData.nome || ''}
-                                onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">UF</label>
-                            <input
-                                type="text"
-                                value={formData.uf || ''}
-                                onChange={e => setFormData({ ...formData, uf: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">País</label>
-                            <select
-                                value={formData.pais_id || ''}
-                                onChange={e => setFormData({ ...formData, pais_id: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                            >
-                                <option value="">Selecione...</option>
-                                {paises.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
-                            </select>
-                        </div>
+                    <div className="p-4 text-center text-slate-500">
+                        Estados são dados do sistema e não podem ser editados.
                     </div>
                 );
             case 'cidades':
@@ -176,20 +184,12 @@ export const CadastrosAuxiliares: React.FC = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Código IBGE</label>
-                            <input
-                                type="text"
-                                value={formData.ibge_code || ''}
-                                onChange={e => setFormData({ ...formData, ibge_code: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Estado</label>
                             <select
                                 value={formData.estado_id || ''}
                                 onChange={e => setFormData({ ...formData, estado_id: e.target.value })}
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                disabled={!!editingId}
                             >
                                 <option value="">Selecione...</option>
                                 {estados.map(e => <option key={e.id} value={e.id}>{e.nome} ({e.uf})</option>)}
@@ -215,6 +215,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                                 value={formData.cidade_id || ''}
                                 onChange={e => setFormData({ ...formData, cidade_id: e.target.value })}
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                disabled={!!editingId}
                             >
                                 <option value="">Selecione...</option>
                                 {cidades.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
@@ -229,25 +230,16 @@ export const CadastrosAuxiliares: React.FC = () => {
         let data: any[] = [];
         let columns: { key: string, label: string, render?: (item: any) => React.ReactNode }[] = [];
 
-        if (activeTab === 'paises') {
-            data = paises;
-            columns = [
-                { key: 'nome', label: 'Nome' },
-                { key: 'sigla', label: 'Sigla' },
-                { key: 'ddi', label: 'DDI' },
-            ];
-        } else if (activeTab === 'estados') {
+        if (activeTab === 'estados') {
             data = estados;
             columns = [
                 { key: 'nome', label: 'Nome' },
                 { key: 'uf', label: 'UF' },
-                { key: 'pais_id', label: 'País', render: (item) => paises.find(p => p.id === item.pais_id)?.nome || 'N/A' },
             ];
         } else if (activeTab === 'cidades') {
             data = cidades;
             columns = [
                 { key: 'nome', label: 'Nome' },
-                { key: 'ibge_code', label: 'IBGE' },
                 {
                     key: 'estado_id', label: 'Estado', render: (item) => {
                         const est = estados.find(e => e.id === item.estado_id);
@@ -282,7 +274,13 @@ export const CadastrosAuxiliares: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredData.length === 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan={columns.length + 1} className="p-8 text-center text-slate-500 dark:text-slate-400">
+                                    Carregando...
+                                </td>
+                            </tr>
+                        ) : filteredData.length === 0 ? (
                             <tr>
                                 <td colSpan={columns.length + 1} className="p-8 text-center text-slate-500 dark:text-slate-400">
                                     Nenhum registro encontrado.
@@ -298,18 +296,22 @@ export const CadastrosAuxiliares: React.FC = () => {
                                     ))}
                                     <td className="p-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => handleEdit(item)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                            >
-                                                <Edit size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
+                                            {activeTab !== 'estados' && (
+                                                <>
+                                                    <button
+                                                        onClick={() => handleEdit(item)}
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(item.id)}
+                                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -328,33 +330,25 @@ export const CadastrosAuxiliares: React.FC = () => {
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Cadastros Auxiliares</h1>
                     <p className="text-slate-500 dark:text-slate-400">Gerencie tabelas de apoio do sistema</p>
                 </div>
-                <button
-                    onClick={handleNew}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    Novo Registro
-                </button>
+                {activeTab !== 'estados' && (
+                    <button
+                        onClick={handleNew}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    >
+                        <Plus size={18} />
+                        Novo Registro
+                    </button>
+                )}
             </div>
 
             {/* Tabs */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                 <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
                     <button
-                        onClick={() => setActiveTab('paises')}
-                        className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'paises'
-                                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Globe size={18} />
-                        Países
-                    </button>
-                    <button
                         onClick={() => setActiveTab('estados')}
                         className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'estados'
-                                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                             }`}
                     >
                         <Flag size={18} />
@@ -363,8 +357,8 @@ export const CadastrosAuxiliares: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('cidades')}
                         className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'cidades'
-                                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                             }`}
                     >
                         <Building size={18} />
@@ -373,8 +367,8 @@ export const CadastrosAuxiliares: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('bairros')}
                         className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'bairros'
-                                ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                                : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                             }`}
                     >
                         <MapPin size={18} />
@@ -424,13 +418,15 @@ export const CadastrosAuxiliares: React.FC = () => {
                             >
                                 Cancelar
                             </button>
-                            <button
-                                onClick={handleSave}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                            >
-                                <Save size={18} />
-                                Salvar
-                            </button>
+                            {activeTab !== 'estados' && (
+                                <button
+                                    onClick={handleSave}
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                >
+                                    <Save size={18} />
+                                    Salvar
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

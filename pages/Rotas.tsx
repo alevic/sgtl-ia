@@ -1,93 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IRota } from '../types';
 import { VisualizadorRota } from '../components/Rotas/VisualizadorRota';
+import { routesService } from '../services/routesService';
 import {
-    Plus, Search, Route as RouteIcon, Filter, Edit, Copy, ToggleLeft, ToggleRight, Trash2
+    Plus, Search, Route as RouteIcon, Filter, Edit, Copy, ToggleLeft, ToggleRight, Trash2, Loader
 } from 'lucide-react';
-
-// Mock de rotas para demonstração
-const MOCK_ROTAS: IRota[] = [
-    {
-        id: 'R001',
-        nome: 'São Paulo → Rio de Janeiro',
-        tipo_rota: 'IDA',
-        ativa: true,
-        duracao_estimada_minutos: 360,
-        distancia_total_km: 430,
-        pontos: [
-            {
-                id: 'P1',
-                nome: 'São Paulo, SP',
-                ordem: 0,
-                tipo: 'ORIGEM',
-                horario_partida: '2024-01-20T08:00:00',
-                permite_embarque: true,
-                permite_desembarque: false
-            },
-            {
-                id: 'P2',
-                nome: 'Rio de Janeiro, RJ',
-                ordem: 1,
-                tipo: 'DESTINO',
-                horario_chegada: '2024-01-20T14:00:00',
-                permite_embarque: false,
-                permite_desembarque: true
-            }
-        ]
-    },
-    {
-        id: 'R002',
-        nome: 'São Paulo → Florianópolis (via Curitiba)',
-        tipo_rota: 'IDA',
-        ativa: true,
-        duracao_estimada_minutos: 660,
-        distancia_total_km: 700,
-        pontos: [
-            {
-                id: 'P3',
-                nome: 'São Paulo, SP',
-                ordem: 0,
-                tipo: 'ORIGEM',
-                horario_partida: '2024-01-20T20:00:00',
-                permite_embarque: true,
-                permite_desembarque: false
-            },
-            {
-                id: 'P4',
-                nome: 'Curitiba, PR',
-                ordem: 1,
-                tipo: 'PARADA_INTERMEDIARIA',
-                horario_chegada: '2024-01-21T02:00:00',
-                horario_partida: '2024-01-21T02:30:00',
-                permite_embarque: true,
-                permite_desembarque: true,
-                observacoes: 'Terminal Rodoviário Central'
-            },
-            {
-                id: 'P5',
-                nome: 'Florianópolis, SC',
-                ordem: 2,
-                tipo: 'DESTINO',
-                horario_chegada: '2024-01-21T07:00:00',
-                permite_embarque: false,
-                permite_desembarque: true
-            }
-        ]
-    }
-];
+import { prepararPayloadRota } from '../utils/rotaValidation';
 
 export const Rotas: React.FC = () => {
     const navigate = useNavigate();
-    const [rotas] = useState<IRota[]>(MOCK_ROTAS);
+    const [rotas, setRotas] = useState<IRota[]>([]);
+    const [loading, setLoading] = useState(true);
     const [busca, setBusca] = useState('');
     const [filtroTipo, setFiltroTipo] = useState<'TODOS' | 'IDA' | 'VOLTA'>('TODOS');
     const [filtroStatus, setFiltroStatus] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
 
+    const fetchRotas = async () => {
+        try {
+            setLoading(true);
+            const data = await routesService.getAll();
+            setRotas(data);
+        } catch (error) {
+            console.error('Erro ao carregar rotas:', error);
+            alert('Falha ao carregar rotas.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRotas();
+    }, []);
+
     const rotasFiltradas = rotas.filter(rota => {
         const matchBusca = busca === '' ||
             rota.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-            rota.pontos.some(p => p.nome.toLowerCase().includes(busca.toLowerCase()));
+            rota.pontos.some(p => p.nome?.toLowerCase().includes(busca.toLowerCase()));
 
         const matchTipo = filtroTipo === 'TODOS' || rota.tipo_rota === filtroTipo;
         const matchStatus = filtroStatus === 'TODOS' ||
@@ -105,22 +54,57 @@ export const Rotas: React.FC = () => {
         navigate(`/admin/rotas/${id}`);
     };
 
-    const handleDuplicarRota = (id: string) => {
-        console.log('Duplicar rota:', id);
-        // Implementar lógica de duplicação
-    };
+    const handleDuplicarRota = async (id: string) => {
+        const rotaOriginal = rotas.find(r => r.id === id);
+        if (!rotaOriginal) return;
 
-    const handleToggleStatus = (id: string) => {
-        console.log('Toggle status rota:', id);
-        // Implementar lógica de ativar/desativar
-    };
+        if (confirm(`Deseja duplicar a rota "${rotaOriginal.nome}"?`)) {
+            try {
+                const payload = prepararPayloadRota(rotaOriginal, `${rotaOriginal.nome} (Cópia)`);
+                payload.active = false; // Start inactive
 
-    const handleExcluirRota = (id: string) => {
-        if (confirm('Tem certeza que deseja excluir esta rota?')) {
-            console.log('Excluir rota:', id);
-            // Implementar lógica de exclusão
+                await routesService.create(payload);
+                fetchRotas();
+            } catch (error) {
+                console.error('Erro ao duplicar rota:', error);
+                alert('Erro ao duplicar rota.');
+            }
         }
     };
+
+    const handleToggleStatus = async (id: string) => {
+        const rota = rotas.find(r => r.id === id);
+        if (!rota) return;
+
+        try {
+            await routesService.update(id, { ativa: !rota.ativa });
+            // Atualiza localmente para feedback rápido
+            setRotas(rotas.map(r => r.id === id ? { ...r, ativa: !r.ativa } : r));
+        } catch (error) {
+            console.error('Erro ao alterar status:', error);
+            alert('Erro ao alterar status.');
+        }
+    };
+
+    const handleExcluirRota = async (id: string) => {
+        if (confirm('Tem certeza que deseja excluir esta rota? Esta ação não pode ser desfeita.')) {
+            try {
+                await routesService.delete(id);
+                setRotas(rotas.filter(r => r.id !== id));
+            } catch (error) {
+                console.error('Erro ao excluir rota:', error);
+                alert('Erro ao excluir rota. Verifique se não há viagens vinculadas.');
+            }
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader className="animate-spin text-blue-600" size={32} />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -226,9 +210,15 @@ export const Rotas: React.FC = () => {
                                             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
                                                 {rota.nome || 'Rota sem nome'}
                                             </h3>
+                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${rota.tipo_rota === 'IDA'
+                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                                                }`}>
+                                                {rota.tipo_rota}
+                                            </span>
                                             <span className={`px-2 py-1 rounded text-xs font-semibold ${rota.ativa
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
                                                 }`}>
                                                 {rota.ativa ? 'Ativa' : 'Inativa'}
                                             </span>

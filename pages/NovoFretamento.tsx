@@ -1,213 +1,27 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota, ICliente } from '../types';
-import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock, Mail } from 'lucide-react';
+import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock, Mail, Users, Loader } from 'lucide-react';
 import { SeletorRota } from '../components/Rotas/SeletorRota';
 import { SeletorCliente, ClienteFretamento } from '../components/Selectors/SeletorCliente';
-
-// Mock data - Em produção, viriam de API
-const MOCK_CLIENTES: ClienteFretamento[] = [
-    {
-        id: '1',
-        razao_social: 'Tech Solutions Ltda',
-        cnpj: '12.345.678/0001-90',
-        contato_nome: 'Roberto Almeida',
-        contato_email: 'roberto@techsolutions.com',
-        contato_telefone: '(11) 3333-4444',
-        credito_disponivel: 50000,
-        dia_vencimento_fatura: 10
-    },
-    {
-        id: '2',
-        razao_social: 'Construtora ABC S/A',
-        cnpj: '98.765.432/0001-10',
-        contato_nome: 'Ana Paula Costa',
-        contato_email: 'ana@construtorabc.com',
-        contato_telefone: '(11) 4444-5555',
-        credito_disponivel: 100000,
-        dia_vencimento_fatura: 15
-    },
-    {
-        id: '3',
-        nome: 'João da Silva',
-        email: 'joao.silva@email.com',
-        documento_numero: '123.456.789-00',
-        documento_tipo: 'CPF',
-        nacionalidade: 'Brasileira',
-        pais: 'Brasil',
-        segmento: 'REGULAR',
-        tags: [],
-        valor_total_gasto: 0,
-        saldo_creditos: 0,
-        historico_viagens: 0,
-        data_cadastro: new Date().toISOString(),
-        telefone: '(11) 99999-9999',
-        endereco: 'Rua das Flores, 123',
-        cidade: 'São Paulo',
-        estado: 'SP'
-    } as ICliente
-];
-
-const MOCK_VEICULOS: IVeiculo[] = [
-    {
-        id: 'V001',
-        placa: 'ABC-1234',
-        modelo: 'Mercedes-Benz O500',
-        tipo: 'ONIBUS',
-        status: VeiculoStatus.ATIVO,
-        proxima_revisao_km: 250000,
-        capacidade_passageiros: 46
-    },
-    {
-        id: 'V002',
-        placa: 'DEF-5678',
-        modelo: 'Scania K380',
-        tipo: 'ONIBUS',
-        status: VeiculoStatus.ATIVO,
-        proxima_revisao_km: 300000,
-        capacidade_passageiros: 42
-    }
-];
-
-const MOCK_MOTORISTAS: IMotorista[] = [
-    {
-        id: 'M001',
-        nome: 'Carlos Silva',
-        cnh: '12345678900',
-        categoria_cnh: 'D',
-        validade_cnh: '2026-12-31',
-        status: 'DISPONIVEL'
-    },
-    {
-        id: 'M002',
-        nome: 'João Santos',
-        cnh: '98765432100',
-        categoria_cnh: 'E',
-        validade_cnh: '2025-08-20',
-        status: 'DISPONIVEL'
-    }
-];
-
-// Mock de rotas disponíveis
-const MOCK_ROTAS: IRota[] = [
-    {
-        id: 'R001',
-        nome: 'São Paulo → Campinas',
-        tipo_rota: 'IDA',
-        ativa: true,
-        pontos: [
-            {
-                id: 'P1',
-                nome: 'São Paulo, SP',
-                ordem: 0,
-                tipo: 'ORIGEM',
-                horario_partida: '2024-01-15T07:00:00',
-                permite_embarque: true,
-                permite_desembarque: false
-            },
-            {
-                id: 'P2',
-                nome: 'Campinas, SP',
-                ordem: 1,
-                tipo: 'DESTINO',
-                horario_chegada: '2024-01-15T09:00:00',
-                permite_embarque: false,
-                permite_desembarque: true
-            }
-        ],
-        duracao_estimada_minutos: 120,
-        distancia_total_km: 100
-    },
-    {
-        id: 'R002',
-        nome: 'São Paulo → Santos',
-        tipo_rota: 'IDA',
-        ativa: true,
-        pontos: [
-            {
-                id: 'P3',
-                nome: 'São Paulo, SP',
-                ordem: 0,
-                tipo: 'ORIGEM',
-                horario_partida: '2024-01-15T08:00:00',
-                permite_embarque: true,
-                permite_desembarque: false
-            },
-            {
-                id: 'P4',
-                nome: 'Santos, SP',
-                ordem: 1,
-                tipo: 'DESTINO',
-                horario_chegada: '2024-01-15T09:30:00',
-                permite_embarque: false,
-                permite_desembarque: true
-            }
-        ],
-        duracao_estimada_minutos: 90,
-        distancia_total_km: 75
-    },
-    {
-        id: 'R003',
-        nome: 'São Paulo → Rio de Janeiro',
-        tipo_rota: 'IDA',
-        ativa: true,
-        pontos: [
-            {
-                id: 'P5',
-                nome: 'São Paulo, SP',
-                ordem: 0,
-                tipo: 'ORIGEM',
-                horario_partida: '2024-01-15T22:00:00',
-                permite_embarque: true,
-                permite_desembarque: false
-            },
-            {
-                id: 'P6',
-                nome: 'Rio de Janeiro, RJ',
-                ordem: 1,
-                tipo: 'DESTINO',
-                horario_chegada: '2024-01-16T04:00:00',
-                permite_embarque: false,
-                permite_desembarque: true
-            }
-        ],
-        duracao_estimada_minutos: 360,
-        distancia_total_km: 430
-    },
-    {
-        id: 'R004',
-        nome: 'Campinas → São Paulo',
-        tipo_rota: 'VOLTA',
-        ativa: true,
-        pontos: [
-            {
-                id: 'P7',
-                nome: 'Campinas, SP',
-                ordem: 0,
-                tipo: 'ORIGEM',
-                horario_partida: '2024-01-15T18:00:00',
-                permite_embarque: true,
-                permite_desembarque: false
-            },
-            {
-                id: 'P8',
-                nome: 'São Paulo, SP',
-                ordem: 1,
-                tipo: 'DESTINO',
-                horario_chegada: '2024-01-15T20:00:00',
-                permite_embarque: false,
-                permite_desembarque: true
-            }
-        ],
-        duracao_estimada_minutos: 120,
-        distancia_total_km: 100
-    }
-];
+import { chartersService } from '../services/chartersService';
+import { clientsService } from '../services/clientsService';
+import { vehiclesService } from '../services/vehiclesService';
+import { driversService } from '../services/driversService';
+import { routesService } from '../services/routesService';
 
 export const NovoFretamento: React.FC = () => {
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
-    // Estados do formulário
+    // Data States
+    const [clientes, setClientes] = useState<ClienteFretamento[]>([]);
+    const [veiculos, setVeiculos] = useState<IVeiculo[]>([]);
+    const [motoristas, setMotoristas] = useState<IMotorista[]>([]);
+    const [rotas, setRotas] = useState<IRota[]>([]);
+
+    // Form States
     const [clienteId, setClienteId] = useState('');
     const [tipo, setTipo] = useState<'PONTUAL' | 'RECORRENTE'>('PONTUAL');
     const [rotaSelecionada, setRotaSelecionada] = useState<IRota | null>(null);
@@ -221,10 +35,37 @@ export const NovoFretamento: React.FC = () => {
     const [veiculoId, setVeiculoId] = useState('');
     const [motoristaId, setMotoristaId] = useState('');
     const [observacoes, setObservacoes] = useState('');
+    const [passageiros, setPassageiros] = useState(0);
 
-    const clienteSelecionado = MOCK_CLIENTES.find(c => c.id === clienteId);
-    const veiculoSelecionado = MOCK_VEICULOS.find(v => v.id === veiculoId);
-    const motoristaSelecionado = MOCK_MOTORISTAS.find(m => m.id === motoristaId);
+    useEffect(() => {
+        loadData();
+    }, []);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const [clientesData, veiculosData, motoristasData, rotasData] = await Promise.all([
+                clientsService.getAll(),
+                vehiclesService.getAll(),
+                driversService.getAll(),
+                routesService.getAll()
+            ]);
+
+            setClientes(clientesData as unknown as ClienteFretamento[]); // Casting for now as ICliente matches compatible fields
+            setVeiculos(veiculosData.filter(v => v.status === VeiculoStatus.ATIVO));
+            setMotoristas(motoristasData.filter(m => m.status === 'DISPONIVEL'));
+            setRotas(rotasData.filter(r => r.ativa));
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            alert('Erro ao carregar dados iniciais.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const clienteSelecionado = clientes.find(c => c.id === clienteId);
+    const veiculoSelecionado = veiculos.find(v => v.id === veiculoId);
+    const motoristaSelecionado = motoristas.find(m => m.id === motoristaId);
 
     const formatarDataHora = (isoDate?: string) => {
         if (!isoDate) return '--';
@@ -240,10 +81,8 @@ export const NovoFretamento: React.FC = () => {
 
     // Campos calculados automaticamente das rotas (Resumo)
     const resumoViagem = useMemo(() => {
-        // Se tem rota de volta, precisamos de ambas
         if (temRotaVolta) {
             if (!rotaSelecionada || !rotaVoltaSelecionada) {
-                // Se ainda não selecionou ambas, mostra parcial se tiver ida
                 if (rotaSelecionada) {
                     const origem = rotaSelecionada.pontos[0];
                     const destino = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1];
@@ -263,7 +102,6 @@ export const NovoFretamento: React.FC = () => {
                 return null;
             }
 
-            // Ambas selecionadas: combinar informações
             const origemIda = rotaSelecionada.pontos[0];
             const destinoIda = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1];
             const destinoVolta = rotaVoltaSelecionada.pontos[rotaVoltaSelecionada.pontos.length - 1];
@@ -283,81 +121,93 @@ export const NovoFretamento: React.FC = () => {
             };
         }
 
-        // Apenas Ida
         if (!rotaSelecionada || rotaSelecionada.pontos.length < 2) {
             return null;
         }
 
         const origem = rotaSelecionada.pontos[0];
         const destino = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1];
+        const numParadas = rotaSelecionada.pontos.length - 2;
+
+        return {
+            origem: origem.nome || '(não definido)',
+            destino: destino.nome || '(não definido)',
+            dataPartida: origem.horario_partida,
+            dataChegada: destino.horario_chegada,
+            dataRetorno: null,
+            horaRetorno: null,
+            numParadas
+        };
     }, [rotaSelecionada, rotaVoltaSelecionada, temRotaVolta]);
 
-    const calcularDuracao = () => {
-        if (!dataInicio || !dataFim) return '';
+    const handleSalvar = async () => {
+        if (!clienteId) { alert('Selecione um cliente'); return; }
+        if (!rotaSelecionada) { alert('Selecione uma rota de ida'); return; }
+        if (temRotaVolta && !rotaVoltaSelecionada) { alert('Selecione uma rota de volta'); return; }
+        if (!dataInicio) { alert('Informe a data de início'); return; }
+        if (!dataFim) { alert('Informe a data de fim'); return; }
+        if (passageiros <= 0) { alert('Informe a quantidade de passageiros'); return; }
 
-        const inicio = new Date(dataInicio);
-        const fim = new Date(dataFim);
-        const dias = Math.floor((fim.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        try {
+            setSaving(true);
 
-        if (dias === 1) return '1 dia';
-        if (dias < 30) return `${dias} dias`;
+            const origem = rotaSelecionada.pontos[0]?.nome || '';
+            const destino = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1]?.nome || '';
 
-        const meses = Math.floor(dias / 30);
-        return `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
+            // Parse City/State
+            const parseLocation = (loc: string) => {
+                const parts = loc.split('-');
+                if (parts.length > 1) return { city: parts[0].trim(), state: parts[1].trim() };
+                const partsComma = loc.split(',');
+                if (partsComma.length > 1) return { city: partsComma[0].trim(), state: partsComma[1].trim() };
+                return { city: loc, state: 'UF' };
+            };
+
+            const originLoc = parseLocation(origem);
+            const destLoc = parseLocation(destino);
+
+            const payload = {
+                contact_name: (clienteSelecionado as any).contato_nome || clienteSelecionado?.nome,
+                contact_email: (clienteSelecionado as any).contato_email || clienteSelecionado?.email,
+                contact_phone: (clienteSelecionado as any).contato_telefone || clienteSelecionado?.telefone,
+                company_name: (clienteSelecionado as any).razao_social || null,
+                origin_city: originLoc.city,
+                origin_state: originLoc.state,
+                destination_city: destLoc.city,
+                destination_state: destLoc.state,
+                departure_date: dataInicio,
+                departure_time: horaInicio || null,
+                return_date: dataFim,
+                return_time: horaFim || null,
+                passenger_count: passageiros,
+                vehicle_type_requested: 'ONIBUS',
+                description: observacoes,
+                client_id: clienteId,
+                notes: observacoes,
+                vehicle_id: veiculoId || null,
+                driver_id: motoristaId || null,
+                rota_ida_id: rotaSelecionada.id,
+                rota_volta_id: temRotaVolta ? rotaVoltaSelecionada?.id : null
+            };
+
+            await chartersService.create(payload);
+            alert('Solicitação de fretamento enviada com sucesso!');
+            navigate('/admin/fretamento');
+        } catch (error) {
+            console.error('Erro ao salvar fretamento:', error);
+            alert('Erro ao salvar solicitação.');
+        } finally {
+            setSaving(false);
+        }
     };
 
-    const handleSalvar = () => {
-        // Validações
-        if (!clienteId) {
-            alert('Selecione um cliente corporativo');
-            return;
-        }
-        if (!rotaSelecionada) {
-            alert('Selecione uma rota de ida');
-            return;
-        }
-        if (temRotaVolta && !rotaVoltaSelecionada) {
-            alert('Selecione uma rota de volta');
-            return;
-        }
-        if (!dataInicio) {
-            alert('Informe a data de início');
-            return;
-        }
-        if (!dataFim) {
-            alert('Informe a data de fim');
-            return;
-        }
-        if (new Date(dataFim) < new Date(dataInicio)) {
-            alert('A data de fim deve ser igual ou posterior à data de início');
-            return;
-        }
-
-        const origem = rotaSelecionada.pontos[0]?.nome || '';
-        const destino = rotaSelecionada.pontos[rotaSelecionada.pontos.length - 1]?.nome || '';
-
-        const fretamento = {
-            id: `FRET-${Date.now()}`,
-            cliente_corporativo_id: clienteId,
-            veiculo_id: veiculoId || undefined,
-            motorista_id: motoristaId || undefined,
-            origem,
-            destino,
-            rota_ida_id: rotaSelecionada.id,
-            rota_volta_id: temRotaVolta ? rotaVoltaSelecionada?.id : undefined,
-            data_inicio: dataInicio + (horaInicio ? `T${horaInicio}:00` : 'T00:00:00'),
-            data_fim: dataFim + (horaFim ? `T${horaFim}:00` : 'T23:59:59'),
-            tipo,
-            status: 'SOLICITACAO' as const,
-            valor_total: 0, // Será preenchido no orçamento
-            moeda: Moeda.BRL,
-            observacoes: observacoes || undefined
-        };
-
-        console.log('Solicitação de fretamento criada:', fretamento);
-        alert('Solicitação de fretamento enviada com sucesso!');
-        navigate('/admin/fretamento');
-    };
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Loader className="animate-spin text-blue-600" size={32} />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -375,10 +225,11 @@ export const NovoFretamento: React.FC = () => {
                 </div>
                 <button
                     onClick={handleSalvar}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    disabled={saving}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
-                    <Save size={18} />
-                    Enviar Solicitação
+                    {saving ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
+                    {saving ? 'Enviando...' : 'Enviar Solicitação'}
                 </button>
             </div>
 
@@ -393,7 +244,7 @@ export const NovoFretamento: React.FC = () => {
                     <div className="space-y-4">
                         <div>
                             <SeletorCliente
-                                clientes={MOCK_CLIENTES}
+                                clientes={clientes}
                                 clienteSelecionado={clienteSelecionado}
                                 onSelecionarCliente={(cliente) => setClienteId(cliente?.id || '')}
                             />
@@ -462,7 +313,7 @@ export const NovoFretamento: React.FC = () => {
                         <label className="flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-700/50"
                             style={{ borderColor: tipo === 'RECORRENTE' ? '#3b82f6' : 'transparent' }}
                         >
-                            < input
+                            <input
                                 type="radio"
                                 name="tipo"
                                 value="RECORRENTE"
@@ -644,7 +495,7 @@ export const NovoFretamento: React.FC = () => {
                         {abaRotaAtiva === 'IDA' && (
                             <div className="animate-in fade-in duration-300">
                                 <SeletorRota
-                                    rotas={MOCK_ROTAS}
+                                    rotas={rotas}
                                     tipoFiltro="IDA"
                                     rotaSelecionada={rotaSelecionada}
                                     onChange={setRotaSelecionada}
@@ -654,7 +505,7 @@ export const NovoFretamento: React.FC = () => {
                         {abaRotaAtiva === 'VOLTA' && temRotaVolta && (
                             <div className="animate-in fade-in duration-300">
                                 <SeletorRota
-                                    rotas={MOCK_ROTAS}
+                                    rotas={rotas}
                                     tipoFiltro="VOLTA"
                                     rotaSelecionada={rotaVoltaSelecionada}
                                     onChange={setRotaVoltaSelecionada}
@@ -682,7 +533,7 @@ export const NovoFretamento: React.FC = () => {
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">-- Selecionar depois --</option>
-                                {MOCK_VEICULOS.filter(v => v.status === 'ATIVO').map((veiculo) => (
+                                {veiculos.map((veiculo) => (
                                     <option key={veiculo.id} value={veiculo.id}>
                                         {veiculo.modelo} - {veiculo.placa} ({veiculo.capacidade_passageiros} lugares)
                                     </option>
@@ -705,7 +556,7 @@ export const NovoFretamento: React.FC = () => {
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="">-- Selecionar depois --</option>
-                                {MOCK_MOTORISTAS.filter(m => m.status === 'DISPONIVEL').map((motorista) => (
+                                {motoristas.map((motorista) => (
                                     <option key={motorista.id} value={motorista.id}>
                                         {motorista.nome} - CNH {motorista.categoria_cnh}
                                     </option>
@@ -726,11 +577,11 @@ export const NovoFretamento: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Período */}
+                {/* Período e Passageiros */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                     <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                         <Calendar size={20} className="text-green-600" />
-                        Período
+                        Período e Passageiros
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -794,39 +645,48 @@ export const NovoFretamento: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                        <div className="col-span-2">
+                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                Quantidade de Passageiros *
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <Users size={20} className="text-slate-500" />
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={passageiros}
+                                    onChange={(e) => setPassageiros(parseInt(e.target.value) || 0)}
+                                    className="w-full md:w-1/3 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
                     </div>
 
                     {dataInicio && dataFim && (
                         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                            <p className="text-sm text-blue-700 dark:text-blue-300">
-                                📅 <strong>Duração:</strong> {calcularDuracao()}
+                            <p className="text-sm text-blue-800 dark:text-blue-300">
+                                ℹ️ A duração total do serviço será de aproximadamente <strong>{
+                                    Math.ceil((new Date(dataFim).getTime() - new Date(dataInicio).getTime()) / (1000 * 60 * 60 * 24))
+                                } dias</strong>.
                             </p>
                         </div>
                     )}
                 </div>
 
-                {/* Detalhes e Observações */}
+                {/* Observações */}
                 <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                     <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <FileText size={20} className="text-slate-600" />
-                        Detalhes e Observações
+                        <FileText size={20} className="text-slate-500" />
+                        Observações
                     </h3>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Observações e Requisitos Especiais
-                        </label>
-                        <textarea
-                            value={observacoes}
-                            onChange={(e) => setObservacoes(e.target.value)}
-                            placeholder="Ex: Transporte diário de funcionários, Segunda a Sexta, horários: 7h e 18h. Necessário ar condicionado e Wi-Fi."
-                            rows={5}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        />
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Inclua informações sobre horários, frequência, requisitos especiais do veículo, número estimado de passageiros, etc.
-                        </p>
-                    </div>
+                    <textarea
+                        value={observacoes}
+                        onChange={(e) => setObservacoes(e.target.value)}
+                        rows={4}
+                        placeholder="Detalhes adicionais sobre o fretamento..."
+                        className="w-full p-3 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
                 </div>
             </div>
         </div>

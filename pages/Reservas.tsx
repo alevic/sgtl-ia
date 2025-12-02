@@ -1,83 +1,22 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { IReserva, IViagem, ICliente, Moeda } from '../types';
-import { Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { IReserva } from '../types';
+import { reservationsService } from '../services/reservationsService';
+import { Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader } from 'lucide-react';
 
-const MOCK_CLIENTES: ICliente[] = [
-    {
-        id: '1',
-        nome: 'Maria Oliveira',
-        email: 'maria@email.com',
-        saldo_creditos: 100,
-        historico_viagens: 5,
-        documento_tipo: 'CPF' as any,
-        documento_numero: '123.456.789-00',
-        nacionalidade: 'Brasileira'
-    },
-    {
-        id: '2',
-        nome: 'João Santos',
-        email: 'joao@email.com',
-        saldo_creditos: 50,
-        historico_viagens: 2,
-        documento_tipo: 'CPF' as any,
-        documento_numero: '987.654.321-00',
-        nacionalidade: 'Brasileira'
-    }
-];
-
-const MOCK_VIAGENS: IViagem[] = [
-    {
-        id: 'V001',
-        titulo: 'São Paulo → Florianópolis',
-        origem: 'São Paulo, SP',
-        destino: 'Florianópolis, SC',
-        paradas: [],
-        data_partida: '2023-10-20T22:00:00',
-        data_chegada_prevista: '2023-10-21T08:00:00',
-        status: 'CONFIRMADA',
-        ocupacao_percent: 75,
-        internacional: false,
-        moeda_base: Moeda.BRL
-    }
-];
-
-const MOCK_RESERVAS: IReserva[] = [
-    {
-        id: '1',
-        codigo: 'RSV-2023-001',
-        viagem_id: 'V001',
-        cliente_id: '1',
-        assento_numero: '12',
-        data_reserva: '2023-10-15T14:30:00',
-        status: 'CONFIRMADA',
-        valor_pago: 180.00,
-        moeda: Moeda.BRL,
-        forma_pagamento: 'PIX'
-    },
-    {
-        id: '2',
-        codigo: 'RSV-2023-002',
-        viagem_id: 'V001',
-        cliente_id: '2',
-        assento_numero: '15',
-        data_reserva: '2023-10-16T09:15:00',
-        status: 'PENDENTE',
-        valor_pago: 180.00,
-        moeda: Moeda.BRL,
-        forma_pagamento: 'BOLETO'
-    }
-];
-
-const StatusBadge: React.FC<{ status: IReserva['status'] }> = ({ status }) => {
-    const configs = {
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+    const configs: any = {
         PENDENTE: { color: 'yellow', label: 'Pendente' },
+        PENDING: { color: 'yellow', label: 'Pendente' },
         CONFIRMADA: { color: 'green', label: 'Confirmada' },
+        CONFIRMED: { color: 'green', label: 'Confirmada' },
         CANCELADA: { color: 'red', label: 'Cancelada' },
-        UTILIZADA: { color: 'blue', label: 'Utilizada' }
+        CANCELLED: { color: 'red', label: 'Cancelada' },
+        UTILIZADA: { color: 'blue', label: 'Utilizada' },
+        COMPLETED: { color: 'blue', label: 'Utilizada' }
     };
 
-    const config = configs[status];
+    const config = configs[status] || configs['PENDENTE'];
 
     return (
         <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
@@ -87,23 +26,48 @@ const StatusBadge: React.FC<{ status: IReserva['status'] }> = ({ status }) => {
 };
 
 export const Reservas: React.FC = () => {
-    const [reservas] = useState<IReserva[]>(MOCK_RESERVAS);
-    const [clientes] = useState<ICliente[]>(MOCK_CLIENTES);
-    const [viagens] = useState<IViagem[]>(MOCK_VIAGENS);
-    const [filtroStatus, setFiltroStatus] = useState<'TODOS' | IReserva['status']>('TODOS');
+    const [reservas, setReservas] = useState<IReserva[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
     const [busca, setBusca] = useState('');
+    const navigate = useNavigate();
 
-    const getCliente = (clienteId: string) => clientes.find(c => c.id === clienteId);
-    const getViagem = (viagemId: string) => viagens.find(v => v.id === viagemId);
+    const fetchReservas = async () => {
+        try {
+            setLoading(true);
+            const data = await reservationsService.getAll();
+            setReservas(data);
+        } catch (error) {
+            console.error('Erro ao carregar reservas:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchReservas();
+    }, []);
 
     const reservasFiltradas = reservas.filter(r => {
         const matchStatus = filtroStatus === 'TODOS' || r.status === filtroStatus;
-        const cliente = getCliente(r.cliente_id);
+        // Backend returns joined fields: passenger_name, route_name, etc.
+        // We need to cast or update types, but for now we access them safely.
+        const passengerName = (r as any).passenger_name || '';
+        const ticketCode = (r as any).ticket_code || r.codigo || '';
+
         const matchBusca = busca === '' ||
-            r.codigo.toLowerCase().includes(busca.toLowerCase()) ||
-            cliente?.nome.toLowerCase().includes(busca.toLowerCase());
+            ticketCode.toLowerCase().includes(busca.toLowerCase()) ||
+            passengerName.toLowerCase().includes(busca.toLowerCase());
         return matchStatus && matchBusca;
     });
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader className="animate-spin text-blue-600" size={32} />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -129,7 +93,7 @@ export const Reservas: React.FC = () => {
                             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Buscar por código ou nome do cliente..."
+                                placeholder="Buscar por código ou nome do passageiro..."
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -145,20 +109,14 @@ export const Reservas: React.FC = () => {
                             Todos
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('PENDENTE')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'PENDENTE' ? 'bg-yellow-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Pendente
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus('CONFIRMADA')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CONFIRMADA' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus('CONFIRMED')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CONFIRMED' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Confirmada
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('CANCELADA')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CANCELADA' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus('CANCELLED')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CANCELLED' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Cancelada
                         </button>
@@ -174,10 +132,7 @@ export const Reservas: React.FC = () => {
                         <p className="text-slate-500 dark:text-slate-400">Nenhuma reserva encontrada</p>
                     </div>
                 ) : (
-                    reservasFiltradas.map((reserva) => {
-                        const cliente = getCliente(reserva.cliente_id);
-                        const viagem = getViagem(reserva.viagem_id);
-
+                    reservasFiltradas.map((reserva: any) => {
                         return (
                             <div key={reserva.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
                                 <div className="flex justify-between items-start mb-4">
@@ -186,9 +141,9 @@ export const Reservas: React.FC = () => {
                                             <Ticket size={24} className="text-blue-600 dark:text-blue-400" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{reserva.codigo}</h3>
+                                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{reserva.ticket_code || reserva.codigo}</h3>
                                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                Reservado em {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}
+                                                Reservado em {new Date(reserva.created_at || reserva.data_reserva).toLocaleDateString('pt-BR')}
                                             </p>
                                         </div>
                                     </div>
@@ -200,26 +155,26 @@ export const Reservas: React.FC = () => {
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Passageiro</p>
                                         <div className="flex items-center gap-2">
                                             <User size={16} className="text-blue-600" />
-                                            <p className="font-semibold text-slate-800 dark:text-white">{cliente?.nome}</p>
+                                            <p className="font-semibold text-slate-800 dark:text-white">{reserva.passenger_name}</p>
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Viagem</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Rota</p>
                                         <div className="flex items-center gap-2">
                                             <Bus size={16} className="text-blue-600" />
-                                            <p className="font-semibold text-slate-800 dark:text-white">{viagem?.titulo}</p>
+                                            <p className="font-semibold text-slate-800 dark:text-white">{reserva.route_name}</p>
                                         </div>
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Assento</p>
-                                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{reserva.assento_numero}</p>
+                                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{reserva.seat_number || 'N/A'}</p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Valor</p>
                                         <div className="flex items-center gap-2">
                                             <DollarSign size={16} className="text-green-600" />
                                             <p className="font-bold text-green-600 dark:text-green-400">
-                                                {reserva.moeda} {reserva.valor_pago.toFixed(2)}
+                                                {reserva.price ? `R$ ${Number(reserva.price).toFixed(2)}` : 'R$ 0.00'}
                                             </p>
                                         </div>
                                     </div>
@@ -229,16 +184,9 @@ export const Reservas: React.FC = () => {
                                     <div className="flex items-center gap-2">
                                         <Calendar size={16} className="text-slate-400" />
                                         <span className="text-slate-600 dark:text-slate-400">
-                                            Partida: {new Date(viagem?.data_partida || '').toLocaleDateString('pt-BR')} às {new Date(viagem?.data_partida || '').toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                            Partida: {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : '--'} às {reserva.departure_time || '--'}
                                         </span>
                                     </div>
-                                    {reserva.forma_pagamento && (
-                                        <div>
-                                            <span className="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium">
-                                                {reserva.forma_pagamento}
-                                            </span>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         );

@@ -32,6 +32,10 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
 
     if (compact) {
         // Versão compacta: apenas origem → destino com número de paradas
+        if (!rota.pontos || rota.pontos.length < 2) {
+            return <span className="text-red-500 text-sm">Rota inválida (sem pontos)</span>;
+        }
+
         const origem = rota.pontos[0];
         const destino = rota.pontos[rota.pontos.length - 1];
         const numParadas = rota.pontos.length - 2;
@@ -84,8 +88,8 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                     </h4>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${rota.tipo_rota === 'IDA'
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
                     }`}>
                     {rota.tipo_rota}
                 </span>
@@ -123,10 +127,10 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                             {/* Marcador */}
                             <div className="flex flex-col items-center pt-1">
                                 <div className={`w-3 h-3 rounded-full border-2 ${ponto.tipo === 'ORIGEM'
-                                        ? 'bg-green-500 border-green-600'
-                                        : ponto.tipo === 'DESTINO'
-                                            ? 'bg-red-500 border-red-600'
-                                            : 'bg-blue-500 border-blue-600'
+                                    ? 'bg-green-500 border-green-600'
+                                    : ponto.tipo === 'DESTINO'
+                                        ? 'bg-red-500 border-red-600'
+                                        : 'bg-blue-500 border-blue-600'
                                     }`} />
                             </div>
 
@@ -147,10 +151,10 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                                                 {ponto.nome}
                                             </span>
                                             <span className={`px-2 py-0.5 rounded text-xs font-medium ${ponto.tipo === 'ORIGEM'
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : ponto.tipo === 'DESTINO'
-                                                        ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                : ponto.tipo === 'DESTINO'
+                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                                 }`}>
                                                 {ponto.tipo === 'ORIGEM' ? 'Origem' : ponto.tipo === 'DESTINO' ? 'Destino' : 'Parada'}
                                             </span>

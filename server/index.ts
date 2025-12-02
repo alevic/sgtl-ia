@@ -2,10 +2,17 @@ import express from "express";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 import { auth, pool } from "./auth";
+import { authorize } from "./middleware";
 import dotenv from "dotenv";
 import crypto from "crypto";
 import clientsRouter from "./routes/clients";
 import maintenanceRouter from "./routes/maintenance";
+import tripsRouter from "./routes/trips";
+import { routesRouter } from "./routes/routes";
+import reservationsRouter from "./routes/reservations";
+import parcelsRouter from "./routes/parcels";
+import chartersRouter from "./routes/charters";
+import publicRouter from "./routes/public";
 
 dotenv.config();
 
@@ -18,36 +25,6 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
-// Middleware for Role-Based Access Control (RBAC)
-const authorize = (allowedRoles: string[]) => {
-    return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-        try {
-            const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
-            if (!session) {
-                return res.status(401).json({ error: "Unauthorized" });
-            }
-
-            // Check if user has active organization
-            if (!session.session.activeOrganizationId) {
-                return res.status(401).json({ error: "Unauthorized: No active organization" });
-            }
-
-            const userRole = (session.user as any).role || 'user'; // Default to 'user' if undefined
-
-            if (!allowedRoles.includes(userRole)) {
-                return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
-            }
-
-            // Attach session to request for use in handlers
-            (req as any).session = session;
-            next();
-        } catch (error) {
-            console.error("Auth middleware error:", error);
-            res.status(500).json({ error: "Internal Server Error" });
-        }
-    };
-};
 
 app.all("/api/auth/*", toNodeHandler(auth));
 
@@ -103,6 +80,25 @@ app.use("/api/clients", clientsRouter);
 
 // Maintenance Routes
 app.use("/api/maintenance", maintenanceRouter);
+
+// Trips & Routes
+import { locationsRouter } from "./routes/locations";
+
+app.use("/api", tripsRouter);
+app.use("/api/routes", routesRouter);
+app.use("/api/locations", locationsRouter);
+
+// Reservations
+app.use("/api/reservations", reservationsRouter);
+
+// Parcels
+app.use("/api/parcels", parcelsRouter);
+
+// Charters
+app.use("/api/charters", chartersRouter);
+
+// Public Routes (Portal)
+app.use("/api/public", publicRouter);
 
 // Finance Endpoints
 app.get("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
@@ -926,6 +922,19 @@ app.put("/api/organization/:id/details", authorize(['admin', 'user']), async (re
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+import { setupDb } from "./setup-db";
+
+// Start server
+const startServer = async () => {
+    try {
+        await setupDb();
+        app.listen(PORT, () => {
+            console.log(`Server running on http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error("Failed to start server:", error);
+        process.exit(1);
+    }
+};
+
+startServer();

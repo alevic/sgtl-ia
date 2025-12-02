@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        - VITE_API_URL=http://192.168.0.113:4000
+    ports:
+      - "8080:80"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    depends_on:
+      - db
+    restart: always
+
+  api:
+    build: ./server
+    command: sh -c "npm run migrate && npm run dev"
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@db:5432/${POSTGRES_DB:-sgtl_db}
+      - PORT=4000
+      - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-sgtl_secret_key_123456}
+      - BETTER_AUTH_URL=http://192.168.0.113:4000
+      - CLIENT_URL=http://192.168.0.113:8080
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-admin}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin123}
+      - POSTGRES_DB=${POSTGRES_DB:-sgtl_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:

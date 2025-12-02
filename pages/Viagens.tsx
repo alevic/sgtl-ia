@@ -1,205 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { IViagem, IVeiculo, IMotorista, Moeda, VeiculoStatus } from '../types';
+import { IViagem } from '../types';
+import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
     CheckCircle, Clock, Loader, XCircle, TrendingUp
 } from 'lucide-react';
 
-const MOCK_VEICULOS: IVeiculo[] = [
-    {
-        id: 'V001',
-        placa: 'ABC-1234',
-        modelo: 'Mercedes-Benz O500',
-        tipo: 'ONIBUS',
-        status: VeiculoStatus.ATIVO,
-        proxima_revisao_km: 150000
-    }
-];
-
-export const MOCK_MOTORISTAS: IMotorista[] = [
-    {
-        id: 'M001',
-        nome: 'Carlos Silva',
-        cnh: '12345678900',
-        categoria_cnh: 'D',
-        validade_cnh: '2026-12-31',
-        status: 'DISPONIVEL'
-    }
-];
-
-export const MOCK_VIAGENS: IViagem[] = [
-    {
-        id: 'V001',
-        titulo: 'São Paulo → Florianópolis',
-        origem: 'São Paulo, SP',
-        destino: 'Florianópolis, SC',
-        paradas: [], // Calculado via rotas
-        data_partida: '2023-11-24T22:00:00',
-        data_chegada_prevista: '2023-11-25T08:00:00',
-        status: 'CONFIRMADA',
-        veiculo_id: 'V001',
-        motorista_ids: ['M001'],
-        ocupacao_percent: 75,
-        internacional: false,
-        moeda_base: Moeda.BRL,
-        tipo_viagem: 'IDA',
-        precos_por_tipo: {},
-        imagem_capa: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&q=80&w=1000',
-        galeria: [
-            'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=1000',
-            'https://images.unsplash.com/photo-1570125909232-eb2be3b11374?auto=format&fit=crop&q=80&w=1000'
-        ],
-        usa_sistema_rotas: true,
-        rota_ida: {
-            id: 'R003',
-            nome: 'SP → Florianópolis (via Curitiba)',
-            tipo_rota: 'IDA',
-            ativa: true,
-            pontos: [
-                {
-                    id: 'P6',
-                    nome: 'São Paulo, SP',
-                    ordem: 0,
-                    tipo: 'ORIGEM',
-                    horario_partida: '2023-11-24T22:00:00',
-                    permite_embarque: true,
-                    permite_desembarque: false
-                },
-                {
-                    id: 'P7',
-                    nome: 'Curitiba, PR',
-                    ordem: 1,
-                    tipo: 'PARADA_INTERMEDIARIA',
-                    horario_chegada: '2023-11-25T04:00:00',
-                    horario_partida: '2023-11-25T04:30:00',
-                    permite_embarque: true,
-                    permite_desembarque: true
-                },
-                {
-                    id: 'P8',
-                    nome: 'Florianópolis, SC',
-                    ordem: 2,
-                    tipo: 'DESTINO',
-                    horario_chegada: '2023-11-25T09:00:00',
-                    permite_embarque: false,
-                    permite_desembarque: true
-                }
-            ],
-            duracao_estimada_minutos: 660,
-            distancia_total_km: 700
-        }
-    },
-    {
-        id: 'V002',
-        titulo: 'Rio de Janeiro → Buenos Aires',
-        origem: 'Rio de Janeiro, RJ',
-        destino: 'Buenos Aires, Argentina',
-        paradas: [], // Calculado via rotas
-        data_partida: '2023-12-01T00:00:00',
-        data_chegada_prevista: '2023-12-02T14:00:00',
-        status: 'AGENDADA',
-        veiculo_id: 'V001',
-        motorista_ids: ['M001', 'M002'],
-        ocupacao_percent: 20,
-        internacional: true,
-        moeda_base: Moeda.USD,
-        tipo_viagem: 'IDA_E_VOLTA',
-        precos_por_tipo: {},
-        imagem_capa: 'https://images.unsplash.com/photo-1589909202802-8f4aadce1849?auto=format&fit=crop&q=80&w=1000',
-        galeria: [
-            'https://images.unsplash.com/photo-1612294037637-ec328d0e075e?auto=format&fit=crop&q=80&w=1000'
-        ],
-        usa_sistema_rotas: true,
-        rota_ida: {
-            id: 'R_INT_01',
-            nome: 'RJ → Buenos Aires (Ida)',
-            tipo_rota: 'IDA',
-            ativa: true,
-            pontos: [
-                {
-                    id: 'P_INT_1',
-                    nome: 'Rio de Janeiro, RJ',
-                    ordem: 0,
-                    tipo: 'ORIGEM',
-                    horario_partida: '2023-12-01T00:00:00',
-                    permite_embarque: true,
-                    permite_desembarque: false
-                },
-                {
-                    id: 'P_INT_2',
-                    nome: 'Curitiba, PR',
-                    ordem: 1,
-                    tipo: 'PARADA_INTERMEDIARIA',
-                    horario_chegada: '2023-12-01T08:00:00',
-                    horario_partida: '2023-12-01T09:00:00',
-                    permite_embarque: true,
-                    permite_desembarque: true
-                },
-                {
-                    id: 'P_INT_3',
-                    nome: 'Porto Alegre, RS',
-                    ordem: 2,
-                    tipo: 'PARADA_INTERMEDIARIA',
-                    horario_chegada: '2023-12-01T18:00:00',
-                    horario_partida: '2023-12-01T19:00:00',
-                    permite_embarque: true,
-                    permite_desembarque: true
-                },
-                {
-                    id: 'P_INT_4',
-                    nome: 'Buenos Aires, AR',
-                    ordem: 3,
-                    tipo: 'DESTINO',
-                    horario_chegada: '2023-12-02T14:00:00',
-                    permite_embarque: false,
-                    permite_desembarque: true
-                }
-            ],
-            duracao_estimada_minutos: 2280,
-            distancia_total_km: 2600
-        },
-        rota_volta: {
-            id: 'R_INT_02',
-            nome: 'Buenos Aires → RJ (Volta)',
-            tipo_rota: 'VOLTA',
-            ativa: true,
-            pontos: [
-                {
-                    id: 'P_INT_5',
-                    nome: 'Buenos Aires, AR',
-                    ordem: 0,
-                    tipo: 'ORIGEM',
-                    horario_partida: '2023-12-05T08:00:00',
-                    permite_embarque: true,
-                    permite_desembarque: false
-                },
-                {
-                    id: 'P_INT_6',
-                    nome: 'Rio de Janeiro, RJ',
-                    ordem: 1,
-                    tipo: 'DESTINO',
-                    horario_chegada: '2023-12-06T22:00:00',
-                    permite_embarque: false,
-                    permite_desembarque: true
-                }
-            ],
-            duracao_estimada_minutos: 2280,
-            distancia_total_km: 2600
-        }
-    }
-];
-
-const StatusBadge: React.FC<{ status: IViagem['status'] }> = ({ status }) => {
-    const configs = {
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+    const configs: any = {
+        SCHEDULED: { color: 'yellow', icon: Clock, label: 'Agendada' },
         AGENDADA: { color: 'yellow', icon: Clock, label: 'Agendada' },
+        CONFIRMED: { color: 'green', icon: CheckCircle, label: 'Confirmada' },
         CONFIRMADA: { color: 'green', icon: CheckCircle, label: 'Confirmada' },
+        IN_TRANSIT: { color: 'blue', icon: Loader, label: 'Em Curso' },
         EM_CURSO: { color: 'blue', icon: Loader, label: 'Em Curso' },
+        COMPLETED: { color: 'slate', icon: CheckCircle, label: 'Finalizada' },
         FINALIZADA: { color: 'slate', icon: CheckCircle, label: 'Finalizada' },
-        CANCELADA: { color: 'red', icon: XCircle, label: 'Cancelada' }
+        CANCELLED: { color: 'red', icon: XCircle, label: 'Cancelada' },
+        CANCELADA: { color: 'red', icon: XCircle, label: 'Cancelada' },
+        DELAYED: { color: 'orange', icon: Clock, label: 'Atrasada' }
     };
 
-    const config = configs[status];
+    const config = configs[status] || configs['SCHEDULED'];
     const Icon = config.icon;
 
     return (
@@ -211,31 +34,52 @@ const StatusBadge: React.FC<{ status: IViagem['status'] }> = ({ status }) => {
 };
 
 export const Viagens: React.FC = () => {
-    const [viagens] = useState<IViagem[]>(MOCK_VIAGENS);
-    const [veiculos] = useState<IVeiculo[]>(MOCK_VEICULOS);
-    const [motoristas] = useState<IMotorista[]>(MOCK_MOTORISTAS);
-    const [filtroStatus, setFiltroStatus] = useState<'TODOS' | IViagem['status']>('TODOS');
+    const [viagens, setViagens] = useState<IViagem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
     const [busca, setBusca] = useState('');
+    const navigate = useNavigate();
 
-    const getVeiculo = (veiculoId?: string) => veiculos.find(v => v.id === veiculoId);
-    const getMotorista = (motoristaId?: string) => motoristas.find(m => m.id === motoristaId);
+    const fetchViagens = async () => {
+        try {
+            setLoading(true);
+            const data = await tripsService.getAll();
+            setViagens(data);
+        } catch (error) {
+            console.error('Erro ao carregar viagens:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchViagens();
+    }, []);
 
     const viagensFiltradas = viagens.filter(v => {
         const matchStatus = filtroStatus === 'TODOS' || v.status === filtroStatus;
         const matchBusca = busca === '' ||
-            v.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-            v.origem.toLowerCase().includes(busca.toLowerCase()) ||
-            v.destino.toLowerCase().includes(busca.toLowerCase());
+            (v.route_name || '').toLowerCase().includes(busca.toLowerCase()) ||
+            (v.origin_city || '').toLowerCase().includes(busca.toLowerCase()) ||
+            (v.destination_city || '').toLowerCase().includes(busca.toLowerCase());
         return matchStatus && matchBusca;
     });
 
     // Estatísticas
     const totalViagens = viagens.length;
-    const viagensConfirmadas = viagens.filter(v => v.status === 'CONFIRMADA').length;
-    const viagensEmCurso = viagens.filter(v => v.status === 'EM_CURSO').length;
-    const ocupacaoMedia = Math.round(viagens.reduce((sum, v) => sum + v.ocupacao_percent, 0) / viagens.length);
+    const viagensConfirmadas = viagens.filter(v => v.status === 'CONFIRMED' || v.status === 'CONFIRMADA').length;
+    const viagensEmCurso = viagens.filter(v => v.status === 'IN_TRANSIT' || v.status === 'EM_CURSO').length;
 
-    const navigate = useNavigate();
+    // Calculate average occupancy if possible (needs capacity)
+    const ocupacaoMedia = 0; // Placeholder
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader className="animate-spin text-blue-600" size={32} />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -295,7 +139,7 @@ export const Viagens: React.FC = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm text-slate-500 dark:text-slate-400">Ocupação Média</p>
-                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{ocupacaoMedia}%</p>
+                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">--%</p>
                         </div>
                         <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
                             <TrendingUp size={24} className="text-purple-600 dark:text-purple-400" />
@@ -312,7 +156,7 @@ export const Viagens: React.FC = () => {
                             <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Buscar por origem, destino ou título..."
+                                placeholder="Buscar por origem, destino ou rota..."
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -328,14 +172,14 @@ export const Viagens: React.FC = () => {
                             Todos
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('AGENDADA')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'AGENDADA' ? 'bg-yellow-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus('SCHEDULED')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'SCHEDULED' ? 'bg-yellow-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Agendada
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('CONFIRMADA')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CONFIRMADA' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus('CONFIRMED')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CONFIRMED' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Confirmada
                         </button>
@@ -352,9 +196,6 @@ export const Viagens: React.FC = () => {
                     </div>
                 ) : (
                     viagensFiltradas.map((viagem) => {
-                        const veiculo = getVeiculo(viagem.veiculo_id);
-                        const motorista = getMotorista(viagem.motorista_id);
-
                         return (
                             <div
                                 key={viagem.id}
@@ -363,48 +204,45 @@ export const Viagens: React.FC = () => {
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-4">
-                                        {viagem.imagem_capa ? (
-                                            <img
-                                                src={viagem.imagem_capa}
-                                                alt={viagem.titulo}
-                                                className="w-16 h-16 rounded-lg object-cover shadow-sm"
-                                            />
-                                        ) : (
-                                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
-                                                <Bus size={28} className="text-white" />
-                                            </div>
-                                        )}
+                                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
+                                            <Bus size={28} className="text-white" />
+                                        </div>
                                         <div>
                                             <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                                {viagem.titulo}
-                                                {viagem.internacional && (
-                                                    <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs rounded">
-                                                        Internacional
-                                                    </span>
-                                                )}
-                                                <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded">
-                                                    {viagem.tipo_viagem === 'IDA_E_VOLTA' ? 'Ida e Volta' : viagem.tipo_viagem === 'IDA' ? 'Ida' : 'Volta'}
-                                                </span>
+                                                {viagem.route_name || 'Rota sem nome'}
                                             </h3>
                                             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 <MapPin size={14} className="text-green-600" />
-                                                <span>{viagem.origem}</span>
+                                                <span>{viagem.origin_city}</span>
                                                 <span>→</span>
                                                 <MapPin size={14} className="text-red-600" />
-                                                <span>{viagem.destino}</span>
+                                                <span>{viagem.destination_city}</span>
+                                            </div>
+                                            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                                <div className="flex items-center gap-1">
+                                                    <Calendar size={14} />
+                                                    <span>{new Date(viagem.departure_date).toLocaleDateString()}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <Clock size={14} />
+                                                    <span>{viagem.departure_time}</span>
+                                                </div>
+                                                {viagem.vehicle_plate && (
+                                                    <div className="flex items-center gap-1">
+                                                        <Bus size={14} />
+                                                        <span>{viagem.vehicle_plate}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-                                    <StatusBadge status={viagem.status} />
-                                </div>
-
-                                {viagem.paradas.length > 0 && (
-                                    <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
-                                            {viagem.paradas.length} parada{viagem.paradas.length > 1 ? 's' : ''} intermediária{viagem.paradas.length > 1 ? 's' : ''}
-                                        </p>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <StatusBadge status={viagem.status} />
+                                        <span className="text-sm text-slate-500">
+                                            {viagem.seats_available} assentos livres
+                                        </span>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         );
                     })

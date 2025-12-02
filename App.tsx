@@ -11,6 +11,7 @@ import { NovoMotorista } from './pages/NovoMotorista';
 import { MotoristaDetalhes } from './pages/MotoristaDetalhes';
 import { EditarMotorista } from './pages/EditarMotorista';
 import { Encomendas } from './pages/Encomendas';
+import { NovaEncomenda } from './pages/NovaEncomenda';
 import { Fretamento } from './pages/Fretamento';
 import { NovoFretamento } from './pages/NovoFretamento';
 import { Reservas } from './pages/Reservas';
@@ -95,6 +96,7 @@ const App: React.FC = () => {
                   <Route path="motoristas/:id" element={<MotoristaDetalhes />} />
                   <Route path="motoristas/:id/editar" element={<EditarMotorista />} />
                   <Route path="encomendas" element={<Encomendas />} />
+                  <Route path="encomendas/nova" element={<NovaEncomenda />} />
                   <Route path="fretamento" element={<Fretamento />} />
                   <Route path="fretamento/novo" element={<NovoFretamento />} />
                   <Route path="clientes" element={<CRM />} />

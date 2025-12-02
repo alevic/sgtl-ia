@@ -1,14 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, MapPin, Bus, User, DollarSign, Clock, Users, Globe } from 'lucide-react';
-import { MOCK_VIAGENS, MOCK_MOTORISTAS } from './Viagens';
+import { ArrowLeft, Calendar, MapPin, Bus, User, DollarSign, Clock, Users, Globe, Loader } from 'lucide-react';
 import { VisualizadorRota } from '../components/Rotas/VisualizadorRota';
+import { tripsService } from '../services/tripsService';
+import { IViagem } from '../types';
 
 export const ViagemDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const viagem = MOCK_VIAGENS.find(v => v.id === id);
+    const [loading, setLoading] = useState(true);
+    const [viagem, setViagem] = useState<IViagem | null>(null);
     const [abaRotaAtiva, setAbaRotaAtiva] = useState<'IDA' | 'VOLTA'>('IDA');
+
+    useEffect(() => {
+        if (id) {
+            loadViagem(id);
+        }
+    }, [id]);
+
+    const loadViagem = async (tripId: string) => {
+        try {
+            setLoading(true);
+            const data = await tripsService.getById(tripId);
+            setViagem(data);
+        } catch (error) {
+            console.error('Erro ao carregar viagem:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Loader className="animate-spin text-blue-600" size={32} />
+            </div>
+        );
+    }
 
     if (!viagem) {
         return (
@@ -24,13 +52,6 @@ export const ViagemDetalhes: React.FC = () => {
         );
     }
 
-    // Buscar motoristas
-    const motoristasViagem = viagem.motorista_ids
-        ? viagem.motorista_ids.map(id => MOCK_MOTORISTAS.find(m => m.id === id)).filter(Boolean)
-        : viagem.motorista_id
-            ? [MOCK_MOTORISTAS.find(m => m.id === viagem.motorista_id)].filter(Boolean)
-            : [];
-
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header */}
@@ -42,7 +63,7 @@ export const ViagemDetalhes: React.FC = () => {
                     <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{viagem.titulo}</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{viagem.titulo || `Viagem #${viagem.id.slice(0, 8)}`}</h1>
                     <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
                         <span className={`px-2 py-0.5 rounded text-xs font-semibold ${viagem.status === 'CONFIRMADA' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' :
                             viagem.status === 'AGENDADA' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' :
@@ -83,8 +104,8 @@ export const ViagemDetalhes: React.FC = () => {
                                 <button
                                     onClick={() => setAbaRotaAtiva('IDA')}
                                     className={`px-4 py-2 font-medium transition-colors border-b-2 ${abaRotaAtiva === 'IDA'
-                                            ? 'border-green-600 text-green-600 dark:text-green-400'
-                                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        ? 'border-green-600 text-green-600 dark:text-green-400'
+                                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                 >
                                     Rota de Ida
@@ -92,8 +113,8 @@ export const ViagemDetalhes: React.FC = () => {
                                 <button
                                     onClick={() => setAbaRotaAtiva('VOLTA')}
                                     className={`px-4 py-2 font-medium transition-colors border-b-2 ${abaRotaAtiva === 'VOLTA'
-                                            ? 'border-orange-600 text-orange-600 dark:text-orange-400'
-                                            : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                                        ? 'border-orange-600 text-orange-600 dark:text-orange-400'
+                                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
                                 >
                                     Rota de Volta
@@ -157,7 +178,7 @@ export const ViagemDetalhes: React.FC = () => {
                                 <Bus className="text-blue-600" size={20} />
                                 <div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">Veículo</p>
-                                    <p className="font-medium text-slate-800 dark:text-white">Mercedes-Benz O500</p>
+                                    <p className="font-medium text-slate-800 dark:text-white">{(viagem as any).vehicle_plate || (viagem as any).veiculo_id || 'Não atribuído'}</p>
                                 </div>
                             </div>
 
@@ -165,17 +186,9 @@ export const ViagemDetalhes: React.FC = () => {
                                 <User className="text-orange-600 mt-1" size={20} />
                                 <div>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">Motorista(s)</p>
-                                    {motoristasViagem.length > 0 ? (
-                                        <div className="flex flex-col gap-1">
-                                            {motoristasViagem.map((m, idx) => (
-                                                <p key={idx} className="font-medium text-slate-800 dark:text-white">
-                                                    {m?.nome}
-                                                </p>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="font-medium text-slate-800 dark:text-white">Não atribuído</p>
-                                    )}
+                                    <p className="font-medium text-slate-800 dark:text-white">
+                                        {(viagem as any).driver_name || (viagem as any).motorista_id || 'Não atribuído'}
+                                    </p>
                                 </div>
                             </div>
 
@@ -187,10 +200,10 @@ export const ViagemDetalhes: React.FC = () => {
                                         <div className="flex-1 w-24 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-purple-600 rounded-full"
-                                                style={{ width: `${viagem.ocupacao_percent}%` }}
+                                                style={{ width: `${viagem.ocupacao_percent || 0}%` }}
                                             ></div>
                                         </div>
-                                        <span className="text-sm font-medium text-slate-800 dark:text-white">{viagem.ocupacao_percent}%</span>
+                                        <span className="text-sm font-medium text-slate-800 dark:text-white">{viagem.ocupacao_percent || 0}%</span>
                                     </div>
                                 </div>
                             </div>

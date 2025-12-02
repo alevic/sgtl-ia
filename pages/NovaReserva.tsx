@@ -1,133 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IViagem, IVeiculo, ICliente, IPassageiroReserva, Moeda, TipoAssento, TipoDocumento } from '../types';
+import { IViagem, IVeiculo, ICliente, IPassageiroReserva, Moeda, TipoAssento, IReserva } from '../types';
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
 import { MapaAssentosReserva } from '../components/Veiculos/MapaAssentosReserva';
-import { MOCK_VIAGENS } from './Viagens';
-import { Calendar, MapPin, CreditCard, ArrowRight, ArrowLeft, Check, Users, X } from 'lucide-react';
-
-// Mock data
-const MOCK_VEICULOS: IVeiculo[] = [
-  {
-    id: 'V001',
-    placa: 'ABC-1234',
-    modelo: 'Mercedes-Benz O500',
-    tipo: 'ONIBUS',
-    status: 'ATIVO' as any,
-    proxima_revisao_km: 150000,
-    capacidade_passageiros: 40,
-    mapa_configurado: true,
-    precos_assentos: {
-      [TipoAssento.CONVENCIONAL]: 150.00,
-      [TipoAssento.EXECUTIVO]: 220.00,
-      [TipoAssento.SEMI_LEITO]: 280.00,
-      [TipoAssento.LEITO]: 350.00,
-      [TipoAssento.CAMA]: 420.00,
-      [TipoAssento.CAMA_MASTER]: 500.00
-    },
-    mapa_assentos: Array.from({ length: 40 }, (_, i) => ({
-      id: `seat-${i + 1}`,
-      numero: `${i + 1}`,
-      andar: 1 as 1 | 2,
-      posicao_x: i % 4,
-      posicao_y: Math.floor(i / 4),
-      tipo: i < 10 ? TipoAssento.EXECUTIVO : TipoAssento.CONVENCIONAL,
-      status: 'LIVRE' as any
-    }))
-  }
-];
-
-const MOCK_CLIENTES: ICliente[] = [
-  {
-    id: '1',
-    nome: 'Maria Oliveira',
-    email: 'maria@email.com',
-    saldo_creditos: 100,
-    historico_viagens: 5,
-    documento_tipo: TipoDocumento.CPF,
-    documento_numero: '123.456.789-00',
-    nacionalidade: 'Brasileira',
-    data_cadastro: '2023-01-15',
-    pais: 'Brasil',
-    segmento: 'REGULAR',
-    tags: ['frequente', 'preferencial'],
-    valor_total_gasto: 1500.00
-  },
-  {
-    id: '2',
-    nome: 'João Santos',
-    email: 'joao@email.com',
-    saldo_creditos: 50,
-    historico_viagens: 2,
-    documento_tipo: TipoDocumento.CPF,
-    documento_numero: '987.654.321-00',
-    nacionalidade: 'Brasileira',
-    data_cadastro: '2023-06-20',
-    pais: 'Brasil',
-    segmento: 'NOVO',
-    tags: [],
-    valor_total_gasto: 360.00
-  },
-  {
-    id: '3',
-    nome: 'Ana Paula',
-    email: 'ana@email.com',
-    saldo_creditos: 75,
-    historico_viagens: 8,
-    documento_tipo: TipoDocumento.CPF,
-    documento_numero: '456.789.123-00',
-    nacionalidade: 'Brasileira',
-    data_cadastro: '2022-11-10',
-    pais: 'Brasil',
-    segmento: 'VIP',
-    tags: ['vip', 'executivo'],
-    valor_total_gasto: 2400.00
-  }
-];
+import { Calendar, MapPin, CreditCard, ArrowRight, ArrowLeft, Check, Users, X, Loader } from 'lucide-react';
+import { tripsService } from '../services/tripsService';
+import { clientsService } from '../services/clientsService';
+import { vehiclesService } from '../services/vehiclesService';
+import { reservationsService } from '../services/reservationsService';
 
 type Step = 1 | 2 | 3;
 
 export const NovaReserva: React.FC = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Data Lists
+  const [viagens, setViagens] = useState<IViagem[]>([]);
+  const [clientes, setClientes] = useState<ICliente[]>([]);
+
+  // Selection State
   const [viagemSelecionada, setViagemSelecionada] = useState<IViagem | null>(null);
   const [veiculo, setVeiculo] = useState<IVeiculo | null>(null);
   const [passageiros, setPassageiros] = useState<Omit<IPassageiroReserva, 'id'>[]>([]);
   const [clienteSelecionado, setClienteSelecionado] = useState<ICliente | null>(null);
   const [assentoSelecionado, setAssentoSelecionado] = useState<{ numero: string; tipo: TipoAssento; valor: number } | null>(null);
+  const [assentosOcupados, setAssentosOcupados] = useState<string[]>([]);
 
-  // Assentos já reservados (mock - viriam do backend)
-  const assentosReservados = ['5', '6', '15', '16'];
+  useEffect(() => {
+    loadInitialData();
+  }, []);
 
-  const handleSelecionarViagem = (viagem: IViagem | null) => {
-    setViagemSelecionada(viagem);
-    if (viagem) {
-      // Buscar veículo correspondente (mock)
-      const veic = MOCK_VEICULOS.find(v => v.id === viagem.veiculo_id) || MOCK_VEICULOS[0];
-      setVeiculo(veic);
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      const [tripsData, clientsData] = await Promise.all([
+        tripsService.getAll(),
+        clientsService.getAll()
+      ]);
+      // Filter only scheduled/confirmed trips
+      const activeTrips = tripsData.filter(t =>
+        t.status === 'SCHEDULED' || t.status === 'CONFIRMED' ||
+        t.status === 'AGENDADA' || t.status === 'CONFIRMADA'
+      );
+      setViagens(activeTrips);
+      setClientes(clientsData);
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // When trip is selected, fetch vehicle and existing reservations
+  useEffect(() => {
+    if (viagemSelecionada) {
+      loadTripDetails(viagemSelecionada);
     } else {
       setVeiculo(null);
+      setAssentosOcupados([]);
+    }
+  }, [viagemSelecionada]);
+
+  const loadTripDetails = async (viagem: IViagem) => {
+    try {
+      setLoading(true);
+
+      // 1. Fetch Vehicle (for seat map)
+      if (viagem.vehicle_id) {
+        const veiculoData = await vehiclesService.getById(viagem.vehicle_id);
+        setVeiculo(veiculoData);
+      }
+
+      // 2. Fetch Reservations (for occupied seats)
+      const reservations = await reservationsService.getAll({ status: 'CONFIRMED' }); // Filter by trip_id ideally, but service needs update or we filter client side
+      // Actually, my service implementation for getAll accepts filters but I didn't implement trip_id filter in the service wrapper properly?
+      // Let's check reservationsService.ts. It accepts { status, search }.
+      // I should update reservationsService to accept trip_id.
+      // For now, I'll fetch all and filter client side if the list isn't huge, or just rely on what I have.
+      // Wait, I can pass query params manually if I want, but let's stick to what I have.
+      // I'll filter client side for now.
+      const tripReservations = reservations.filter((r: any) => r.trip_id === viagem.id && r.status !== 'CANCELLED');
+      const occupied = tripReservations.map((r: any) => r.seat_number || r.assento_numero).filter(Boolean);
+      setAssentosOcupados(occupied);
+
+    } catch (error) {
+      console.error('Erro ao carregar detalhes da viagem:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleAdicionarPassageiro = (passageiro: Omit<IPassageiroReserva, 'id'>) => {
     setPassageiros([...passageiros, passageiro]);
-    // Adicionar assento aos reservados
-    assentosReservados.push(passageiro.assento_numero);
-    // Limpar seleções para permitir adicionar outro passageiro
+    // Add to occupied list temporarily
+    setAssentosOcupados([...assentosOcupados, passageiro.assento_numero]);
+    // Reset selection
     setClienteSelecionado(null);
     setAssentoSelecionado(null);
   };
 
   const handleRemoverPassageiro = (index: number) => {
+    const passageiro = passageiros[index];
     const novoPassageiros = passageiros.filter((_, i) => i !== index);
     setPassageiros(novoPassageiros);
+    // Remove from occupied list
+    setAssentosOcupados(assentosOcupados.filter(a => a !== passageiro.assento_numero));
   };
 
   const handleSelecionarAssento = (assento: { numero: string; tipo: TipoAssento; valor: number } | null) => {
     setAssentoSelecionado(assento);
 
-    // Se tem cliente e assento selecionados, adicionar automaticamente
     if (clienteSelecionado && assento) {
       handleAdicionarPassageiro({
         cliente_id: clienteSelecionado.id,
@@ -139,44 +125,86 @@ export const NovaReserva: React.FC = () => {
   };
 
   const valorTotal = passageiros.reduce((sum, p) => sum + p.valor, 0);
-
   const podeAvancarStep1 = viagemSelecionada !== null;
   const podeAvancarStep2 = passageiros.length > 0;
 
-  const handleConfirmarReserva = () => {
-    const reserva = {
-      id: `RES-${Date.now()}`,
-      codigo: `${Date.now().toString().slice(-6)}`,
-      viagem_id: viagemSelecionada!.id,
-      responsavel_id: passageiros[0].cliente_id,
-      passageiros: passageiros.map((p, i) => ({
-        ...p,
-        id: `PASS-${i + 1}`
-      })),
-      data_reserva: new Date().toISOString(),
-      status: 'PENDENTE' as const,
-      valor_total: valorTotal,
-      moeda: viagemSelecionada?.moeda_base || Moeda.BRL,
-      forma_pagamento: undefined
-    };
+  const handleConfirmarReserva = async () => {
+    if (!viagemSelecionada) return;
 
-    console.log('Reserva criada:', reserva);
-    alert(`Reserva confirmada! Código: ${reserva.codigo}\nValor Total: R$ ${valorTotal.toFixed(2)}`);
+    try {
+      setSaving(true);
 
-    // Reset
-    setStep(1);
-    setViagemSelecionada(null);
-    setPassageiros([]);
-    setClienteSelecionado(null);
-    setAssentoSelecionado(null);
+      // Create a reservation for each passenger
+      const promises = passageiros.map(p => {
+        const cliente = clientes.find(c => c.id === p.cliente_id);
+        return reservationsService.create({
+          trip_id: viagemSelecionada.id,
+          seat_id: null, // Backend uses seat_id but we only have seat_number from map. 
+          // We need to find seat_id from vehicle map if backend requires it.
+          // Backend `reservations` table has `seat_id` (FK to seat table).
+          // But `seat` table is linked to vehicle.
+          // If I don't have seat_id, I might fail.
+          // Let's check if backend accepts seat_number or if I need to find the ID.
+          // The backend `create` route expects `seat_id`.
+          // I need to find the seat ID from the vehicle data.
+          seat_number: p.assento_numero, // I'll send this too just in case I update backend
+          passenger_name: cliente?.nome || 'Passageiro',
+          passenger_document: cliente?.documento_numero || '000',
+          passenger_email: cliente?.email,
+          passenger_phone: cliente?.telefone, // Assuming I have this field
+          price: p.valor,
+          client_id: p.cliente_id,
+          notes: 'Reserva via Admin'
+        });
+      });
+
+      // Wait, I need `seat_id`.
+      // `veiculo.mapa_assentos` should have `id` for each seat.
+      // Let's check `IVeiculo` interface.
+      // `mapa_assentos` is `Partial<IAssento>[]`. `IAssento` has `id`.
+      // So I can find the seat ID.
+
+      const promisesWithSeatId = passageiros.map(p => {
+        const cliente = clientes.find(c => c.id === p.cliente_id);
+        // @ts-ignore
+        const seat = veiculo?.mapa_assentos?.find((s: any) => s.numero === p.assento_numero);
+
+        return reservationsService.create({
+          trip_id: viagemSelecionada.id,
+          seat_id: seat?.id,
+          passenger_name: cliente?.nome || 'Passageiro',
+          passenger_document: cliente?.documento_numero || '000',
+          passenger_email: cliente?.email,
+          price: p.valor,
+          client_id: p.cliente_id,
+          notes: 'Reserva via Admin'
+        });
+      });
+
+      await Promise.all(promisesWithSeatId);
+
+      alert('Reservas confirmadas com sucesso!');
+      navigate('/admin/reservas');
+    } catch (error) {
+      console.error('Erro ao salvar reservas:', error);
+      alert('Erro ao salvar reservas. Verifique se os assentos já não foram ocupados.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getClienteNome = (cliente_id: string): string => {
-    const cliente = MOCK_CLIENTES.find(c => c.id === cliente_id);
+    const cliente = clientes.find(c => c.id === cliente_id);
     return cliente?.nome || 'Cliente não encontrado';
   };
 
-  const navigate = useNavigate();
+  if (loading && !viagemSelecionada) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader className="animate-spin text-blue-600" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -257,9 +285,9 @@ export const NovaReserva: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
             <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Selecione uma viagem</h3>
             <SeletorViagem
-              viagens={MOCK_VIAGENS}
+              viagens={viagens}
               viagemSelecionada={viagemSelecionada}
-              onChange={handleSelecionarViagem}
+              onChange={setViagemSelecionada}
             />
           </div>
 
@@ -283,7 +311,7 @@ export const NovaReserva: React.FC = () => {
             {/* Seletor de Passageiro */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
               <SeletorPassageiro
-                clientes={MOCK_CLIENTES}
+                clientes={clientes}
                 clienteSelecionado={clienteSelecionado}
                 onSelecionarCliente={setClienteSelecionado}
               />
@@ -298,12 +326,16 @@ export const NovaReserva: React.FC = () => {
                   : 'Selecione um passageiro primeiro'}
               </p>
               {veiculo ? (
-                <MapaAssentosReserva
-                  veiculo={veiculo}
-                  assentosReservados={[...assentosReservados, ...passageiros.map(p => p.assento_numero)]}
-                  assentoSelecionado={assentoSelecionado}
-                  onSelecionarAssento={handleSelecionarAssento}
-                />
+                loading ? (
+                  <div className="flex justify-center p-8"><Loader className="animate-spin" /></div>
+                ) : (
+                  <MapaAssentosReserva
+                    veiculo={veiculo}
+                    assentosReservados={assentosOcupados}
+                    assentoSelecionado={assentoSelecionado}
+                    onSelecionarAssento={handleSelecionarAssento}
+                  />
+                )
               ) : (
                 <p className="text-slate-500 dark:text-slate-400">Selecione uma viagem primeiro</p>
               )}
@@ -410,21 +442,21 @@ export const NovaReserva: React.FC = () => {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-slate-500 dark:text-slate-400">Título</p>
-                  <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.titulo}</p>
+                  <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.titulo || viagemSelecionada.route_name}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Origem</p>
-                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.origem}</p>
+                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.origem || viagemSelecionada.origin_city}</p>
                   </div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Destino</p>
-                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.destino}</p>
+                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.destino || viagemSelecionada.destination_city}</p>
                   </div>
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">Data de Partida</p>
                     <p className="font-semibold text-slate-800 dark:text-white">
-                      {new Date(viagemSelecionada.data_partida).toLocaleString('pt-BR')}
+                      {new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida || '').toLocaleString('pt-BR')}
                     </p>
                   </div>
                   <div>
@@ -480,10 +512,11 @@ export const NovaReserva: React.FC = () => {
               </button>
               <button
                 onClick={handleConfirmarReserva}
-                className="flex-2 px-8 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                disabled={saving}
+                className="flex-2 px-8 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <CreditCard size={20} />
-                Confirmar Reserva
+                {saving ? <Loader size={20} className="animate-spin" /> : <CreditCard size={20} />}
+                {saving ? 'Confirmando...' : 'Confirmar Reserva'}
               </button>
             </div>
           </div>

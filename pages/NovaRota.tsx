@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { IRota } from '../types';
 import { EditorRota } from '../components/Rotas/EditorRota';
 import { criarRotaVazia } from '../utils/rotaValidation';
-import { ArrowLeft, Save, Route } from 'lucide-react';
+import { routesService } from '../services/routesService';
+import { ArrowLeft, Save, Route, Loader } from 'lucide-react';
 
 export const NovaRota: React.FC = () => {
     const navigate = useNavigate();
@@ -11,28 +12,110 @@ export const NovaRota: React.FC = () => {
     const isEdicao = Boolean(id);
 
     const [rota, setRota] = useState<IRota>(criarRotaVazia('IDA'));
+    const [loading, setLoading] = useState(isEdicao);
+    const [saving, setSaving] = useState(false);
+
+    // Form states
     const [nomeRota, setNomeRota] = useState('');
     const [tipoRota, setTipoRota] = useState<'IDA' | 'VOLTA'>('IDA');
     const [distanciaTotal, setDistanciaTotal] = useState<number | ''>('');
     const [rotaAtiva, setRotaAtiva] = useState(true);
+
+    useEffect(() => {
+        if (isEdicao && id) {
+            loadRota(id);
+        }
+    }, [id, isEdicao]);
+
+    const loadRota = async (rotaId: string) => {
+        try {
+            setLoading(true);
+            const data = await routesService.getById(rotaId);
+            setRota(data);
+
+            // Populate form fields
+            setNomeRota(data.nome);
+            setTipoRota(data.tipo_rota);
+            setDistanciaTotal(data.distancia_total_km || '');
+            setRotaAtiva(data.ativa);
+        } catch (error) {
+            console.error('Erro ao carregar rota:', error);
+            alert('Erro ao carregar detalhes da rota.');
+            navigate('/admin/rotas');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleTipoChange = (novoTipo: 'IDA' | 'VOLTA') => {
         setTipoRota(novoTipo);
         setRota({ ...rota, tipo_rota: novoTipo });
     };
 
-    const handleSalvar = () => {
-        const rotaFinal: IRota = {
-            ...rota,
-            nome: nomeRota || rota.nome,
-            tipo_rota: tipoRota,
-            distancia_total_km: distanciaTotal ? Number(distanciaTotal) : undefined,
-            ativa: rotaAtiva
-        };
+    const handleSalvar = async () => {
+        if (!nomeRota) {
+            alert('Por favor, informe um nome para a rota.');
+            return;
+        }
 
-        console.log('Salvando rota:', rotaFinal);
-        navigate('/admin/rotas');
+        if (rota.pontos.length < 2) {
+            alert('A rota deve ter pelo menos origem e destino.');
+            return;
+        }
+
+        try {
+            setSaving(true);
+
+            // Parse origin and destination
+            const origemPonto = rota.pontos[0];
+            const destinoPonto = rota.pontos[rota.pontos.length - 1];
+
+            const parseLocation = (location: string) => {
+                const parts = location.split(/[,-]/).map(s => s.trim());
+                if (parts.length >= 2) {
+                    return { city: parts[0], state: parts[1].substring(0, 2).toUpperCase() };
+                }
+                return { city: location, state: 'UF' };
+            };
+
+            const origem = parseLocation(origemPonto.nome);
+            const destino = parseLocation(destinoPonto.nome);
+
+            const payload: any = {
+                name: nomeRota,
+                origin_city: origem.city,
+                origin_state: origem.state,
+                destination_city: destino.city,
+                destination_state: destino.state,
+                distance_km: distanciaTotal ? Number(distanciaTotal) : 0,
+                duration_minutes: rota.duracao_estimada_minutos || 0,
+                stops: rota.pontos,
+                active: rotaAtiva,
+                type: tipoRota
+            };
+
+            if (isEdicao && id) {
+                await routesService.update(id, payload);
+            } else {
+                await routesService.create(payload);
+            }
+
+            navigate('/admin/rotas');
+        } catch (error) {
+            console.error('Erro ao salvar rota:', error);
+            alert('Erro ao salvar rota. Verifique os dados e tente novamente.');
+        } finally {
+            setSaving(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader className="animate-spin text-blue-600" size={32} />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -54,10 +137,11 @@ export const NovaRota: React.FC = () => {
                 </div>
                 <button
                     onClick={handleSalvar}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    disabled={saving}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <Save size={18} />
-                    Salvar Rota
+                    {saving ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
+                    {saving ? 'Salvando...' : 'Salvar Rota'}
                 </button>
             </div>
 
