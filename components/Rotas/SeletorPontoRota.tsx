@@ -35,15 +35,30 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
         }
     }, [readonly]);
 
-    // Parse existing location string to set initial state
+    // Load existing location IDs when editing
     useEffect(() => {
-        if (ponto.nome && !selectedState && !selectedCity && !selectedNeighborhood && states.length > 0) {
-            // Try to parse "Neighborhood, City - UF" or "City - UF"
-            // This is a best-effort reverse mapping for existing data
-            // For now, we just leave it as is if it doesn't match our structure perfectly
-            // or we could implement a more complex parsing logic if needed.
+        console.log('Loading location IDs from ponto:', {
+            state_id: ponto.state_id,
+            city_id: ponto.city_id,
+            neighborhood_id: ponto.neighborhood_id,
+            selectedState,
+            selectedCity,
+            selectedNeighborhood
+        });
+
+        if (ponto.state_id && !selectedState) {
+            console.log('Setting selectedState to:', ponto.state_id);
+            setSelectedState(ponto.state_id);
         }
-    }, [ponto.nome, states]);
+        if (ponto.city_id && !selectedCity) {
+            console.log('Setting selectedCity to:', ponto.city_id);
+            setSelectedCity(ponto.city_id);
+        }
+        if (ponto.neighborhood_id && !selectedNeighborhood) {
+            console.log('Setting selectedNeighborhood to:', ponto.neighborhood_id);
+            setSelectedNeighborhood(ponto.neighborhood_id);
+        }
+    }, [ponto.state_id, ponto.city_id, ponto.neighborhood_id, selectedState, selectedCity, selectedNeighborhood]);
 
     // Load cities when state changes
     useEffect(() => {
@@ -63,9 +78,15 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
         }
     }, [selectedCity]);
 
-    const handleLocationChange = (neighborhoodName: string, cityName: string, stateUf: string) => {
+    const handleLocationChange = (neighborhoodName: string, cityName: string, stateUf: string, stateId: number, cityId: number, neighborhoodId: number) => {
         const fullName = `${neighborhoodName}, ${cityName} - ${stateUf}`;
-        onChange({ ...ponto, nome: fullName });
+        onChange({
+            ...ponto,
+            nome: fullName,
+            state_id: stateId,
+            city_id: cityId,
+            neighborhood_id: neighborhoodId
+        });
     };
 
     const handleStateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -108,7 +129,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
             const state = states.find(s => s.id === Number(selectedState));
 
             if (neighborhood && city && state) {
-                handleLocationChange(neighborhood.name, city.name, state.uf);
+                handleLocationChange(neighborhood.name, city.name, state.uf, state.id, city.id, neighborhood.id);
             }
         }
     };
@@ -122,6 +143,18 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
             setSelectedCity(newCity.id);
             setShowNewCityInput(false);
             setNewCityName('');
+
+            // Update location with new city (no neighborhood yet)
+            const state = states.find(s => s.id === Number(selectedState));
+            if (state) {
+                onChange({
+                    ...ponto,
+                    nome: `${newCity.name} - ${state.uf}`,
+                    state_id: state.id,
+                    city_id: newCity.id,
+                    neighborhood_id: undefined
+                });
+            }
         } catch (error) {
             console.error("Error creating city:", error);
             alert("Erro ao criar cidade. Verifique se já existe.");
@@ -143,7 +176,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
             const state = states.find(s => s.id === Number(selectedState));
 
             if (city && state) {
-                handleLocationChange(newNeighborhood.name, city.name, state.uf);
+                handleLocationChange(newNeighborhood.name, city.name, state.uf, state.id, city.id, newNeighborhood.id);
             }
         } catch (error) {
             console.error("Error creating neighborhood:", error);
@@ -294,16 +327,16 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                 </div>
             </div>
 
-            {/* Campo Oculto/Readonly para compatibilidade ou visualização do texto completo */}
+            {/* Campo de Local (editável) */}
             <div>
                 <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">
-                    Local Completo (Gerado)
+                    Local
                 </label>
                 <input
                     type="text"
                     value={ponto.nome}
-                    readOnly
-                    className="w-full p-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-sm"
+                    onChange={(e) => handleChange('nome', e.target.value)}
+                    className="w-full p-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg text-sm"
                 />
             </div>
 

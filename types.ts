@@ -250,6 +250,10 @@ export interface IPontoRota {
   permite_embarque: boolean;
   permite_desembarque: boolean;
   observacoes?: string;
+  // Location IDs for editing
+  state_id?: number;
+  city_id?: number;
+  neighborhood_id?: number;
 }
 
 export interface IRota {
