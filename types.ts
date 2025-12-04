@@ -287,9 +287,18 @@ export interface IViagem {
   price_executive?: number;
   price_semi_sleeper?: number;
   price_sleeper?: number;
-
-  seats_available: number;
+  price_bed?: number;
+  price_master_bed?: number;
+  seats_available?: number;
   notes?: string;
+
+  // New Fields
+  title?: string;
+  trip_type?: string; // 'TURISMO_NACIONAL', 'INTERNACIONAL', 'COMPRAS', 'NEGOCIOS'
+  cover_image?: string;
+  gallery?: string[]; // JSONB in DB
+  baggage_limit?: string;
+  alerts?: string;
 
   // Joined Fields (Backend)
   route_name?: string;
@@ -298,9 +307,13 @@ export interface IViagem {
   vehicle_plate?: string;
   vehicle_model?: string;
   driver_name?: string;
+  route_stops?: any[]; // JSON from DB
+  return_route_name?: string;
+  return_route_stops?: any[];
+  active?: boolean;
 
   // Frontend Legacy / Derived Fields (Deprecated or Mapped)
-  titulo?: string;
+  titulo?: string; // Kept for compatibility if used elsewhere, but now maps to backend 'title'
   origem?: string; // Mapped from origin_city
   destino?: string; // Mapped from destination_city
   paradas?: IParada[];
@@ -318,10 +331,10 @@ export interface IViagem {
   ocupacao_percent?: number;
   internacional?: boolean;
   moeda_base?: Moeda;
-  tipo_viagem?: 'IDA_E_VOLTA' | 'IDA' | 'VOLTA';
+  tipo_viagem?: 'IDA_E_VOLTA' | 'IDA' | 'VOLTA'; // This is for route configuration, distinct from 'trip_type'
   precos_por_tipo?: Record<string, number>;
-  imagem_capa?: string;
-  galeria?: string[];
+  imagem_capa?: string; // Legacy, map to cover_image
+  galeria?: string[]; // Legacy, map to gallery
 }
 
 export interface IAssento {

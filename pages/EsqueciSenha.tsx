@@ -15,7 +15,7 @@ export const EsqueciSenha: React.FC = () => {
         setIsLoading(true);
         setError('');
 
-        await authClient.forgetPassword({
+        await (authClient as any).forgetPassword({
             email,
             redirectTo: '/redefinir-senha',
         }, {
@@ -23,7 +23,7 @@ export const EsqueciSenha: React.FC = () => {
                 setIsSuccess(true);
                 setIsLoading(false);
             },
-            onError: (ctx) => {
+            onError: (ctx: any) => {
                 setError(ctx.error.message);
                 setIsLoading(false);
             }

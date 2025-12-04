@@ -66,7 +66,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     const assentosPorAndar = assentos.filter(a => a.andar === andarAtivo);
 
     // Identificar tipos de assentos presentes neste andar para a legenda
-    const tiposPresentes = Array.from(new Set(assentosPorAndar.map(a => a.tipo)));
+    const tiposPresentes = Array.from(new Set(assentosPorAndar.map(a => a.tipo))) as TipoAssento[];
 
     // Organizar assentos em grid
     const maxY = Math.max(...assentosPorAndar.map(a => a.posicao_y), 0);

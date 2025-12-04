@@ -20,7 +20,6 @@ import { ClienteDetalhes } from './pages/ClienteDetalhes';
 import { NovoCliente } from './pages/NovoCliente';
 import { Viagens } from './pages/Viagens';
 import { NovaViagem } from './pages/NovaViagem';
-import { ViagemDetalhes } from './pages/ViagemDetalhes';
 import { Login } from './pages/Login';
 
 import { Frota } from './pages/Frota';
@@ -87,7 +86,7 @@ const App: React.FC = () => {
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="viagens" element={<Viagens />} />
                   <Route path="viagens/nova" element={<NovaViagem />} />
-                  <Route path="viagens/:id" element={<ViagemDetalhes />} />
+                  <Route path="viagens/editar/:id" element={<NovaViagem />} />
 
                   <Route path="reservas" element={<Reservas />} />
                   <Route path="reservas/nova" element={<NovaReserva />} />

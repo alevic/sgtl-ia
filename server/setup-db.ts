@@ -164,11 +164,22 @@ export async function setupDb() {
                 valor_total_gasto DECIMAL(10, 2) DEFAULT 0.00,
                 observacoes TEXT,
                 organization_id TEXT,
+                user_id TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
         console.log("Clients table created successfully.");
+
+        // Migration for existing clients table
+        await pool.query(`
+            ALTER TABLE clients 
+            ADD COLUMN IF NOT EXISTS user_id TEXT;
+        `);
+
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_clients_user ON clients(user_id);
+        `);
 
         // Create Client Interactions Table
         await pool.query(`
@@ -268,6 +279,8 @@ export async function setupDb() {
                 price_executive DECIMAL(10, 2),
                 price_semi_sleeper DECIMAL(10, 2),
                 price_sleeper DECIMAL(10, 2),
+                price_bed DECIMAL(10, 2),
+                price_master_bed DECIMAL(10, 2),
                 seats_available INTEGER,
                 notes TEXT,
                 created_by TEXT,
@@ -287,6 +300,20 @@ export async function setupDb() {
         `);
         await pool.query(`
             CREATE INDEX IF NOT EXISTS idx_trips_return_route ON trips(return_route_id);
+        `);
+
+        // Migration: Add new fields for Trip Details
+        await pool.query(`
+            ALTER TABLE trips
+            ADD COLUMN IF NOT EXISTS title TEXT,
+            ADD COLUMN IF NOT EXISTS trip_type TEXT,
+            ADD COLUMN IF NOT EXISTS cover_image TEXT,
+            ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]',
+            ADD COLUMN IF NOT EXISTS baggage_limit TEXT,
+            ADD COLUMN IF NOT EXISTS alerts TEXT,
+            ADD COLUMN IF NOT EXISTS price_bed DECIMAL(10, 2),
+            ADD COLUMN IF NOT EXISTS price_master_bed DECIMAL(10, 2),
+            ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
         `);
 
         // Create Reservations Table

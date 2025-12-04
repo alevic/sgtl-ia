@@ -14,17 +14,22 @@ import parcelsRouter from "./routes/parcels";
 import chartersRouter from "./routes/charters";
 import publicRouter from "./routes/public";
 
+import { setupDb } from "./setup-db";
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Run DB setup/migrations on startup
+setupDb().catch(console.error);
 
 app.use(cors({
     origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : ["http://localhost:3000", "http://localhost:8080"],
     credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 
 app.all("/api/auth/*", toNodeHandler(auth));
 
@@ -271,7 +276,21 @@ app.get("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req, 
 
         const result = await pool.query(query, params);
 
-        res.json(result.rows);
+        // Fetch seats for each vehicle
+        const vehiclesWithSeats = await Promise.all(
+            result.rows.map(async (vehicle) => {
+                const seatsResult = await pool.query(
+                    `SELECT * FROM seat WHERE vehicle_id = $1 ORDER BY numero ASC`,
+                    [vehicle.id]
+                );
+                return {
+                    ...vehicle,
+                    mapa_assentos: seatsResult.rows
+                };
+            })
+        );
+
+        res.json(vehiclesWithSeats);
     } catch (error) {
         console.error("Error fetching vehicles:", error);
         res.status(500).json({ error: "Failed to fetch vehicles" });

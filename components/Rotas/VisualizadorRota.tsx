@@ -11,15 +11,25 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
     rota,
     compact = false
 }) => {
+    if (!rota) {
+        return (
+            <div className="bg-slate-100 dark:bg-slate-900 rounded-lg p-8 text-center text-slate-500 dark:text-slate-400">
+                Rota não disponível
+            </div>
+        );
+    }
+
     const formatarHorario = (horario?: string) => {
         if (!horario) return '--:--';
         const data = new Date(horario);
+        if (isNaN(data.getTime())) return '--:--';
         return data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     };
 
     const formatarData = (horario?: string) => {
         if (!horario) return '';
         const data = new Date(horario);
+        if (isNaN(data.getTime())) return '';
         return data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
     };
 
@@ -114,102 +124,101 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
             )}
 
             {/* Timeline de pontos */}
-            <div className="space-y-3">
-                {rota.pontos.map((ponto, index) => (
-                    <div key={ponto.id} className="relative">
-                        {/* Linha conectora */}
-                        {index < rota.pontos.length - 1 && (
-                            <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gradient-to-b from-blue-300 to-blue-200 dark:from-blue-700 dark:to-blue-800"
-                                style={{ height: 'calc(100% + 12px)' }} />
-                        )}
+            <div className="relative pl-4 space-y-8">
+                {/* Linha vertical contínua */}
+                <div className="absolute left-[22px] top-4 bottom-4 w-0.5 bg-slate-200 dark:bg-slate-700" />
 
-                        <div className="flex items-start gap-4 relative z-10">
-                            {/* Marcador */}
-                            <div className="flex flex-col items-center pt-1">
-                                <div className={`w-3 h-3 rounded-full border-2 ${ponto.tipo === 'ORIGEM'
-                                    ? 'bg-green-500 border-green-600'
-                                    : ponto.tipo === 'DESTINO'
-                                        ? 'bg-red-500 border-red-600'
-                                        : 'bg-blue-500 border-blue-600'
+                {Array.isArray(rota.pontos) && rota.pontos.map((ponto, index) => {
+                    if (!ponto) return null;
+
+                    const isOrigem = ponto.tipo === 'ORIGEM';
+                    const isDestino = ponto.tipo === 'DESTINO';
+
+                    // Não mostrar badge se o nome já contiver "Origem" ou "Destino"
+                    const showBadge = !ponto.nome.toLowerCase().includes(ponto.tipo.toLowerCase());
+
+                    return (
+                        <div key={ponto.id || index} className="relative flex gap-4">
+                            {/* Marcador na linha do tempo */}
+                            <div className={`relative z-10 flex items-center justify-center w-4 h-4 rounded-full border-2 bg-white dark:bg-slate-800 mt-1.5 ${isOrigem ? 'border-green-500' :
+                                    isDestino ? 'border-red-500' :
+                                        'border-blue-500'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full ${isOrigem ? 'bg-green-500' :
+                                        isDestino ? 'bg-red-500' :
+                                            'bg-blue-500'
                                     }`} />
                             </div>
 
-                            {/* Conteúdo */}
-                            <div className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-3">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
-                                        {/* Tipo e nome */}
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <MapPin size={16} className={
-                                                ponto.tipo === 'ORIGEM'
-                                                    ? 'text-green-600'
-                                                    : ponto.tipo === 'DESTINO'
-                                                        ? 'text-red-600'
-                                                        : 'text-blue-600'
-                                            } />
-                                            <span className="font-semibold text-slate-800 dark:text-slate-200">
+                            {/* Conteúdo do ponto */}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <span className="text-base font-bold text-slate-800 dark:text-slate-200">
                                                 {ponto.nome}
                                             </span>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${ponto.tipo === 'ORIGEM'
-                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                : ponto.tipo === 'DESTINO'
-                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                }`}>
-                                                {ponto.tipo === 'ORIGEM' ? 'Origem' : ponto.tipo === 'DESTINO' ? 'Destino' : 'Parada'}
-                                            </span>
-                                        </div>
-
-                                        {/* Horários */}
-                                        <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400 mt-2">
-                                            {ponto.horario_chegada && (
-                                                <div className="flex items-center gap-1">
-                                                    <Clock size={14} />
-                                                    <span>Chegada: <strong>{formatarHorario(ponto.horario_chegada)}</strong></span>
-                                                    {formatarData(ponto.horario_chegada) && (
-                                                        <span className="text-xs ml-1">({formatarData(ponto.horario_chegada)})</span>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {ponto.horario_partida && (
-                                                <div className="flex items-center gap-1">
-                                                    <Clock size={14} />
-                                                    <span>Partida: <strong>{formatarHorario(ponto.horario_partida)}</strong></span>
-                                                    {formatarData(ponto.horario_partida) && (
-                                                        <span className="text-xs ml-1">({formatarData(ponto.horario_partida)})</span>
-                                                    )}
-                                                </div>
+                                            {showBadge && (
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isOrigem ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                                        isDestino ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                    }`}>
+                                                    {isOrigem ? 'Origem' : isDestino ? 'Destino' : 'Parada'}
+                                                </span>
                                             )}
                                         </div>
 
-                                        {/* Permissões */}
-                                        {ponto.tipo === 'PARADA_INTERMEDIARIA' && (
-                                            <div className="flex items-center gap-3 mt-2 text-xs">
-                                                {ponto.permite_embarque && (
-                                                    <span className="px-2 py-1 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded">
-                                                        ✓ Embarque
-                                                    </span>
-                                                )}
-                                                {ponto.permite_desembarque && (
-                                                    <span className="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded">
-                                                        ✓ Desembarque
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {/* Observações */}
                                         {ponto.observacoes && (
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 italic">
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 {ponto.observacoes}
                                             </p>
                                         )}
                                     </div>
+
+                                    {/* Horários */}
+                                    <div className="flex flex-col items-end gap-1 text-sm whitespace-nowrap">
+                                        {(ponto.horario_partida || ponto.horario_chegada) ? (
+                                            <>
+                                                {ponto.horario_chegada && (
+                                                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                                                        <span className="text-xs uppercase tracking-wide text-slate-400">Chegada</span>
+                                                        <span className="font-medium font-mono">{formatarHorario(ponto.horario_chegada)}</span>
+                                                        <span className="text-xs text-slate-400">{formatarData(ponto.horario_chegada)}</span>
+                                                    </div>
+                                                )}
+                                                {ponto.horario_partida && (
+                                                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                                                        <span className="text-xs uppercase tracking-wide text-slate-400">Partida</span>
+                                                        <span className="font-medium font-mono">{formatarHorario(ponto.horario_partida)}</span>
+                                                        <span className="text-xs text-slate-400">{formatarData(ponto.horario_partida)}</span>
+                                                    </div>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <span className="text-xs text-slate-400 italic">Horário não definido</span>
+                                        )}
+                                    </div>
                                 </div>
+
+                                {/* Permissões */}
+                                {ponto.tipo === 'PARADA_INTERMEDIARIA' && (ponto.permite_embarque || ponto.permite_desembarque) && (
+                                    <div className="flex gap-2 mt-2">
+                                        {ponto.permite_embarque && (
+                                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-green-200 text-green-700 bg-green-50 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                                Embarque
+                                            </span>
+                                        )}
+                                        {ponto.permite_desembarque && (
+                                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-red-200 text-red-700 bg-red-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                                Desembarque
+                                            </span>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

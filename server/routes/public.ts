@@ -1,5 +1,5 @@
 import express from "express";
-import { pool } from "../auth";
+import { pool, auth } from "../auth";
 
 const router = express.Router();
 
@@ -156,6 +156,55 @@ router.post("/parcels", async (req, res) => {
     } catch (error) {
         console.error("Error submitting parcel request:", error);
         res.status(500).json({ error: "Failed to submit parcel request" });
+    }
+});
+
+// POST /public/client/signup - Register a new client
+router.post("/client/signup", async (req, res) => {
+    try {
+        const { name, email, password, phone, document, organization_id } = req.body;
+
+        if (!email || !password || !name) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        // 1. Create User in Better Auth
+        const authResponse = await auth.api.signUpEmail({
+            body: {
+                email,
+                password,
+                name
+            }
+        }) as any;
+
+        if (!authResponse || !authResponse.user) {
+            return res.status(500).json({ error: "Failed to create user" });
+        }
+
+        const userId = authResponse.user.id;
+
+        // Force role update to ensure it is 'client'
+        await pool.query('UPDATE "user" SET role = $1 WHERE id = $2', ['client', userId]);
+
+        // 2. Create Client Profile
+        await pool.query(
+            `INSERT INTO clients (
+                nome, email, telefone, documento_numero, 
+                organization_id, user_id,
+                data_cadastro
+            ) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
+            [
+                name, email, phone || null, document || null,
+                organization_id || null,
+                userId
+            ]
+        );
+
+        res.json({ success: true, user: authResponse.user, session: authResponse.session });
+
+    } catch (error: any) {
+        console.error("Error signing up client:", error);
+        res.status(500).json({ error: error.body?.message || error.message || "Failed to sign up" });
     }
 });
 

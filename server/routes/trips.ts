@@ -178,11 +178,13 @@ router.get("/trips", authorize(['admin', 'operacional', 'vendas']), async (req, 
 
         let query = `
             SELECT t.*, 
-                   r.name as route_name, 
+                   r.name as route_name, r.origin_city, r.destination_city, r.stops as route_stops,
+                   rr.name as return_route_name, rr.stops as return_route_stops,
                    v.placa as vehicle_plate, v.modelo as vehicle_model,
                    d.nome as driver_name
             FROM trips t
             JOIN routes r ON t.route_id = r.id
+            LEFT JOIN routes rr ON t.return_route_id = rr.id
             LEFT JOIN vehicle v ON t.vehicle_id = v.id
             LEFT JOIN driver d ON t.driver_id = d.id
             WHERE t.organization_id = $1
@@ -212,6 +214,13 @@ router.get("/trips", authorize(['admin', 'operacional', 'vendas']), async (req, 
             paramCount++;
             query += ` AND t.status = $${paramCount}`;
             params.push(status);
+        }
+
+        const { active } = req.query;
+        if (active) {
+            paramCount++;
+            query += ` AND t.active = $${paramCount}`;
+            params.push(active === 'true');
         }
 
         query += ` ORDER BY t.departure_date ASC, t.departure_time ASC`;
@@ -265,8 +274,9 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
         const {
             route_id, return_route_id, vehicle_id, driver_id,
             departure_date, departure_time, arrival_date, arrival_time,
-            price_conventional, price_executive, price_semi_sleeper, price_sleeper,
-            seats_available, notes
+            price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
+            seats_available, notes,
+            title, trip_type, cover_image, gallery, baggage_limit, alerts
         } = req.body;
 
         // If vehicle is selected, get its capacity for seats_available if not provided
@@ -282,15 +292,17 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
             `INSERT INTO trips (
                 route_id, return_route_id, vehicle_id, driver_id,
                 departure_date, departure_time, arrival_date, arrival_time,
-                price_conventional, price_executive, price_semi_sleeper, price_sleeper,
-                seats_available, notes, organization_id, created_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
+                seats_available, notes, organization_id, created_by,
+                title, trip_type, cover_image, gallery, baggage_limit, alerts
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
             RETURNING *`,
             [
                 route_id, return_route_id || null, vehicle_id || null, driver_id || null,
                 departure_date, departure_time, arrival_date || null, arrival_time || null,
-                price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null,
-                finalSeats || 0, notes || null, orgId, userId
+                price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null, price_bed || null, price_master_bed || null,
+                finalSeats || 0, notes || null, orgId, userId,
+                title || null, trip_type || null, cover_image || null, JSON.stringify(gallery || []), baggage_limit || null, alerts || null
             ]
         );
 
@@ -312,25 +324,47 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
             return_route_id, vehicle_id, driver_id,
             departure_date, departure_time, arrival_date, arrival_time,
             status,
-            price_conventional, price_executive, price_semi_sleeper, price_sleeper,
-            seats_available, notes
+            price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
+            seats_available, notes,
+            title, trip_type, cover_image, gallery, baggage_limit, alerts, active
         } = req.body;
 
         const result = await pool.query(
             `UPDATE trips SET
-                return_route_id = $1, vehicle_id = $2, driver_id = $3,
-                departure_date = $4, departure_time = $5, arrival_date = $6, arrival_time = $7,
+                return_route_id = COALESCE($1, return_route_id),
+                vehicle_id = COALESCE($2, vehicle_id),
+                driver_id = COALESCE($3, driver_id),
+                departure_date = COALESCE($4, departure_date),
+                departure_time = COALESCE($5, departure_time),
+                arrival_date = COALESCE($6, arrival_date),
+                arrival_time = COALESCE($7, arrival_time),
                 status = COALESCE($8, status),
-                price_conventional = $9, price_executive = $10, price_semi_sleeper = $11, price_sleeper = $12,
-                seats_available = $13, notes = $14, updated_at = CURRENT_TIMESTAMP
-            WHERE id = $15 AND organization_id = $16
+                price_conventional = COALESCE($9, price_conventional),
+                price_executive = COALESCE($10, price_executive),
+                price_semi_sleeper = COALESCE($11, price_semi_sleeper),
+                price_sleeper = COALESCE($12, price_sleeper),
+                price_bed = COALESCE($13, price_bed),
+                price_master_bed = COALESCE($14, price_master_bed),
+                seats_available = COALESCE($15, seats_available),
+                notes = COALESCE($16, notes),
+                title = COALESCE($17, title),
+                trip_type = COALESCE($18, trip_type),
+                cover_image = COALESCE($19, cover_image),
+                gallery = COALESCE($20, gallery),
+                baggage_limit = COALESCE($21, baggage_limit),
+                alerts = COALESCE($22, alerts),
+                active = COALESCE($23, active),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $24 AND organization_id = $25
             RETURNING *`,
             [
-                return_route_id || null, vehicle_id || null, driver_id || null,
-                departure_date, departure_time, arrival_date || null, arrival_time || null,
+                return_route_id, vehicle_id, driver_id,
+                departure_date, departure_time, arrival_date, arrival_time,
                 status,
-                price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null,
-                seats_available, notes || null,
+                price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
+                seats_available, notes,
+                title, trip_type, cover_image, gallery ? JSON.stringify(gallery) : null, baggage_limit, alerts,
+                active,
                 id, orgId
             ]
         );

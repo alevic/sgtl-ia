@@ -550,7 +550,7 @@ export const Relatorios: React.FC = () => {
                                     {Object.entries(analiseFinanceira.receitasPorCategoria).map(([cat, val]) => (
                                         <div key={cat} className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
                                             <span>{cat}</span>
-                                            <span>{formatCurrency(val)}</span>
+                                            <span>{formatCurrency(val as number)}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -563,7 +563,7 @@ export const Relatorios: React.FC = () => {
                                     {Object.entries(analiseFinanceira.despesasPorCategoria).map(([cat, val]) => (
                                         <div key={cat} className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
                                             <span>{cat}</span>
-                                            <span>({formatCurrency(val)})</span>
+                                            <span>({formatCurrency(val as number)})</span>
                                         </div>
                                     ))}
                                 </div>

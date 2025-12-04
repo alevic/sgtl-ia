@@ -4,7 +4,8 @@ import { IViagem } from '../types';
 import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
-    CheckCircle, Clock, Loader, XCircle, TrendingUp
+    CheckCircle, Clock, Loader, XCircle, TrendingUp,
+    Edit, Trash2, ToggleLeft, ToggleRight
 } from 'lucide-react';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -26,8 +27,8 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const Icon = config.icon;
 
     return (
-        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
-            <Icon size={14} />
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
+            <Icon size={12} />
             {config.label}
         </span>
     );
@@ -37,7 +38,9 @@ export const Viagens: React.FC = () => {
     const [viagens, setViagens] = useState<IViagem[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
+    const [filtroAtiva, setFiltroAtiva] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
     const [busca, setBusca] = useState('');
+    const [filtroDataPartida, setFiltroDataPartida] = useState('');
     const navigate = useNavigate();
 
     const fetchViagens = async () => {
@@ -56,22 +59,63 @@ export const Viagens: React.FC = () => {
         fetchViagens();
     }, []);
 
+    const handleDelete = async (id: string) => {
+        if (confirm('Tem certeza que deseja excluir esta viagem?')) {
+            try {
+                await tripsService.delete(id);
+                fetchViagens();
+            } catch (error) {
+                console.error('Erro ao excluir viagem:', error);
+                alert('Erro ao excluir viagem. Pode haver reservas associadas.');
+            }
+        }
+    };
+
+    const handleToggleStatus = async (id: string) => {
+        const viagem = viagens.find(v => v.id === id);
+        if (!viagem) return;
+
+        try {
+            // Optimistic update
+            const updatedViagens = viagens.map(v => v.id === id ? { ...v, active: !v.active } : v);
+            setViagens(updatedViagens);
+
+            await tripsService.update(id, { active: !viagem.active });
+        } catch (error) {
+            console.error('Erro ao alterar status da viagem:', error);
+            alert('Erro ao alterar status da viagem.');
+            fetchViagens(); // Revert on error
+        }
+    };
+
     const viagensFiltradas = viagens.filter(v => {
         const matchStatus = filtroStatus === 'TODOS' || v.status === filtroStatus;
+        const matchAtiva = filtroAtiva === 'TODOS' ||
+            (filtroAtiva === 'ATIVA' && (v.active !== false)) || // Default to true if undefined
+            (filtroAtiva === 'INATIVA' && v.active === false);
+
+        const matchData = !filtroDataPartida || (() => {
+            if (!v.departure_date) return false;
+            const dateVal = v.departure_date;
+            // Handle Date object
+            if (dateVal instanceof Date) {
+                return dateVal.toISOString().split('T')[0] === filtroDataPartida;
+            }
+            // Handle string (ISO or YYYY-MM-DD)
+            return String(dateVal).split('T')[0] === filtroDataPartida;
+        })();
+
         const matchBusca = busca === '' ||
             (v.route_name || '').toLowerCase().includes(busca.toLowerCase()) ||
             (v.origin_city || '').toLowerCase().includes(busca.toLowerCase()) ||
             (v.destination_city || '').toLowerCase().includes(busca.toLowerCase());
-        return matchStatus && matchBusca;
+        return matchStatus && matchAtiva && matchBusca && matchData;
     });
 
     // Estatísticas
     const totalViagens = viagens.length;
     const viagensConfirmadas = viagens.filter(v => v.status === 'CONFIRMED' || v.status === 'CONFIRMADA').length;
     const viagensEmCurso = viagens.filter(v => v.status === 'IN_TRANSIT' || v.status === 'EM_CURSO').length;
-
-    // Calculate average occupancy if possible (needs capacity)
-    const ocupacaoMedia = 0; // Placeholder
 
     if (loading) {
         return (
@@ -81,12 +125,43 @@ export const Viagens: React.FC = () => {
         );
     }
 
+    const formatDate = (dateValue: string | Date | undefined) => {
+        if (!dateValue) return 'Data não definida';
+
+        try {
+            let dateStr = '';
+            if (dateValue instanceof Date) {
+                dateStr = dateValue.toISOString().split('T')[0];
+            } else if (typeof dateValue === 'string') {
+                // Handle ISO string or YYYY-MM-DD
+                if (dateValue.includes('T')) {
+                    dateStr = dateValue.split('T')[0];
+                } else {
+                    dateStr = dateValue;
+                }
+            }
+
+            if (!dateStr || dateStr.length !== 10) return 'Data Inválida';
+
+            const [year, month, day] = dateStr.split('-').map(Number);
+            // Create date at noon to avoid timezone shifts
+            return new Date(year, month - 1, day, 12).toLocaleDateString();
+        } catch (error) {
+            return 'Erro Data';
+        }
+    };
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
+            {/* Header */}
+            <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Viagens</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Gestão de viagens e rotas</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                        Gerenciamento de Viagens
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        Gestão de viagens e rotas
+                    </p>
                 </div>
                 <Link
                     to="/admin/viagens/nova"
@@ -150,104 +225,231 @@ export const Viagens: React.FC = () => {
 
             {/* Filtros */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
+                <div className="flex flex-wrap gap-4">
+                    {/* Busca */}
+                    <div className="flex-1 min-w-[250px]">
                         <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Buscar por origem, destino ou rota..."
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
+                                placeholder="Buscar por origem, destino ou rota..."
                                 className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
-                        <button
-                            onClick={() => setFiltroStatus('TODOS')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroStatus === 'TODOS' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+
+                    {/* Filtro Data Partida */}
+                    <div className="flex items-center gap-2">
+                        <Calendar size={18} className="text-slate-500" />
+                        <input
+                            type="date"
+                            value={filtroDataPartida}
+                            onChange={(e) => setFiltroDataPartida(e.target.value)}
+                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {/* Filtro Status Operacional */}
+                    <div className="flex items-center gap-2">
+                        <Filter size={18} className="text-slate-500" />
+                        <select
+                            value={filtroStatus}
+                            onChange={(e) => setFiltroStatus(e.target.value)}
+                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
-                            <Filter size={16} />
-                            Todos
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus('SCHEDULED')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'SCHEDULED' ? 'bg-yellow-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            <option value="TODOS">Todos os status</option>
+                            <option value="SCHEDULED">Agendada</option>
+                            <option value="CONFIRMED">Confirmada</option>
+                            <option value="IN_TRANSIT">Em Curso</option>
+                            <option value="COMPLETED">Finalizada</option>
+                            <option value="CANCELLED">Cancelada</option>
+                        </select>
+                    </div>
+
+                    {/* Filtro Ativa/Inativa */}
+                    <div className="flex items-center gap-2">
+                        <select
+                            value={filtroAtiva}
+                            onChange={(e) => setFiltroAtiva(e.target.value as any)}
+                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
-                            Agendada
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus('CONFIRMED')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CONFIRMED' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Confirmada
-                        </button>
+                            <option value="TODOS">Todas (Ativas/Inativas)</option>
+                            <option value="ATIVA">Ativas</option>
+                            <option value="INATIVA">Inativas</option>
+                        </select>
                     </div>
                 </div>
             </div>
 
             {/* Lista de Viagens */}
-            <div className="grid gap-4">
-                {viagensFiltradas.length === 0 ? (
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-                        <Bus size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                        <p className="text-slate-500 dark:text-slate-400">Nenhuma viagem encontrada</p>
-                    </div>
-                ) : (
-                    viagensFiltradas.map((viagem) => {
-                        return (
-                            <div
-                                key={viagem.id}
-                                onClick={() => navigate(`/admin/viagens/${viagem.id}`)}
-                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer group"
-                            >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm">
-                                            <Bus size={28} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                                {viagem.route_name || 'Rota sem nome'}
+            {viagensFiltradas.length === 0 ? (
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
+                    <Bus size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                        Nenhuma viagem encontrada
+                    </h3>
+                    <p className="text-slate-500 dark:text-slate-400 mb-6">
+                        {busca || filtroStatus !== 'TODOS' || filtroAtiva !== 'TODOS'
+                            ? 'Tente ajustar os filtros de busca'
+                            : 'Crie sua primeira viagem para começar'}
+                    </p>
+                    {!busca && filtroStatus === 'TODOS' && filtroAtiva === 'TODOS' && (
+                        <Link
+                            to="/admin/viagens/nova"
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
+                        >
+                            <Plus size={18} />
+                            Criar Primeira Viagem
+                        </Link>
+                    )}
+                </div>
+            ) : (
+                <div className="grid gap-6">
+                    {viagensFiltradas.map((viagem) => (
+                        <div
+                            key={viagem.id}
+                            className={`bg-white dark:bg-slate-800 rounded-xl border ${viagem.active === false ? 'border-slate-200 dark:border-slate-700 opacity-75' : 'border-slate-200 dark:border-slate-700'} shadow-sm overflow-hidden hover:shadow-md transition-all`}
+                        >
+                            {/* Card Header */}
+                            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                        {/* Header: Título, Tipo e Status */}
+                                        <div className="flex flex-wrap items-center gap-3 mb-4">
+                                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                                                {viagem.title || 'Viagem sem título'}
                                             </h3>
-                                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                                <MapPin size={14} className="text-green-600" />
-                                                <span>{viagem.origin_city}</span>
-                                                <span>→</span>
-                                                <MapPin size={14} className="text-red-600" />
-                                                <span>{viagem.destination_city}</span>
+                                            <div className="flex items-center gap-2">
+                                                {viagem.trip_type && (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 uppercase tracking-wide">
+                                                        {viagem.trip_type.replace('_', ' ')}
+                                                    </span>
+                                                )}
+                                                <StatusBadge status={viagem.status} />
+                                                <span className={`px-2 py-1 rounded text-xs font-semibold ${viagem.active !== false
+                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+                                                    }`}>
+                                                    {viagem.active !== false ? 'ATIVA' : 'INATIVA'}
+                                                </span>
                                             </div>
-                                            <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mt-2">
+                                        </div>
+
+                                        {/* Linha 1: Origem + Data/Hora Partida */}
+                                        <div className="flex items-center gap-3 mb-2 text-sm">
+                                            <div className="flex items-center gap-2 min-w-[200px]">
+                                                <MapPin size={16} className="text-green-600 shrink-0" />
+                                                <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                    {viagem.route_name || 'Rota de Ida não definida'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
                                                 <div className="flex items-center gap-1">
                                                     <Calendar size={14} />
-                                                    <span>{new Date(viagem.departure_date).toLocaleDateString()}</span>
+                                                    <span>{formatDate(viagem.departure_date)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
                                                     <Clock size={14} />
-                                                    <span>{viagem.departure_time}</span>
+                                                    <span>{viagem.departure_time?.substring(0, 5)}</span>
                                                 </div>
-                                                {viagem.vehicle_plate && (
-                                                    <div className="flex items-center gap-1">
-                                                        <Bus size={14} />
-                                                        <span>{viagem.vehicle_plate}</span>
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
+
+                                        {/* Linha 2: Destino + Data/Hora Chegada */}
+                                        <div className="flex items-center gap-3 mb-4 text-sm">
+                                            <div className="flex items-center gap-2 min-w-[200px]">
+                                                <MapPin size={16} className="text-red-600 shrink-0" />
+                                                <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                    {viagem.return_route_name || viagem.destination_city || 'Rota de Volta não definida'}
+                                                </span>
+                                            </div>
+                                            {(viagem.arrival_date || viagem.arrival_time) ? (
+                                                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                                                    {viagem.arrival_date && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Calendar size={14} />
+                                                            <span>{formatDate(viagem.arrival_date)}</span>
+                                                        </div>
+                                                    )}
+                                                    {viagem.arrival_time && (
+                                                        <div className="flex items-center gap-1">
+                                                            <Clock size={14} />
+                                                            <span>{viagem.arrival_time?.substring(0, 5)}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-xs text-slate-400 italic">Previsão não disponível</span>
+                                            )}
+                                        </div>
+
+                                        {/* Informações Adicionais (Rotas e Veículo) */}
+                                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700/50 pt-3">
+                                            {viagem.rota_ida && (
+                                                <span className="text-xs bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
+                                                    Rota Ida: <strong>{viagem.rota_ida.nome}</strong>
+                                                </span>
+                                            )}
+                                            {viagem.rota_volta && (
+                                                <span className="text-xs bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
+                                                    Rota Volta: <strong>{viagem.rota_volta.nome}</strong>
+                                                </span>
+                                            )}
+                                            {viagem.vehicle_plate && (
+                                                <div className="flex items-center gap-1">
+                                                    <Bus size={14} />
+                                                    <span>{viagem.vehicle_plate}</span>
+                                                </div>
+                                            )}
+                                            {viagem.driver_name && (
+                                                <div className="flex items-center gap-1">
+                                                    <Users size={14} />
+                                                    <span>{viagem.driver_name}</span>
+                                                </div>
+                                            )}
+                                            <span className="text-slate-400">|</span>
+                                            <span>
+                                                {viagem.seats_available} assentos livres
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col items-end gap-2">
-                                        <StatusBadge status={viagem.status} />
-                                        <span className="text-sm text-slate-500">
-                                            {viagem.seats_available} assentos livres
-                                        </span>
+
+                                    {/* Ações */}
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => navigate(`/admin/viagens/editar/${viagem.id}`)}
+                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                            title="Editar"
+                                        >
+                                            <Edit size={18} className="text-slate-600 dark:text-slate-400" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleStatus(viagem.id)}
+                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                            title={viagem.active !== false ? 'Desativar' : 'Ativar'}
+                                        >
+                                            {viagem.active !== false ? (
+                                                <ToggleRight size={18} className="text-green-600 dark:text-green-400" />
+                                            ) : (
+                                                <ToggleLeft size={18} className="text-slate-400" />
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(viagem.id)}
+                                            className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                                            title="Excluir"
+                                        >
+                                            <Trash2 size={18} className="text-red-600 dark:text-red-400" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        );
-                    })
-                )}
-            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

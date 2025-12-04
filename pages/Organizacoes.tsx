@@ -51,7 +51,7 @@ export const Organizacoes: React.FC = () => {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${id}/details`, {
                 credentials: 'include',
                 headers: {
-                    ...await authClient.getHeaders()
+                    'Content-Type': 'application/json'
                 }
             });
 
@@ -116,8 +116,7 @@ export const Organizacoes: React.FC = () => {
                 method: 'PUT',
                 credentials: 'include',
                 headers: {
-                    'Content-Type': 'application/json',
-                    ...await authClient.getHeaders()
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     legal_name: orgDetails.legal_name,
