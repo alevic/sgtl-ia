@@ -5,20 +5,23 @@ import { Bus as BusIcon, Circle, Star, Armchair, Moon, Bed, Crown } from 'lucide
 interface MapaAssentosReservaProps {
     veiculo: IVeiculo;
     assentosReservados: string[]; // Números dos assentos já reservados
-    assentoSelecionado: { numero: string; tipo: TipoAssento; valor: number } | null;
-    onSelecionarAssento: (assento: { numero: string; tipo: TipoAssento; valor: number } | null) => void;
+    assentosSelecionados: { numero: string; tipo: TipoAssento; valor: number }[];
+    onSelecionarAssento: (assento: { numero: string; tipo: TipoAssento; valor: number }) => void;
+    precos?: Record<string, number> | Record<TipoAssento, number>; // Preços específicos da viagem
 }
 
 export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     veiculo,
     assentosReservados,
-    assentoSelecionado,
-    onSelecionarAssento
+    assentosSelecionados,
+    onSelecionarAssento,
+    precos: precosViagem
 }) => {
     const [andarAtivo, setAndarAtivo] = useState<1 | 2>(1);
 
     const assentos = veiculo.mapa_assentos || [];
-    const precos = veiculo.precos_assentos || {};
+    // Use trip prices if available, otherwise vehicle prices
+    const precos = precosViagem || veiculo.precos_assentos || {};
 
     // Verificar se tem preços configurados
     const temPrecos = Object.keys(precos).length > 0;
@@ -34,7 +37,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     };
 
     const getPrecoAssento = (tipo: TipoAssento): number => {
-        return precos[tipo] || 0;
+        return Number((precos && precos[tipo]) || 0);
     };
 
     const handleClickAssento = (assento: IAssento) => {
@@ -43,13 +46,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
             return;
         }
 
-        // Se clicou no mesmo assento, desseleciona
-        if (assentoSelecionado?.numero === assento.numero) {
-            onSelecionarAssento(null);
-            return;
-        }
-
-        // Seleciona novo assento
+        // Emite o assento clicado para o pai gerenciar (adicionar/remover)
         onSelecionarAssento({
             numero: assento.numero,
             tipo: assento.tipo,
@@ -58,7 +55,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     };
 
     const getAssentoStatus = (assento: IAssento): 'livre' | 'reservado' | 'selecionado' => {
-        if (assentoSelecionado?.numero === assento.numero) return 'selecionado';
+        if (assentosSelecionados.some(s => s.numero === assento.numero)) return 'selecionado';
         if (assentosReservados.includes(assento.numero)) return 'reservado';
         return 'livre';
     };
@@ -92,7 +89,8 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
         grid.push(row);
     }
 
-    if (!veiculo.mapa_configurado || assentos.length === 0) {
+    // Se não tiver assentos, considera não configurado
+    if (assentos.length === 0) {
         return (
             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700">
                 <BusIcon size={48} className="mx-auto mb-4 text-slate-300 dark:text-slate-600" />
@@ -177,7 +175,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
 
                                     const assento = cell as IAssento;
                                     const status = getAssentoStatus(assento);
-                                    const style = SEAT_STYLES[assento.tipo];
+                                    const style = SEAT_STYLES[assento.tipo] || { icon: Circle, label: assento.tipo };
                                     const Icon = style.icon;
                                     const preco = getPrecoAssento(assento.tipo);
 
@@ -253,7 +251,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                         </p>
                         <div className="flex flex-wrap justify-center gap-4">
                             {tiposPresentes.map(tipo => {
-                                const style = SEAT_STYLES[tipo];
+                                const style = SEAT_STYLES[tipo] || { icon: Circle, label: tipo };
                                 const Icon = style.icon;
                                 return (
                                     <div key={tipo} className="flex items-center gap-2">

@@ -4,8 +4,9 @@ import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoM
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,
-    Bus, Truck, Gauge, Calendar, Edit, CheckCircle, Plus
+    Bus, Truck, Gauge, Calendar, Edit, CheckCircle, Plus, AlertTriangle
 } from 'lucide-react';
+import { ModalConfirmacao } from '../components/ui/ModalConfirmacao';
 
 // Mock data - em produção virá do backend
 const MOCK_VEICULO: IVeiculo & {
@@ -40,6 +41,10 @@ export const VeiculoDetalhes: React.FC = () => {
     const [veiculo, setVeiculo] = useState<typeof MOCK_VEICULO | null>(null);
     const [seats, setSeats] = useState<IAssento[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    // Warning Modal State
+    const [warningModalOpen, setWarningModalOpen] = useState(false);
+    const [warningMessages, setWarningMessages] = useState<string[]>([]);
 
     const fetchVehicle = async () => {
         if (!id) return;
@@ -92,13 +97,25 @@ export const VeiculoDetalhes: React.FC = () => {
                 throw new Error('Failed to save seat map');
             }
 
-            const savedSeats = await response.json();
+            const data = await response.json();
+
+            // Handle new response format { seats: [], warnings: [] }
+            // or fallback to old array format for safety
+            const savedSeats = Array.isArray(data) ? data : data.seats;
+            const warnings = !Array.isArray(data) && data.warnings ? data.warnings : [];
+
             setSeats(savedSeats);
+
+            if (warnings.length > 0) {
+                setWarningMessages(warnings);
+                setWarningModalOpen(true);
+            } else {
+                alert('Mapa de assentos salvo com sucesso!');
+            }
 
             // Refresh vehicle to update mapa_configurado flag
             await fetchVehicle();
 
-            alert('Mapa de assentos salvo com sucesso!');
         } catch (error) {
             console.error("Erro ao salvar mapa de assentos:", error);
             alert('Erro ao salvar mapa de assentos. Por favor, tente novamente.');
@@ -213,6 +230,27 @@ export const VeiculoDetalhes: React.FC = () => {
                     {renderTabContent()}
                 </div>
             </div>
+            {/* Warning Modal */}
+            <ModalConfirmacao
+                isOpen={warningModalOpen}
+                onClose={() => setWarningModalOpen(false)}
+                onConfirm={() => setWarningModalOpen(false)}
+                title="Atenção: Assentos não Excluídos"
+                variant="warning"
+                confirmText="Entendido"
+                cancelText="Fechar"
+                icon={<AlertTriangle size={32} />}
+                message={
+                    <div className="text-left">
+                        <p className="mb-4">Alguns assentos não puderam ser excluídos pois possuem reservas ativas ou histórico de uso. Eles foram mantidos no sistema mas desabilitados do mapa.</p>
+                        <ul className="list-disc pl-5 space-y-1 text-sm bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-lg">
+                            {warningMessages.map((msg, index) => (
+                                <li key={index} className="text-yellow-800 dark:text-yellow-200">{msg}</li>
+                            ))}
+                        </ul>
+                    </div>
+                }
+            />
         </div>
     );
 };

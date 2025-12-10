@@ -9,5 +9,9 @@ export const vehiclesService = {
 
     getById: async (id: string) => {
         return api.get<IVeiculo>(`/api/fleet/vehicles/${id}`);
+    },
+
+    getSeats: async (id: string) => {
+        return api.get<any[]>(`/api/fleet/vehicles/${id}/seats`);
     }
 };

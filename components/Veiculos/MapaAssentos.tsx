@@ -27,7 +27,9 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
     // Novos estados para configuração de tipos
     const [editMode, setEditMode] = useState<'NUMBER' | 'TYPE'>('NUMBER');
     const [selectedType, setSelectedType] = useState<TipoAssento>(TipoAssento.CONVENCIONAL);
+
     const [seatTypes, setSeatTypes] = useState<Record<string, TipoAssento>>({});
+    const [seatStatuses, setSeatStatuses] = useState<Record<string, AssentoStatus>>({});
 
     const SEAT_COLORS: Record<TipoAssento, string> = {
         [TipoAssento.CONVENCIONAL]: 'bg-white dark:bg-slate-700 border-slate-200 dark:border-slate-600',
@@ -62,31 +64,68 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
             // Update dimensions state
             setSeatRows(maxRow + 1);
             setSeatColumns(maxCol + 1);
+            setSeatRows(maxRow + 1);
+            setSeatColumns(maxCol + 1);
             setSeatTypes(types);
+
+            // Populate statuses
+            const statuses: Record<string, AssentoStatus> = {};
+            seats.forEach(seat => {
+                if (seat.numero) {
+                    statuses[seat.numero] = seat.status;
+                }
+            });
+            setSeatStatuses(statuses);
 
             // Check if upper deck has seats
             const hasUpper = seats.some(s => s.andar === 2);
             setShowUpperDeck(hasUpper);
 
-            // Initialize grids
-            const lower: string[][] = Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill('Blank'));
-            // Only initialize upper grid if there are seats for it, otherwise keep it empty to show "Generate" button
+            // Initialize grids with empty string (editable slot) instead of Blank (Corridor)
+            const lower: string[][] = Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill(''));
+            // Only initialize upper grid if there are seats for it
             const upper: string[][] = hasUpper
-                ? Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill('Blank'))
+                ? Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill(''))
                 : [];
 
             // Populate grids
             seats.forEach(seat => {
                 const grid = seat.andar === 1 ? lower : upper;
-                // Safety check: grid might be empty if we decided not to init it above, but logic shouldn't reach here for upper if hasUpper is false
                 if (grid && grid.length > 0 && grid[seat.posicao_y]) {
                     if (seat.disabled || (seat.numero && seat.numero.startsWith('DISABLED_'))) {
                         grid[seat.posicao_y][seat.posicao_x] = ''; // Empty string for disabled
                     } else {
-                        grid[seat.posicao_y][seat.posicao_x] = seat.numero || 'Blank';
+                        grid[seat.posicao_y][seat.posicao_x] = seat.numero || '';
                     }
                 }
             });
+
+            // Auto-detect corridors: If a column is completely empty in a deck, mark it as 'Blank'
+            const detectCorridors = (grid: string[][]) => {
+                if (!grid || grid.length === 0) return;
+
+                // Get number of columns from first row
+                const numCols = grid[0].length;
+
+                for (let c = 0; c < numCols; c++) {
+                    let isColumnEmpty = true;
+                    for (let r = 0; r < grid.length; r++) {
+                        if (grid[r][c] !== '' && grid[r][c] !== 'Driver') {
+                            isColumnEmpty = false;
+                            break;
+                        }
+                    }
+
+                    if (isColumnEmpty) {
+                        for (let r = 0; r < grid.length; r++) {
+                            grid[r][c] = 'Blank';
+                        }
+                    }
+                }
+            };
+
+            detectCorridors(lower);
+            if (hasUpper) detectCorridors(upper);
 
             setLowerDeckSeats(lower);
             setUpperDeckSeats(upper);
@@ -198,7 +237,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                         posicao_x: colIndex,
                         posicao_y: rowIndex,
                         tipo: seatTypes[seat] || TipoAssento.CONVENCIONAL,
-                        status: AssentoStatus.LIVRE,
+                        status: isEmpty ? 'BLOQUEADO' as AssentoStatus : (seatStatuses[seat.trim()] || AssentoStatus.LIVRE),
                         disabled: isEmpty
                     } as IAssento);
                 });
@@ -300,7 +339,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
 
                                                 {/* Tooltip do Tipo */}
                                                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                                                    {getSeatType(seat).replace('_', ' ')}
+                                                    {(isEmpty || seatStatuses[seat] === 'BLOQUEADO') ? 'BLOQUEADO' : getSeatType(seat).replace('_', ' ')}
                                                 </div>
 
 

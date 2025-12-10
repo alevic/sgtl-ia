@@ -17,7 +17,9 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
     const [filtroStatus, setFiltroStatus] = useState<'TODOS' | 'AGENDADA' | 'CONFIRMADA'>('TODOS');
 
     const formatarDataHora = (data: string) => {
+        if (!data) return 'Data não definida';
         const d = new Date(data);
+        if (isNaN(d.getTime())) return 'Data inválida';
         return d.toLocaleString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
@@ -28,12 +30,22 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
     };
 
     const viagensFiltradas = viagens.filter(v => {
-        const matchStatus = filtroStatus === 'TODOS' || v.status === filtroStatus;
+        const matchStatus = filtroStatus === 'TODOS' ||
+            (filtroStatus === 'AGENDADA' && (v.status === 'AGENDADA' || v.status === 'SCHEDULED')) ||
+            (filtroStatus === 'CONFIRMADA' && (v.status === 'CONFIRMADA' || v.status === 'CONFIRMED'));
+
         const matchBusca = busca === '' ||
-            v.titulo.toLowerCase().includes(busca.toLowerCase()) ||
-            v.origem.toLowerCase().includes(busca.toLowerCase()) ||
-            v.destino.toLowerCase().includes(busca.toLowerCase());
-        return matchStatus && matchBusca && (v.status === 'AGENDADA' || v.status === 'CONFIRMADA');
+            v.titulo?.toLowerCase().includes(busca.toLowerCase()) ||
+            v.origem?.toLowerCase().includes(busca.toLowerCase()) ||
+            v.destino?.toLowerCase().includes(busca.toLowerCase()) ||
+            v.route_name?.toLowerCase().includes(busca.toLowerCase()) ||
+            v.origin_city?.toLowerCase().includes(busca.toLowerCase()) ||
+            v.destination_city?.toLowerCase().includes(busca.toLowerCase());
+
+        return matchStatus && matchBusca && (
+            v.status === 'AGENDADA' || v.status === 'CONFIRMADA' ||
+            v.status === 'SCHEDULED' || v.status === 'CONFIRMED'
+        );
     });
 
     return (
@@ -85,15 +97,15 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                         <span className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Viagem Selecionada</span>
                         <Check size={20} className="text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h4 className="font-bold text-slate-800 dark:text-white mb-2">{viagemSelecionada.titulo}</h4>
+                    <h4 className="font-bold text-slate-800 dark:text-white mb-2">{viagemSelecionada.titulo || viagemSelecionada.route_name}</h4>
                     <div className="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-300">
                         <div className="flex items-center gap-1">
                             <Calendar size={14} />
-                            <span>{formatarDataHora(viagemSelecionada.data_partida)}</span>
+                            <span>{formatarDataHora(viagemSelecionada.departure_date || viagemSelecionada.data_partida || '')}</span>
                         </div>
                         <div className="flex items-center gap-1">
                             <MapPin size={14} />
-                            <span>{viagemSelecionada.origem}</span>
+                            <span>{viagemSelecionada.origem || viagemSelecionada.origin_city}</span>
                         </div>
                     </div>
                     <button
@@ -122,27 +134,36 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                             >
                                 <div className="flex items-start justify-between mb-2">
                                     <div className="flex-1">
-                                        <h4 className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{viagem.titulo}</h4>
+                                        <h4 className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                            {viagem.titulo || viagem.route_name}
+                                        </h4>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${viagem.status === 'CONFIRMADA'
+                                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${viagem.status === 'CONFIRMADA' || viagem.status === 'CONFIRMED'
                                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>{viagem.status}</span>
-                                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded">{viagem.tipo_viagem === 'IDA_E_VOLTA' ? 'Ida e Volta' : viagem.tipo_viagem}</span>
+                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                                                }`}>
+                                                {viagem.status === 'CONFIRMED' ? 'CONFIRMADA' :
+                                                    viagem.status === 'SCHEDULED' ? 'AGENDADA' :
+                                                        viagem.status}
+                                            </span>
+                                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded">
+                                                {viagem.tipo_viagem === 'IDA_E_VOLTA' ? 'Ida e Volta' : (viagem.tipo_viagem || viagem.trip_type || 'Viagem')}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
                                     <div className="flex items-center gap-1">
                                         <MapPin size={14} className="text-green-600" />
-                                        <span>{viagem.origem}</span>
+                                        <span>{viagem.origem || viagem.origin_city}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <MapPin size={14} className="text-red-600" />
-                                        <span>{viagem.destino}</span>
+                                        <span>{viagem.destino || viagem.destination_city}</span>
                                     </div>
                                     <div className="flex items-center gap-1 col-span-2">
                                         <Calendar size={14} />
-                                        <span>{formatarDataHora(viagem.data_partida)}</span>
+                                        <span>{formatarDataHora(viagem.departure_date || viagem.data_partida || '')}</span>
                                     </div>
                                 </div>
                             </button>

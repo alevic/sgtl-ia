@@ -457,13 +457,16 @@ app.get("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), as
 
 // POST save/update seat map configuration
 app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), async (req, res) => {
+    let client;
     try {
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
         const { seats } = req.body;
 
-        const vehicleCheck = await pool.query(
+        client = await pool.connect();
+
+        const vehicleCheck = await client.query(
             "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
             [id, orgId]
         );
@@ -472,43 +475,111 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
             return res.status(404).json({ error: "Vehicle not found" });
         }
 
-        await pool.query("BEGIN");
+        await client.query("BEGIN");
 
         try {
-            await pool.query("DELETE FROM seat WHERE vehicle_id = $1", [id]);
+            // 1. Get existing seats
+            const existingSeatsResult = await client.query(
+                "SELECT * FROM seat WHERE vehicle_id = $1",
+                [id]
+            );
+            const existingSeatsMap = new Map(); // Map<numero, seat>
+            existingSeatsResult.rows.forEach(seat => {
+                existingSeatsMap.set(seat.numero, seat);
+            });
+
+            // 2. Process new seats (Upsert)
+            const processedNumeros = new Set();
 
             for (const seat of seats) {
-                await pool.query(
-                    `INSERT INTO seat (
-                        vehicle_id, numero, andar, posicao_x, posicao_y, tipo, status, preco, disabled
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-                    [
-                        id, seat.numero, seat.andar, seat.posicao_x, seat.posicao_y,
-                        seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false
-                    ]
-                );
+                processedNumeros.add(seat.numero);
+                const existingSeat = existingSeatsMap.get(seat.numero);
+
+                if (existingSeat) {
+                    // Update existing
+                    await client.query(
+                        `UPDATE seat SET
+                            andar = $1, posicao_x = $2, posicao_y = $3, 
+                            tipo = $4, status = $5, preco = $6, disabled = $7,
+                            updated_at = CURRENT_TIMESTAMP
+                        WHERE id = $8`,
+                        [
+                            seat.andar, seat.posicao_x, seat.posicao_y,
+                            seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false,
+                            existingSeat.id
+                        ]
+                    );
+                } else {
+                    // Insert new
+                    await client.query(
+                        `INSERT INTO seat (
+                            vehicle_id, numero, andar, posicao_x, posicao_y, tipo, status, preco, disabled
+                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                        [
+                            id, seat.numero, seat.andar, seat.posicao_x, seat.posicao_y,
+                            seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false
+                        ]
+                    );
+                }
             }
 
-            await pool.query(
+            // 3. Delete or Disable removed seats
+            const warnings: string[] = [];
+            for (const [numero, existingSeat] of existingSeatsMap.entries()) {
+                if (!processedNumeros.has(numero)) {
+                    try {
+                        // Create a savepoint before attempting delete
+                        await client.query("SAVEPOINT seat_delete");
+                        await client.query("DELETE FROM seat WHERE id = $1", [existingSeat.id]);
+                        await client.query("RELEASE SAVEPOINT seat_delete");
+                    } catch (deleteError: any) {
+                        // Rollback to savepoint if delete fails
+                        await client.query("ROLLBACK TO SAVEPOINT seat_delete");
+
+                        // specialized error handling for foreign key violation
+                        if (deleteError.code === '23503') {
+                            const msg = `O assento ${numero} não pode ser excluído pois possui reservas vinculadas. Ele foi mantido mas marcado como desabilitado.`;
+                            console.warn(msg);
+                            warnings.push(msg);
+
+                            await client.query(
+                                "UPDATE seat SET disabled = true, status = 'BLOQUEADO', posicao_x = -1, posicao_y = -1 WHERE id = $1",
+                                [existingSeat.id]
+                            );
+                        } else {
+                            throw deleteError;
+                        }
+                    }
+                }
+            }
+
+            await client.query(
                 "UPDATE vehicle SET mapa_configurado = true WHERE id = $1",
                 [id]
             );
 
-            await pool.query("COMMIT");
+            await client.query("COMMIT");
 
-            const result = await pool.query(
-                "SELECT * FROM seat WHERE vehicle_id = $1 ORDER BY andar, posicao_y, posicao_x",
+            const result = await client.query(
+                "SELECT * FROM seat WHERE vehicle_id = $1 AND disabled = false ORDER BY andar, posicao_y, posicao_x",
                 [id]
             );
 
-            res.json(result.rows);
+            res.json({
+                seats: result.rows,
+                warnings: warnings
+            });
         } catch (error) {
-            await pool.query("ROLLBACK");
+            await client.query("ROLLBACK");
             throw error;
         }
     } catch (error) {
         console.error("Error saving seat map:", error);
         res.status(500).json({ error: "Failed to save seat map" });
+    } finally {
+        if (client) {
+            client.release();
+        }
     }
 });
 
