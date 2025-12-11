@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../../types';
-import { Bus as BusIcon, Circle, Star, Armchair, Moon, Bed, Crown } from 'lucide-react';
+import { Bus as BusIcon, Circle, Star, Armchair, Moon, Bed, Crown, Lock } from 'lucide-react';
 
 interface MapaAssentosReservaProps {
     veiculo: IVeiculo;
@@ -41,8 +41,10 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     };
 
     const handleClickAssento = (assento: IAssento) => {
-        // Verificar se está reservado
-        if (assentosReservados.includes(assento.numero)) {
+        // Verificar se está reservado, bloqueado ou desabilitado
+        if (assentosReservados.includes(assento.numero) ||
+            assento.status === AssentoStatus.BLOQUEADO ||
+            assento.disabled) {
             return;
         }
 
@@ -54,9 +56,10 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
         });
     };
 
-    const getAssentoStatus = (assento: IAssento): 'livre' | 'reservado' | 'selecionado' => {
+    const getAssentoStatus = (assento: IAssento): 'livre' | 'reservado' | 'selecionado' | 'bloqueado' => {
         if (assentosSelecionados.some(s => s.numero === assento.numero)) return 'selecionado';
         if (assentosReservados.includes(assento.numero)) return 'reservado';
+        if (assento.status === AssentoStatus.BLOQUEADO || assento.disabled) return 'bloqueado';
         return 'livre';
     };
 
@@ -176,7 +179,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                                     const assento = cell as IAssento;
                                     const status = getAssentoStatus(assento);
                                     const style = SEAT_STYLES[assento.tipo] || { icon: Circle, label: assento.tipo };
-                                    const Icon = style.icon;
+                                    const Icon = status === 'bloqueado' ? Lock : style.icon;
                                     const preco = getPrecoAssento(assento.tipo);
 
                                     // Estilos baseados no status
@@ -194,6 +197,11 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                                         buttonClasses += "bg-red-100 border-red-200 dark:bg-red-900/20 dark:border-red-800 cursor-not-allowed opacity-60";
                                         textClasses += "text-red-400 dark:text-red-500";
                                         iconClasses += "text-red-400 dark:text-red-500";
+                                    } else if (status === 'bloqueado') {
+                                        // Cinza para bloqueado
+                                        buttonClasses += "bg-slate-200 border-slate-300 dark:bg-slate-700/50 dark:border-slate-600 cursor-not-allowed";
+                                        textClasses += "text-slate-400 dark:text-slate-500";
+                                        iconClasses += "text-slate-400 dark:text-slate-500";
                                     } else {
                                         // Disponível: Fundo branco/neutro + Borda Verde
                                         buttonClasses += "bg-white dark:bg-slate-800 border-green-500 hover:border-blue-400 hover:shadow-md cursor-pointer";
@@ -205,13 +213,13 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                                         <button
                                             key={colIndex}
                                             onClick={() => handleClickAssento(assento)}
-                                            disabled={status === 'reservado'}
+                                            disabled={status === 'reservado' || status === 'bloqueado'}
                                             className={buttonClasses}
-                                            title={status === 'reservado' ? 'Ocupado' : `${style.label} - R$ ${preco.toFixed(2)}`}
+                                            title={status === 'reservado' ? 'Ocupado' : status === 'bloqueado' ? 'Bloqueado' : `${style.label} - R$ ${preco.toFixed(2)}`}
                                         >
                                             <Icon className={iconClasses} />
                                             <span className={textClasses}>
-                                                {assento.numero}
+                                                {status === 'bloqueado' ? '' : assento.numero}
                                             </span>
                                         </button>
                                     );
@@ -240,6 +248,10 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                             <div className="flex items-center gap-2">
                                 <div className="w-3 h-3 rounded bg-red-200 border border-red-400 dark:bg-red-900/40 dark:border-red-600"></div>
                                 <span className="text-[10px] text-slate-500 dark:text-slate-400">Ocupado</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded bg-slate-200 border border-slate-300 dark:bg-slate-700/50 dark:border-slate-600"></div>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400">Bloqueado</span>
                             </div>
                         </div>
                     </div>
@@ -271,3 +283,4 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
         </div>
     );
 };
+

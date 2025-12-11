@@ -1,6 +1,35 @@
 import React, { useState } from 'react';
 import { IViagem } from '../../types';
-import { Calendar, MapPin, Search, Bus, Clock, Check } from 'lucide-react';
+import {
+    Calendar, MapPin, Search, Bus, Clock, Check, Users,
+    CheckCircle, Loader, XCircle, TrendingUp
+} from 'lucide-react';
+
+const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
+    const configs: any = {
+        SCHEDULED: { color: 'yellow', icon: Clock, label: 'Agendada' },
+        AGENDADA: { color: 'yellow', icon: Clock, label: 'Agendada' },
+        CONFIRMED: { color: 'green', icon: CheckCircle, label: 'Confirmada' },
+        CONFIRMADA: { color: 'green', icon: CheckCircle, label: 'Confirmada' },
+        IN_TRANSIT: { color: 'blue', icon: Loader, label: 'Em Curso' },
+        EM_CURSO: { color: 'blue', icon: Loader, label: 'Em Curso' },
+        COMPLETED: { color: 'slate', icon: CheckCircle, label: 'Finalizada' },
+        FINALIZADA: { color: 'slate', icon: CheckCircle, label: 'Finalizada' },
+        CANCELLED: { color: 'red', icon: XCircle, label: 'Cancelada' },
+        CANCELADA: { color: 'red', icon: XCircle, label: 'Cancelada' },
+        DELAYED: { color: 'orange', icon: Clock, label: 'Atrasada' }
+    };
+
+    const config = configs[status] || configs['SCHEDULED'];
+    const Icon = config.icon;
+
+    return (
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
+            <Icon size={12} />
+            {config.label}
+        </span>
+    );
+};
 
 interface SeletorViagemProps {
     viagens: IViagem[];
@@ -16,17 +45,28 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
     const [busca, setBusca] = useState('');
     const [filtroStatus, setFiltroStatus] = useState<'TODOS' | 'AGENDADA' | 'CONFIRMADA'>('TODOS');
 
-    const formatarDataHora = (data: string) => {
-        if (!data) return 'Data não definida';
-        const d = new Date(data);
-        if (isNaN(d.getTime())) return 'Data inválida';
-        return d.toLocaleString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    const formatarDataHora = (dateValue: string | Date | undefined) => {
+        if (!dateValue) return 'Data não definida';
+
+        try {
+            let dateStr = '';
+            if (dateValue instanceof Date) {
+                dateStr = dateValue.toISOString().split('T')[0];
+            } else if (typeof dateValue === 'string') {
+                if (dateValue.includes('T')) {
+                    dateStr = dateValue.split('T')[0];
+                } else {
+                    dateStr = dateValue;
+                }
+            }
+
+            if (!dateStr || dateStr.length !== 10) return 'Data Inválida';
+
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day, 12).toLocaleDateString();
+        } catch (error) {
+            return 'Erro Data';
+        }
     };
 
     const viagensFiltradas = viagens.filter(v => {
@@ -97,76 +137,118 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                         <span className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Viagem Selecionada</span>
                         <Check size={20} className="text-blue-600 dark:text-blue-400" />
                     </div>
-                    <h4 className="font-bold text-slate-800 dark:text-white mb-2">{viagemSelecionada.titulo || viagemSelecionada.route_name}</h4>
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
+                        <h4 className="font-bold text-slate-800 dark:text-white">{viagemSelecionada.title || viagemSelecionada.titulo || 'Viagem sem título'}</h4>
+                        <StatusBadge status={viagemSelecionada.status} />
+                    </div>
                     <div className="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-300">
                         <div className="flex items-center gap-1">
                             <Calendar size={14} />
-                            <span>{formatarDataHora(viagemSelecionada.departure_date || viagemSelecionada.data_partida || '')}</span>
+                            <span>{formatarDataHora(viagemSelecionada.departure_date)}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                            <MapPin size={14} />
-                            <span>{viagemSelecionada.origem || viagemSelecionada.origin_city}</span>
+                            <Clock size={14} />
+                            <span>{viagemSelecionada.departure_time?.substring(0, 5)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <MapPin size={14} className="text-green-600" />
+                            <span>{viagemSelecionada.route_name || viagemSelecionada.origem}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            <MapPin size={14} className="text-red-600" />
+                            <span>{viagemSelecionada.return_route_name || viagemSelecionada.destino}</span>
                         </div>
                     </div>
                     <button
                         onClick={() => onChange(null)}
                         className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:underline"
                     >
-                        Alterar viagem
+                        Escolher outra viagem
                     </button>
                 </div>
             )}
 
             {/* Lista de Viagens */}
             {!viagemSelecionada && (
-                <div className="max-h-96 overflow-y-auto space-y-2">
+                <div className="max-h-96 overflow-y-auto space-y-4">
                     {viagensFiltradas.length === 0 ? (
                         <div className="text-center py-8 text-slate-500 dark:text-slate-400">
                             <Bus size={48} className="mx-auto mb-2 opacity-50" />
                             <p>Nenhuma viagem disponível</p>
                         </div>
                     ) : (
-                        viagensFiltradas.map(viagem => (
-                            <button
+                        viagensFiltradas.map((viagem) => (
+                            <div
                                 key={viagem.id}
                                 onClick={() => onChange(viagem)}
-                                className="w-full p-4 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all text-left group"
+                                className={`cursor-pointer bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 
+                                shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition-all overflow-hidden group`}
                             >
-                                <div className="flex items-start justify-between mb-2">
-                                    <div className="flex-1">
-                                        <h4 className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                            {viagem.titulo || viagem.route_name}
-                                        </h4>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${viagem.status === 'CONFIRMADA' || viagem.status === 'CONFIRMED'
-                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                                                }`}>
-                                                {viagem.status === 'CONFIRMED' ? 'CONFIRMADA' :
-                                                    viagem.status === 'SCHEDULED' ? 'AGENDADA' :
-                                                        viagem.status}
-                                            </span>
-                                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs rounded">
-                                                {viagem.tipo_viagem === 'IDA_E_VOLTA' ? 'Ida e Volta' : (viagem.tipo_viagem || viagem.trip_type || 'Viagem')}
-                                            </span>
+                                <div className="p-4">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            {/* Header */}
+                                            <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                <h3 className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                                    {viagem.title || viagem.titulo || 'Viagem sem título'}
+                                                </h3>
+                                                {viagem.trip_type && (
+                                                    <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 uppercase">
+                                                        {viagem.trip_type.replace('_', ' ')}
+                                                    </span>
+                                                )}
+                                                <StatusBadge status={viagem.status} />
+                                            </div>
+
+                                            {/* Origem/Destino */}
+                                            <div className="space-y-2 mb-3">
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <MapPin size={16} className="text-green-600 shrink-0" />
+                                                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                        {viagem.route_name || viagem.origem || 'Origem não definida'}
+                                                    </span>
+                                                    <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 ml-auto">
+                                                        <Calendar size={12} /> {formatarDataHora(viagem.departure_date)}
+                                                        <Clock size={12} /> {viagem.departure_time?.substring(0, 5)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <MapPin size={16} className="text-red-600 shrink-0" />
+                                                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                        {viagem.return_route_name || viagem.destino || 'Destino não definido'}
+                                                    </span>
+                                                    {(viagem.arrival_date || viagem.arrival_time) && (
+                                                        <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 ml-auto">
+                                                            {viagem.arrival_date && <><Calendar size={12} /> {formatarDataHora(viagem.arrival_date)}</>}
+                                                            {viagem.arrival_time && <><Clock size={12} /> {viagem.arrival_time?.substring(0, 5)}</>}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Info Extra */}
+                                            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700/50 pt-2">
+                                                {viagem.vehicle_plate && (
+                                                    <div className="flex items-center gap-1">
+                                                        <Bus size={12} />
+                                                        <span>{viagem.vehicle_plate}</span>
+                                                    </div>
+                                                )}
+                                                {viagem.driver_name && (
+                                                    <div className="flex items-center gap-1">
+                                                        <Users size={12} />
+                                                        <span>{viagem.driver_name}</span>
+                                                    </div>
+                                                )}
+                                                <span className="text-slate-300">|</span>
+                                                <span className="font-medium text-blue-600 dark:text-blue-400">
+                                                    {viagem.seats_available} lugares livres
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 text-sm text-slate-600 dark:text-slate-400">
-                                    <div className="flex items-center gap-1">
-                                        <MapPin size={14} className="text-green-600" />
-                                        <span>{viagem.origem || viagem.origin_city}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <MapPin size={14} className="text-red-600" />
-                                        <span>{viagem.destino || viagem.destination_city}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1 col-span-2">
-                                        <Calendar size={14} />
-                                        <span>{formatarDataHora(viagem.departure_date || viagem.data_partida || '')}</span>
-                                    </div>
-                                </div>
-                            </button>
+                            </div>
                         ))
                     )}
                 </div>
@@ -174,3 +256,4 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
         </div>
     );
 };
+
