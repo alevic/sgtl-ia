@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IReserva } from '../types';
 import { reservationsService } from '../services/reservationsService';
-import { Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader } from 'lucide-react';
+import {
+    Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
+    Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle
+} from 'lucide-react';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
@@ -30,6 +33,21 @@ export const Reservas: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
     const [busca, setBusca] = useState('');
+
+    // Action States
+    const [editingReserva, setEditingReserva] = useState<IReserva | null>(null);
+    const [deletingReserva, setDeletingReserva] = useState<IReserva | null>(null);
+    const [cancelingReserva, setCancelingReserva] = useState<IReserva | null>(null);
+    const [actionLoading, setActionLoading] = useState(false);
+
+    // Edit Form State
+    const [editForm, setEditForm] = useState({
+        passenger_name: '',
+        passenger_document: '',
+        passenger_email: '',
+        passenger_phone: ''
+    });
+
     const navigate = useNavigate();
 
     const fetchReservas = async () => {
@@ -48,10 +66,80 @@ export const Reservas: React.FC = () => {
         fetchReservas();
     }, []);
 
+    const handleEditClick = (reserva: IReserva) => {
+        setEditingReserva(reserva);
+        setEditForm({
+            passenger_name: (reserva as any).passenger_name || '',
+            passenger_document: (reserva as any).passenger_document || '',
+            passenger_email: (reserva as any).passenger_email || '',
+            passenger_phone: (reserva as any).passenger_phone || ''
+        });
+    };
+
+    const handleSaveEdit = async () => {
+        if (!editingReserva) return;
+        try {
+            setActionLoading(true);
+            await reservationsService.update(editingReserva.id, editForm);
+            alert('Reserva atualizada com sucesso!');
+            setEditingReserva(null);
+            fetchReservas();
+        } catch (error) {
+            console.error('Erro ao atualizar reserva:', error);
+            alert('Erro ao atualizar reserva.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleCancelClick = (reserva: IReserva) => {
+        setCancelingReserva(reserva);
+    };
+
+    const handleConfirmCancel = async () => {
+        if (!cancelingReserva) return;
+        try {
+            setActionLoading(true);
+            await reservationsService.update(cancelingReserva.id, { status: 'CANCELLED' });
+            alert('Reserva cancelada com sucesso!');
+            setCancelingReserva(null);
+            fetchReservas();
+        } catch (error) {
+            console.error('Erro ao cancelar reserva:', error);
+            alert('Erro ao cancelar reserva.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleDeleteClick = (reserva: IReserva) => {
+        setDeletingReserva(reserva);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deletingReserva) return;
+        try {
+            setActionLoading(true);
+            await reservationsService.delete(deletingReserva.id);
+            alert('Reserva excluída com sucesso!');
+            setDeletingReserva(null);
+            fetchReservas();
+        } catch (error) {
+            console.error('Erro ao excluir reserva:', error);
+            alert('Erro ao excluir reserva.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleTransferClick = (reserva: IReserva) => {
+        // Placeholder for transfer functionality
+        // In a real implementation, this would open a similar flow to NovaReserva but pre-filled
+        alert('Funcionalidade de transferência: Em breve você poderá alterar a viagem ou assento.');
+    };
+
     const reservasFiltradas = reservas.filter(r => {
         const matchStatus = filtroStatus === 'TODOS' || r.status === filtroStatus;
-        // Backend returns joined fields: passenger_name, route_name, etc.
-        // We need to cast or update types, but for now we access them safely.
         const passengerName = (r as any).passenger_name || '';
         const ticketCode = (r as any).ticket_code || r.codigo || '';
 
@@ -133,8 +221,10 @@ export const Reservas: React.FC = () => {
                     </div>
                 ) : (
                     reservasFiltradas.map((reserva: any) => {
+                        const isCancelled = reserva.status === 'CANCELLED' || reserva.status === 'CANCELADA';
+
                         return (
-                            <div key={reserva.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
+                            <div key={reserva.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow relative group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
                                         <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -147,7 +237,9 @@ export const Reservas: React.FC = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <StatusBadge status={reserva.status} />
+                                    <div className="flex items-center gap-2">
+                                        <StatusBadge status={reserva.status} />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
@@ -180,12 +272,45 @@ export const Reservas: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 pt-4 border-t border-slate-100 dark:border-slate-700 text-sm">
+                                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700 text-sm">
                                     <div className="flex items-center gap-2">
                                         <Calendar size={16} className="text-slate-400" />
                                         <span className="text-slate-600 dark:text-slate-400">
                                             Partida: {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : '--'} às {reserva.departure_time || '--'}
                                         </span>
+                                    </div>
+                                    <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => handleEditClick(reserva)}
+                                            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                            title="Editar"
+                                        >
+                                            <Edit size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleTransferClick(reserva)}
+                                            className="p-2 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                                            title="Transferir / Trocar Assento"
+                                            disabled={isCancelled}
+                                        >
+                                            <RefreshCw size={18} className={isCancelled ? 'opacity-50' : ''} />
+                                        </button>
+                                        {!isCancelled && (
+                                            <button
+                                                onClick={() => handleCancelClick(reserva)}
+                                                className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Cancelar"
+                                            >
+                                                <XCircle size={18} />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleDeleteClick(reserva)}
+                                            className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Excluir"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -193,6 +318,138 @@ export const Reservas: React.FC = () => {
                     })
                 )}
             </div>
+
+            {/* Edit Modal */}
+            {editingReserva && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full animate-in zoom-in-95 duration-200">
+                        <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-700">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Editar Reserva</h3>
+                            <button onClick={() => setEditingReserva(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome do Passageiro</label>
+                                <input
+                                    type="text"
+                                    value={editForm.passenger_name}
+                                    onChange={e => setEditForm({ ...editForm, passenger_name: e.target.value })}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Documento</label>
+                                <input
+                                    type="text"
+                                    value={editForm.passenger_document}
+                                    onChange={e => setEditForm({ ...editForm, passenger_document: e.target.value })}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    value={editForm.passenger_email}
+                                    onChange={e => setEditForm({ ...editForm, passenger_email: e.target.value })}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
+                                <input
+                                    type="tel"
+                                    value={editForm.passenger_phone}
+                                    onChange={e => setEditForm({ ...editForm, passenger_phone: e.target.value })}
+                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-end gap-3 p-6 border-t border-slate-100 dark:border-slate-700">
+                            <button
+                                onClick={() => setEditingReserva(null)}
+                                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={actionLoading}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            >
+                                {actionLoading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Cancel Confirmation Modal */}
+            {cancelingReserva && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200">
+                        <div className="p-6 text-center">
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <AlertTriangle size={24} className="text-red-600 dark:text-red-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Cancelar Reserva?</h3>
+                            <p className="text-slate-500 dark:text-slate-400 mb-6">
+                                Tem certeza que deseja cancelar a reserva de <strong>{cancelingReserva.passenger_name}</strong>? Esta ação não pode ser desfeita.
+                            </p>
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={() => setCancelingReserva(null)}
+                                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+                                >
+                                    Não, manter
+                                </button>
+                                <button
+                                    onClick={handleConfirmCancel}
+                                    disabled={actionLoading}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                >
+                                    {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Sim, cancelar'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {deletingReserva && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200">
+                        <div className="p-6 text-center">
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Trash2 size={24} className="text-red-600 dark:text-red-400" />
+                            </div>
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Excluir Reserva?</h3>
+                            <p className="text-slate-500 dark:text-slate-400 mb-6">
+                                Tem certeza que deseja excluir permanentemente a reserva de <strong>{deletingReserva.passenger_name}</strong>?
+                            </p>
+                            <div className="flex gap-3 justify-center">
+                                <button
+                                    onClick={() => setDeletingReserva(null)}
+                                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleConfirmDelete}
+                                    disabled={actionLoading}
+                                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                                >
+                                    {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Excluir'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
