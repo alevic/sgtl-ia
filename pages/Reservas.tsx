@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { IReserva, StatusReservaLabel } from '../types';
 import { reservationsService } from '../services/reservationsService';
 import { transactionsService } from '../services/transactionsService';
-import { TipoTransacao, StatusTransacao, CategoriaReceita } from '../types';
+import { clientsService } from '../services/clientsService';
+import { TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa } from '../types';
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
     Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle
@@ -41,6 +42,10 @@ export const Reservas: React.FC = () => {
     const [cancelingReserva, setCancelingReserva] = useState<IReserva | null>(null);
     const [paymentReserva, setPaymentReserva] = useState<IReserva | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Cancel Form State
+    const [cancelReason, setCancelReason] = useState('');
+    const [refundAction, setRefundAction] = useState<'NONE' | 'REFUND' | 'CREDIT'>('NONE');
 
     // Payment Form State
     const [paymentMethod, setPaymentMethod] = useState<'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO'>('PIX');
@@ -100,13 +105,95 @@ export const Reservas: React.FC = () => {
 
     const handleCancelClick = (reserva: IReserva) => {
         setCancelingReserva(reserva);
+        setCancelReason('');
+        // Default to REFUND if paid, NONE if not
+        const amountPaid = Number(reserva.amount_paid || reserva.valor_pago || 0);
+        setRefundAction(amountPaid > 0 ? 'REFUND' : 'NONE');
     };
 
     const handleConfirmCancel = async () => {
         if (!cancelingReserva) return;
         try {
             setActionLoading(true);
-            await reservationsService.update(cancelingReserva.id, { status: 'CANCELLED' });
+            const amountPaid = Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0);
+
+            // 1. Process Financial Action
+            if (refundAction === 'REFUND' && amountPaid > 0) {
+                await transactionsService.create({
+                    tipo: TipoTransacao.DESPESA,
+                    descricao: `Reembolso Reserva ${cancelingReserva.ticket_code || cancelingReserva.codigo} - ${cancelingReserva.passenger_name}`,
+                    valor: amountPaid,
+                    moeda: cancelingReserva.moeda || 'BRL',
+                    data_emissao: new Date().toISOString(),
+                    data_vencimento: new Date().toISOString(),
+                    data_pagamento: new Date().toISOString(),
+                    status: StatusTransacao.PAGA,
+                    categoria_despesa: CategoriaDespesa.OUTROS, // Could be specialized category
+                    reserva_id: cancelingReserva.id,
+                    criado_por: 'Sistema',
+                    observacoes: `Motivo cancelamento: ${cancelReason}`
+                });
+            } else if (refundAction === 'CREDIT' && amountPaid > 0) {
+                // Determine Client ID - check common fields
+                let clientId = (cancelingReserva as any).client_id || cancelingReserva.cliente_id;
+
+                // Fallback: Try to find client by Document or Email if not linked
+                if (!clientId) {
+                    const doc = (cancelingReserva as any).passenger_document || (cancelingReserva as any).passenger_cpf;
+                    const email = (cancelingReserva as any).passenger_email;
+
+                    if (doc || email) {
+                        try {
+                            // Search by document first
+                            if (doc) {
+                                const cleanDoc = doc.replace(/\D/g, '');
+                                const searchRes = await clientsService.getAll(doc);
+                                const match = searchRes.find((c: any) => {
+                                    const cDoc = (c.documento_numero || '').replace(/\D/g, '');
+                                    const cCpf = (c.cpf || '').replace(/\D/g, '');
+                                    const cCnpj = (c.cnpj || '').replace(/\D/g, '');
+                                    return (cDoc && cDoc === cleanDoc) || (cCpf && cCpf === cleanDoc) || (cCnpj && cCnpj === cleanDoc);
+                                });
+                                if (match) clientId = match.id;
+                            }
+                            // If not found, try email
+                            if (!clientId && email) {
+                                const searchRes = await clientsService.getAll(email);
+                                const match = searchRes.find((c: any) => c.email && c.email.toLowerCase() === email.toLowerCase());
+                                if (match) clientId = match.id;
+                            }
+                        } catch (err) {
+                            console.warn('Erro ao buscar cliente para vinculo:', err);
+                        }
+                    }
+                }
+
+                if (clientId) {
+                    // Fetch client to get current balance
+                    try {
+                        const clientData = await clientsService.getById(clientId);
+                        const currentCredit = Number(clientData.saldo_creditos || 0);
+                        await clientsService.update(clientId, {
+                            saldo_creditos: currentCredit + amountPaid
+                        });
+                        // Optional: Log this credit update somewhere if detailed history is needed
+                    } catch (err) {
+                        console.error('Erro ao buscar cliente para crédito:', err);
+                        alert('Aviso: Não foi possível localizar o cadastro do cliente para gerar o crédito automaticaente.');
+                    }
+                } else {
+                    alert('Aviso: Cliente não identificado na reserva. O crédito não pode ser gerado automaticamente.');
+                }
+            }
+
+            // 2. Update Reservation Status
+            await reservationsService.update(cancelingReserva.id, {
+                status: 'CANCELLED',
+                observacoes: cancelingReserva.observacoes
+                    ? `${cancelingReserva.observacoes}\n[Cancelamento]: ${cancelReason}`
+                    : `[Cancelamento]: ${cancelReason}`
+            });
+
             alert('Reserva cancelada com sucesso!');
             setCancelingReserva(null);
             fetchReservas();
@@ -452,30 +539,91 @@ export const Reservas: React.FC = () => {
             )}
 
             {/* Cancel Confirmation Modal */}
+            {/* Cancel Confirmation Modal */}
             {cancelingReserva && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200">
-                        <div className="p-6 text-center">
-                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <AlertTriangle size={24} className="text-red-600 dark:text-red-400" />
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full animate-in zoom-in-95 duration-200">
+                        <div className="p-6">
+                            <div className="text-center mb-6">
+                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <AlertTriangle size={24} className="text-red-600 dark:text-red-400" />
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Cancelar Reserva?</h3>
+                                <p className="text-slate-500 dark:text-slate-400">
+                                    Esta ação não pode ser desfeita.
+                                </p>
                             </div>
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Cancelar Reserva?</h3>
-                            <p className="text-slate-500 dark:text-slate-400 mb-6">
-                                Tem certeza que deseja cancelar a reserva de <strong>{cancelingReserva.passenger_name}</strong>? Esta ação não pode ser desfeita.
-                            </p>
-                            <div className="flex gap-3 justify-center">
+
+                            <div className="space-y-4 mb-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                        Motivo do Cancelamento
+                                    </label>
+                                    <textarea
+                                        value={cancelReason}
+                                        onChange={(e) => setCancelReason(e.target.value)}
+                                        placeholder="Informe o motivo..."
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white resize-none h-24 focus:ring-2 focus:ring-red-500 outline-none"
+                                    />
+                                </div>
+
+                                {Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0) > 0 && (
+                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 block">
+                                            Valor Pago: R$ {Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0).toFixed(2)}
+                                        </p>
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="refundAction"
+                                                    value="NONE"
+                                                    checked={refundAction === 'NONE'}
+                                                    onChange={(e) => setRefundAction(e.target.value as any)}
+                                                    className="text-red-600 focus:ring-red-500"
+                                                />
+                                                <span className="text-sm text-slate-600 dark:text-slate-400">Nenhuma devolução (Multa/Retenção)</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="refundAction"
+                                                    value="REFUND"
+                                                    checked={refundAction === 'REFUND'}
+                                                    onChange={(e) => setRefundAction(e.target.value as any)}
+                                                    className="text-red-600 focus:ring-red-500"
+                                                />
+                                                <span className="text-sm text-slate-600 dark:text-slate-400">Devolver Dinheiro (Gerar Despesa)</span>
+                                            </label>
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="refundAction"
+                                                    value="CREDIT"
+                                                    checked={refundAction === 'CREDIT'}
+                                                    onChange={(e) => setRefundAction(e.target.value as any)}
+                                                    className="text-red-600 focus:ring-red-500"
+                                                />
+                                                <span className="text-sm text-slate-600 dark:text-slate-400">Gerar Crédito para Cliente</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-3 justify-end">
                                 <button
                                     onClick={() => setCancelingReserva(null)}
                                     className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
                                 >
-                                    Não, manter
+                                    Cancelar
                                 </button>
                                 <button
                                     onClick={handleConfirmCancel}
                                     disabled={actionLoading}
                                     className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                                 >
-                                    {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Sim, cancelar'}
+                                    {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Confirmar Cancelamento'}
                                 </button>
                             </div>
                         </div>
