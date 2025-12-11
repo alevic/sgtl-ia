@@ -210,7 +210,7 @@ export const Reservas: React.FC = () => {
         <div className="space-y-6 animate-in fade-in duration-500">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Reservas</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Gerenciamento de Reservas</h1>
                     <p className="text-slate-500 dark:text-slate-400">Gestão de reservas de passagens</p>
                 </div>
                 <Link
@@ -279,99 +279,102 @@ export const Reservas: React.FC = () => {
                         const isCancelled = reserva.status === 'CANCELLED' || reserva.status === 'CANCELADA';
 
                         return (
-                            <div key={reserva.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow relative group">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                            <Ticket size={24} className="text-blue-600 dark:text-blue-400" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{reserva.ticket_code || reserva.codigo}</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                Reservado em {new Date(reserva.created_at || reserva.data_reserva).toLocaleDateString('pt-BR')}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <StatusBadge status={reserva.status} />
-                                    </div>
-                                </div>
+                            <div key={reserva.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden hover:shadow-md transition-all group">
+                                <div className="p-6">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            {/* Header: Código, Status e Valor */}
+                                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                                                        <Ticket size={20} className="text-blue-600 dark:text-blue-400" />
+                                                    </div>
+                                                    <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
+                                                        {reserva.ticket_code || reserva.codigo}
+                                                    </h3>
+                                                </div>
+                                                <StatusBadge status={reserva.status} />
+                                                <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
+                                                    <DollarSign size={14} />
+                                                    <span>R$ {Number(reserva.valor_total || reserva.price || 0).toFixed(2)}</span>
+                                                </div>
+                                            </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                                    <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Passageiro</p>
-                                        <div className="flex items-center gap-2">
-                                            <User size={16} className="text-blue-600" />
-                                            <p className="font-semibold text-slate-800 dark:text-white">{reserva.passenger_name}</p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Viagem</p>
-                                        <div className="flex items-center gap-2">
-                                            <Bus size={16} className="text-blue-600" />
-                                            <p className="font-semibold text-slate-800 dark:text-white">
-                                                {reserva.trip_title || reserva.route_name || 'Viagem sem título'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Assento</p>
-                                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">{reserva.seat_number || 'N/A'}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Valor</p>
-                                        <div className="flex items-center gap-2">
-                                            <DollarSign size={16} className="text-green-600" />
-                                            <p className="font-bold text-green-600 dark:text-green-400">
-                                                R$ {Number(reserva.valor_total || reserva.price || 0).toFixed(2)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+                                            {/* Informações detalhadas */}
+                                            <div className="space-y-2">
+                                                {/* Passageiro */}
+                                                <div className="flex items-center gap-2.5 text-sm">
+                                                    <User size={16} className="text-slate-400 shrink-0" />
+                                                    <span className="font-medium text-slate-700 dark:text-slate-300">
+                                                        {reserva.passenger_name}
+                                                    </span>
+                                                    <span className="text-slate-400">•</span>
+                                                    <span className="text-slate-500 dark:text-slate-400">
+                                                        Reservado em {new Date(reserva.created_at || reserva.data_reserva).toLocaleDateString('pt-BR')} às {new Date(reserva.created_at || reserva.data_reserva).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
 
-                                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <Calendar size={16} className="text-slate-400" />
-                                        <span className="text-slate-600 dark:text-slate-400">
-                                            Partida: {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : '--'} às {reserva.departure_time || '--'}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                                        <button
-                                            onClick={() => handleEditClick(reserva)}
-                                            className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                            title="Editar"
-                                        >
-                                            <Edit size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleTransferClick(reserva)}
-                                            className="p-2 text-slate-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                                            title="Transferir / Trocar Assento"
-                                            disabled={isCancelled}
-                                        >
-                                            <RefreshCw size={18} className={isCancelled ? 'opacity-50' : ''} />
-                                        </button>
-                                        {!isCancelled && (
+                                                {/* Viagem */}
+                                                <div className="flex items-center gap-2.5 text-sm">
+                                                    <Bus size={16} className="text-slate-400 shrink-0" />
+                                                    <span className="text-slate-600 dark:text-slate-400">
+                                                        {reserva.trip_title || reserva.route_name || 'Viagem sem título'}
+                                                    </span>
+                                                </div>
+
+                                                {/* Data e Assento */}
+                                                <div className="flex flex-wrap items-center gap-4 text-sm mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
+                                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                                                        <Calendar size={16} className="text-slate-400" />
+                                                        <span>
+                                                            Partida: {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : '--'}
+                                                            {' '}às{' '}
+                                                            {reserva.departure_time || '--'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded text-slate-700 dark:text-slate-300 font-medium">
+                                                        <span className="text-xs">Assento</span>
+                                                        <span className="text-sm font-bold">{reserva.seat_number || 'N/A'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Ações (Top-Right) */}
+                                        <div className="flex items-center gap-2 ml-4">
                                             <button
-                                                onClick={() => handleCancelClick(reserva)}
-                                                className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Cancelar"
+                                                onClick={() => handleEditClick(reserva)}
+                                                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                                                title="Editar"
                                             >
-                                                <XCircle size={18} />
+                                                <Edit size={18} className="text-slate-600 dark:text-slate-400" />
                                             </button>
-                                        )}
-
-                                        <button
-                                            onClick={() => handlePaymentClick(reserva)}
-                                            className="p-2 text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                            title="Realizar Pagamento"
-                                            disabled={isCancelled}
-                                        >
-                                            <DollarSign size={18} className={isCancelled ? 'opacity-50' : ''} />
-                                        </button>
-
-
+                                            <button
+                                                onClick={() => handleTransferClick(reserva)}
+                                                className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                                                title="Transferir / Trocar Assento"
+                                                disabled={isCancelled}
+                                            >
+                                                <RefreshCw size={18} className={`text-orange-600 dark:text-orange-400 ${isCancelled ? 'opacity-50' : ''}`} />
+                                            </button>
+                                            {!isCancelled && (
+                                                <button
+                                                    onClick={() => handleCancelClick(reserva)}
+                                                    className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                                                    title="Cancelar"
+                                                >
+                                                    <XCircle size={18} className="text-red-600 dark:text-red-400" />
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handlePaymentClick(reserva)}
+                                                className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
+                                                title="Realizar Pagamento"
+                                                disabled={isCancelled}
+                                            >
+                                                <DollarSign size={18} className={`text-green-600 dark:text-green-400 ${isCancelled ? 'opacity-50' : ''}`} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
