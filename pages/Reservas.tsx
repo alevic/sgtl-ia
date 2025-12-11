@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { IReserva } from '../types';
+import { IReserva, StatusReservaLabel } from '../types';
 import { reservationsService } from '../services/reservationsService';
+import { transactionsService } from '../services/transactionsService';
+import { TipoTransacao, StatusTransacao, CategoriaReceita } from '../types';
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
     Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle
@@ -9,14 +11,14 @@ import {
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
-        PENDENTE: { color: 'yellow', label: 'Pendente' },
-        PENDING: { color: 'yellow', label: 'Pendente' },
-        CONFIRMADA: { color: 'green', label: 'Confirmada' },
-        CONFIRMED: { color: 'green', label: 'Confirmada' },
-        CANCELADA: { color: 'red', label: 'Cancelada' },
-        CANCELLED: { color: 'red', label: 'Cancelada' },
-        UTILIZADA: { color: 'blue', label: 'Utilizada' },
-        COMPLETED: { color: 'blue', label: 'Utilizada' }
+        PENDENTE: { color: 'yellow', label: StatusReservaLabel.PENDING },
+        PENDING: { color: 'yellow', label: StatusReservaLabel.PENDING },
+        CONFIRMADA: { color: 'green', label: StatusReservaLabel.CONFIRMED },
+        CONFIRMED: { color: 'green', label: StatusReservaLabel.CONFIRMED },
+        CANCELADA: { color: 'red', label: StatusReservaLabel.CANCELLED },
+        CANCELLED: { color: 'red', label: StatusReservaLabel.CANCELLED },
+        UTILIZADA: { color: 'blue', label: StatusReservaLabel.USED },
+        COMPLETED: { color: 'blue', label: StatusReservaLabel.USED }
     };
 
     const config = configs[status] || configs['PENDENTE'];
@@ -36,9 +38,13 @@ export const Reservas: React.FC = () => {
 
     // Action States
     const [editingReserva, setEditingReserva] = useState<IReserva | null>(null);
-    const [deletingReserva, setDeletingReserva] = useState<IReserva | null>(null);
     const [cancelingReserva, setCancelingReserva] = useState<IReserva | null>(null);
+    const [paymentReserva, setPaymentReserva] = useState<IReserva | null>(null);
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Payment Form State
+    const [paymentMethod, setPaymentMethod] = useState<'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO'>('PIX');
+    const [amountToPay, setAmountToPay] = useState<string>('');
 
     // Edit Form State
     const [editForm, setEditForm] = useState({
@@ -112,21 +118,64 @@ export const Reservas: React.FC = () => {
         }
     };
 
-    const handleDeleteClick = (reserva: IReserva) => {
-        setDeletingReserva(reserva);
+
+
+    const handlePaymentClick = (reserva: IReserva) => {
+        setPaymentReserva(reserva);
+        setPaymentMethod('PIX'); // Default
+        const pending = Math.max(0, Number(reserva.valor_total || reserva.price || 0) - Number(reserva.amount_paid || reserva.valor_pago || 0));
+        setAmountToPay(pending.toFixed(2));
     };
 
-    const handleConfirmDelete = async () => {
-        if (!deletingReserva) return;
+    const handleConfirmPayment = async () => {
+        if (!paymentReserva || !amountToPay) return;
+        const paidAmount = Number(amountToPay.replace(',', '.'));
+
+        if (isNaN(paidAmount) || paidAmount <= 0) {
+            alert('Por favor, insira um valor válido.');
+            return;
+        }
+
         try {
             setActionLoading(true);
-            await reservationsService.delete(deletingReserva.id);
-            alert('Reserva excluída com sucesso!');
-            setDeletingReserva(null);
+
+            // 1. Create Financial Transaction (Revenue)
+            await transactionsService.create({
+                tipo: TipoTransacao.RECEITA,
+                descricao: `Pagamento Reserva ${paymentReserva.ticket_code || paymentReserva.codigo} - ${paymentReserva.passenger_name}`,
+                valor: paidAmount,
+                moeda: paymentReserva.moeda || 'BRL',
+                data_emissao: new Date().toISOString(),
+                data_vencimento: new Date().toISOString(),
+                data_pagamento: new Date().toISOString(),
+                status: StatusTransacao.PAGA,
+                forma_pagamento: paymentMethod,
+                categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
+                reserva_id: paymentReserva.id,
+                criado_por: 'Sistema' // Should ideally be user ID
+            });
+
+            // 2. Update Reservation
+            const currentTotalPaid = Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0) + paidAmount;
+            const totalPrice = Number(paymentReserva.valor_total || paymentReserva.price || 0);
+
+            // Auto-confirm if paid >= total, otherwise just update amount
+            const newStatus = (currentTotalPaid >= totalPrice && totalPrice > 0) ? 'CONFIRMED' : paymentReserva.status;
+
+            // Updated payload to match backend expectations
+            await reservationsService.update(paymentReserva.id, {
+                status: newStatus,
+                forma_pagamento: paymentMethod,
+                valor_pago: currentTotalPaid, // Legacy/Frontend field
+                amount_paid: currentTotalPaid // Backend field
+            });
+
+            alert('Pagamento registrado com sucesso!');
+            setPaymentReserva(null);
             fetchReservas();
         } catch (error) {
-            console.error('Erro ao excluir reserva:', error);
-            alert('Erro ao excluir reserva.');
+            console.error('Erro ao registrar pagamento:', error);
+            alert('Erro ao registrar pagamento.');
         } finally {
             setActionLoading(false);
         }
@@ -195,6 +244,12 @@ export const Reservas: React.FC = () => {
                         >
                             <Filter size={16} />
                             Todos
+                        </button>
+                        <button
+                            onClick={() => setFiltroStatus('PENDING')}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'PENDING' ? 'bg-yellow-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                        >
+                            Pendente
                         </button>
                         <button
                             onClick={() => setFiltroStatus('CONFIRMED')}
@@ -266,7 +321,7 @@ export const Reservas: React.FC = () => {
                                         <div className="flex items-center gap-2">
                                             <DollarSign size={16} className="text-green-600" />
                                             <p className="font-bold text-green-600 dark:text-green-400">
-                                                {reserva.price ? `R$ ${Number(reserva.price).toFixed(2)}` : 'R$ 0.00'}
+                                                R$ {Number(reserva.valor_total || reserva.price || 0).toFixed(2)}
                                             </p>
                                         </div>
                                     </div>
@@ -304,13 +359,17 @@ export const Reservas: React.FC = () => {
                                                 <XCircle size={18} />
                                             </button>
                                         )}
+
                                         <button
-                                            onClick={() => handleDeleteClick(reserva)}
-                                            className="p-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                            title="Excluir"
+                                            onClick={() => handlePaymentClick(reserva)}
+                                            className="p-2 text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                            title="Realizar Pagamento"
+                                            disabled={isCancelled}
                                         >
-                                            <Trash2 size={18} />
+                                            <DollarSign size={18} className={isCancelled ? 'opacity-50' : ''} />
                                         </button>
+
+
                                     </div>
                                 </div>
                             </div>
@@ -419,33 +478,89 @@ export const Reservas: React.FC = () => {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal */}
-            {deletingReserva && (
+
+            {/* Payment Modal */}
+            {paymentReserva && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200">
-                        <div className="p-6 text-center">
-                            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Trash2 size={24} className="text-red-600 dark:text-red-400" />
+                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200 overflow-hidden">
+                        <div className="bg-green-600 p-4 text-center">
+                            <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
+                                <DollarSign size={24} />
+                                Registrar Pagamento
+                            </h3>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="grid grid-cols-3 gap-2 text-center mb-6">
+                                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">Total</p>
+                                    <p className="font-semibold text-slate-700 dark:text-slate-300">R$ {Number(paymentReserva.valor_total || paymentReserva.price || 0).toFixed(2)}</p>
+                                </div>
+                                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                    <p className="text-xs text-green-600 dark:text-green-400">Já Pago</p>
+                                    <p className="font-semibold text-green-700 dark:text-green-300">R$ {Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0).toFixed(2)}</p>
+                                </div>
+                                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                                    <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">Restante</p>
+                                    <p className="font-bold text-blue-700 dark:text-blue-300">
+                                        R$ {Number(Number(paymentReserva.valor_total || paymentReserva.price || 0) - Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0)).toFixed(2)}
+                                    </p>
+                                </div>
                             </div>
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Excluir Reserva?</h3>
-                            <p className="text-slate-500 dark:text-slate-400 mb-6">
-                                Tem certeza que deseja excluir permanentemente a reserva de <strong>{deletingReserva.passenger_name}</strong>?
-                            </p>
-                            <div className="flex gap-3 justify-center">
-                                <button
-                                    onClick={() => setDeletingReserva(null)}
-                                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleConfirmDelete}
-                                    disabled={actionLoading}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                                >
-                                    {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Excluir'}
-                                </button>
+
+                            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 space-y-2 border border-slate-100 dark:border-slate-700">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500 dark:text-slate-400">Passageiro:</span>
+                                    <span className="font-medium text-slate-800 dark:text-white truncate max-w-[150px]">{paymentReserva.passenger_name}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500 dark:text-slate-400">Código:</span>
+                                    <span className="font-mono text-slate-800 dark:text-white">{paymentReserva.ticket_code || paymentReserva.codigo}</span>
+                                </div>
                             </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Forma de Pagamento</label>
+                                <select
+                                    value={paymentMethod}
+                                    onChange={(e) => setPaymentMethod(e.target.value as any)}
+                                    className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none"
+                                >
+                                    <option value="PIX">Pix</option>
+                                    <option value="DINHEIRO">Dinheiro</option>
+                                    <option value="CARTAO">Cartão de Crédito/Débito</option>
+                                    <option value="BOLETO">Boleto (Compensado)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Valor do Pagamento</label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">R$</span>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={amountToPay}
+                                        onChange={(e) => setAmountToPay(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-green-500 outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                            <button
+                                onClick={() => setPaymentReserva(null)}
+                                className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirmPayment}
+                                disabled={actionLoading}
+                                className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition-colors flex items-center gap-2 shadow-lg shadow-green-600/20"
+                            >
+                                {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Confirmar Pagamento'}
+                            </button>
                         </div>
                     </div>
                 </div>

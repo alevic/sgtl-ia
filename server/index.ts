@@ -164,13 +164,13 @@ app.post("/api/finance/transactions", authorize(['admin', 'financeiro']), async 
                 type, description, amount, currency, date,
                 due_date, payment_date, status, payment_method, category,
                 cost_center, accounting_classification, document_number, notes,
-                organization_id, created_by, maintenance_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+                organization_id, created_by, maintenance_id, reservation_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
             [
                 tipo, descricao, valor, moeda || 'BRL', data_emissao,
                 data_vencimento, data_pagamento || null, status, forma_pagamento || null, (category || null),
                 centro_custo || null, classificacao_contabil || null, numero_documento || null, observacoes || null,
-                orgId, userId, req.body.maintenance_id || null
+                orgId, userId, req.body.maintenance_id || null, req.body.reserva_id || null
             ]
         );
 

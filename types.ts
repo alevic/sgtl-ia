@@ -359,7 +359,7 @@ export interface IReserva {
   responsavel_id: string; // Quem fez a compra/reserva
   passageiros: IPassageiroReserva[]; // Lista de passageiros
   data_reserva: string; // ISO Date
-  status: 'PENDENTE' | 'CONFIRMADA' | 'CANCELADA' | 'UTILIZADA';
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'USED' | 'CHECKED_IN' | 'NO_SHOW';
   valor_total: number; // Soma dos valores dos passageiros
   moeda: Moeda;
   forma_pagamento?: 'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO';
@@ -369,7 +369,20 @@ export interface IReserva {
   cliente_id?: string;
   assento_numero?: string;
   valor_pago?: number;
+  // Backend Mapped Fields
+  price?: number; // Backend column name
+  amount_paid?: number;
+  payment_method?: string;
 }
+
+export const StatusReservaLabel: Record<string, string> = {
+  PENDING: 'Pendente',
+  CONFIRMED: 'Confirmada',
+  CANCELLED: 'Cancelada',
+  USED: 'Utilizada',
+  CHECKED_IN: 'Embarcado',
+  NO_SHOW: 'Não Compareceu'
+};
 
 export enum TipoEncomenda {
   CARGA_ONIBUS = 'CARGA_ONIBUS',

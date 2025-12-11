@@ -517,6 +517,18 @@ export async function setupDb() {
 
         console.log("Location tables created successfully.");
 
+        // Manual Migrations (Ensure these columns exist)
+        await pool.query(`
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS maintenance_id UUID REFERENCES maintenance(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS reservation_id UUID REFERENCES reservations(id);
+        `);
+
+        await pool.query(`
+            ALTER TABLE reservations 
+            ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10, 2),
+            ADD COLUMN IF NOT EXISTS payment_method TEXT;
+        `);
+
         console.log("Database setup completed successfully!");
         // process.exit(0); // Don't exit if called from index.ts
     } catch (error) {

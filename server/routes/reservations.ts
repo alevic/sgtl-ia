@@ -127,10 +127,31 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
         const userId = session.user.id;
 
         const {
-            trip_id, seat_id,
+            trip_id, seat_id, seat_number, // Add seat_number here
             passenger_name, passenger_document, passenger_email, passenger_phone,
-            price, client_id, notes
+            price, client_id, notes, status,
+            valor_pago, forma_pagamento
         } = req.body;
+
+        // Verify status if provided
+        const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW'];
+        const finalStatus = (status && validStatuses.includes(status)) ? status : 'PENDING';
+
+        // Check for double booking using seat_number if provided (fallback for when seat_id is missing or to cover all bases)
+        if (seat_number) {
+            const duplicateCheck = await pool.query(
+                `SELECT r.id FROM reservations r 
+                 LEFT JOIN seat s ON r.seat_id = s.id
+                 WHERE r.trip_id = $1 
+                 AND (r.seat_id = $2 OR s.numero = $3)
+                 AND r.status != 'CANCELLED'`,
+                [trip_id, seat_id || '00000000-0000-0000-0000-000000000000', seat_number]
+            );
+
+            if (duplicateCheck.rows.length > 0) {
+                return res.status(409).json({ error: `O assento ${seat_number} já está reservado para esta viagem.` });
+            }
+        }
 
         // Verify seat availability if seat_id is provided
         if (seat_id) {
@@ -141,8 +162,8 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
             if (seatCheck.rows.length === 0) {
                 return res.status(404).json({ error: "Seat not found" });
             }
-            // In a real scenario, we should check if it's already reserved for this trip
-            // But since seats are linked to vehicle, and trip uses vehicle, we need to check reservations for this trip + seat
+
+            // Check overlap by seat_id
             const reservationCheck = await pool.query(
                 "SELECT id FROM reservations WHERE trip_id = $1 AND seat_id = $2 AND status != 'CANCELLED'",
                 [trip_id, seat_id]
@@ -162,15 +183,17 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 passenger_name, passenger_document, passenger_email, passenger_phone,
                 status, ticket_code, price,
                 user_id, client_id, notes,
-                organization_id, created_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+                organization_id, created_by,
+                amount_paid, payment_method
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING *`,
             [
                 trip_id, seat_id || null,
                 passenger_name, passenger_document, passenger_email || null, passenger_phone || null,
-                'CONFIRMED', ticket_code, price,
+                finalStatus, ticket_code, price,
                 null, client_id || null, notes || null,
-                orgId, userId
+                orgId, userId,
+                valor_pago || 0, forma_pagamento || null
             ]
         );
 
@@ -193,7 +216,7 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
-        const { status, notes, passenger_name, passenger_document } = req.body;
+        const { status, notes, passenger_name, passenger_document, forma_pagamento, valor_pago } = req.body;
 
         const currentRes = await pool.query(
             "SELECT status, trip_id FROM reservations WHERE id = $1 AND organization_id = $2",
@@ -212,10 +235,12 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
                 notes = COALESCE($2, notes),
                 passenger_name = COALESCE($3, passenger_name),
                 passenger_document = COALESCE($4, passenger_document),
+                payment_method = COALESCE($5, payment_method),
+                amount_paid = COALESCE($6, amount_paid),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $5 AND organization_id = $6
+            WHERE id = $7 AND organization_id = $8
             RETURNING *`,
-            [status, notes, passenger_name, passenger_document, id, orgId]
+            [status, notes, passenger_name, passenger_document, forma_pagamento, valor_pago, id, orgId]
         );
 
         // Handle seat count logic if status changes
