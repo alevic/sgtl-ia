@@ -5,8 +5,9 @@ import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
     CheckCircle, Clock, Loader, XCircle, TrendingUp,
-    Edit, Trash2, ToggleLeft, ToggleRight
+    Edit, Trash2, ToggleLeft, ToggleRight, ClipboardList
 } from 'lucide-react';
+import { PassengerListModal } from '../components/PassengerListModal';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
@@ -42,6 +43,16 @@ export const Viagens: React.FC = () => {
     const [busca, setBusca] = useState('');
     const [filtroDataPartida, setFiltroDataPartida] = useState('');
     const navigate = useNavigate();
+
+    // Passenger Modal State
+    const [isPassengerModalOpen, setIsPassengerModalOpen] = useState(false);
+    const [selectedTripForPassengers, setSelectedTripForPassengers] = useState<{
+        id: string;
+        title: string;
+        vehicle: string;
+        departureDate: string;
+        arrivalDate: string;
+    } | null>(null);
 
     const fetchViagens = async () => {
         try {
@@ -86,6 +97,21 @@ export const Viagens: React.FC = () => {
             alert('Erro ao alterar status da viagem.');
             fetchViagens(); // Revert on error
         }
+    };
+
+    const handleOpenPassengerList = (viagem: IViagem) => {
+        const vehicleInfo = viagem.vehicle_plate
+            ? `${viagem.vehicle_plate} - ${viagem.vehicle_model || 'Modelo não inf.'}`
+            : 'Veículo não definido';
+
+        setSelectedTripForPassengers({
+            id: viagem.id,
+            title: viagem.title || viagem.route_name || 'Viagem sem título',
+            vehicle: vehicleInfo,
+            departureDate: formatDate(viagem.departure_date),
+            arrivalDate: viagem.arrival_date ? formatDate(viagem.arrival_date) : 'N/A'
+        });
+        setIsPassengerModalOpen(true);
     };
 
     const viagensFiltradas = viagens.filter(v => {
@@ -419,6 +445,13 @@ export const Viagens: React.FC = () => {
                                     {/* Ações */}
                                     <div className="flex items-center gap-2">
                                         <button
+                                            onClick={() => handleOpenPassengerList(viagem)}
+                                            className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                                            title="Lista de Passageiros"
+                                        >
+                                            <ClipboardList size={18} className="text-blue-600 dark:text-blue-400" />
+                                        </button>
+                                        <button
                                             onClick={() => navigate(`/admin/viagens/editar/${viagem.id}`)}
                                             className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
                                             title="Editar"
@@ -449,6 +482,14 @@ export const Viagens: React.FC = () => {
                         </div>
                     ))}
                 </div>
+            )}
+            {selectedTripForPassengers && (
+                <PassengerListModal
+                    isOpen={isPassengerModalOpen}
+                    onClose={() => setIsPassengerModalOpen(false)}
+                    tripId={selectedTripForPassengers.id}
+                    tripData={selectedTripForPassengers}
+                />
             )}
         </div>
     );
