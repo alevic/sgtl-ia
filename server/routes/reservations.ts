@@ -42,7 +42,7 @@ router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) 
 
         let query = `
             SELECT r.*, 
-                   t.departure_date, t.departure_time,
+                   t.departure_date, t.departure_time, t.title as trip_title,
                    route.name as route_name,
                    s.numero as seat_number, s.tipo as seat_type
             FROM reservations r
@@ -97,7 +97,7 @@ router.get("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
 
         const result = await pool.query(
             `SELECT r.*, 
-                   t.departure_date, t.departure_time,
+                   t.departure_date, t.departure_time, t.title as trip_title,
                    route.name as route_name, route.origin_city, route.destination_city,
                    s.numero as seat_number, s.tipo as seat_type
             FROM reservations r

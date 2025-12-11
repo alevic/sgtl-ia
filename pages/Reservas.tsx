@@ -306,10 +306,12 @@ export const Reservas: React.FC = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Rota</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Viagem</p>
                                         <div className="flex items-center gap-2">
                                             <Bus size={16} className="text-blue-600" />
-                                            <p className="font-semibold text-slate-800 dark:text-white">{reserva.route_name}</p>
+                                            <p className="font-semibold text-slate-800 dark:text-white">
+                                                {reserva.trip_title || reserva.route_name || 'Viagem sem título'}
+                                            </p>
                                         </div>
                                     </div>
                                     <div>
