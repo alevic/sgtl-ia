@@ -11,7 +11,7 @@ import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, StatusReservaLabel } f
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
 import { MapaAssentosReserva } from '../components/Veiculos/MapaAssentosReserva';
-import { ArrowRight, ArrowLeft, Check, Users, X, Loader, CreditCard, QrCode, Link as LinkIcon, Copy } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Users, X, Loader, CreditCard, QrCode, Link as LinkIcon, Copy, Wallet } from 'lucide-react';
 import { tripsService } from '../services/tripsService';
 import { clientsService } from '../services/clientsService';
 import { vehiclesService } from '../services/vehiclesService';
@@ -37,6 +37,11 @@ export const NovaReserva: React.FC = () => {
   // Partial Payment State
   const [isPartialPayment, setIsPartialPayment] = useState(false);
   const [entryValue, setEntryValue] = useState(0);
+
+  // Credit Usage State
+  const [payerClient, setPayerClient] = useState<ICliente | null>(null);
+  const [useCredits, setUseCredits] = useState(false);
+  const [creditsToUse, setCreditsToUse] = useState(0);
 
   // Data Lists
   const [viagens, setViagens] = useState<IViagem[]>([]);
@@ -95,6 +100,20 @@ export const NovaReserva: React.FC = () => {
       setPassageirosMap({});
     }
   }, [viagemSelecionada]);
+
+  // Credit Logic Effect (Moved from conditional render)
+  useEffect(() => {
+    if (step === 3) {
+      const firstSeat = assentosSelecionados[0];
+      // Safety check if seats exist
+      if (firstSeat) {
+        const p = passageirosMap[firstSeat.numero];
+        if (p?.cliente_id && (!payerClient || payerClient.id !== p.cliente_id)) {
+          clientsService.getById(p.cliente_id).then(c => setPayerClient(c));
+        }
+      }
+    }
+  }, [step, assentosSelecionados, passageirosMap, payerClient]);
 
   // ... (loadTripDetails - unchanged) ...
 
@@ -223,7 +242,9 @@ export const NovaReserva: React.FC = () => {
           valor_pago: seatPaidValue, // New field usage
           status: status, // PENDING or CONFIRMED
           client_id: p.cliente_id,
-          notes: `Reserva ${paymentMethod} - ${isPartialPayment ? 'SINAL/PARCIAL' : 'INTEGRAL'}`
+          notes: `Reserva ${paymentMethod} - ${isPartialPayment ? 'SINAL/PARCIAL' : 'INTEGRAL'}`,
+          // Add credit usage info to first reservation (or distribute? Simple: first)
+          credits_used: (seat.numero === assentosSelecionados[0].numero) ? creditsToUse : 0
         });
       });
 
@@ -254,7 +275,18 @@ export const NovaReserva: React.FC = () => {
               criado_por: 'Sistema'
             };
             console.log('Entry Transaction Payload:', entryPayload);
-            await transactionsService.create(entryPayload);
+
+            // Only create transaction if there is a remaining value after credits
+            const realMoneyEntry = entryValue - creditsToUse;
+            if (realMoneyEntry > 0) {
+              entryPayload.valor = realMoneyEntry;
+              await transactionsService.create(entryPayload);
+            } else if (creditsToUse > 0 && realMoneyEntry <= 0) {
+              console.log('Entrada totalmente coberta por créditos. Nenhuma transação financeira gerada.');
+            } else {
+              // Fallback
+              await transactionsService.create(entryPayload);
+            }
 
             // 2. REMAINING (Restante) - PENDING
             const remainingPayload = {
@@ -292,8 +324,16 @@ export const NovaReserva: React.FC = () => {
               criado_por: 'Sistema'
             };
             console.log('Full Transaction Payload:', payload);
-            await transactionsService.create(payload);
-            console.log('Transação integral criada com sucesso');
+
+            // Adjust payload for credits
+            const realMoneyFull = entryValue - creditsToUse;
+            if (realMoneyFull > 0) {
+              payload.valor = realMoneyFull;
+              await transactionsService.create(payload);
+              console.log('Transação integral criada com sucesso');
+            } else {
+              console.log('Valor integral coberto por créditos via backend. Nenhuma transação financeira necessária.');
+            }
           }
 
         } catch (finError) {
@@ -600,268 +640,351 @@ export const NovaReserva: React.FC = () => {
       )}
 
       {step === 3 && (
-        <div className="space-y-6">
-          {/* Resumo da Viagem */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Dados da Viagem</h3>
-            {viagemSelecionada && (
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Título</p>
-                  <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.titulo || viagemSelecionada.route_name}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Origem</p>
-                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.origem || viagemSelecionada.origin_city}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Destino</p>
-                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.destino || viagemSelecionada.destination_city}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Data de Partida</p>
-                    <p className="font-semibold text-slate-800 dark:text-white">
-                      {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
-                        ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleString('pt-BR')
-                        : 'Data não definida'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
-                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.status}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+        <ErrorBoundary>
+          <div className="space-y-6">
 
-          {/* Lista de Passageiros */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-              <Users size={20} />
-              Passageiros ({assentosSelecionados.length})
-            </h3>
-            <div className="space-y-3">
-              {assentosSelecionados.map((seat, index) => {
-                const p = passageirosMap[seat.numero];
-                return (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-lg"
-                  >
+            {/* Credits Logic Effect */}
+            {/* Using an inline component or just a side-effect hook at the top level is better, 
+              but since we are inside a conditional render {step === 3}, we must use a mounted component or carefully verify hooks.
+              IMPORTANT: React Hooks must not be called conditionally *unless* the component structure is stable.
+              Here, this block is conditionally rendered. Standard hooks like useEffect CANNOT be put directly here if the parent component (NovaReserva) renders typically.
+              However, 'NovaReserva' has unconditional hooks at the top. 
+              If we want to run this logic ONLY when step === 3, we should use a proper useEffect at the top level with a dependency on 'step'. 
+          */}
+            {/* Moving logic to top-level useEffect to avoid conditional hook rules violation and render loop */}
+
+            {/* Header already rendered above, just the content here */}
+            {/* Resumo da Viagem */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+              <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Dados da Viagem</h3>
+              {viagemSelecionada && (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Título</p>
+                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.titulo || viagemSelecionada.route_name}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Origem</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.origem || viagemSelecionada.origin_city}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Destino</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.destino || viagemSelecionada.destination_city}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Data de Partida</p>
                       <p className="font-semibold text-slate-800 dark:text-white">
-                        {p?.nome || 'Passageiro sem nome'}
-                      </p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">
-                        Assento {seat.numero} • {seat.tipo.replace('_', ' ')} • Doc: {p?.documento}
+                        {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
+                          ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleString('pt-BR')
+                          : 'Data não definida'}
                       </p>
                     </div>
-                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                      R$ {seat.valor.toFixed(2)}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Total e Pagamento */}
-          <div className="bg-slate-800 dark:bg-slate-950 text-white rounded-xl shadow-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-lg text-slate-300">Valor Total</span>
-              <span className="text-3xl font-bold">R$ {valorTotal.toFixed(2)}</span>
-            </div>
-
-            {/* Payment Method Selector */}
-            <div className="mb-6 bg-slate-700/50 p-1 rounded-lg flex">
-              <button
-                onClick={() => setPaymentMethod('MANUAL')}
-                className={`flex-1 py-2 rounded-md transition-all ${paymentMethod === 'MANUAL' ? 'bg-slate-600 shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'}`}
-              >
-                Manual / Presencial
-              </button>
-              <button
-                onClick={() => setPaymentMethod('DIGITAL')}
-                className={`flex-1 py-2 rounded-md transition-all ${paymentMethod === 'DIGITAL' ? 'bg-blue-600 shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'}`}
-              >
-                Digital (Pix/Link)
-              </button>
-            </div>
-
-            {/* Manual Payment Detail Selector */}
-            {paymentMethod === 'MANUAL' && (
-              <div className="mb-6 animate-in fade-in">
-                <label className="block text-sm text-slate-400 mb-2">Forma de Pagamento</label>
-                <select
-                  value={detailedPaymentMethod}
-                  onChange={(e) => setDetailedPaymentMethod(e.target.value as FormaPagamento)}
-                  className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                >
-                  <option value="DINHEIRO">Dinheiro</option>
-                  <option value="PIX">Pix (Presencial)</option>
-                  <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                  <option value="CARTAO_DEBITO">Cartão de Débito</option>
-                </select>
-              </div>
-            )}
-
-            {/* Partial Payment Toggle */}
-            <div className="mb-6 flex items-center gap-3 bg-slate-700/30 p-3 rounded-lg border border-slate-600/50">
-              <input
-                type="checkbox"
-                id="partialPayment"
-                checked={isPartialPayment}
-                onChange={(e) => {
-                  setIsPartialPayment(e.target.checked);
-                  if (e.target.checked) {
-                    setEntryValue(valorTotal * 0.20); // Default 20%
-                  } else {
-                    setEntryValue(valorTotal);
-                  }
-                }}
-                className="w-5 h-5 rounded border-slate-500 bg-slate-800 text-blue-600 focus:ring-blue-500"
-              />
-              <label htmlFor="partialPayment" className="flex-1 cursor-pointer select-none">
-                <span className="block font-medium text-white">Pagamento Parcial (Sinal)</span>
-                <span className="text-xs text-slate-400">Pagar apenas uma entrada agora e o restante no embarque.</span>
-              </label>
-            </div>
-
-            {isPartialPayment && (
-              <div className="mb-6 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
-                <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600">
-                  <label className="block text-xs text-slate-400 mb-1">Valor de Entrada (Sinal)</label>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-400">R$</span>
-                    <input
-                      type="number"
-                      value={entryValue}
-                      onChange={(e) => setEntryValue(Number(e.target.value))}
-                      className="bg-transparent border-none text-xl font-bold text-white w-full focus:ring-0 p-0"
-                      min="0"
-                      max={valorTotal}
-                    />
+                    <div>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.status}</p>
+                    </div>
                   </div>
                 </div>
-                <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 opacity-70">
-                  <label className="block text-xs text-slate-400 mb-1">Restante no Embarque</label>
-                  <p className="text-xl font-bold text-slate-300">
-                    R$ {(valorTotal - entryValue).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {paymentMethod === 'DIGITAL' ? (
-              <div className="bg-slate-700/50 rounded-lg p-4 mb-6 animate-in fade-in">
-                {!paymentData ? (
-                  <div className="space-y-4">
-                    <p className="text-sm text-slate-300">
-                      Gere uma cobrança digital integrada (Asaas). O cliente receberá o link ou você pode apresentar o QR Code agora.
-                    </p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => handleGeneratePayment('PIX')}
-                        disabled={generatingPayment}
-                        className="py-3 bg-teal-600 hover:bg-teal-500 rounded-lg font-semibold flex flex-col items-center justify-center gap-1 transition-colors"
-                      >
-                        {generatingPayment ? <Loader size={20} className="animate-spin" /> : <QrCode size={24} />}
-                        <span className="text-sm">Gerar Pix Agora</span>
-                      </button>
-                      <button
-                        onClick={() => handleGeneratePayment('LINK')}
-                        disabled={generatingPayment}
-                        className="py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold flex flex-col items-center justify-center gap-1 transition-colors"
-                      >
-                        {generatingPayment ? <Loader size={20} className="animate-spin" /> : <LinkIcon size={24} />}
-                        <span className="text-sm">Link WhatsApp</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                      <h4 className="font-bold text-green-400">Cobrança Gerada!</h4>
-                      <button onClick={() => setPaymentData(null)} className="text-slate-400 hover:text-white">
-                        <X size={18} />
-                      </button>
-                    </div>
-
-                    {paymentData.qrCode && (
-                      <div className="bg-white p-2 rounded-lg w-48 h-48 mx-auto flex items-center justify-center">
-                        <img src={paymentData.qrCode} alt="QR Code Pix" className="max-w-full max-h-full" />
-                      </div>
-                    )}
-
-                    {paymentData.copyPasteCode && (
+            {/* Lista de Passageiros */}
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+              <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                <Users size={20} />
+                Passageiros ({assentosSelecionados.length})
+              </h3>
+              <div className="space-y-3">
+                {assentosSelecionados.map((seat, index) => {
+                  const p = passageirosMap[seat.numero];
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-lg"
+                    >
                       <div>
-                        <p className="text-xs text-slate-400 mb-1">Copia e Cola</p>
-                        <div className="flex gap-2">
-                          <input
-                            readOnly
-                            value={paymentData.copyPasteCode}
-                            className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300"
-                          />
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(paymentData.copyPasteCode || '');
-                              alert('Copiado!');
-                            }}
-                            className="p-1 bg-slate-600 rounded hover:bg-slate-500"
-                          >
-                            <Copy size={14} />
-                          </button>
-                        </div>
+                        <p className="font-semibold text-slate-800 dark:text-white">
+                          {p?.nome || 'Passageiro sem nome'}
+                        </p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">
+                          Assento {seat.numero} • {seat.tipo.replace('_', ' ')} • Doc: {p?.documento}
+                        </p>
                       </div>
-                    )}
+                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                        R$ {seat.valor.toFixed(2)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    {paymentData.paymentLink && (
-                      <div className="bg-blue-900/40 border border-blue-500/30 rounded-lg p-3">
-                        <p className="text-sm text-blue-200 mb-1">Link de Pagamento</p>
-                        <a href={paymentData.paymentLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline text-sm break-all">
-                          {paymentData.paymentLink}
-                        </a>
-                        <div className="mt-2">
-                          <a
-                            href={`https://wa.me/?text=${encodeURIComponent(`Olá! Segue o link para pagamento da sua reserva: ${paymentData.paymentLink}`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block w-full text-center py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-semibold transition-colors"
-                          >
-                            Enviar no WhatsApp
-                          </a>
-                        </div>
-                      </div>
-                    )}
+            {/* Total e Pagamento */}
+            <div className="bg-slate-800 dark:bg-slate-950 text-white rounded-xl shadow-lg p-6">
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-lg text-slate-300">Valor Total</span>
+                <span className="text-3xl font-bold">R$ {valorTotal.toFixed(2)}</span>
+              </div>
 
-                    <p className="text-xs text-slate-400 text-center">
-                      Assim que o pagamento for confirmado, clique em "Confirmar Reserva" abaixo.
+              {/* Payment Method Selector */}
+              <div className="mb-6 bg-slate-700/50 p-1 rounded-lg flex">
+                <button
+                  onClick={() => setPaymentMethod('MANUAL')}
+                  className={`flex-1 py-2 rounded-md transition-all ${paymentMethod === 'MANUAL' ? 'bg-slate-600 shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                  Manual / Presencial
+                </button>
+                <button
+                  onClick={() => setPaymentMethod('DIGITAL')}
+                  className={`flex-1 py-2 rounded-md transition-all ${paymentMethod === 'DIGITAL' ? 'bg-blue-600 shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'}`}
+                >
+                  Digital (Pix/Link)
+                </button>
+              </div>
+
+              {/* Manual Payment Detail Selector */}
+              {paymentMethod === 'MANUAL' && (
+                <div className="mb-6 animate-in fade-in">
+                  <label className="block text-sm text-slate-400 mb-2">Forma de Pagamento</label>
+                  <select
+                    value={detailedPaymentMethod}
+                    onChange={(e) => setDetailedPaymentMethod(e.target.value as FormaPagamento)}
+                    className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                  >
+                    <option value="DINHEIRO">Dinheiro</option>
+                    <option value="PIX">Pix (Presencial)</option>
+                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                    <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                  </select>
+                </div>
+              )}
+
+
+              {/* Client Credits Section */}
+              {payerClient && payerClient.saldo_creditos > 0 && (
+                <div className="mb-6 bg-indigo-900/40 p-4 rounded-lg border border-indigo-500/30 animate-in fade-in">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                      <Wallet size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white">Saldo de Créditos Disponível</p>
+                      <p className="text-sm text-indigo-300">
+                        Cliente: {payerClient.nome} • Saldo: R$ {Number(payerClient.saldo_creditos || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                    <input
+                      type="checkbox"
+                      id="useCredits"
+                      checked={useCredits}
+                      onChange={(e) => {
+                        const isChecked = e.target.checked;
+                        setUseCredits(isChecked);
+                        let newCredits = 0;
+                        if (isChecked) {
+                          // Max possible usage is min(Balance, Total) - allowing full total coverage
+                          newCredits = Math.min(Number(payerClient.saldo_creditos || 0), valorTotal);
+                        }
+                        setCreditsToUse(newCredits);
+
+                        // Update Entry Value if Partial is active (Signal should be 20% of Remaining Debt)
+                        if (isPartialPayment) {
+                          const effectiveTotal = Math.max(0, valorTotal - newCredits);
+                          setEntryValue(effectiveTotal * 0.20);
+                        }
+                      }}
+                      className="w-5 h-5 rounded border-slate-500 bg-slate-800 text-indigo-500 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="useCredits" className="flex-1 cursor-pointer select-none">
+                      <span className="block font-medium text-white">Usar Créditos</span>
+                      <span className="text-xs text-slate-400">Abater do valor total.</span>
+                    </label>
+                  </div>
+
+                  {useCredits && (
+                    <div className="mt-3 ml-11">
+                      <p className="text-sm text-green-400 font-semibold">
+                        - R$ {creditsToUse.toFixed(2)} (Créditos aplicados)
+                      </p>
+                      <p className="text-sm text-slate-300 mt-1 pb-2 border-b border-slate-700 mb-2">
+                        {/* 
+                            Logic: If partial, we just pay the entry value (which is already reduced).
+                            If full, we pay (Total - Credits). 
+                        */}
+                        Restante a Pagar Agora: <span className="font-bold text-white">
+                          R$ {(isPartialPayment ? entryValue : Math.max(0, valorTotal - creditsToUse)).toFixed(2)}
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mb-6 flex items-center gap-3 bg-slate-700/30 p-3 rounded-lg border border-slate-600/50">
+                <input
+                  type="checkbox"
+                  id="partialPayment"
+                  checked={isPartialPayment}
+                  onChange={(e) => {
+                    setIsPartialPayment(e.target.checked);
+                    if (e.target.checked) {
+                      // Signal: 20% of (Total - Credits)
+                      const effectiveTotal = Math.max(0, valorTotal - creditsToUse);
+                      setEntryValue(effectiveTotal * 0.20);
+                    } else {
+                      setEntryValue(valorTotal); // Not used really, but good reset
+                    }
+                  }}
+                  className="w-5 h-5 rounded border-slate-500 bg-slate-800 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="partialPayment" className="flex-1 cursor-pointer select-none">
+                  <span className="block font-medium text-white">Pagamento Parcial (Sinal)</span>
+                  <span className="text-xs text-slate-400">Pagar apenas uma entrada agora (Base de cálculo: Total - Créditos).</span>
+                </label>
+              </div>
+
+
+
+              {isPartialPayment && (
+                <div className="mb-6 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
+                  <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600">
+                    <label className="block text-xs text-slate-400 mb-1">Valor de Entrada (Sinal)</label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400">R$</span>
+                      <input
+                        type="number"
+                        value={entryValue}
+                        onChange={(e) => setEntryValue(Number(e.target.value))}
+                        className="bg-transparent border-none text-xl font-bold text-white w-full focus:ring-0 p-0"
+                        min="0"
+                        max={Math.max(0, valorTotal - creditsToUse)}
+                      />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">20% de R$ {(valorTotal - creditsToUse).toFixed(2)}</p>
+                  </div>
+                  <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 opacity-70">
+                    <label className="block text-xs text-slate-400 mb-1">Restante no Embarque</label>
+                    <p className="text-xl font-bold text-slate-300">
+                      {/* Logic: Remaining = (Total - Credits) - Entry */}
+                      R$ {Math.max(0, (valorTotal - creditsToUse) - entryValue).toFixed(2)}
                     </p>
                   </div>
-                )}
-              </div>
-            ) : null}
+                </div>
+              )}
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(2)}
-                className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
-              >
-                Voltar
-              </button>
-              <button
-                onClick={handleConfirmarReserva}
-                disabled={saving}
-                className="flex-2 px-8 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {saving ? <Loader size={20} className="animate-spin" /> : <CreditCard size={20} />}
-                {saving ? 'Confirmando...' : 'Confirmar Reserva'}
-              </button>
+              {paymentMethod === 'DIGITAL' ? (
+                <div className="bg-slate-700/50 rounded-lg p-4 mb-6 animate-in fade-in">
+                  {!paymentData ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-slate-300">
+                        Gere uma cobrança digital integrada (Asaas). O cliente receberá o link ou você pode apresentar o QR Code agora.
+                      </p>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => handleGeneratePayment('PIX')}
+                          disabled={generatingPayment}
+                          className="py-3 bg-teal-600 hover:bg-teal-500 rounded-lg font-semibold flex flex-col items-center justify-center gap-1 transition-colors"
+                        >
+                          {generatingPayment ? <Loader size={20} className="animate-spin" /> : <QrCode size={24} />}
+                          <span className="text-sm">Gerar Pix Agora</span>
+                        </button>
+                        <button
+                          onClick={() => handleGeneratePayment('LINK')}
+                          disabled={generatingPayment}
+                          className="py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold flex flex-col items-center justify-center gap-1 transition-colors"
+                        >
+                          {generatingPayment ? <Loader size={20} className="animate-spin" /> : <LinkIcon size={24} />}
+                          <span className="text-sm">Link WhatsApp</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-bold text-green-400">Cobrança Gerada!</h4>
+                        <button onClick={() => setPaymentData(null)} className="text-slate-400 hover:text-white">
+                          <X size={18} />
+                        </button>
+                      </div>
+
+                      {paymentData.qrCode && (
+                        <div className="bg-white p-2 rounded-lg w-48 h-48 mx-auto flex items-center justify-center">
+                          <img src={paymentData.qrCode} alt="QR Code Pix" className="max-w-full max-h-full" />
+                        </div>
+                      )}
+
+                      {paymentData.copyPasteCode && (
+                        <div>
+                          <p className="text-xs text-slate-400 mb-1">Copia e Cola</p>
+                          <div className="flex gap-2">
+                            <input
+                              readOnly
+                              value={paymentData.copyPasteCode}
+                              className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300"
+                            />
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(paymentData.copyPasteCode || '');
+                                alert('Copiado!');
+                              }}
+                              className="p-1 bg-slate-600 rounded hover:bg-slate-500"
+                            >
+                              <Copy size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {paymentData.paymentLink && (
+                        <div className="bg-blue-900/40 border border-blue-500/30 rounded-lg p-3">
+                          <p className="text-sm text-blue-200 mb-1">Link de Pagamento</p>
+                          <a href={paymentData.paymentLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline text-sm break-all">
+                            {paymentData.paymentLink}
+                          </a>
+                          <div className="mt-2">
+                            <a
+                              href={`https://wa.me/?text=${encodeURIComponent(`Olá! Segue o link para pagamento da sua reserva: ${paymentData.paymentLink}`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block w-full text-center py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-semibold transition-colors"
+                            >
+                              Enviar no WhatsApp
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-slate-400 text-center">
+                        Assim que o pagamento for confirmado, clique em "Confirmar Reserva" abaixo.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setStep(2)}
+                  className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
+                >
+                  Voltar
+                </button>
+                <button
+                  onClick={handleConfirmarReserva}
+                  disabled={saving}
+                  className="flex-2 px-8 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {saving ? <Loader size={20} className="animate-spin" /> : <CreditCard size={20} />}
+                  {saving ? 'Confirmando...' : 'Confirmar Reserva'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ErrorBoundary>
       )}
     </div>
   );

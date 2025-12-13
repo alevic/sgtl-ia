@@ -354,7 +354,7 @@ export const Financeiro: React.FC = () => {
                                                 {transacao.descricao}
                                             </p>
                                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                {new Date(transacao.data_emissao).toLocaleDateString('pt-BR')}
+                                                {new Date(transacao.data_emissao).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
                                             </p>
                                         </div>
                                     </div>

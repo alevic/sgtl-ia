@@ -403,6 +403,13 @@ export const Reservas: React.FC = () => {
                                                     <DollarSign size={14} />
                                                     <span>R$ {Number(reserva.valor_total || reserva.price || 0).toFixed(2)}</span>
                                                 </div>
+                                                {/* Pending Amount Display */}
+                                                {(Number(reserva.valor_total || reserva.price || 0) - Number(reserva.amount_paid || reserva.valor_pago || 0)) > 0.01 && (
+                                                    <div className="flex items-center gap-1 text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md" title="Valor Pendente">
+                                                        <DollarSign size={14} />
+                                                        <span>Pendente: R$ {Math.max(0, Number(reserva.valor_total || reserva.price || 0) - Number(reserva.amount_paid || reserva.valor_pago || 0)).toFixed(2)}</span>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             {/* Informações detalhadas */}

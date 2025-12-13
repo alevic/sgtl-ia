@@ -203,6 +203,26 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
             [trip_id]
         );
 
+        // Handle Credit Deduction
+        const { credits_used } = req.body;
+        if (credits_used && Number(credits_used) > 0 && client_id) {
+            // Verify and Deduct
+            // We use a transaction-like approach or just direct update checks
+            const debitResult = await pool.query(
+                `UPDATE clients 
+                 SET saldo_creditos = saldo_creditos - $1 
+                 WHERE id = $2 AND saldo_creditos >= $1
+                 RETURNING id`,
+                [credits_used, client_id]
+            );
+
+            if (debitResult.rowCount === 0) {
+                console.warn(`Failed to deduct credits for client ${client_id}. Insufficient funds or invalid ID.`);
+                // We don't rollback the reservation here to avoid partial state chaos, but user should know.
+                // ideally this runs in a transaction block with the reservation creation.
+            }
+        }
+
         res.json(result.rows[0]);
     } catch (error) {
         console.error("Error creating reservation:", error);

@@ -64,12 +64,19 @@ export const Transacoes: React.FC = () => {
             let matchData = true;
             if (dataInicio && dataFim) {
                 const dataEmissao = new Date(transacao.data_emissao);
-                // Ajuste para comparar datas ignorando horas se necessário, mas new Date(string) funciona bem
-                // Adicionando um dia ao fim para incluir o dia selecionado
-                const fim = new Date(dataFim);
-                fim.setHours(23, 59, 59, 999);
+                // Adjust comparison to compare Dates only, ignoring time components of the transacao if needed
+                // But generally direct comparison works if we set start to 00:00 and end to 23:59
 
-                matchData = dataEmissao >= new Date(dataInicio) && dataEmissao <= fim;
+                // Fix: Parse input dates as Local Time
+                // When input type="date" returns "2023-12-13", new Date("2023-12-13") is UTC midnight (previous day 21h).
+                // We need to construct local date.
+                const [iY, iM, iD] = dataInicio.split('-').map(Number);
+                const start = new Date(iY, iM - 1, iD, 0, 0, 0);
+
+                const [fY, fM, fD] = dataFim.split('-').map(Number);
+                const end = new Date(fY, fM - 1, fD, 23, 59, 59, 999);
+
+                matchData = dataEmissao >= start && dataEmissao <= end;
             }
 
             return matchBusca && matchTipo && matchStatus && matchData && matchCentroCusto && matchClassificacao;
@@ -94,8 +101,9 @@ export const Transacoes: React.FC = () => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     };
 
-    const formatDate = (date: string) => {
-        return new Date(date).toLocaleDateString('pt-BR');
+    const formatDate = (dateString: string) => {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     };
 
     const getStatusBadge = (status: StatusTransacao) => {
