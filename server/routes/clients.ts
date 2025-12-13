@@ -6,7 +6,31 @@ const router = express.Router();
 // Get all clients
 router.get('/', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM clients ORDER BY created_at DESC');
+        const result = await pool.query(`
+            SELECT c.*,
+            (
+                SELECT COALESCE(COUNT(*), 0)
+                FROM reservations r 
+                WHERE r.client_id = c.id 
+                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+            )::int as historico_viagens,
+            (
+                SELECT COALESCE(SUM(r.amount_paid), 0)
+                FROM reservations r 
+                WHERE r.client_id = c.id 
+                AND r.status != 'CANCELLED'
+            )::float as valor_total_gasto,
+            (
+                SELECT MAX(t.departure_date)
+                FROM reservations r 
+                JOIN trips t ON r.trip_id = t.id
+                WHERE r.client_id = c.id 
+                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND t.departure_date <= CURRENT_DATE
+            ) as ultima_viagem
+            FROM clients c 
+            ORDER BY c.created_at DESC
+        `);
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching clients:', error);
@@ -18,7 +42,32 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await pool.query('SELECT * FROM clients WHERE id = $1', [id]);
+        const result = await pool.query(`
+            SELECT c.*,
+            (
+                SELECT COALESCE(COUNT(*), 0)
+                FROM reservations r 
+                WHERE r.client_id = c.id 
+                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+            )::int as historico_viagens,
+            (
+                SELECT COALESCE(SUM(r.amount_paid), 0)
+                FROM reservations r 
+                WHERE r.client_id = c.id 
+                AND r.status != 'CANCELLED'
+            )::float as valor_total_gasto,
+            (
+                SELECT MAX(t.departure_date)
+                FROM reservations r 
+                JOIN trips t ON r.trip_id = t.id
+                WHERE r.client_id = c.id 
+                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND t.departure_date <= CURRENT_DATE
+            ) as ultima_viagem
+            FROM clients c 
+            WHERE c.id = $1
+        `, [id]);
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Client not found' });
         }
