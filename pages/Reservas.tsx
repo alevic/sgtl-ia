@@ -7,7 +7,8 @@ import { clientsService } from '../services/clientsService';
 import { TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa } from '../types';
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
-    Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle
+    Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle,
+    UserCheck, CheckCircle
 } from 'lucide-react';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -274,6 +275,23 @@ export const Reservas: React.FC = () => {
         alert('Funcionalidade de transferência: Em breve você poderá alterar a viagem ou assento.');
     };
 
+    const handleStatusChange = async (reserva: IReserva, newStatus: string) => {
+        const label = newStatus === 'CHECKED_IN' ? 'EMBARCADO' : 'UTILIZADA';
+        if (!confirm(`Confirma a alteração do status para ${label}?`)) return;
+
+        try {
+            setActionLoading(true);
+            await reservationsService.update(reserva.id, { status: newStatus });
+            // alert('Status atualizado com sucesso!'); // Optional: reduce noise
+            fetchReservas();
+        } catch (error) {
+            console.error('Erro ao atualizar status:', error);
+            alert('Erro ao atualizar status.');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const reservasFiltradas = reservas.filter(r => {
         const matchStatus = filtroStatus === 'TODOS' || r.status === filtroStatus;
         const passengerName = (r as any).passenger_name || '';
@@ -429,6 +447,31 @@ export const Reservas: React.FC = () => {
 
                                         {/* Ações (Top-Right) */}
                                         <div className="flex items-center gap-2 ml-4">
+                                            {/* Check-in Button */}
+                                            {/* Allow Check-in if CONFIRMED OR (PENDING and has paid something) */}
+                                            {((reserva.status === 'CONFIRMED') ||
+                                                (reserva.status === 'PENDING' && Number(reserva.amount_paid || reserva.valor_pago || 0) > 0)) && (
+                                                    <button
+                                                        onClick={() => handleStatusChange(reserva, 'CHECKED_IN')}
+                                                        className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
+                                                        title="Realizar Check-in (Embarque)"
+                                                        disabled={actionLoading}
+                                                    >
+                                                        <UserCheck size={18} className="text-indigo-600 dark:text-indigo-400" />
+                                                    </button>
+                                                )}
+
+                                            {/* Finalize Button */}
+                                            {reserva.status === 'CHECKED_IN' && (
+                                                <button
+                                                    onClick={() => handleStatusChange(reserva, 'USED')}
+                                                    className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30 hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors"
+                                                    title="Finalizar Viagem (Utilizada)"
+                                                    disabled={actionLoading}
+                                                >
+                                                    <CheckCircle size={18} className="text-teal-600 dark:text-teal-400" />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleEditClick(reserva)}
                                                 className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
