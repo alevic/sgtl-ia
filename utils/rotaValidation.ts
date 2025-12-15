@@ -83,19 +83,24 @@ export function validarOrdemHorarios(pontos: IPontoRota[]): boolean {
 export function calcularDuracaoRota(pontos: IPontoRota[]): number {
     if (pontos.length < 2) return 0;
 
-    const origem = pontos[0];
-    const destino = pontos[pontos.length - 1];
+    let totalMinutos = 0;
 
-    const horarioInicio = origem.horario_partida || origem.horario_chegada;
-    const horarioFim = destino.horario_chegada || destino.horario_partida;
+    // Começar do segundo ponto (índice 1), pois o primeiro é origem (duração 0)
+    for (let i = 1; i < pontos.length; i++) {
+        const ponto = pontos[i];
 
-    if (!horarioInicio || !horarioFim) return 0;
+        // Adicionar tempo de deslocamento do anterior até este
+        if (ponto.duracao_deslocamento_minutos) {
+            totalMinutos += ponto.duracao_deslocamento_minutos;
+        }
 
-    const dataInicio = new Date(horarioInicio);
-    const dataFim = new Date(horarioFim);
+        // Se não for o último ponto, adicionar o tempo de parada
+        if (i < pontos.length - 1 && ponto.duracao_parada_minutos) {
+            totalMinutos += ponto.duracao_parada_minutos;
+        }
+    }
 
-    const diferencaMs = dataFim.getTime() - dataInicio.getTime();
-    return Math.round(diferencaMs / (1000 * 60)); // Converter para minutos
+    return totalMinutos;
 }
 
 /**
@@ -144,23 +149,65 @@ export function calcularCamposViagem(viagem: IViagem): IViagem {
         // Destino = último ponto da rota
         viagemAtualizada.destino = rotaPrincipal.pontos[rotaPrincipal.pontos.length - 1].nome;
 
+        // Calcular horários baseados na data de partida
+        let dataInicio: Date | null = null;
+        if (viagem.departure_date && viagem.departure_time) {
+            const dateTimeStr = `${viagem.departure_date}T${viagem.departure_time}`;
+            dataInicio = new Date(dateTimeStr);
+        }
+
+        let minutosAcumulados = 0;
+        const pontosComTempos = calcularTemposRelativos(rotaPrincipal.pontos);
+
         // Paradas = pontos intermediários convertidos para IParada
-        viagemAtualizada.paradas = rotaPrincipal.pontos
+        viagemAtualizada.paradas = pontosComTempos
             .slice(1, -1) // Pegar apenas pontos intermediários
-            .map(ponto => ({
-                id: ponto.id,
-                nome: ponto.nome,
-                horario_chegada: ponto.horario_chegada || '',
-                horario_partida: ponto.horario_partida || '',
-                tipo: ponto.permite_embarque && ponto.permite_desembarque
-                    ? 'EMBARQUE' as const
-                    : ponto.permite_embarque
+            .map(ponto => {
+                let horarioChegadaISO = '';
+                let horarioPartidaISO = '';
+
+                if (dataInicio && !isNaN(dataInicio.getTime()) && ponto.tempo_acumulado_minutos !== undefined) {
+                    // Calcular chegada
+                    const chegada = new Date(dataInicio.getTime() + ponto.tempo_acumulado_minutos * 60000);
+                    horarioChegadaISO = chegada.toISOString();
+
+                    // Calcular partida (chegada + tempo de parada)
+                    const tempoParada = ponto.duracao_parada_minutos || 0;
+                    const partida = new Date(chegada.getTime() + tempoParada * 60000);
+                    horarioPartidaISO = partida.toISOString();
+                }
+
+                return {
+                    id: ponto.id,
+                    nome: ponto.nome,
+                    horario_chegada: horarioChegadaISO,
+                    horario_partida: horarioPartidaISO,
+                    tipo: ponto.permite_embarque && ponto.permite_desembarque
                         ? 'EMBARQUE' as const
-                        : 'DESEMBARQUE' as const
-            }));
+                        : ponto.permite_embarque
+                            ? 'EMBARQUE' as const
+                            : 'DESEMBARQUE' as const
+                };
+            });
+
+        // Atualizar também a data de chegada da viagem se possível
+        if (dataInicio && !isNaN(dataInicio.getTime())) {
+            const ultimoPonto = pontosComTempos[pontosComTempos.length - 1];
+            if (ultimoPonto.tempo_acumulado_minutos) {
+                const chegadaFinal = new Date(dataInicio.getTime() + ultimoPonto.tempo_acumulado_minutos * 60000);
+
+                // Formatar para os campos da viagem
+                viagemAtualizada.arrival_date = chegadaFinal.toISOString().split('T')[0];
+                viagemAtualizada.arrival_time = chegadaFinal.toTimeString().split(' ')[0].substring(0, 5);
+
+                // Campos legados para compatibilidade
+                viagemAtualizada.data_chegada_prevista = chegadaFinal.toISOString();
+            }
+        }
     }
 
     return viagemAtualizada;
+
 }
 
 /**
@@ -228,3 +275,38 @@ export function prepararPayloadRota(rota: IRota, nomeOverride?: string): any {
         type: rota.tipo_rota
     };
 }
+
+/**
+ * Calcula os tempos acumulados para cada ponto da rota
+ * Útil para exibir "Chegada: +2h" na interface
+ */
+export function calcularTemposRelativos(pontos: IPontoRota[]): IPontoRota[] {
+    let minutosAcumulados = 0;
+
+    return pontos.map((ponto, index) => {
+        // Se formos o primeiro ponto (origem), reseta
+        if (index === 0) {
+            return {
+                ...ponto,
+                tempo_acumulado_minutos: 0
+            };
+        }
+
+        // Adiciona deslocamento para chegar aqui
+        minutosAcumulados += (ponto.duracao_deslocamento_minutos || 0);
+
+        const pontoComChegada = {
+            ...ponto,
+            tempo_acumulado_minutos: minutosAcumulados // Tempo de chegada neste ponto
+        };
+
+        // Adiciona tempo de parada para o cálculo do PRÓXIMO ponto
+        // (Mas não afeta o tempo de chegada deste ponto, afeta a partida deste)
+        if (ponto.duracao_parada_minutos) {
+            minutosAcumulados += ponto.duracao_parada_minutos;
+        }
+
+        return pontoComChegada;
+    });
+}
+

@@ -407,6 +407,7 @@ export const NovaViagem: React.FC = () => {
                             <Calendar size={20} className="text-blue-600" />
                             Datas e Horários
                         </h3>
+                        {/* ... Existing Date Inputs ... */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -453,6 +454,74 @@ export const NovaViagem: React.FC = () => {
                                 />
                             </div>
                         </div>
+
+                        {/* Itinerário Estimado */}
+                        {(rotaIdaSelecionada && dataPartida && horaPartida) && (
+                            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                                <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
+                                    <MapPin size={18} className="text-orange-500" />
+                                    Itinerário Estimado
+                                </h4>
+                                <div className="space-y-4">
+                                    {/* Exibir Paradas Calculadas */}
+                                    {(() => {
+                                        // Simular objeto viagem para calcular paradas
+                                        const mockViagem: any = {
+                                            usa_sistema_rotas: true,
+                                            tipo_viagem: 'IDA',
+                                            rota_ida: rotaIdaSelecionada,
+                                            departure_date: dataPartida,
+                                            departure_time: horaPartida
+                                        };
+                                        const viagemCalculada = calcularCamposViagem(mockViagem);
+
+                                        return (
+                                            <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 pl-6 space-y-6">
+                                                {/* Origem */}
+                                                <div className="relative">
+                                                    <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white dark:border-slate-800" />
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold text-slate-800 dark:text-slate-200">{viagemCalculada.origem}</span>
+                                                        <span className="text-sm text-slate-500">Partida: {new Date(`${dataPartida}T${horaPartida}`).toLocaleString()}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Paradas Intermediárias */}
+                                                {viagemCalculada.paradas?.map((parada, idx) => (
+                                                    <div key={idx} className="relative">
+                                                        <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white dark:border-slate-800" />
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-slate-800 dark:text-slate-200">{parada.nome}</span>
+                                                            <div className="flex gap-4 text-xs text-slate-500 mt-1">
+                                                                <span className="flex items-center gap-1">
+                                                                    <Clock size={12} />
+                                                                    Chegada: {parada.horario_chegada ? new Date(parada.horario_chegada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
+                                                                </span>
+                                                                <span className="flex items-center gap-1">
+                                                                    <Clock size={12} />
+                                                                    Partida: {parada.horario_partida ? new Date(parada.horario_partida).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+
+                                                {/* Destino */}
+                                                <div className="relative">
+                                                    <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-red-500 border-2 border-white dark:border-slate-800" />
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold text-slate-800 dark:text-slate-200">{viagemCalculada.destino}</span>
+                                                        <span className="text-sm text-slate-500">
+                                                            Chegada Prevista: {dataChegada && horaChegada ? new Date(`${dataChegada}T${horaChegada}`).toLocaleString() : '--'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Imagens e Detalhes */}

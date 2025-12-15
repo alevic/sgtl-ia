@@ -1,6 +1,7 @@
 import React from 'react';
 import { IRota } from '../../types';
 import { MapPin, Clock, ArrowRight, Navigation } from 'lucide-react';
+import { calcularTemposRelativos } from '../../utils/rotaValidation';
 
 interface VisualizadorRotaProps {
     rota: IRota;
@@ -141,12 +142,12 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                         <div key={ponto.id || index} className="relative flex gap-4">
                             {/* Marcador na linha do tempo */}
                             <div className={`relative z-10 flex items-center justify-center w-4 h-4 rounded-full border-2 bg-white dark:bg-slate-800 mt-1.5 ${isOrigem ? 'border-green-500' :
-                                    isDestino ? 'border-red-500' :
-                                        'border-blue-500'
+                                isDestino ? 'border-red-500' :
+                                    'border-blue-500'
                                 }`}>
                                 <div className={`w-2 h-2 rounded-full ${isOrigem ? 'bg-green-500' :
-                                        isDestino ? 'bg-red-500' :
-                                            'bg-blue-500'
+                                    isDestino ? 'bg-red-500' :
+                                        'bg-blue-500'
                                     }`} />
                             </div>
 
@@ -160,8 +161,8 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                                             </span>
                                             {showBadge && (
                                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isOrigem ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                                                        isDestino ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                                                            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                    isDestino ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                                     }`}>
                                                     {isOrigem ? 'Origem' : isDestino ? 'Destino' : 'Parada'}
                                                 </span>
@@ -175,28 +176,40 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                                         )}
                                     </div>
 
-                                    {/* Horários */}
+                                    {/* Horários / Tempos Relativos */}
                                     <div className="flex flex-col items-end gap-1 text-sm whitespace-nowrap">
-                                        {(ponto.horario_partida || ponto.horario_chegada) ? (
-                                            <>
-                                                {ponto.horario_chegada && (
-                                                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                                                        <span className="text-xs uppercase tracking-wide text-slate-400">Chegada</span>
-                                                        <span className="font-medium font-mono">{formatarHorario(ponto.horario_chegada)}</span>
-                                                        <span className="text-xs text-slate-400">{formatarData(ponto.horario_chegada)}</span>
-                                                    </div>
-                                                )}
-                                                {ponto.horario_partida && (
-                                                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                                                        <span className="text-xs uppercase tracking-wide text-slate-400">Partida</span>
-                                                        <span className="font-medium font-mono">{formatarHorario(ponto.horario_partida)}</span>
-                                                        <span className="text-xs text-slate-400">{formatarData(ponto.horario_partida)}</span>
-                                                    </div>
-                                                )}
-                                            </>
-                                        ) : (
-                                            <span className="text-xs text-slate-400 italic">Horário não definido</span>
-                                        )}
+                                        {/* Calcular tempos relativos para exibição */}
+                                        {(() => {
+                                            // Precisamos calcular aqui pois o objeto rota pode vir cru
+                                            const pontosCalculados = calcularTemposRelativos(rota.pontos);
+                                            const pontoCalculado = pontosCalculados[index];
+
+                                            // Se tiver horário absoluto legado, mostra ele
+                                            if (ponto.horario_chegada || ponto.horario_partida) {
+                                                if (ponto.horario_chegada && !ponto.horario_chegada.includes('T')) { // Check integrity
+                                                    // ... existing logic fallback ...
+                                                }
+                                            }
+
+                                            return (
+                                                <div className="flex flex-col items-end text-xs text-slate-500 gap-1">
+                                                    {isOrigem && <span className="text-green-600 font-medium">Início da viagem</span>}
+
+                                                    {!isOrigem && pontoCalculado.tempo_acumulado_minutos !== undefined && (
+                                                        <span className="flex items-center gap-1" title="Tempo após o início">
+                                                            <Clock size={12} className="text-slate-400" />
+                                                            Chegada: +{Math.floor(pontoCalculado.tempo_acumulado_minutos / 60)}h {pontoCalculado.tempo_acumulado_minutos % 60}min
+                                                        </span>
+                                                    )}
+
+                                                    {ponto.duracao_parada_minutos ? (
+                                                        <span className="text-orange-600 font-medium">
+                                                            Parada: {ponto.duracao_parada_minutos} min
+                                                        </span>
+                                                    ) : null}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
 

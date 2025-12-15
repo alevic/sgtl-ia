@@ -340,42 +340,96 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                 />
             </div>
 
-            {/* Horários */}
-            <div className="grid grid-cols-2 gap-3">
-                {/* Horário de Chegada (não para origem) */}
+            {/* Campos de Deslocamento e Tempo (V2) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Deslocamento do Anterior (não para origem) */}
                 {ponto.tipo !== 'ORIGEM' && (
-                    <div>
-                        <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
-                            <Clock size={14} />
-                            Chegada
-                        </label>
-                        <input
-                            type="datetime-local"
-                            value={ponto.horario_chegada || ''}
-                            onChange={(e) => handleChange('horario_chegada', e.target.value)}
-                            disabled={readonly}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
-                        />
-                    </div>
+                    <>
+                        <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                <MapPin size={14} />
+                                Distância do anterior (km)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.1"
+                                value={ponto.distancia_do_anterior_km || ''}
+                                onChange={(e) => handleChange('distancia_do_anterior_km', parseFloat(e.target.value))}
+                                disabled={readonly}
+                                placeholder="0 km"
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                            />
+                        </div>
+                        {/* Tempo do anterior (min) - Usando type="time" para HH:MM */}
+                        <div>
+                            <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+                                <Clock size={14} />
+                                Tempo do anterior
+                            </label>
+                            <input
+                                type="time"
+                                value={(() => {
+                                    if (!ponto.duracao_deslocamento_minutos) return '00:00';
+                                    const h = Math.floor(ponto.duracao_deslocamento_minutos / 60).toString().padStart(2, '0');
+                                    const m = (ponto.duracao_deslocamento_minutos % 60).toString().padStart(2, '0');
+                                    return `${h}:${m}`;
+                                })()}
+                                onChange={(e) => {
+                                    const [h, m] = e.target.value.split(':').map(Number);
+                                    if (!isNaN(h) && !isNaN(m)) {
+                                        handleChange('duracao_deslocamento_minutos', h * 60 + m);
+                                    }
+                                }}
+                                disabled={readonly}
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                            />
+                        </div>
+                    </>
                 )}
 
-                {/* Horário de Partida (não para destino) */}
-                {ponto.tipo !== 'DESTINO' && (
-                    <div className={ponto.tipo === 'ORIGEM' ? 'col-span-2' : ''}>
+                {/* Tempo de Parada (apenas para intermediário) */}
+                {ponto.tipo === 'PARADA_INTERMEDIARIA' && (
+                    <div className="md:col-span-2">
                         <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
-                            <Clock size={14} />
-                            Partida
+                            <Clock size={14} className="text-orange-500" />
+                            Tempo de Parada
                         </label>
                         <input
-                            type="datetime-local"
-                            value={ponto.horario_partida || ''}
-                            onChange={(e) => handleChange('horario_partida', e.target.value)}
+                            type="time"
+                            value={(() => {
+                                if (!ponto.duracao_parada_minutos) return '00:00';
+                                const h = Math.floor(ponto.duracao_parada_minutos / 60).toString().padStart(2, '0');
+                                const m = (ponto.duracao_parada_minutos % 60).toString().padStart(2, '0');
+                                return `${h}:${m}`;
+                            })()}
+                            onChange={(e) => {
+                                const [h, m] = e.target.value.split(':').map(Number);
+                                if (!isNaN(h) && !isNaN(m)) {
+                                    handleChange('duracao_parada_minutos', h * 60 + m);
+                                }
+                            }}
                             disabled={readonly}
                             className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
                         />
                     </div>
                 )}
             </div>
+
+            {/* Display de Tempo Acumulado (Informativo) */}
+            {ponto.tipo !== 'ORIGEM' && (
+                <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded">
+                    <Clock size={12} />
+                    <span>
+                        Chegada estimada após início:
+                        <strong className="ml-1 text-slate-700 dark:text-slate-300">
+                            {ponto.tempo_acumulado_minutos
+                                ? `+ ${Math.floor(ponto.tempo_acumulado_minutos / 60)}h ${ponto.tempo_acumulado_minutos % 60}min`
+                                : '--'}
+                        </strong>
+                    </span>
+                </div>
+            )}
 
             {/* Permissões de Embarque/Desembarque (apenas para paradas intermediárias) */}
             {ponto.tipo === 'PARADA_INTERMEDIARIA' && (

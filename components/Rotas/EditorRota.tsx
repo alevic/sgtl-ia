@@ -1,7 +1,7 @@
 import React from 'react';
 import { IRota, IPontoRota } from '../../types';
 import { SeletorPontoRota } from './SeletorPontoRota';
-import { criarPontoRotaVazio, validarRota, calcularDuracaoRota, gerarNomeRota } from '../../utils/rotaValidation';
+import { criarPontoRotaVazio, validarRota, calcularDuracaoRota, gerarNomeRota, calcularTemposRelativos } from '../../utils/rotaValidation';
 import { Plus, X, ArrowUp, ArrowDown, AlertCircle, Clock, Route } from 'lucide-react';
 
 interface EditorRotaProps {
@@ -16,8 +16,11 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
     readonly = false
 }) => {
     const handlePontoChange = (index: number, pontoAtualizado: IPontoRota) => {
-        const novosPontos = [...rota.pontos];
+        let novosPontos = [...rota.pontos];
         novosPontos[index] = pontoAtualizado;
+
+        // Recalcular tempos acumulados
+        novosPontos = calcularTemposRelativos(novosPontos);
 
         onChange({
             ...rota,
@@ -36,7 +39,10 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
         novosPontos.splice(novaPosicao, 0, novaParada);
 
         // Reordenar
-        const pontosReordenados = novosPontos.map((p, idx) => ({ ...p, ordem: idx }));
+        let pontosReordenados = novosPontos.map((p, idx) => ({ ...p, ordem: idx }));
+
+        // Recalcular tempos
+        pontosReordenados = calcularTemposRelativos(pontosReordenados);
 
         onChange({
             ...rota,
@@ -51,7 +57,10 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
         if (index === 0 || index === rota.pontos.length - 1) return;
 
         const novosPontos = rota.pontos.filter((_, i) => i !== index);
-        const pontosReordenados = novosPontos.map((p, idx) => ({ ...p, ordem: idx }));
+        let pontosReordenados = novosPontos.map((p, idx) => ({ ...p, ordem: idx }));
+
+        // Recalcular tempos
+        pontosReordenados = calcularTemposRelativos(pontosReordenados);
 
         onChange({
             ...rota,
@@ -73,7 +82,10 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
         const novosPontos = [...rota.pontos];
         [novosPontos[index], novosPontos[novoIndice]] = [novosPontos[novoIndice], novosPontos[index]];
 
-        const pontosReordenados = novosPontos.map((p, idx) => ({ ...p, ordem: idx }));
+        let pontosReordenados = novosPontos.map((p, idx) => ({ ...p, ordem: idx }));
+
+        // Recalcular tempos
+        pontosReordenados = calcularTemposRelativos(pontosReordenados);
 
         onChange({
             ...rota,
@@ -103,8 +115,8 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
                         </h4>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${rota.tipo_rota === 'IDA'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
                         }`}>
                         {rota.tipo_rota}
                     </span>
@@ -156,10 +168,10 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
                                 {/* Indicador visual */}
                                 <div className="flex flex-col items-center gap-2 pt-2">
                                     <div className={`w-3 h-3 rounded-full ${ponto.tipo === 'ORIGEM'
-                                            ? 'bg-green-500'
-                                            : ponto.tipo === 'DESTINO'
-                                                ? 'bg-red-500'
-                                                : 'bg-blue-500'
+                                        ? 'bg-green-500'
+                                        : ponto.tipo === 'DESTINO'
+                                            ? 'bg-red-500'
+                                            : 'bg-blue-500'
                                         }`} />
                                 </div>
 

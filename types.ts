@@ -254,6 +254,12 @@ export interface IPontoRota {
   state_id?: number;
   city_id?: number;
   neighborhood_id?: number;
+
+  // Novos campos para V2 (Duração Relativa)
+  distancia_do_anterior_km?: number;
+  duracao_deslocamento_minutos?: number; // Tempo para chegar do anterior até este
+  duracao_parada_minutos?: number; // Tempo que fica parado neste ponto
+  tempo_acumulado_minutos?: number; // Calculado: tempo total do início até a saída deste ponto
 }
 
 export interface IRota {
