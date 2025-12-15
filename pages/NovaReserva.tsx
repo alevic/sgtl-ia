@@ -239,8 +239,9 @@ export const NovaReserva: React.FC = () => {
           passenger_email: p.email,
           passenger_phone: p.telefone,
           price: seat.valor,
-          valor_pago: seatPaidValue, // New field usage
+          valor_pago: paymentMethod === 'DIGITAL' ? 0 : seatPaidValue, // Force 0 for Digital
           status: status, // PENDING or CONFIRMED
+          forma_pagamento: paymentMethod === 'DIGITAL' ? 'DIGITAL' : detailedPaymentMethod, // Send payment method
           client_id: p.cliente_id,
           notes: `Reserva ${paymentMethod} - ${isPartialPayment ? 'SINAL/PARCIAL' : 'INTEGRAL'}`,
           // Add credit usage info to first reservation (or distribute? Simple: first)

@@ -399,6 +399,14 @@ export const Reservas: React.FC = () => {
                                                     </h3>
                                                 </div>
                                                 <StatusBadge status={reserva.status} />
+
+                                                {/* Digital Pending Confirmation Badge */}
+                                                {reserva.status === 'PENDING' && (reserva.payment_method === 'DIGITAL' || (reserva as any).forma_pagamento === 'DIGITAL') && (
+                                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
+                                                        Aguardando Confirmação (Digital)
+                                                    </span>
+                                                )}
+
                                                 <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
                                                     <DollarSign size={14} />
                                                     <span>R$ {Number(reserva.valor_total || reserva.price || 0).toFixed(2)}</span>
@@ -700,12 +708,18 @@ export const Reservas: React.FC = () => {
                                 </div>
                                 <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
                                     <p className="text-xs text-green-600 dark:text-green-400">Já Pago</p>
-                                    <p className="font-semibold text-green-700 dark:text-green-300">R$ {Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0).toFixed(2)}</p>
+                                    <p className="font-semibold text-green-700 dark:text-green-300">
+                                        R$ {((paymentReserva.status === 'PENDING' && (paymentReserva.payment_method === 'DIGITAL' || (paymentReserva as any).forma_pagamento === 'DIGITAL'))
+                                            ? 0
+                                            : Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0)).toFixed(2)}
+                                    </p>
                                 </div>
                                 <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
                                     <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">Restante</p>
                                     <p className="font-bold text-blue-700 dark:text-blue-300">
-                                        R$ {Number(Number(paymentReserva.valor_total || paymentReserva.price || 0) - Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0)).toFixed(2)}
+                                        R$ {Number(Number(paymentReserva.valor_total || paymentReserva.price || 0) - ((paymentReserva.status === 'PENDING' && (paymentReserva.payment_method === 'DIGITAL' || (paymentReserva as any).forma_pagamento === 'DIGITAL'))
+                                            ? 0
+                                            : Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0))).toFixed(2)}
                                     </p>
                                 </div>
                             </div>
