@@ -105,6 +105,10 @@ app.use("/api/charters", chartersRouter);
 // Public Routes (Portal)
 app.use("/api/public", publicRouter);
 
+// Webhook Routes
+import webhooksRouter from "./routes/webhooks";
+app.use("/api/webhooks", webhooksRouter);
+
 // Finance Endpoints
 app.get("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
     try {

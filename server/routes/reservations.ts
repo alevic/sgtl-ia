@@ -184,8 +184,8 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 status, ticket_code, price,
                 user_id, client_id, notes,
                 organization_id, created_by,
-                amount_paid, payment_method
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+                amount_paid, payment_method, external_payment_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             RETURNING *`,
             [
                 trip_id, seat_id || null,
@@ -193,7 +193,8 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 finalStatus, ticket_code, price,
                 null, client_id || null, notes || null,
                 orgId, userId,
-                valor_pago || 0, forma_pagamento || null
+                valor_pago || 0, forma_pagamento || null,
+                req.body.external_payment_id || null // Store External Payment ID
             ]
         );
 

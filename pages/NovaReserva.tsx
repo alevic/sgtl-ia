@@ -245,7 +245,8 @@ export const NovaReserva: React.FC = () => {
           client_id: p.cliente_id,
           notes: `Reserva ${paymentMethod} - ${isPartialPayment ? 'SINAL/PARCIAL' : 'INTEGRAL'}`,
           // Add credit usage info to first reservation (or distribute? Simple: first)
-          credits_used: (seat.numero === assentosSelecionados[0].numero) ? creditsToUse : 0
+          credits_used: (seat.numero === assentosSelecionados[0].numero) ? creditsToUse : 0,
+          external_payment_id: paymentMethod === 'DIGITAL' ? paymentData?.paymentId : null // Send Payment ID
         });
       });
 
