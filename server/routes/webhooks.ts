@@ -126,8 +126,54 @@ router.post("/payment-confirmed", verifyWebhookSecret, async (req, res) => {
 // EXAMPLES FOR FUTURE ENDPOINTS (N8N)
 // ==========================================
 
+// 1. Get Pending Reservations (for N8N Auto-Cancellation Workflow)
+// GET /api/webhooks/pending-reservations
+router.get("/pending-reservations", verifyWebhookSecret, async (req, res) => {
+    try {
+        // Return PENDING reservations created more than 15 minutes ago (optional logic here or in N8N)
+        // For flexibility, we return ALL pending and let N8N filter by date.
+        const result = await pool.query(
+            "SELECT id, ticket_code, created_at, passenger_name, passenger_email FROM reservations WHERE status = 'PENDING'"
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching pending reservations:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
+// 2. Cancel Reservation (for N8N Auto-Cancellation)
+// POST /api/webhooks/cancel-reservation
+router.post("/cancel-reservation", verifyWebhookSecret, async (req, res) => {
+    const { reservation_id, reason } = req.body;
+
+    if (!reservation_id) {
+        return res.status(400).json({ error: "Missing reservation_id" });
+    }
+
+    try {
+        const result = await pool.query(
+            `UPDATE reservations 
+             SET status = 'CANCELLED', notes = COALESCE(notes, '') || ' [Cancelado via N8N: ' || COALESCE($2, 'Expirado') || ']', updated_at = CURRENT_TIMESTAMP
+             WHERE id = $1
+             RETURNING id, status`,
+            [reservation_id, reason]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+
+        console.log(`Webhook: Reservation ${reservation_id} cancelled via N8N`);
+        res.json({ success: true, status: 'CANCELLED' });
+    } catch (error) {
+        console.error("Error cancelling reservation:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+});
+
 /*
-// 1. WhatsApp Bot (Chatwoot/N8N) - Check Available Trips
+// 3. WhatsApp Bot (Chatwoot/N8N) - Check Available Trips
 // GET /api/webhooks/viagens-disponiveis
 router.get("/viagens-disponiveis", verifyWebhookSecret, async (req, res) => {
     try {
@@ -140,7 +186,7 @@ router.get("/viagens-disponiveis", verifyWebhookSecret, async (req, res) => {
     }
 });
 
-// 2. Telegram Bot (Admin) - Daily Financial Summary
+// 4. Telegram Bot (Admin) - Daily Financial Summary
 // GET /api/webhooks/resumo-financeiro
 router.get("/resumo-financeiro", verifyWebhookSecret, async (req, res) => {
     try {
@@ -153,7 +199,7 @@ router.get("/resumo-financeiro", verifyWebhookSecret, async (req, res) => {
     }
 });
 
-// 3. Create Reservation via Chat
+// 5. Create Reservation via Chat
 // POST /api/webhooks/nova-reserva
 router.post("/nova-reserva", verifyWebhookSecret, async (req, res) => {
     // Logic to create reservation using received JSON payload (passenger info, trip_id)

@@ -1,38 +1,64 @@
 # Documentação de Integração Webhook (N8N -> Sistema)
 
-Esta documentação descreve como configurar o N8N para confirmar pagamentos no sistema via Webhook.
+Esta documentação descreve como configurar o N8N para interagir com o sistema.
 
-## Endpoint
+## Autenticação
+- **Header**: `x-webhook-secret`
+- **Valor**: `dev-secret-123` (ou env `WEBHOOK_SECRET`)
 
-- **URL**: `POST /api/webhooks/payment-confirmed`
-- **Autenticação**: Header padrão `x-webhook-secret`.
-  - Valor (Dev): `dev-secret-123`
-  - Valor (Prod): Configurado via env var `WEBHOOK_SECRET`.
+## 1. Confirmação de Pagamento
+** POST /api/webhooks/payment-confirmed**
+Confirma a reserva e gera a transação financeira.
 
-## Payload JSON (Exemplo)
-
-O N8N deve enviar um JSON no corpo da requisição com o seguinte formato:
-
+Payload:
 ```json
 {
   "transaction_id": "pay_123456789", 
   "amount": 150.00,
-  "payment_method": "PIX",
-  "payment_date": "2023-12-15T18:00:00Z"
+  "payment_method": "PIX"
 }
 ```
 
-### Campos:
-- `transaction_id` (Obrigatório*): O ID da transação gerado pelo ASAAS/Gateway (deve bater com `external_payment_id` salvo na reserva).
-- `reservation_id` (Opcional*): O UUID interno da reserva, caso o N8N o tenha.
-- `amount` (Obrigatório): O valor pago confirmado.
-- `payment_method`: "PIX", "BOLETO", "CARTAO", etc.
+---
 
-*\*É necessário enviar pelo menos um dos IDs (`transaction_id` ou `reservation_id`).*
+## 2. Workflow de Expiração (Cancelamento Automático)
 
-## Comportamento
+Para cancelar reservas que não foram pagas após um tempo (ex: 15min), configure um Workflow "Cron" no N8N:
 
-1. O sistema busca a reserva pelo `transaction_id` (ou `reservation_id`).
-2. Atualiza o status para `CONFIRMED`.
-3. Atualiza o valor `amount_paid`.
-4. Gera automaticamente uma transação de RECEITA no módulo Financeiro.
+### Passo A: Buscar Reservas Pendentes
+**GET /api/webhooks/pending-reservations**
+Retorna lista de todas as reservas com status `PENDING`.
+
+Exemplo de resposta:
+```json
+[
+  {
+    "id": "uuid-...",
+    "ticket_code": "T-123",
+    "created_at": "2023-12-15T18:00:00.000Z",
+    "passenger_name": "João"
+  }
+]
+```
+
+### Passo B: Filtrar no N8N
+Use um nó "Filter" ou "Function" no N8N para comparar `created_at` com a hora atual.
+- Se `created_at` < (Agora - 15 minutos), siga para o cancelamento.
+
+### Passo C: Cancelar Reserva
+**POST /api/webhooks/cancel-reservation**
+
+Payload:
+```json
+{
+  "reservation_id": "uuid-da-reserva-expirada",
+  "reason": "Expirou prazo de pagamento (15min)"
+}
+```
+
+---
+
+## 3. Futuros Endpoints (Sugestões)
+O arquivo `webhooks.ts` contém exemplos comentados para:
+- WhatsApp Bot (`/viagens-disponiveis`)
+- Telegram Finanças (`/resumo-financeiro`)

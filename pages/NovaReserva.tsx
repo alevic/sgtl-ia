@@ -139,7 +139,8 @@ export const NovaReserva: React.FC = () => {
       }
 
       // 2. Fetch Reservations (for occupied seats)
-      const reservations = await reservationsService.getAll({ status: 'CONFIRMED' });
+      // We want ALL active reservations (CONFIRMED, PENDING, etc) to block seats
+      const reservations = await reservationsService.getAll({ status: 'TODOS' });
       const tripReservations = reservations.filter((r: any) => r.trip_id === viagem.id && r.status !== 'CANCELLED');
       const occupied = tripReservations.map((r: any) => r.seat_number || r.assento_numero).filter(Boolean);
       setAssentosOcupados(occupied);
