@@ -22,7 +22,12 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Run DB setup/migrations on startup
+// Run DB setup/migrations on startup
 setupDb().catch(console.error);
+
+// Initialize Cron Jobs
+import { initCronJobs } from "./services/cronService";
+initCronJobs();
 
 app.use(cors({
     origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : ["http://localhost:3000", "http://localhost:8080"],
