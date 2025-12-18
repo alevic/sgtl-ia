@@ -55,4 +55,41 @@ export const initCronJobs = () => {
     });
 
     console.log('✅ Cron Jobs Scheduled: [Auto-Cancel Pending Reservations (*/5 min)]');
+
+    // Job: Auto-Complete Past Reservations (Daily at 00:00)
+    cron.schedule('0 0 * * *', async () => {
+        console.log('⏰ Running Cron: Auto-Complete Past Reservations');
+
+        const client = await pool.connect();
+
+        try {
+            // Find reservations for trips that happened BEFORE today (departure_date < CURRENT_DATE)
+            // And status is CONFIRMED or CHECKED_IN
+            const query = `
+                UPDATE reservations r
+                SET status = 'COMPLETED',
+                    updated_at = CURRENT_TIMESTAMP
+                FROM trips t
+                WHERE r.trip_id = t.id
+                  AND t.departure_date < CURRENT_DATE
+                  AND r.status IN ('CONFIRMED', 'CHECKED_IN')
+                RETURNING r.id, r.ticket_code
+            `;
+
+            const result = await client.query(query);
+
+            if (result.rows.length > 0) {
+                console.log(`✅ [CRON] Completed ${result.rows.length} past reservations.`);
+            } else {
+                console.log(`   [CRON] No past reservations to complete.`);
+            }
+
+        } catch (error) {
+            console.error('❌ [CRON] Error running auto-complete job:', error);
+        } finally {
+            client.release();
+        }
+    });
+
+    console.log('✅ Cron Jobs Scheduled: [Auto-Complete Past Reservations (Daily 00:00)]');
 };

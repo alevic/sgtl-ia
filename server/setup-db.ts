@@ -530,6 +530,13 @@ export async function setupDb() {
             ADD COLUMN IF NOT EXISTS external_payment_id TEXT;
         `);
 
+        // Migration: Update Reservation Status Check Constraint to include COMPLETED
+        await pool.query(`
+            ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_status_check;
+            ALTER TABLE reservations ADD CONSTRAINT reservations_status_check 
+            CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'COMPLETED'));
+        `);
+
         console.log("Database setup completed successfully!");
         // process.exit(0); // Don't exit if called from index.ts
     } catch (error) {

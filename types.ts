@@ -365,7 +365,7 @@ export interface IReserva {
   responsavel_id: string; // Quem fez a compra/reserva
   passageiros: IPassageiroReserva[]; // Lista de passageiros
   data_reserva: string; // ISO Date
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'USED' | 'CHECKED_IN' | 'NO_SHOW';
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'USED' | 'CHECKED_IN' | 'NO_SHOW' | 'COMPLETED';
   valor_total: number; // Soma dos valores dos passageiros
   moeda: Moeda;
   forma_pagamento?: 'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO';
@@ -387,7 +387,8 @@ export const StatusReservaLabel: Record<string, string> = {
   CANCELLED: 'Cancelada',
   USED: 'Utilizada',
   CHECKED_IN: 'Embarcado',
-  NO_SHOW: 'Não Compareceu'
+  NO_SHOW: 'Não Compareceu',
+  COMPLETED: 'Concluída'
 };
 
 export enum TipoEncomenda {
