@@ -68,29 +68,10 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     // Identificar tipos de assentos presentes neste andar para a legenda
     const tiposPresentes = Array.from(new Set(assentosPorAndar.map(a => a.tipo))) as TipoAssento[];
 
-    // Organizar assentos em grid
+    // Identificar os valores únicos de X para mapear as colunas do grid
+    const allX = Array.from(new Set(assentosPorAndar.map(a => a.posicao_x))).sort((a, b) => a - b);
     const maxY = Math.max(...assentosPorAndar.map(a => a.posicao_y), 0);
-    const maxX = Math.max(...assentosPorAndar.map(a => a.posicao_x), 0);
-    const middleX = Math.ceil((maxX + 1) / 2);
 
-    const grid: (IAssento | 'corredor' | null)[][] = [];
-    for (let y = 0; y <= maxY; y++) {
-        const row: (IAssento | 'corredor' | null)[] = [];
-        for (let x = 0; x <= maxX; x++) {
-            // Adicionar corredor no meio
-            if (x === middleX) {
-                row.push('corredor');
-            }
-
-            const assento = assentosPorAndar.find(a => a.posicao_y === y && a.posicao_x === x);
-            if (assento) {
-                row.push(assento);
-            } else {
-                row.push(null);
-            }
-        }
-        grid.push(row);
-    }
 
     // Se não tiver assentos, considera não configurado
     if (assentos.length === 0) {
@@ -147,85 +128,104 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                     </div>
                 )}
 
-                {/* Frente do ônibus */}
-                <div className="text-center mb-8">
-                    <div className="w-16 h-8 bg-slate-200 dark:bg-slate-600 rounded-lg mx-auto mb-2"></div>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                {/* Frente do ônibus - Agora dentro da estrutura para alinhar com o grid */}
+                <div className="flex flex-col items-center mb-6">
+                    <div className="w-20 h-2 bg-slate-300 dark:bg-slate-600 rounded-full mb-1 opacity-50"></div>
+                    <div className="w-16 h-8 bg-slate-200 dark:bg-slate-700/50 rounded-lg flex items-center justify-center border border-slate-300/50 dark:border-slate-600/50">
+                        <BusIcon size={18} className="text-slate-400 dark:text-slate-500" />
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">
                         Frente do Ônibus
                     </p>
-                    <div className="w-full h-px bg-slate-200 dark:bg-slate-700 mt-4"></div>
                 </div>
 
                 {/* Grid de assentos */}
-                <div className="flex justify-center mb-8">
-                    <div className="space-y-3">
-                        {grid.map((row, rowIndex) => (
-                            <div key={rowIndex} className="flex items-center gap-3">
-                                {row.map((cell, colIndex) => {
-                                    if (cell === 'corredor') {
+                <div className="flex justify-center mb-8 overflow-x-auto pb-2">
+                    <div
+                        className="grid gap-y-2 gap-x-2"
+                        style={{
+                            gridTemplateColumns: `repeat(${allX.length + 1}, auto)`,
+                            justifyContent: 'center'
+                        }}
+                    >
+                        {Array.from({ length: maxY + 1 }).map((_, y) => {
+                            // Determine a posição do corredor.
+                            // Se o número de colunas de assento for ímpar, o corredor fica no meio.
+                            // Se for par, ele fica após a primeira metade.
+                            const corridorIdx = Math.ceil(allX.length / 2);
+
+                            return (
+                                <React.Fragment key={y}>
+                                    {Array.from({ length: allX.length + 1 }).map((_, i) => {
+                                        // Corredor
+                                        if (i === corridorIdx) {
+                                            return (
+                                                <div key={`cor-${y}-${i}`} className="w-8 h-12 flex items-center justify-center">
+                                                    <span className="text-slate-300 dark:text-slate-600 font-bold text-xs">
+                                                        {y + 1}
+                                                    </span>
+                                                </div>
+                                            );
+                                        }
+
+                                        // Assento
+                                        // Ajusta o índice 'i' para corresponder ao 'allX' real, considerando o corredor
+                                        const xIdx = i < corridorIdx ? i : i - 1;
+                                        const xVal = allX[xIdx];
+                                        const assento = assentosPorAndar.find(a => a.posicao_y === y && a.posicao_x === xVal);
+
+                                        if (!assento) {
+                                            return <div key={`empty-${y}-${i}`} className="w-12 h-12"></div>;
+                                        }
+
+                                        const status = getAssentoStatus(assento);
+                                        const style = SEAT_STYLES[assento.tipo] || { icon: Circle, label: assento.tipo };
+                                        const Icon = status === 'bloqueado' ? Lock : style.icon;
+                                        const preco = getPrecoAssento(assento.tipo);
+
+                                        let buttonClasses = "relative w-12 h-12 rounded-xl transition-all duration-300 border-2 flex flex-col items-center justify-center gap-0.5 group/seat ";
+                                        let textClasses = "text-[10px] font-bold ";
+                                        let iconClasses = "w-3.5 h-3.5 ";
+
+                                        if (status === 'selecionado') {
+                                            buttonClasses += "bg-blue-600 border-blue-500 shadow-lg shadow-blue-500/20 scale-105 z-10 ring-2 ring-blue-400/30";
+                                            textClasses += "text-white";
+                                            iconClasses += "text-white";
+                                        } else if (status === 'reservado') {
+                                            buttonClasses += "bg-red-50 border-red-200 dark:bg-red-900/30 dark:border-red-800 cursor-not-allowed";
+                                            textClasses += "text-red-700 dark:text-red-400";
+                                            iconClasses += "text-red-600 dark:text-red-400";
+                                        } else if (status === 'bloqueado') {
+                                            buttonClasses += "bg-slate-100 border-slate-200 dark:bg-slate-800 cursor-not-allowed opacity-50";
+                                            textClasses += "text-slate-400 dark:text-slate-500";
+                                            iconClasses += "text-slate-400 dark:text-slate-500";
+                                        } else {
+                                            buttonClasses += "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/10 cursor-pointer shadow-sm hover:shadow-md active:scale-95";
+                                            textClasses += "text-slate-700 dark:text-slate-300 group-hover/seat:text-green-600 dark:group-hover/seat:text-green-400";
+                                            iconClasses += "text-slate-400 dark:text-slate-500 group-hover/seat:text-green-500 dark:group-hover/seat:text-green-400";
+                                        }
+
                                         return (
-                                            <div key={colIndex} className="w-12 h-12 flex items-center justify-center">
-                                                <span className="text-slate-300 dark:text-slate-600 font-bold text-sm">
-                                                    {rowIndex + 1}
+                                            <button
+                                                key={assento.id}
+                                                onClick={() => handleClickAssento(assento)}
+                                                disabled={status === 'reservado' || status === 'bloqueado'}
+                                                className={buttonClasses}
+                                                title={`${style.label} - R$ ${preco.toFixed(2)}`}
+                                            >
+                                                <Icon className={iconClasses} />
+                                                <span className={textClasses}>
+                                                    {status === 'bloqueado' ? '' : assento.numero}
                                                 </span>
-                                            </div>
+                                                {status === 'livre' && (
+                                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full border border-white dark:border-slate-800"></div>
+                                                )}
+                                            </button>
                                         );
-                                    }
-
-                                    if (!cell) {
-                                        return <div key={colIndex} className="w-12 h-12"></div>;
-                                    }
-
-                                    const assento = cell as IAssento;
-                                    const status = getAssentoStatus(assento);
-                                    const style = SEAT_STYLES[assento.tipo] || { icon: Circle, label: assento.tipo };
-                                    const Icon = status === 'bloqueado' ? Lock : style.icon;
-                                    const preco = getPrecoAssento(assento.tipo);
-
-                                    // Estilos baseados no status
-                                    let buttonClasses = "relative w-12 h-12 rounded-lg transition-all duration-200 border flex flex-col items-center justify-center gap-0.5 ";
-                                    let textClasses = "text-[10px] font-bold ";
-                                    let iconClasses = "w-3 h-3 ";
-
-                                    if (status === 'selecionado') {
-                                        // Azul para selecionado
-                                        buttonClasses += "bg-blue-600 border-blue-700 shadow-md scale-105 z-10";
-                                        textClasses += "text-white";
-                                        iconClasses += "text-white";
-                                    } else if (status === 'reservado') {
-                                        // Vermelho para ocupado
-                                        buttonClasses += "bg-red-100 border-red-200 dark:bg-red-900/20 dark:border-red-800 cursor-not-allowed opacity-60";
-                                        textClasses += "text-red-400 dark:text-red-500";
-                                        iconClasses += "text-red-400 dark:text-red-500";
-                                    } else if (status === 'bloqueado') {
-                                        // Cinza para bloqueado
-                                        buttonClasses += "bg-slate-200 border-slate-300 dark:bg-slate-700/50 dark:border-slate-600 cursor-not-allowed";
-                                        textClasses += "text-slate-400 dark:text-slate-500";
-                                        iconClasses += "text-slate-400 dark:text-slate-500";
-                                    } else {
-                                        // Disponível: Fundo branco/neutro + Borda Verde
-                                        buttonClasses += "bg-white dark:bg-slate-800 border-green-500 hover:border-blue-400 hover:shadow-md cursor-pointer";
-                                        textClasses += "text-slate-700 dark:text-slate-300";
-                                        iconClasses += "text-slate-500 dark:text-slate-400";
-                                    }
-
-                                    return (
-                                        <button
-                                            key={colIndex}
-                                            onClick={() => handleClickAssento(assento)}
-                                            disabled={status === 'reservado' || status === 'bloqueado'}
-                                            className={buttonClasses}
-                                            title={status === 'reservado' ? 'Ocupado' : status === 'bloqueado' ? 'Bloqueado' : `${style.label} - R$ ${preco.toFixed(2)}`}
-                                        >
-                                            <Icon className={iconClasses} />
-                                            <span className={textClasses}>
-                                                {status === 'bloqueado' ? '' : assento.numero}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        ))}
+                                    })}
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
                 </div>
 

@@ -11,7 +11,7 @@ import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, StatusReservaLabel } f
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
 import { MapaAssentosReserva } from '../components/Veiculos/MapaAssentosReserva';
-import { ArrowRight, ArrowLeft, Check, Users, X, Loader, CreditCard, QrCode, Link as LinkIcon, Copy, Wallet } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Users, X, Loader, CreditCard, QrCode, Link as LinkIcon, Copy, Wallet, RefreshCw } from 'lucide-react';
 import { tripsService } from '../services/tripsService';
 import { clientsService } from '../services/clientsService';
 import { vehiclesService } from '../services/vehiclesService';
@@ -494,7 +494,27 @@ export const NovaReserva: React.FC = () => {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/admin/reservas')}
+                className="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+              >
+                <ArrowLeft size={18} />
+                Voltar
+              </button>
+
+              {viagemSelecionada && (
+                <button
+                  onClick={() => setViagemSelecionada(null)}
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium flex items-center gap-2"
+                >
+                  <RefreshCw size={16} />
+                  Escolher outra viagem
+                </button>
+              )}
+            </div>
+
             <button
               onClick={() => setStep(2)}
               disabled={!podeAvancarStep1}
@@ -613,30 +633,30 @@ export const NovaReserva: React.FC = () => {
                 ))
               )}
             </div>
+          </div>
 
-            {/* Botões de Navegação */}
-            <div className="col-span-1 lg:col-span-12 flex justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
-              <button
-                onClick={() => setStep(1)}
-                className="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-              >
-                <ArrowLeft size={18} />
-                Voltar
-              </button>
-              <div className="flex items-center gap-4">
-                <div className="text-right mr-2">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Total Estimado</p>
-                  <p className="text-xl font-bold text-slate-800 dark:text-white">R$ {valorTotal.toFixed(2)}</p>
-                </div>
-                <button
-                  onClick={() => setStep(3)}
-                  disabled={!podeAvancarStep2}
-                  className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                  Próximo
-                  <ArrowRight size={18} />
-                </button>
+          {/* Botões de Navegação - Fora do Grid para visibilidade constante */}
+          <div className="flex justify-between pt-6 border-t border-slate-200 dark:border-slate-700 mt-6">
+            <button
+              onClick={() => setStep(1)}
+              className="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+            >
+              <ArrowLeft size={18} />
+              Voltar
+            </button>
+            <div className="flex items-center gap-4">
+              <div className="text-right mr-2">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Total Estimado</p>
+                <p className="text-xl font-bold text-slate-800 dark:text-white">R$ {valorTotal.toFixed(2)}</p>
               </div>
+              <button
+                onClick={() => setStep(3)}
+                disabled={!podeAvancarStep2}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+              >
+                Próximo
+                <ArrowRight size={18} />
+              </button>
             </div>
           </div>
         </ErrorBoundary>

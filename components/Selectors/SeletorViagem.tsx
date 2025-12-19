@@ -159,12 +159,6 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                             <span>{viagemSelecionada.return_route_name || viagemSelecionada.destino}</span>
                         </div>
                     </div>
-                    <button
-                        onClick={() => onChange(null)}
-                        className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                        Escolher outra viagem
-                    </button>
                 </div>
             )}
 
