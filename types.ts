@@ -135,6 +135,7 @@ export interface IAssento {
   tipo: TipoAssento;
   status: AssentoStatus;
   disabled?: boolean; // Assento desabilitado (escada, frigobar, manutenção, etc)
+  passageiro_nome?: string;
 }
 
 export interface IVeiculo {
@@ -341,12 +342,6 @@ export interface IViagem {
   precos_por_tipo?: Record<string, number>;
   imagem_capa?: string; // Legacy, map to cover_image
   galeria?: string[]; // Legacy, map to gallery
-}
-
-export interface IAssento {
-  numero: string;
-  status: AssentoStatus;
-  passageiro_nome?: string;
 }
 
 // Passageiro individual em uma reserva

@@ -69,8 +69,11 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     const tiposPresentes = Array.from(new Set(assentosPorAndar.map(a => a.tipo))) as TipoAssento[];
 
     // Identificar os valores únicos de X para mapear as colunas do grid
-    const allX = Array.from(new Set(assentosPorAndar.map(a => a.posicao_x))).sort((a, b) => a - b);
-    const maxY = Math.max(...assentosPorAndar.map(a => a.posicao_y), 0);
+    const allX = assentosPorAndar
+        .map(a => Number(a.posicao_x))
+        .filter((value, index, self) => self.indexOf(value) === index)
+        .sort((a, b) => a - b);
+    const maxY = Math.max(...assentosPorAndar.map(a => Number(a.posicao_y)), 0);
 
 
     // Se não tiver assentos, considera não configurado
