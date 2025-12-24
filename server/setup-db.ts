@@ -65,7 +65,21 @@ export async function setupDb() {
             );
         `);
 
-        console.log("Vehicle table created successfully.");
+
+        // Create Vehicle Features table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS vehicle_feature (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                vehicle_id UUID NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
+                category TEXT,
+                label TEXT NOT NULL,
+                value TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_vehicle_feature_vehicle ON vehicle_feature(vehicle_id);
+        `);
+
+        console.log("Vehicle characteristics table created successfully.");
 
         // Create Seat table
         await pool.query(`

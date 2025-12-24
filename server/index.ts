@@ -322,7 +322,18 @@ app.get("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
             return res.status(404).json({ error: "Vehicle not found" });
         }
 
-        res.json(result.rows[0]);
+        const vehicle = result.rows[0];
+
+        // Fetch features
+        const featuresResult = await pool.query(
+            `SELECT id, category, label, value FROM vehicle_feature WHERE vehicle_id = $1`,
+            [id]
+        );
+
+        res.json({
+            ...vehicle,
+            features: featuresResult.rows
+        });
     } catch (error) {
         console.error("Error fetching vehicle:", error);
         res.status(500).json({ error: "Failed to fetch vehicle" });
@@ -339,7 +350,7 @@ app.post("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req,
         const {
             placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
             ultima_revisao, is_double_deck, capacidade_passageiros,
-            capacidade_carga, observacoes, motorista_atual
+            capacidade_carga, observacoes, motorista_atual, features
         } = req.body;
 
         const result = await pool.query(
@@ -358,7 +369,19 @@ app.post("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req,
             ]
         );
 
-        res.json(result.rows[0]);
+        const createdVehicle = result.rows[0];
+
+        // Save features if provided
+        if (Array.isArray(features) && features.length > 0) {
+            for (const feature of features) {
+                await pool.query(
+                    `INSERT INTO vehicle_feature (vehicle_id, category, label, value) VALUES ($1, $2, $3, $4)`,
+                    [createdVehicle.id, feature.category || null, feature.label, feature.value]
+                );
+            }
+        }
+
+        res.json(createdVehicle);
     } catch (error) {
         console.error("Error creating vehicle:", error);
         res.status(500).json({ error: "Failed to create vehicle" });
@@ -384,7 +407,7 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
         const {
             placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
             ultima_revisao, is_double_deck, capacidade_passageiros,
-            capacidade_carga, observacoes, motorista_atual
+            capacidade_carga, observacoes, motorista_atual, features
         } = req.body;
 
         const result = await pool.query(
@@ -403,6 +426,20 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
                 id, orgId
             ]
         );
+
+        // Update features (Sync)
+        if (Array.isArray(features)) {
+            // Simply clear and re-insert for simplicity in this case
+            await pool.query(`DELETE FROM vehicle_feature WHERE vehicle_id = $1`, [id]);
+            for (const feature of features) {
+                if (feature.label && feature.value) {
+                    await pool.query(
+                        `INSERT INTO vehicle_feature (vehicle_id, category, label, value) VALUES ($1, $2, $3, $4)`,
+                        [id, feature.category || null, feature.label, feature.value]
+                    );
+                }
+            }
+        }
 
         res.json(result.rows[0]);
     } catch (error) {
@@ -1021,7 +1058,6 @@ app.put("/api/organization/:id/details", authorize(['admin', 'user']), async (re
     }
 });
 
-import { setupDb } from "./setup-db";
 
 // Start server
 const startServer = async () => {

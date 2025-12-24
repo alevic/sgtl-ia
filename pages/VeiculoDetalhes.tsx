@@ -15,6 +15,7 @@ const MOCK_VEICULO: IVeiculo & {
     ultima_revisao: string;
     motorista_atual?: string;
     observacoes?: string;
+    features?: { label: string; value: string }[];
 } = {
     id: 'V001',
     placa: 'ABC-1234',
@@ -337,6 +338,20 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Observações</p>
                     <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
                         <p className="text-slate-700 dark:text-slate-300">{veiculo.observacoes}</p>
+                    </div>
+                </div>
+            )}
+
+            {veiculo.features && veiculo.features.length > 0 && (
+                <div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Características do Veículo</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {veiculo.features.map((feature, index) => (
+                            <div key={index} className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col">
+                                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{feature.label}</span>
+                                <span className="font-semibold text-slate-800 dark:text-white">{feature.value}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VeiculoStatus } from '../types';
-import { ArrowLeft, Save, Bus, Truck, FileText, Gauge, Calendar, Wrench } from 'lucide-react';
+import { ArrowLeft, Save, Bus, Truck, FileText, Gauge, Calendar, Wrench, Plus, Trash2 } from 'lucide-react';
+import { IVeiculoFeature } from '../types';
 
 export const NovoVeiculo: React.FC = () => {
     const navigate = useNavigate();
@@ -19,23 +20,48 @@ export const NovoVeiculo: React.FC = () => {
     const [observacoes, setObservacoes] = useState('');
     const [isDoubleDeck, setIsDoubleDeck] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [features, setFeatures] = useState<IVeiculoFeature[]>([
+        { label: 'Carroceria', value: '' },
+        { label: 'Motor', value: '' },
+        { label: 'Câmbio', value: '' }
+    ]);
+
+    const addFeature = () => {
+        setFeatures([...features, { label: '', value: '' }]);
+    };
+
+    const removeFeature = (index: number) => {
+        setFeatures(features.filter((_, i) => i !== index));
+    };
+
+    const updateFeature = (index: number, field: keyof IVeiculoFeature, value: string) => {
+        const newFeatures = [...features];
+        newFeatures[index][field] = value;
+        setFeatures(newFeatures);
+    };
 
     const handleSalvar = async () => {
+        if (!placa || !modelo || !ano || !kmAtual || !proximaRevisaoKm) {
+            alert('Por favor, preencha todos os campos obrigatórios (*)');
+            return;
+        }
+
         setIsLoading(true);
         try {
             const vehicleData = {
-                placa,
-                modelo,
+                placa: placa.trim(),
+                modelo: modelo.trim(),
                 tipo,
                 status,
-                ano: parseInt(ano),
-                km_atual: parseInt(kmAtual),
-                proxima_revisao_km: parseInt(proximaRevisaoKm),
+                ano: parseInt(ano) || 0,
+                km_atual: parseInt(kmAtual) || 0,
+                proxima_revisao_km: parseInt(proximaRevisaoKm) || 0,
                 ultima_revisao: ultimaRevisao || null,
                 is_double_deck: isDoubleDeck,
-                capacidade_passageiros: tipo === 'ONIBUS' ? parseInt(capacidadePassageiros) : null,
-                capacidade_carga: tipo === 'CAMINHAO' ? parseFloat(capacidadeCarga) : null,
-                observacoes: observacoes || null
+                capacidade_passageiros: tipo === 'ONIBUS' ? (parseInt(capacidadePassageiros) || 0) : null,
+                capacidade_carga: tipo === 'CAMINHAO' ? (parseFloat(capacidadeCarga) || 0) : null,
+                observacoes: observacoes?.trim() || null,
+                features: features.filter(f => f.label.trim() !== '' && f.value.trim() !== '')
             };
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles`, {
@@ -60,6 +86,8 @@ export const NovoVeiculo: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
@@ -266,6 +294,59 @@ export const NovoVeiculo: React.FC = () => {
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
+                    </div>
+                </div>
+
+                {/* Características do Veículo */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                            <Bus size={20} className="text-purple-600" />
+                            Características do Veículo
+                        </h3>
+                        <button
+                            type="button"
+                            onClick={addFeature}
+                            className="text-sm px-3 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/40 transition-colors flex items-center gap-1"
+                        >
+                            <Plus size={16} />
+                            Adicionar
+                        </button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {features.map((feature, index) => (
+                            <div key={index} className="flex gap-3 items-start animate-in slide-in-from-left-2 duration-200">
+                                <div className="flex-1 grid grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        value={feature.label}
+                                        onChange={(e) => updateFeature(index, 'label', e.target.value)}
+                                        placeholder="Ex: Motor"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={feature.value}
+                                        onChange={(e) => updateFeature(index, 'value', e.target.value)}
+                                        placeholder="Ex: Volvo 420cv"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeFeature(index)}
+                                    className="p-2 text-slate-400 hover:text-red-500 transition-colors mt-0.5"
+                                >
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
+                        ))}
+                        {features.length === 0 && (
+                            <p className="text-center text-slate-500 dark:text-slate-400 py-4 text-sm bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
+                                Nenhuma característica personalizada adicionada.
+                            </p>
+                        )}
                     </div>
                 </div>
 

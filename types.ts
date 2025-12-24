@@ -138,6 +138,13 @@ export interface IAssento {
   passageiro_nome?: string;
 }
 
+export interface IVeiculoFeature {
+  id?: string;
+  category?: string;
+  label: string;
+  value: string;
+}
+
 export interface IVeiculo {
   id: string;
   placa: string;
@@ -153,6 +160,7 @@ export interface IVeiculo {
   mapa_assentos?: IAssento[]; // só para ônibus
   mapa_configurado?: boolean; // indica se o mapa foi configurado
   precos_assentos?: Record<TipoAssento, number>; // preço por tipo de assento
+  features?: IVeiculoFeature[];
 }
 
 export interface IMotorista {
