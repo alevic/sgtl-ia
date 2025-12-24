@@ -374,10 +374,12 @@ app.post("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req,
         // Save features if provided
         if (Array.isArray(features) && features.length > 0) {
             for (const feature of features) {
-                await pool.query(
-                    `INSERT INTO vehicle_feature (vehicle_id, category, label, value) VALUES ($1, $2, $3, $4)`,
-                    [createdVehicle.id, feature.category || null, feature.label, feature.value]
-                );
+                if (feature.label) {
+                    await pool.query(
+                        `INSERT INTO vehicle_feature (vehicle_id, category, label, value) VALUES ($1, $2, $3, $4)`,
+                        [createdVehicle.id, feature.category || null, feature.label, feature.value || '']
+                    );
+                }
             }
         }
 
@@ -432,10 +434,10 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
             // Simply clear and re-insert for simplicity in this case
             await pool.query(`DELETE FROM vehicle_feature WHERE vehicle_id = $1`, [id]);
             for (const feature of features) {
-                if (feature.label && feature.value) {
+                if (feature.label) {
                     await pool.query(
                         `INSERT INTO vehicle_feature (vehicle_id, category, label, value) VALUES ($1, $2, $3, $4)`,
-                        [id, feature.category || null, feature.label, feature.value]
+                        [id, feature.category || null, feature.label, feature.value || '']
                     );
                 }
             }

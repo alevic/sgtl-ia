@@ -21,13 +21,17 @@ export const NovoVeiculo: React.FC = () => {
     const [isDoubleDeck, setIsDoubleDeck] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [features, setFeatures] = useState<IVeiculoFeature[]>([
-        { label: 'Carroceria', value: '' },
-        { label: 'Motor', value: '' },
-        { label: 'Câmbio', value: '' }
+        { category: 'Mecânica', label: 'Carroceria Comil DD Invictus', value: '' },
+        { category: 'Mecânica', label: 'Motor Volvo 420cv', value: '' },
+        { category: 'Mecânica', label: 'Câmbio automático I-Schift', value: '' },
+        { category: 'Segurança', label: 'Sistema ESP', value: '' },
+        { category: 'Segurança', label: 'Freios ABS e EBS à disco', value: '' },
+        { category: 'Comodidades', label: 'Ar condicionado – Calefação', value: '' },
+        { category: 'Comodidades', label: 'Banheiro', value: '' }
     ]);
 
     const addFeature = () => {
-        setFeatures([...features, { label: '', value: '' }]);
+        setFeatures([...features, { category: '', label: '', value: '' }]);
     };
 
     const removeFeature = (index: number) => {
@@ -61,7 +65,7 @@ export const NovoVeiculo: React.FC = () => {
                 capacidade_passageiros: tipo === 'ONIBUS' ? (parseInt(capacidadePassageiros) || 0) : null,
                 capacidade_carga: tipo === 'CAMINHAO' ? (parseFloat(capacidadeCarga) || 0) : null,
                 observacoes: observacoes?.trim() || null,
-                features: features.filter(f => f.label.trim() !== '' && f.value.trim() !== '')
+                features: features.filter(f => f.label.trim() !== '' || f.category?.trim() !== '').map(f => ({ ...f, value: '' }))
             };
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles`, {
@@ -317,19 +321,19 @@ export const NovoVeiculo: React.FC = () => {
                     <div className="space-y-3">
                         {features.map((feature, index) => (
                             <div key={index} className="flex gap-3 items-start animate-in slide-in-from-left-2 duration-200">
-                                <div className="flex-1 grid grid-cols-2 gap-3">
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <input
                                         type="text"
-                                        value={feature.label}
-                                        onChange={(e) => updateFeature(index, 'label', e.target.value)}
-                                        placeholder="Ex: Motor"
+                                        value={feature.category}
+                                        onChange={(e) => updateFeature(index, 'category', e.target.value)}
+                                        placeholder="Categoria (Ex: Segurança)"
                                         className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                     />
                                     <input
                                         type="text"
-                                        value={feature.value}
-                                        onChange={(e) => updateFeature(index, 'value', e.target.value)}
-                                        placeholder="Ex: Volvo 420cv"
+                                        value={feature.label}
+                                        onChange={(e) => updateFeature(index, 'label', e.target.value)}
+                                        placeholder="Item (Ex: Freios ABS e EBS à disco)"
                                         className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                     />
                                 </div>

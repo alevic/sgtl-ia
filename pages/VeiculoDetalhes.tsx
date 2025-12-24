@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoManutencao } from '../types';
+import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoManutencao, IVeiculoFeature } from '../types';
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,
@@ -343,16 +343,32 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
             )}
 
             {veiculo.features && veiculo.features.length > 0 && (
-                <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Características do Veículo</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {veiculo.features.map((feature, index) => (
-                            <div key={index} className="bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 flex flex-col">
-                                <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">{feature.label}</span>
-                                <span className="font-semibold text-slate-800 dark:text-white">{feature.value}</span>
+                <div className="space-y-4">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Características do Veículo</p>
+                    {Object.entries(
+                        (veiculo.features || []).reduce((acc, feature) => {
+                            const cat = feature.category?.trim() || 'Outros';
+                            if (!acc[cat]) acc[cat] = [];
+                            acc[cat].push(feature);
+                            return acc;
+                        }, {} as Record<string, IVeiculoFeature[]>)
+                    ).map(([category, items]: [string, IVeiculoFeature[]]) => (
+                        <div key={category} className="space-y-2">
+                            <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider ml-1">
+                                {category}
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2">
+                                {items.map((item, idx) => (
+                                    <div key={idx} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2 group hover:border-blue-400 dark:hover:border-blue-600 transition-colors">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                                            {item.label}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    ))}
                 </div>
             )}
         </div>
