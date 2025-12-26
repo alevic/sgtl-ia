@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, StatusReservaLabel } from '../types';
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
+import { ModalNovoCliente } from '../components/Selectors/ModalNovoCliente';
 import { MapaAssentosReserva } from '../components/Veiculos/MapaAssentosReserva';
 import { ArrowRight, ArrowLeft, Check, Users, X, Loader, CreditCard, QrCode, Link as LinkIcon, Copy, Wallet, RefreshCw } from 'lucide-react';
 import { tripsService } from '../services/tripsService';
@@ -19,6 +20,21 @@ import { reservationsService } from '../services/reservationsService';
 import { paymentService, IPaymentResponse } from '../services/paymentService';
 import { transactionsService } from '../services/transactionsService';
 import { TipoTransacao, StatusTransacao, CategoriaReceita, FormaPagamento } from '../types';
+
+const TRIP_STATUS_LABELS: Record<string, string> = {
+  SCHEDULED: 'Agendada',
+  AGENDADA: 'Agendada',
+  CONFIRMED: 'Confirmada',
+  CONFIRMADA: 'Confirmada',
+  BOARDING: 'Embarcando',
+  IN_TRANSIT: 'Em Curso',
+  EM_CURSO: 'Em Curso',
+  COMPLETED: 'Finalizada',
+  FINALIZADA: 'Finalizada',
+  CANCELLED: 'Cancelada',
+  CANCELADA: 'Cancelada',
+  DELAYED: 'Atrasada'
+};
 
 type Step = 1 | 2 | 3;
 
@@ -55,6 +71,18 @@ export const NovaReserva: React.FC = () => {
   const [passageirosMap, setPassageirosMap] = useState<Record<string, { nome: string; documento: string; cliente_id?: string; email?: string; telefone?: string }>>({});
   const [assentosSelecionados, setAssentosSelecionados] = useState<{ numero: string; tipo: TipoAssento; valor: number }[]>([]);
   const [assentosOcupados, setAssentosOcupados] = useState<string[]>([]);
+
+  // Modal State
+  const [isModalNovoClienteOpen, setIsModalNovoClienteOpen] = useState(false);
+  const [targetSeatForNewClient, setTargetSeatForNewClient] = useState<string | null>(null);
+
+  const handleClientCreated = (newClient: ICliente) => {
+    setClientes(prev => [...prev, newClient]);
+    if (targetSeatForNewClient) {
+      handleSelectClientForSeat(targetSeatForNewClient, newClient);
+    }
+    setTargetSeatForNewClient(null);
+  };
 
   // Update entry value when total changes (if not modified)
   const valorTotal = assentosSelecionados.reduce((sum, a) => sum + a.valor, 0);
@@ -603,6 +631,10 @@ export const NovaReserva: React.FC = () => {
                           clientes={clientes}
                           clienteSelecionado={null}
                           onSelecionarCliente={(cliente) => handleSelectClientForSeat(seat.numero, cliente)}
+                          onNovoCliente={() => {
+                            setTargetSeatForNewClient(seat.numero);
+                            setIsModalNovoClienteOpen(true);
+                          }}
                         />
                       </div>
 
@@ -705,7 +737,9 @@ export const NovaReserva: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
-                      <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.status}</p>
+                      <p className="font-semibold text-slate-800 dark:text-white">
+                        {TRIP_STATUS_LABELS[viagemSelecionada.status] || viagemSelecionada.status}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1009,6 +1043,16 @@ export const NovaReserva: React.FC = () => {
           </div>
         </ErrorBoundary>
       )}
+
+      {/* Inline Client Creation Modal */}
+      <ModalNovoCliente
+        isOpen={isModalNovoClienteOpen}
+        onClose={() => {
+          setIsModalNovoClienteOpen(false);
+          setTargetSeatForNewClient(null);
+        }}
+        onClientCreated={handleClientCreated}
+      />
     </div>
   );
 };

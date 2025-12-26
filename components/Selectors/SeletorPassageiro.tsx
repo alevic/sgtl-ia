@@ -6,12 +6,14 @@ interface SeletorPassageiroProps {
     clientes: ICliente[];
     clienteSelecionado?: ICliente | null;
     onSelecionarCliente?: (cliente: ICliente | null) => void;
+    onNovoCliente?: () => void;
 }
 
 export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
     clientes,
     clienteSelecionado,
-    onSelecionarCliente
+    onSelecionarCliente,
+    onNovoCliente
 }) => {
     const [busca, setBusca] = useState('');
 
@@ -37,15 +39,30 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-3">Selecionar Passageiro</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Busque e selecione um passageiro, depois escolha um assento no mapa ao lado</p>
             </div>
-            <div className="relative">
-                <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                <input
-                    type="text"
-                    placeholder="Buscar por nome, email ou documento..."
-                    value={busca}
-                    onChange={e => setBusca(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+            <div className="flex gap-2">
+                <div className="relative flex-1">
+                    <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                    <input
+                        type="text"
+                        placeholder="Buscar por nome, email ou documento..."
+                        value={busca}
+                        onChange={e => setBusca(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                </div>
+                {onNovoCliente && (
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onNovoCliente();
+                        }}
+                        title="Cadastrar Novo Cliente"
+                        className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center min-w-[42px]"
+                    >
+                        <User size={20} />
+                        <span className="hidden sm:inline-block ml-2 text-sm font-semibold">Novo</span>
+                    </button>
+                )}
             </div>
             {clienteSelecionado && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">

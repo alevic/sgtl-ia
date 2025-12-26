@@ -25,6 +25,7 @@ services:
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-sgtl_secret_key_123456}
       - BETTER_AUTH_URL=http://192.168.0.113:4000
       - CLIENT_URL=http://192.168.0.113:8080
+      - TZ=America/Sao_Paulo
     depends_on:
       - db
 
@@ -38,6 +39,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-admin}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin123}
       - POSTGRES_DB=${POSTGRES_DB:-sgtl_db}
+      - TZ=America/Sao_Paulo
+    command: postgres -c timezone=America/Sao_Paulo
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always

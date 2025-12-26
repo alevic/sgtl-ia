@@ -67,7 +67,7 @@ export const initCronJobs = () => {
                 SET status = 'IN_TRANSIT',
                     updated_at = CURRENT_TIMESTAMP
                 WHERE status IN ('SCHEDULED', 'BOARDING')
-                  AND (departure_date + departure_time)::TIMESTAMPTZ <= CURRENT_TIMESTAMP
+                  AND (departure_date + departure_time) AT TIME ZONE 'America/Sao_Paulo' <= CURRENT_TIMESTAMP
                 RETURNING id
             `;
             const startResult = await client.query(startQuery);
@@ -82,11 +82,11 @@ export const initCronJobs = () => {
                 SET status = 'COMPLETED',
                     active = false,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE status = 'IN_TRANSIT'
+                WHERE status IN ('IN_TRANSIT')
                   AND (
-                      (arrival_date IS NOT NULL AND arrival_time IS NOT NULL AND (arrival_date + arrival_time)::TIMESTAMPTZ <= CURRENT_TIMESTAMP)
+                      (arrival_date IS NOT NULL AND arrival_time IS NOT NULL AND (arrival_date + arrival_time) AT TIME ZONE 'America/Sao_Paulo' <= CURRENT_TIMESTAMP)
                       OR 
-                      (departure_date + departure_time)::TIMESTAMPTZ < NOW() - INTERVAL '24 hours'
+                      (departure_date + departure_time) AT TIME ZONE 'America/Sao_Paulo' < NOW() - INTERVAL '24 hours'
                   )
                 RETURNING id
             `;
