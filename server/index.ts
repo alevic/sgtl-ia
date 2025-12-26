@@ -36,6 +36,39 @@ app.use(cors({
 
 app.use(express.json({ limit: '50mb' }));
 
+app.use("/api/auth/sign-in/email", async (req, res, next) => {
+    if (req.method === "POST" && req.body && req.body.email) {
+        const identifier = req.body.email;
+
+        // Simple regex patterns for CPF and Phone
+        // CPF: XXX.XXX.XXX-XX or XXXXXXXXXXX
+        const cpfPattern = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/;
+        // Phone: (XX) XXXXX-XXXX or XXXXXXXXXXX
+        const phonePattern = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
+
+        if (cpfPattern.test(identifier) || phonePattern.test(identifier)) {
+            try {
+                // Remove formatting characters for database lookup
+                const cleanIdentifier = identifier.replace(/\D/g, "");
+
+                // Search for the user by CPF or Phone
+                const result = await pool.query(
+                    'SELECT email FROM "user" WHERE REPLACE(REPLACE(cpf, \'.\', \'\'), \'-\', \'\') = $1 OR REPLACE(REPLACE(REPLACE(REPLACE(phone, \'(\', \'\'), \')\', \'\'), \'-\', \'\'), \' \', \'\') = $1',
+                    [cleanIdentifier]
+                );
+
+                if (result.rows.length > 0) {
+                    console.log(`Mapping identifier ${identifier} to email ${result.rows[0].email}`);
+                    req.body.email = result.rows[0].email;
+                }
+            } catch (error) {
+                console.error("Error mapping identifier to email:", error);
+            }
+        }
+    }
+    next();
+});
+
 app.all("/api/auth/*", toNodeHandler(auth));
 
 app.get("/api/users", authorize(['admin']), async (req, res) => {

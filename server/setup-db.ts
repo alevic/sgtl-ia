@@ -551,6 +551,13 @@ export async function setupDb() {
             CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'COMPLETED'));
         `);
 
+        // Migration: Add CPF and Phone to user table
+        await pool.query(`
+            ALTER TABLE "user" 
+            ADD COLUMN IF NOT EXISTS cpf TEXT UNIQUE,
+            ADD COLUMN IF NOT EXISTS phone TEXT UNIQUE;
+        `);
+
         console.log("Database setup completed successfully!");
         // process.exit(0); // Don't exit if called from index.ts
     } catch (error) {

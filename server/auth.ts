@@ -22,6 +22,18 @@ export const auth = betterAuth({
             console.log("========================================");
         },
     },
+    user: {
+        additionalFields: {
+            cpf: {
+                type: "string",
+                required: false,
+            },
+            phone: {
+                type: "string",
+                required: false,
+            },
+        },
+    },
     advanced: {
         useSecureCookies: false, // Force false for localhost
     },
