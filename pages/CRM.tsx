@@ -5,6 +5,7 @@ import {
     Users, Search, Filter, UserPlus, Star, TrendingUp,
     Phone, Mail, MapPin, Calendar, Award, Tag
 } from 'lucide-react';
+import { clientsService } from '../services/clientsService';
 
 const SegmentoBadge: React.FC<{ segmento: ICliente['segmento'] }> = ({ segmento }) => {
     const configs = {
@@ -38,13 +39,8 @@ export const CRM: React.FC = () => {
     const fetchClientes = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients`);
-            if (response.ok) {
-                const data = await response.json();
-                setClientes(data);
-            } else {
-                console.error('Failed to fetch clients');
-            }
+            const data = await clientsService.getAll();
+            setClientes(data);
         } catch (error) {
             console.error('Error fetching clients:', error);
         } finally {

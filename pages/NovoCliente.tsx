@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TipoDocumento } from '../types';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar } from 'lucide-react';
+import { clientsService } from '../services/clientsService';
 
 export const NovoCliente: React.FC = () => {
     const navigate = useNavigate();
@@ -25,37 +26,26 @@ export const NovoCliente: React.FC = () => {
     const handleSalvar = async () => {
         setIsSaving(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    nome,
-                    email,
-                    telefone,
-                    documento_tipo: documentoTipo,
-                    documento_numero: documentoNumero,
-                    data_nascimento: dataNascimento,
-                    nacionalidade,
-                    endereco,
-                    cidade,
-                    estado,
-                    pais,
-                    segmento,
-                    observacoes
-                })
+            await clientsService.create({
+                nome,
+                email,
+                telefone,
+                documento_tipo: documentoTipo,
+                documento_numero: documentoNumero,
+                data_nascimento: dataNascimento,
+                nacionalidade,
+                endereco,
+                cidade,
+                estado,
+                pais,
+                segmento,
+                observacoes
             });
 
-            if (response.ok) {
-                navigate('/admin/clientes');
-            } else {
-                console.error('Failed to create client');
-                alert('Erro ao salvar cliente. Verifique os dados e tente novamente.');
-            }
+            navigate('/admin/clientes');
         } catch (error) {
             console.error('Error creating client:', error);
-            alert('Erro de conexão ao salvar cliente.');
+            alert('Erro ao salvar cliente. Verifique os dados e tente novamente.');
         } finally {
             setIsSaving(false);
         }

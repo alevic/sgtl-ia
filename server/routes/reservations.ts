@@ -78,6 +78,12 @@ router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) 
             params.push(`%${passenger_name}%`);
         }
 
+        if (req.query.client_id) {
+            paramCount++;
+            query += ` AND r.client_id = $${paramCount}`;
+            params.push(req.query.client_id);
+        }
+
         query += ` ORDER BY r.created_at DESC`;
 
         const result = await pool.query(query, params);

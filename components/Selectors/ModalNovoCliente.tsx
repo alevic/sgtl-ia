@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ICliente, TipoDocumento } from '../../types';
 import { X, Save, User, Mail, Phone, MapPin, FileText, Calendar, Loader } from 'lucide-react';
+import { clientsService } from '../../services/clientsService';
 
 interface ModalNovoClienteProps {
     isOpen: boolean;
@@ -39,46 +40,32 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
 
         setIsSaving(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Adicione headers de autenticação se necessário, 
-                    // mas assumindo que o ambiente lida com isso via cookies ou middleware global
-                },
-                body: JSON.stringify({
-                    nome,
-                    email,
-                    telefone,
-                    documento_tipo: documentoTipo,
-                    documento_numero: documentoNumero,
-                    data_nascimento: dataNascimento,
-                    nacionalidade,
-                    endereco,
-                    cidade,
-                    estado,
-                    pais,
-                    segmento,
-                    observacoes
-                })
+            const newClient = await clientsService.create({
+                nome,
+                email,
+                telefone,
+                documento_tipo: documentoTipo,
+                documento_numero: documentoNumero,
+                data_nascimento: dataNascimento,
+                nacionalidade,
+                endereco,
+                cidade,
+                estado,
+                pais,
+                segmento,
+                observacoes
             });
 
-            if (response.ok) {
-                const newClient = await response.json();
-                onClientCreated(newClient);
-                onClose();
-                // Reset form
-                setNome('');
-                setEmail('');
-                setTelefone('');
-                setDocumentoNumero('');
-            } else {
-                const errorData = await response.json();
-                alert('Erro ao salvar cliente: ' + (errorData.error || 'Erro desconhecido'));
-            }
-        } catch (error) {
+            onClientCreated(newClient);
+            onClose();
+            // Reset form
+            setNome('');
+            setEmail('');
+            setTelefone('');
+            setDocumentoNumero('');
+        } catch (error: any) {
             console.error('Error creating client:', error);
-            alert('Erro de conexão ao salvar cliente.');
+            alert('Erro ao salvar cliente: ' + (error.message || 'Erro desconhecido'));
         } finally {
             setIsSaving(false);
         }

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento } from '../types';
+import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, StatusReservaLabel } from '../types';
 import { useAppContext } from '../context/AppContext';
 import {
     ArrowLeft, User, Mail, Phone, MapPin, Calendar, DollarSign,
     FileText, MessageSquare, History, Star, Edit, Plus, Check, X
 } from 'lucide-react';
+import { clientsService } from '../services/clientsService';
+import { reservationsService } from '../services/reservationsService';
 
 // Mock Data
 const MOCK_CLIENTE: ICliente = {
@@ -79,54 +81,6 @@ const MOCK_NOTAS: INota[] = [
     }
 ];
 
-const MOCK_RESERVAS: IReserva[] = [
-    {
-        id: '1',
-        codigo: 'RSV-2023-001',
-        viagem_id: 'V001',
-        responsavel_id: '1',
-        passageiros: [
-            {
-                id: 'p1',
-                cliente_id: '1',
-                assento_numero: '12',
-                tipo_assento: TipoAssento.CONVENCIONAL,
-                valor: 180.00
-            }
-        ],
-        data_reserva: '2023-10-15T14:30:00',
-        status: 'UTILIZADA',
-        valor_total: 180.00,
-        moeda: Moeda.BRL,
-        forma_pagamento: 'PIX',
-        cliente_id: '1',
-        assento_numero: '12',
-        valor_pago: 180.00
-    },
-    {
-        id: '2',
-        codigo: 'RSV-2023-045',
-        viagem_id: 'V005',
-        responsavel_id: '1',
-        passageiros: [
-            {
-                id: 'p2',
-                cliente_id: '1',
-                assento_numero: '08',
-                tipo_assento: TipoAssento.LEITO,
-                valor: 220.00
-            }
-        ],
-        data_reserva: '2023-09-20T10:15:00',
-        status: 'UTILIZADA',
-        valor_total: 220.00,
-        moeda: Moeda.BRL,
-        forma_pagamento: 'CARTAO',
-        cliente_id: '1',
-        assento_numero: '08',
-        valor_pago: 220.00
-    }
-];
 
 export const ClienteDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -160,37 +114,37 @@ export const ClienteDetalhes: React.FC = () => {
     };
 
     const fetchData = async () => {
+        if (!id) return;
         setIsLoading(true);
         try {
             console.log('Fetching client details for ID:', id);
-            const [clientRes, interactionsRes, notesRes] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}`),
-                fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/interactions`),
-                fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/notes`)
+            const [clientData, interactionsData, notesData, reservationsData] = await Promise.all([
+                clientsService.getById(id),
+                clientsService.getInteractions(id),
+                clientsService.getNotes(id),
+                reservationsService.getAll({ client_id: id })
             ]);
 
-            if (clientRes.ok) {
-                const clientData = await clientRes.json();
-                console.log('Client data received:', clientData);
-                setCliente(clientData);
-            } else {
-                console.error('Failed to fetch client:', clientRes.status, clientRes.statusText);
-            }
+            setCliente(clientData);
+            setInteracoes(interactionsData);
+            setNotas(notesData);
 
-            if (interactionsRes.ok) {
-                const interactionsData = await interactionsRes.json();
-                console.log('Interactions data received:', interactionsData);
-                setInteracoes(interactionsData);
-            }
+            // Map backend fields to frontend interface
+            const mappedReservations = reservationsData.map((res: any) => ({
+                id: res.id,
+                codigo: res.ticket_code,
+                viagem_id: res.trip_id,
+                data_reserva: res.created_at,
+                status: res.status,
+                valor_total: Number(res.price),
+                moeda: 'BRL', // Default to BRL
+                assento_numero: res.seat_number,
+                trip_title: res.trip_title,
+                departure_date: res.departure_date,
+                departure_time: res.departure_time
+            }));
 
-            if (notesRes.ok) {
-                const notesData = await notesRes.json();
-                console.log('Notes data received:', notesData);
-                setNotas(notesData);
-            }
-
-            // Mock reservations for now
-            setReservas(MOCK_RESERVAS as any);
+            setReservas(mappedReservations);
 
         } catch (error) {
             console.error('Error fetching client details:', error);
@@ -206,44 +160,32 @@ export const ClienteDetalhes: React.FC = () => {
     }, [id]);
 
     const handleAddInteraction = async () => {
+        if (!id) return;
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/interactions`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...newInteraction,
-                    usuario_responsavel: user.name
-                })
+            const addedInteraction = await clientsService.addInteraction(id, {
+                ...newInteraction,
+                usuario_responsavel: user.name
             });
 
-            if (response.ok) {
-                const addedInteraction = await response.json();
-                setInteracoes([addedInteraction, ...interacoes]);
-                setShowInteractionModal(false);
-                setNewInteraction({ tipo: 'TELEFONE', descricao: '' });
-            }
+            setInteracoes([addedInteraction, ...interacoes]);
+            setShowInteractionModal(false);
+            setNewInteraction({ tipo: 'TELEFONE', descricao: '' });
         } catch (error) {
             console.error('Error adding interaction:', error);
         }
     };
 
     const handleAddNote = async () => {
+        if (!id) return;
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}/notes`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...newNote,
-                    criado_por: user.name
-                })
+            const addedNote = await clientsService.addNote(id, {
+                ...newNote,
+                criado_por: user.name
             });
 
-            if (response.ok) {
-                const addedNote = await response.json();
-                setNotas([addedNote, ...notas]);
-                setShowNoteModal(false);
-                setNewNote({ titulo: '', conteudo: '', importante: false });
-            }
+            setNotas([addedNote, ...notas]);
+            setShowNoteModal(false);
+            setNewNote({ titulo: '', conteudo: '', importante: false });
         } catch (error) {
             console.error('Error adding note:', error);
         }
@@ -675,17 +617,30 @@ export const ClienteDetalhes: React.FC = () => {
                                 >
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <p className="font-bold text-slate-800 dark:text-white">{reserva.codigo}</p>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                Assento {reserva.passageiros?.map(p => p.assento_numero).join(', ') || reserva.assento_numero} • {new Date(reserva.data_reserva).toLocaleDateString('pt-BR')}
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <p className="font-bold text-slate-800 dark:text-white">{reserva.codigo}</p>
+                                                <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded">
+                                                    Assento {reserva.assento_numero || 'N/A'}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                {reserva.trip_title || 'Viagem'}
+                                            </p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : ''} {reserva.departure_time?.substring(0, 5)}
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-green-600 dark:text-green-400">
-                                                {reserva.moeda} {(reserva.valor_total || reserva.valor_pago || 0).toFixed(2)}
+                                                {reserva.moeda} {(reserva.valor_total || 0).toFixed(2)}
                                             </p>
-                                            <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
-                                                {reserva.status}
+                                            <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${reserva.status === 'CONFIRMED' || reserva.status === 'USED' || reserva.status === 'COMPLETED'
+                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                                                : reserva.status === 'CANCELLED'
+                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                                }`}>
+                                                {StatusReservaLabel[reserva.status] || reserva.status}
                                             </span>
                                         </div>
                                     </div>

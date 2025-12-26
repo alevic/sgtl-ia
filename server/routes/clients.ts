@@ -1,24 +1,56 @@
 import express from 'express';
-import { pool } from '../auth';
+import { pool, auth } from '../auth';
 
 const router = express.Router();
 
+// Helper for authorization
+const authorize = (allowedRoles: string[]) => {
+    return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+            const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+            if (!session) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            if (!session.session.activeOrganizationId) {
+                return res.status(401).json({ error: "Unauthorized: No active organization" });
+            }
+
+            const userRole = (session.user as any).role || 'user';
+
+            if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+                return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
+            }
+
+            (req as any).session = session;
+            next();
+        } catch (error) {
+            console.error("Auth middleware error:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    };
+};
+
 // Get all clients
-router.get('/', async (req, res) => {
+router.get('/', authorize(['admin', 'operacional', 'vendas', 'financeiro']), async (req, res) => {
+    const orgId = (req as any).session.session.activeOrganizationId;
+    const { search } = req.query;
     try {
-        const result = await pool.query(`
+        let sql = `
             SELECT c.*,
             (
                 SELECT COALESCE(COUNT(*), 0)
                 FROM reservations r 
                 WHERE r.client_id = c.id 
                 AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND r.organization_id = $1
             )::int as historico_viagens,
             (
                 SELECT COALESCE(SUM(r.amount_paid), 0)
                 FROM reservations r 
                 WHERE r.client_id = c.id 
                 AND r.status != 'CANCELLED'
+                AND r.organization_id = $1
             )::float as valor_total_gasto,
             (
                 SELECT MAX(t.departure_date)
@@ -27,10 +59,21 @@ router.get('/', async (req, res) => {
                 WHERE r.client_id = c.id 
                 AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
                 AND t.departure_date <= CURRENT_DATE
+                AND r.organization_id = $1
             ) as ultima_viagem
             FROM clients c 
-            ORDER BY c.created_at DESC
-        `);
+            WHERE 1=1
+        `;
+        const params: any[] = [orgId];
+
+        if (search) {
+            sql += ` AND (c.nome ILIKE $2 OR c.email ILIKE $2 OR c.documento_numero ILIKE $2)`;
+            params.push(`%${search}%`);
+        }
+
+        sql += ` ORDER BY c.created_at DESC`;
+
+        const result = await pool.query(sql, params);
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching clients:', error);
@@ -39,8 +82,9 @@ router.get('/', async (req, res) => {
 });
 
 // Get client by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), async (req, res) => {
     const { id } = req.params;
+    const orgId = (req as any).session.session.activeOrganizationId;
     try {
         const result = await pool.query(`
             SELECT c.*,
@@ -49,12 +93,14 @@ router.get('/:id', async (req, res) => {
                 FROM reservations r 
                 WHERE r.client_id = c.id 
                 AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND r.organization_id = $2
             )::int as historico_viagens,
             (
                 SELECT COALESCE(SUM(r.amount_paid), 0)
                 FROM reservations r 
                 WHERE r.client_id = c.id 
                 AND r.status != 'CANCELLED'
+                AND r.organization_id = $2
             )::float as valor_total_gasto,
             (
                 SELECT MAX(t.departure_date)
@@ -63,10 +109,11 @@ router.get('/:id', async (req, res) => {
                 WHERE r.client_id = c.id 
                 AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
                 AND t.departure_date <= CURRENT_DATE
+                AND r.organization_id = $2
             ) as ultima_viagem
             FROM clients c 
             WHERE c.id = $1
-        `, [id]);
+        `, [id, orgId]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Client not found' });
@@ -79,7 +126,8 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create client
-router.post('/', async (req, res) => {
+router.post('/', authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
+    const orgId = (req as any).session.session.activeOrganizationId;
     const {
         nome, email, telefone, documento_tipo, documento_numero,
         nacionalidade, data_nascimento, endereco, cidade, estado, pais,
@@ -109,8 +157,9 @@ router.post('/', async (req, res) => {
 
 // Update client
 // Update client (Supports partial updates)
-router.put('/:id', async (req, res) => {
+router.put('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), async (req, res) => {
     const { id } = req.params;
+    const orgId = (req as any).session.session.activeOrganizationId;
     const {
         nome, email, telefone, documento_tipo, documento_numero,
         nacionalidade, data_nascimento, endereco, cidade, estado, pais,
@@ -144,7 +193,7 @@ router.put('/:id', async (req, res) => {
             ]
         );
         if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Client not found' });
+            return res.status(404).json({ error: 'Client not found or outside organization' });
         }
         res.json(result.rows[0]);
     } catch (error) {
@@ -154,10 +203,14 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete client
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authorize(['admin']), async (req, res) => {
     const { id } = req.params;
+    const orgId = (req as any).session.session.activeOrganizationId;
     try {
-        await pool.query('DELETE FROM clients WHERE id = $1', [id]);
+        const result = await pool.query('DELETE FROM clients WHERE id = $1', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Client not found' });
+        }
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting client:', error);
@@ -166,10 +219,16 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Get client interactions
-router.get('/:id/interactions', async (req, res) => {
+router.get('/:id/interactions', authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
     const { id } = req.params;
+    const orgId = (req as any).session.session.activeOrganizationId;
     try {
-        const result = await pool.query('SELECT * FROM client_interactions WHERE cliente_id = $1 ORDER BY data_hora DESC', [id]);
+        const result = await pool.query(`
+            SELECT ci.* 
+            FROM client_interactions ci
+            WHERE ci.cliente_id = $1 AND ci.organization_id = $2
+            ORDER BY ci.data_hora DESC
+        `, [id, orgId]);
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching interactions:', error);
@@ -178,15 +237,16 @@ router.get('/:id/interactions', async (req, res) => {
 });
 
 // Add interaction
-router.post('/:id/interactions', async (req, res) => {
+router.post('/:id/interactions', authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
     const { id } = req.params;
+    const orgId = (req as any).session.session.activeOrganizationId;
     const { tipo, descricao, usuario_responsavel } = req.body;
     try {
         const result = await pool.query(
-            `INSERT INTO client_interactions (cliente_id, tipo, descricao, usuario_responsavel)
-            VALUES ($1, $2, $3, $4)
+            `INSERT INTO client_interactions (cliente_id, tipo, descricao, usuario_responsavel, organization_id)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING *`,
-            [id, tipo, descricao, usuario_responsavel]
+            [id, tipo, descricao, usuario_responsavel, orgId]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -196,10 +256,16 @@ router.post('/:id/interactions', async (req, res) => {
 });
 
 // Get client notes
-router.get('/:id/notes', async (req, res) => {
+router.get('/:id/notes', authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
     const { id } = req.params;
+    const orgId = (req as any).session.session.activeOrganizationId;
     try {
-        const result = await pool.query('SELECT * FROM client_notes WHERE cliente_id = $1 ORDER BY data_criacao DESC', [id]);
+        const result = await pool.query(`
+            SELECT cn.* 
+            FROM client_notes cn
+            WHERE cn.cliente_id = $1 AND cn.organization_id = $2
+            ORDER BY cn.data_criacao DESC
+        `, [id, orgId]);
         res.json(result.rows);
     } catch (error) {
         console.error('Error fetching notes:', error);
@@ -208,15 +274,16 @@ router.get('/:id/notes', async (req, res) => {
 });
 
 // Add note
-router.post('/:id/notes', async (req, res) => {
+router.post('/:id/notes', authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
     const { id } = req.params;
+    const orgId = (req as any).session.session.activeOrganizationId;
     const { titulo, conteudo, criado_por, importante } = req.body;
     try {
         const result = await pool.query(
-            `INSERT INTO client_notes (cliente_id, titulo, conteudo, criado_por, importante)
-            VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO client_notes (cliente_id, titulo, conteudo, criado_por, importante, organization_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING *`,
-            [id, titulo, conteudo, criado_por, importante]
+            [id, titulo, conteudo, criado_por, importante, orgId]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
