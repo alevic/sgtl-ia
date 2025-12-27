@@ -251,13 +251,13 @@ export const ClienteDetalhes: React.FC = () => {
                         Cliente desde {new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
                     </p>
                 </div>
-                <button
-                    onClick={handleEditClick}
+                <Link
+                    to={`/admin/clientes/${id}/editar`}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
                 >
                     <Edit size={18} />
                     Editar
-                </button>
+                </Link>
             </div>
 
             {/* Edit Modal */}
