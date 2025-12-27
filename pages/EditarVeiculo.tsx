@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { VeiculoStatus } from '../types';
-import { ArrowLeft, Save, Bus, Truck, FileText, Gauge, Calendar, Wrench, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Bus, Truck, FileText, Gauge, Calendar, Wrench, Plus, Trash2, Image, Upload, X } from 'lucide-react';
 import { IVeiculoFeature } from '../types';
+
 
 export const EditarVeiculo: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -24,6 +25,10 @@ export const EditarVeiculo: React.FC = () => {
     const [isFetching, setIsFetching] = useState(true);
     const [features, setFeatures] = useState<IVeiculoFeature[]>([]);
 
+    // Image states
+    const [imagem, setImagem] = useState<string>('');
+    const [galeria, setGaleria] = useState<string[]>([]);
+
     const addFeature = () => {
         setFeatures([...features, { category: '', label: '', value: '' }]);
     };
@@ -36,6 +41,35 @@ export const EditarVeiculo: React.FC = () => {
         const newFeatures = [...features];
         newFeatures[index][field] = value;
         setFeatures(newFeatures);
+    };
+
+    // Image handlers
+    const handleImagemUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagem(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleGaleriaUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setGaleria(prev => [...prev, reader.result as string]);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const removeGaleriaImage = (index: number) => {
+        setGaleria(galeria.filter((_, i) => i !== index));
     };
 
     useEffect(() => {
@@ -68,6 +102,8 @@ export const EditarVeiculo: React.FC = () => {
                 setCapacidadeCarga(data.capacidade_carga?.toString() || '');
                 setObservacoes(data.observacoes || '');
                 setFeatures(data.features || []);
+                setImagem(data.imagem || '');
+                setGaleria(data.galeria || []);
             } catch (error) {
                 console.error("Erro ao buscar veículo:", error);
                 alert('Erro ao carregar veículo. Redirecionando...');
@@ -101,7 +137,9 @@ export const EditarVeiculo: React.FC = () => {
                 capacidade_passageiros: tipo === 'ONIBUS' ? (parseInt(capacidadePassageiros) || 0) : null,
                 capacidade_carga: tipo === 'CAMINHAO' ? (parseFloat(capacidadeCarga) || 0) : null,
                 observacoes: observacoes?.trim() || null,
-                features: features.filter(f => f.label.trim() !== '' || f.category?.trim() !== '').map(f => ({ ...f, value: '' }))
+                features: features.filter(f => f.label.trim() !== '' || f.category?.trim() !== '').map(f => ({ ...f, value: '' })),
+                imagem: imagem || null,
+                galeria: galeria.length > 0 ? galeria : null
             };
 
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${id}`, {
@@ -411,6 +449,86 @@ export const EditarVeiculo: React.FC = () => {
                             rows={4}
                             className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
+                    </div>
+                </div>
+
+                {/* Imagens */}
+                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                        <Image size={20} className="text-green-600" />
+                        Imagens do Veículo
+                    </h3>
+
+                    <div className="space-y-6">
+                        {/* Foto de Capa */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Foto de Capa (Principal)
+                            </label>
+                            {imagem ? (
+                                <div className="relative inline-block">
+                                    <img
+                                        src={imagem}
+                                        alt="Capa do veículo"
+                                        className="w-full max-w-md h-48 object-cover rounded-xl border border-slate-200 dark:border-slate-700"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setImagem('')}
+                                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                    >
+                                        <X size={16} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <label className="flex flex-col items-center justify-center w-full max-w-md h-48 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
+                                    <Upload size={32} className="text-slate-400 mb-2" />
+                                    <span className="text-sm text-slate-500">Clique para selecionar uma imagem</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImagemUpload}
+                                        className="hidden"
+                                    />
+                                </label>
+                            )}
+                        </div>
+
+                        {/* Galeria */}
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Galeria de Fotos
+                            </label>
+                            <div className="flex flex-wrap gap-3">
+                                {galeria.map((img, idx) => (
+                                    <div key={idx} className="relative">
+                                        <img
+                                            src={img}
+                                            alt={`Foto ${idx + 1}`}
+                                            className="w-32 h-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeGaleriaImage(idx)}
+                                            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <label className="flex flex-col items-center justify-center w-32 h-24 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors">
+                                    <Plus size={24} className="text-slate-400" />
+                                    <span className="text-xs text-slate-500">Adicionar</span>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={handleGaleriaUpload}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

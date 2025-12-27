@@ -58,6 +58,9 @@ export async function setupDb() {
                 observacoes TEXT,
                 motorista_atual TEXT,
                 
+                imagem TEXT,
+                galeria JSONB,
+                
                 organization_id TEXT NOT NULL,
                 created_by TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -556,6 +559,13 @@ export async function setupDb() {
             ALTER TABLE "user" 
             ADD COLUMN IF NOT EXISTS cpf TEXT UNIQUE,
             ADD COLUMN IF NOT EXISTS phone TEXT UNIQUE;
+        `);
+
+        // Migration: Add imagem and galeria to vehicle table
+        await pool.query(`
+            ALTER TABLE vehicle 
+            ADD COLUMN IF NOT EXISTS imagem TEXT,
+            ADD COLUMN IF NOT EXISTS galeria JSONB;
         `);
 
         console.log("Database setup completed successfully!");

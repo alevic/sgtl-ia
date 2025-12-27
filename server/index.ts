@@ -383,21 +383,22 @@ app.post("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req,
         const {
             placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
             ultima_revisao, is_double_deck, capacidade_passageiros,
-            capacidade_carga, observacoes, motorista_atual, features
+            capacidade_carga, observacoes, motorista_atual, features, imagem, galeria
         } = req.body;
 
         const result = await pool.query(
             `INSERT INTO vehicle (
                 placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
                 ultima_revisao, is_double_deck, capacidade_passageiros,
-                capacidade_carga, observacoes, motorista_atual,
+                capacidade_carga, observacoes, motorista_atual, imagem, galeria,
                 organization_id, created_by
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             RETURNING *`,
             [
                 placa, modelo, tipo, status, ano, km_atual || 0, proxima_revisao_km,
                 ultima_revisao || null, is_double_deck || false, capacidade_passageiros || null,
                 capacidade_carga || null, observacoes || null, motorista_atual || null,
+                imagem || null, galeria ? JSON.stringify(galeria) : null,
                 orgId, userId
             ]
         );
@@ -442,7 +443,7 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
         const {
             placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
             ultima_revisao, is_double_deck, capacidade_passageiros,
-            capacidade_carga, observacoes, motorista_atual, features
+            capacidade_carga, observacoes, motorista_atual, features, imagem, galeria
         } = req.body;
 
         const result = await pool.query(
@@ -451,13 +452,15 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
                 km_atual = $6, proxima_revisao_km = $7, ultima_revisao = $8,
                 is_double_deck = $9, capacidade_passageiros = $10,
                 capacidade_carga = $11, observacoes = $12, motorista_atual = $13,
+                imagem = $14, galeria = $15,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $14 AND organization_id = $15
+            WHERE id = $16 AND organization_id = $17
             RETURNING *`,
             [
                 placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
                 ultima_revisao || null, is_double_deck || false, capacidade_passageiros || null,
                 capacidade_carga || null, observacoes || null, motorista_atual || null,
+                imagem || null, galeria ? JSON.stringify(galeria) : null,
                 id, orgId
             ]
         );

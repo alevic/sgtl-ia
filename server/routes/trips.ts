@@ -242,7 +242,7 @@ router.get("/trips/:id", authorize(['admin', 'operacional', 'vendas']), async (r
 
         const result = await pool.query(
             `SELECT t.*, 
-                   r.name as route_name, r.origin_city, r.destination_city,
+                   r.name as route_name, r.origin_city, r.origin_state, r.destination_city, r.destination_state, r.stops as route_stops,
                    v.placa as vehicle_plate, v.modelo as vehicle_model, v.tipo as vehicle_type, v.capacidade_passageiros,
                    d.nome as driver_name
             FROM trips t

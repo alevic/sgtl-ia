@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IViagem } from "../types";
+import { IViagem, IAssento } from "../types";
 
 export const tripsService = {
     getAll: async (filters?: { status?: string; search?: string }) => {
@@ -12,6 +12,10 @@ export const tripsService = {
 
     getById: async (id: string) => {
         return api.get<IViagem>(`/api/trips/${id}`);
+    },
+
+    getSeats: async (tripId: string) => {
+        return api.get<IAssento[]>(`/api/trips/${tripId}/seats`);
     },
 
     create: async (viagem: Omit<IViagem, 'id'>) => {
