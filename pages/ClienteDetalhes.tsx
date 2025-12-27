@@ -440,44 +440,22 @@ export const ClienteDetalhes: React.FC = () => {
                 </div>
             )}
 
-            {/* Card Principal */}
+            {/* Card Principal - Stats Hero */}
             <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white">
-                <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-4">
-                        <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center text-3xl font-bold">
-                            {cliente.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                        </div>
-                        <div>
-                            <h2 className="text-2xl font-bold">{cliente.nome}</h2>
-                            <div className="flex items-center gap-2 mt-2">
-                                <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-semibold flex items-center gap-1">
-                                    <Star size={14} />
-                                    {cliente.segmento}
-                                </span>
-                                {cliente.tags && cliente.tags.length > 0 && cliente.tags.map((tag, index) => (
-                                    <span key={index} className="px-2 py-1 bg-white/10 rounded text-xs">
-                                        {tag}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white/10 rounded-lg p-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white/10 rounded-lg p-4 text-center">
                         <p className="text-sm opacity-80">Total de Viagens</p>
                         <p className="text-3xl font-bold">{cliente.historico_viagens || 0}</p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-4">
+                    <div className="bg-white/10 rounded-lg p-4 text-center">
                         <p className="text-sm opacity-80">Créditos</p>
                         <p className="text-3xl font-bold">{cliente.saldo_creditos || 0}</p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-4">
+                    <div className="bg-white/10 rounded-lg p-4 text-center">
                         <p className="text-sm opacity-80">Total Gasto</p>
                         <p className="text-2xl font-bold">R$ {Number(cliente.valor_total_gasto || 0).toLocaleString('pt-BR')}</p>
                     </div>
-                    <div className="bg-white/10 rounded-lg p-4">
+                    <div className="bg-white/10 rounded-lg p-4 text-center">
                         <p className="text-sm opacity-80">Última Viagem</p>
                         <p className="text-lg font-bold">
                             {cliente.ultima_viagem ? new Date(cliente.ultima_viagem).toLocaleDateString('pt-BR') : 'N/A'}
@@ -520,84 +498,115 @@ export const ClienteDetalhes: React.FC = () => {
                 <div className="p-6">
                     {/* Tab: Perfil */}
                     {activeTab === 'perfil' && (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Informações Pessoais</h3>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <Mail size={18} className="text-blue-600" />
-                                            <div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">Email</p>
-                                                <p className="font-semibold text-slate-800 dark:text-white">{cliente.email}</p>
-                                            </div>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Coluna Esquerda - Info Pessoal e Documentação */}
+                            <div className="space-y-6">
+                                {/* Informações Pessoais */}
+                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
+                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                                        <User size={18} className="text-blue-500" />
+                                        Informações Pessoais
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Email</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.email || '-'}</p>
                                         </div>
-                                        {cliente.telefone && (
-                                            <div className="flex items-center gap-3">
-                                                <Phone size={18} className="text-green-600" />
-                                                <div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400">Telefone</p>
-                                                    <p className="font-semibold text-slate-800 dark:text-white">{cliente.telefone}</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {cliente.data_nascimento && (
-                                            <div className="flex items-center gap-3">
-                                                <Calendar size={18} className="text-purple-600" />
-                                                <div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400">Data de Nascimento</p>
-                                                    <p className="font-semibold text-slate-800 dark:text-white">
-                                                        {new Date(cliente.data_nascimento).toLocaleDateString('pt-BR')}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Endereço</h3>
-                                    <div className="space-y-3">
-                                        {cliente.endereco && (
-                                            <div className="flex items-start gap-3">
-                                                <MapPin size={18} className="text-red-600 mt-1" />
-                                                <div>
-                                                    <p className="font-semibold text-slate-800 dark:text-white">{cliente.endereco}</p>
-                                                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                        {cliente.cidade}, {cliente.estado} - {cliente.pais}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Documentação</h3>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <FileText size={18} className="text-orange-600" />
-                                            <div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">{cliente.documento_tipo}</p>
-                                                <p className="font-semibold text-slate-800 dark:text-white">{cliente.documento_numero}</p>
-                                            </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Telefone</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.telefone || '-'}</p>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <FileText size={18} className="text-blue-600" />
-                                            <div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">Nacionalidade</p>
-                                                <p className="font-semibold text-slate-800 dark:text-white">{cliente.nacionalidade}</p>
-                                            </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Data de Nascimento</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">
+                                                {cliente.data_nascimento ? new Date(cliente.data_nascimento).toLocaleDateString('pt-BR') : '-'}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Segmento</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5 flex items-center gap-1">
+                                                <Star size={14} className="text-purple-500" />
+                                                {cliente.segmento || 'Não definido'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
 
-                                {cliente.observacoes && (
-                                    <div>
-                                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Observações</h3>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 p-4 rounded-lg">
-                                            {cliente.observacoes}
-                                        </p>
+                                {/* Documentação */}
+                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
+                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                                        <FileText size={18} className="text-orange-500" />
+                                        Documentação
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tipo de Documento</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.documento_tipo || '-'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Número</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.documento_numero || '-'}</p>
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Nacionalidade</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.nacionalidade || '-'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Coluna Direita - Endereço e Observações */}
+                            <div className="space-y-6">
+                                {/* Endereço */}
+                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
+                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                                        <MapPin size={18} className="text-red-500" />
+                                        Endereço
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Logradouro</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.endereco || '-'}</p>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Cidade</p>
+                                                <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.cidade || '-'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Estado</p>
+                                                <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.estado || '-'}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">País</p>
+                                                <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.pais || '-'}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Observações */}
+                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
+                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
+                                        <MessageSquare size={18} className="text-blue-500" />
+                                        Observações
+                                    </h3>
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
+                                        {cliente.observacoes || 'Nenhuma observação registrada.'}
+                                    </p>
+                                </div>
+
+                                {/* Tags */}
+                                {cliente.tags && cliente.tags.length > 0 && (
+                                    <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
+                                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Tags</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {cliente.tags.map((tag, index) => (
+                                                <span key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>

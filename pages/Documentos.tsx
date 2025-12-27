@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     FileText, Search, Filter, Download, Upload, Trash2,
-    AlertTriangle, CheckCircle, Clock, MoreVertical,
+    AlertTriangle, CheckCircle, Clock,
     Truck, Users, Building
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { EmpresaContexto } from '../types';
+import { ResponsiveActions, ActionItem } from '../components/Common/ResponsiveActions';
 
 interface IDocumento {
     id: string;
@@ -178,14 +179,12 @@ export const Documentos: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Baixar">
-                                                    <Download size={18} />
-                                                </button>
-                                                <button className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Excluir">
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
+                                            <ResponsiveActions
+                                                actions={[
+                                                    { icon: Download, label: 'Baixar', onClick: () => console.log('Download', doc.id), color: 'blue' },
+                                                    { icon: Trash2, label: 'Excluir', onClick: () => console.log('Delete', doc.id), color: 'red' }
+                                                ]}
+                                            />
                                         </td>
                                     </tr>
                                 ))

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IMotorista } from '../types';
 import { User, Calendar, CheckCircle, XCircle, AlertCircle, FileText, Search, Filter } from 'lucide-react';
-
+import { DriverActions } from '../components/Motoristas/DriverActions';
 
 
 const StatusBadge: React.FC<{ status: IMotorista['status'] }> = ({ status }) => {
@@ -160,8 +160,7 @@ export const Motoristas: React.FC = () => {
                         return (
                             <div
                                 key={motorista.id}
-                                onClick={() => navigate(`/admin/motoristas/${motorista.id}`)}
-                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all cursor-pointer hover:border-blue-300 dark:hover:border-blue-700"
+                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all"
                             >
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex items-center gap-4">
@@ -173,7 +172,10 @@ export const Motoristas: React.FC = () => {
                                             <p className="text-sm text-slate-500 dark:text-slate-400">CNH: {motorista.cnh} - Categoria {motorista.categoria_cnh}</p>
                                         </div>
                                     </div>
-                                    <StatusBadge status={motorista.status} />
+                                    <div className="flex items-center gap-3">
+                                        <StatusBadge status={motorista.status} />
+                                        <DriverActions motorista={motorista} onUpdate={fetchMotoristas} />
+                                    </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-700">

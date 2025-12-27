@@ -6,6 +6,7 @@ import {
     Phone, Mail, MapPin, Calendar, Award, Tag
 } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
+import { ClientActions } from '../components/CRM/ClientActions';
 
 const SegmentoBadge: React.FC<{ segmento: ICliente['segmento'] }> = ({ segmento }) => {
     const configs = {
@@ -15,11 +16,11 @@ const SegmentoBadge: React.FC<{ segmento: ICliente['segmento'] }> = ({ segmento 
         INATIVO: { color: 'slate', icon: Users, label: 'Inativo' }
     };
 
-    const config = configs[segmento] || configs.NOVO;
+    const config = configs[segmento] || configs.REGULAR;
     const Icon = config.icon;
 
     return (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
             <Icon size={12} />
             {config.label}
         </span>
@@ -206,7 +207,10 @@ export const CRM: React.FC = () => {
                                         </p>
                                     </div>
                                 </div>
-                                <SegmentoBadge segmento={cliente.segmento} />
+                                <div className="flex items-center gap-2">
+                                    <SegmentoBadge segmento={cliente.segmento} />
+                                    <ClientActions cliente={cliente} onUpdate={fetchClientes} />
+                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">

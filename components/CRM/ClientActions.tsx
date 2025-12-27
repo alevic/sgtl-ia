@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IVeiculo } from '../../types';
+import { ICliente } from '../../types';
 import { Eye, Edit, Trash2 } from 'lucide-react';
+import { clientsService } from '../../services/clientsService';
 import { ResponsiveActions, ActionItem } from '../Common/ResponsiveActions';
 
-interface VehicleActionsProps {
-    veiculo: IVeiculo & { km_atual?: number; ano?: number };
+interface ClientActionsProps {
+    cliente: ICliente;
     onUpdate?: () => void;
 }
 
-export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdate }) => {
+export const ClientActions: React.FC<ClientActionsProps> = ({ cliente, onUpdate }) => {
     const navigate = useNavigate();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -17,21 +18,13 @@ export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdat
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${veiculo.id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete vehicle');
-            }
-
+            await clientsService.delete(cliente.id);
             if (onUpdate) {
                 onUpdate();
             }
         } catch (error) {
-            console.error("Erro ao excluir veículo:", error);
-            alert('Erro ao excluir veículo. Por favor, tente novamente.');
+            console.error("Erro ao excluir cliente:", error);
+            alert('Erro ao excluir cliente. Por favor, tente novamente.');
         } finally {
             setIsDeleting(false);
             setShowDeleteConfirm(false);
@@ -42,13 +35,13 @@ export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdat
         {
             icon: Eye,
             label: 'Ver Detalhes',
-            onClick: () => navigate(`/admin/frota/${veiculo.id}`),
+            onClick: () => navigate(`/admin/clientes/${cliente.id}`),
             color: 'blue'
         },
         {
             icon: Edit,
             label: 'Editar',
-            onClick: () => navigate(`/admin/frota/${veiculo.id}/editar`),
+            onClick: () => navigate(`/admin/clientes/${cliente.id}/editar`),
             color: 'slate'
         },
         {
@@ -71,7 +64,7 @@ export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdat
                             Confirmar Exclusão
                         </h3>
                         <p className="text-slate-600 dark:text-slate-400 mb-6">
-                            Tem certeza que deseja excluir o veículo <strong>{veiculo.placa}</strong>?
+                            Tem certeza que deseja excluir o cliente <strong>{cliente.nome}</strong>?
                             Esta ação não pode ser desfeita.
                         </p>
                         <div className="flex gap-3 justify-end">

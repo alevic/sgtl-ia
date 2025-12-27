@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { IPontoRota } from '../../types';
-import { MapPin, Clock, CheckSquare, Plus } from 'lucide-react';
+import { MapPin, Clock, CheckSquare, Plus, X } from 'lucide-react';
 import { locationService, IState, ICity, INeighborhood } from '../../services/locationService';
 
 interface SeletorPontoRotaProps {
@@ -261,6 +261,10 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                 value={newCityName}
                                 onChange={(e) => setNewCityName(e.target.value)}
                                 placeholder="Nome da cidade"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') setShowNewCityInput(false);
+                                    if (e.key === 'Enter' && newCityName) handleCreateCity();
+                                }}
                                 className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                 autoFocus
                             />
@@ -268,14 +272,9 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                 onClick={handleCreateCity}
                                 disabled={!newCityName}
                                 className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50"
+                                title="Criar cidade"
                             >
                                 <Plus size={16} />
-                            </button>
-                            <button
-                                onClick={() => setShowNewCityInput(false)}
-                                className="p-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
-                            >
-                                <CheckSquare size={16} />
                             </button>
                         </div>
                     )}
@@ -306,6 +305,10 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                 value={newNeighborhoodName}
                                 onChange={(e) => setNewNeighborhoodName(e.target.value)}
                                 placeholder="Nome do bairro"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Escape') setShowNewNeighborhoodInput(false);
+                                    if (e.key === 'Enter' && newNeighborhoodName) handleCreateNeighborhood();
+                                }}
                                 className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                                 autoFocus
                             />
@@ -313,14 +316,9 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                 onClick={handleCreateNeighborhood}
                                 disabled={!newNeighborhoodName}
                                 className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50"
+                                title="Criar bairro"
                             >
                                 <Plus size={16} />
-                            </button>
-                            <button
-                                onClick={() => setShowNewNeighborhoodInput(false)}
-                                className="p-2 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600"
-                            >
-                                <CheckSquare size={16} />
                             </button>
                         </div>
                     )}

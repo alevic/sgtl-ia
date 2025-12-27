@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IVeiculo } from '../../types';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { IManutencao } from '../../types';
+import { Edit, Trash2 } from 'lucide-react';
 import { ResponsiveActions, ActionItem } from '../Common/ResponsiveActions';
 
-interface VehicleActionsProps {
-    veiculo: IVeiculo & { km_atual?: number; ano?: number };
-    onUpdate?: () => void;
+interface MaintenanceActionsProps {
+    manutencao: IManutencao;
+    onDelete: (id: string) => void;
 }
 
-export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdate }) => {
+export const MaintenanceActions: React.FC<MaintenanceActionsProps> = ({ manutencao, onDelete }) => {
     const navigate = useNavigate();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -17,21 +17,16 @@ export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdat
     const handleDelete = async () => {
         setIsDeleting(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/vehicles/${veiculo.id}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/maintenance/${manutencao.id}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
 
-            if (!response.ok) {
-                throw new Error('Failed to delete vehicle');
-            }
-
-            if (onUpdate) {
-                onUpdate();
-            }
+            if (!response.ok) throw new Error('Falha ao excluir');
+            onDelete(manutencao.id);
         } catch (error) {
-            console.error("Erro ao excluir veículo:", error);
-            alert('Erro ao excluir veículo. Por favor, tente novamente.');
+            console.error("Erro ao excluir:", error);
+            alert("Erro ao excluir manutenção");
         } finally {
             setIsDeleting(false);
             setShowDeleteConfirm(false);
@@ -40,15 +35,9 @@ export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdat
 
     const actions: ActionItem[] = [
         {
-            icon: Eye,
-            label: 'Ver Detalhes',
-            onClick: () => navigate(`/admin/frota/${veiculo.id}`),
-            color: 'blue'
-        },
-        {
             icon: Edit,
             label: 'Editar',
-            onClick: () => navigate(`/admin/frota/${veiculo.id}/editar`),
+            onClick: () => navigate(`/admin/manutencao/${manutencao.id}/editar`),
             color: 'slate'
         },
         {
@@ -71,7 +60,7 @@ export const VehicleActions: React.FC<VehicleActionsProps> = ({ veiculo, onUpdat
                             Confirmar Exclusão
                         </h3>
                         <p className="text-slate-600 dark:text-slate-400 mb-6">
-                            Tem certeza que deseja excluir o veículo <strong>{veiculo.placa}</strong>?
+                            Tem certeza que deseja excluir esta manutenção?
                             Esta ação não pode ser desfeita.
                         </p>
                         <div className="flex gap-3 justify-end">
