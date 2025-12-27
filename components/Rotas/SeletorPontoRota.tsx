@@ -92,9 +92,13 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
     const handleStateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const stateId = Number(e.target.value);
         setSelectedState(stateId);
-        // Reset downstream selections
+        // Reset downstream selections and input modes
         setSelectedCity('');
         setSelectedNeighborhood('');
+        setShowNewCityInput(false);
+        setShowNewNeighborhoodInput(false);
+        setNewCityName('');
+        setNewNeighborhoodName('');
     };
 
     const handleCitySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
