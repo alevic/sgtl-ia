@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { IViagem } from '../types';
 import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
     CheckCircle, Clock, Loader, XCircle, TrendingUp,
-    Edit, Trash2, ToggleLeft, ToggleRight, ClipboardList
+    Edit, Trash2, ToggleLeft, ToggleRight, ClipboardList,
+    ChevronDown, Check
 } from 'lucide-react';
 import { PassengerListModal } from '../components/PassengerListModal';
 
@@ -38,10 +39,12 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 export const Viagens: React.FC = () => {
     const [viagens, setViagens] = useState<IViagem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
+    const [filtroStatus, setFiltroStatus] = useState<string[]>([]);
     const [filtroAtiva, setFiltroAtiva] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
     const [busca, setBusca] = useState('');
     const [filtroDataPartida, setFiltroDataPartida] = useState('');
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
     // Passenger Modal State
@@ -69,6 +72,22 @@ export const Viagens: React.FC = () => {
     useEffect(() => {
         fetchViagens();
     }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsStatusDropdownOpen(false);
+            }
+        };
+
+        if (isStatusDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isStatusDropdownOpen]);
 
     const handleDelete = async (id: string) => {
         if (confirm('Tem certeza que deseja excluir esta viagem?')) {
@@ -115,7 +134,7 @@ export const Viagens: React.FC = () => {
     };
 
     const viagensFiltradas = viagens.filter(v => {
-        const matchStatus = filtroStatus === 'TODOS' || v.status === filtroStatus;
+        const matchStatus = filtroStatus.length === 0 || filtroStatus.includes(v.status);
         const matchAtiva = filtroAtiva === 'TODOS' ||
             (filtroAtiva === 'ATIVA' && (v.active !== false)) || // Default to true if undefined
             (filtroAtiva === 'INATIVA' && v.active === false);
@@ -137,6 +156,22 @@ export const Viagens: React.FC = () => {
             (v.destination_city || '').toLowerCase().includes(busca.toLowerCase());
         return matchStatus && matchAtiva && matchBusca && matchData;
     });
+
+    const statusOptions = [
+        { value: 'SCHEDULED', label: 'Agendada' },
+        { value: 'CONFIRMED', label: 'Confirmada' },
+        { value: 'IN_TRANSIT', label: 'Em Curso' },
+        { value: 'COMPLETED', label: 'Finalizada' },
+        { value: 'CANCELLED', label: 'Cancelada' },
+    ];
+
+    const toggleStatus = (status: string) => {
+        setFiltroStatus(prev =>
+            prev.includes(status)
+                ? prev.filter(s => s !== status)
+                : [...prev, status]
+        );
+    };
 
     // Estatísticas
     const totalViagens = viagens.length;
@@ -278,20 +313,54 @@ export const Viagens: React.FC = () => {
                     </div>
 
                     {/* Filtro Status Operacional */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 relative" ref={dropdownRef}>
                         <Filter size={18} className="text-slate-500" />
-                        <select
-                            value={filtroStatus}
-                            onChange={(e) => setFiltroStatus(e.target.value)}
-                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODOS">Todos os status</option>
-                            <option value="SCHEDULED">Agendada</option>
-                            <option value="CONFIRMED">Confirmada</option>
-                            <option value="IN_TRANSIT">Em Curso</option>
-                            <option value="COMPLETED">Finalizada</option>
-                            <option value="CANCELLED">Cancelada</option>
-                        </select>
+                        <div className="relative">
+                            <button
+                                type="button"
+                                className="flex items-center justify-between w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-left text-sm"
+                                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                            >
+                                <span className="truncate">
+                                    {filtroStatus.length === 0
+                                        ? 'Todos os status'
+                                        : `${filtroStatus.length} selecionado(s)`}
+                                </span>
+                                <ChevronDown size={14} className={`text-slate-400 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {isStatusDropdownOpen && (
+                                <div className="absolute top-full left-0 mt-1 w-[200px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                                    <div className="p-2 space-y-1">
+                                        <button
+                                            onClick={() => {
+                                                setFiltroStatus([]);
+                                                setIsStatusDropdownOpen(false);
+                                            }}
+                                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.length === 0 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
+                                        >
+                                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.length === 0 ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
+                                                {filtroStatus.length === 0 && <Check size={12} className="text-white" />}
+                                            </div>
+                                            Todos os status
+                                        </button>
+                                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
+                                        {statusOptions.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                onClick={() => toggleStatus(option.value)}
+                                                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.includes(option.value) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
+                                            >
+                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.includes(option.value) ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
+                                                    {filtroStatus.includes(option.value) && <Check size={12} className="text-white" />}
+                                                </div>
+                                                {option.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Filtro Ativa/Inativa */}
