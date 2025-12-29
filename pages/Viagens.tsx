@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { IViagem } from '../types';
+import { IViagem, ITag } from '../types';
 import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
@@ -38,6 +38,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
 export const Viagens: React.FC = () => {
     const [viagens, setViagens] = useState<IViagem[]>([]);
+    const [allTags, setAllTags] = useState<ITag[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<string[]>(['SCHEDULED', 'CONFIRMED', 'IN_TRANSIT']);
     const [filtroAtiva, setFiltroAtiva] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
@@ -60,8 +61,12 @@ export const Viagens: React.FC = () => {
     const fetchViagens = async () => {
         try {
             setLoading(true);
-            const data = await tripsService.getAll();
-            setViagens(data);
+            const [viagensData, tagsData] = await Promise.all([
+                tripsService.getAll(),
+                tripsService.getTags()
+            ]);
+            setViagens(viagensData);
+            setAllTags(tagsData);
         } catch (error) {
             console.error('Erro ao carregar viagens:', error);
         } finally {
@@ -417,11 +422,19 @@ export const Viagens: React.FC = () => {
                                                 {viagem.title || 'Viagem sem título'}
                                             </h3>
                                             <div className="flex items-center gap-2">
-                                                {viagem.tags && viagem.tags.map(tag => (
-                                                    <span key={tag} className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 uppercase tracking-wide">
-                                                        {tag.replace('_', ' ')}
-                                                    </span>
-                                                ))}
+                                                {viagem.tags && viagem.tags.map(tagName => {
+                                                    const tagDef = allTags.find(t => t.nome === tagName);
+                                                    const bgColor = tagDef?.cor || '#3b82f6'; // default blue-500
+                                                    return (
+                                                        <span
+                                                            key={tagName}
+                                                            className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white uppercase tracking-wide"
+                                                            style={{ backgroundColor: bgColor }}
+                                                        >
+                                                            {tagName.replace('_', ' ')}
+                                                        </span>
+                                                    );
+                                                })}
                                                 <StatusBadge status={viagem.status} />
                                                 <span className={`px-2 py-1 rounded text-xs font-semibold ${viagem.active !== false
                                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'

@@ -8,7 +8,7 @@ import { tripsService } from '../../services/tripsService';
 import { vehiclesService } from '../../services/vehiclesService';
 import { reservationsService } from '../../services/reservationsService';
 import { MapaAssentosReserva } from '../../components/Veiculos/MapaAssentosReserva';
-import { IViagem, IVeiculo, TipoAssento } from '../../types';
+import { IViagem, IVeiculo, TipoAssento, ITag } from '../../types';
 
 // Helper to format date
 const formatDate = (date: string | Date) => {
@@ -60,6 +60,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
     const navigate = useNavigate();
 
     const [viagem, setViagem] = useState<IViagem | null>(null);
+    const [allTags, setAllTags] = useState<ITag[]>([]);
     const [veiculo, setVeiculo] = useState<IVeiculo | null>(null);
     const [assentosReservados, setAssentosReservados] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
@@ -74,8 +75,12 @@ export const ViagemDetalhesPublico: React.FC = () => {
     const fetchViagem = async () => {
         try {
             setLoading(true);
-            const tripData = await tripsService.getById(id!);
+            const [tripData, tagsData] = await Promise.all([
+                tripsService.getById(id!),
+                tripsService.getTags()
+            ]);
             setViagem(tripData);
+            setAllTags(tagsData);
 
             // Fetch vehicle if exists
             if (tripData.vehicle_id) {
@@ -194,11 +199,19 @@ export const ViagemDetalhesPublico: React.FC = () => {
                             <div>
                                 <div className="flex flex-wrap items-center gap-2 mb-1">
                                     {viagem.tags && viagem.tags.length > 0 ? (
-                                        viagem.tags.map(tag => (
-                                            <span key={tag} className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                                                {tag.replace('_', ' ')}
-                                            </span>
-                                        ))
+                                        viagem.tags.map(tagName => {
+                                            const tagDef = allTags.find(t => t.nome === tagName);
+                                            const bgColor = tagDef?.cor || '#3b82f6'; // default blue-500
+                                            return (
+                                                <span
+                                                    key={tagName}
+                                                    className="text-xs font-semibold px-2 py-1 rounded text-white"
+                                                    style={{ backgroundColor: bgColor }}
+                                                >
+                                                    {tagName.replace('_', ' ')}
+                                                </span>
+                                            );
+                                        })
                                     ) : (
                                         <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                                             REGULAR
