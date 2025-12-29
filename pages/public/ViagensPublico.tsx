@@ -160,24 +160,26 @@ export const ViagensPublico: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Hero Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 md:p-10 mb-8 text-white">
-                <div className="max-w-2xl">
-                    <h1 className="text-2xl md:text-4xl font-bold mb-3">
-                        Encontre sua próxima viagem
-                    </h1>
-                    <p className="text-blue-100 text-sm md:text-base mb-6">
-                        Viagens rodoviárias com conforto, segurança e os melhores preços.
-                    </p>
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 md:p-12 mb-8 text-white shadow-xl shadow-blue-500/20">
+                <div className="max-w-5xl mx-auto">
+                    <div className="mb-10 text-center md:text-left">
+                        <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">
+                            Encontre sua próxima viagem
+                        </h1>
+                        <p className="text-blue-100 text-base md:text-lg max-w-xl">
+                            Viagens rodoviárias com conforto, segurança e os melhores preços garantidos para você.
+                        </p>
+                    </div>
 
                     {/* Search Filters */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {/* Origem */}
                         <div className="relative">
                             <MapPin size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500" />
                             <select
                                 value={filtroOrigem}
                                 onChange={(e) => setFiltroOrigem(e.target.value)}
-                                className="w-full pl-10 pr-8 py-3 rounded-xl bg-white text-slate-800 focus:ring-2 focus:ring-white/50 outline-none text-sm appearance-none cursor-pointer"
+                                className="w-full pl-10 pr-8 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm appearance-none cursor-pointer shadow-sm border border-white/20 transition-all hover:bg-white"
                             >
                                 <option value="">Origem (embarque)</option>
                                 {cidadesEmbarque.map(cidade => (
@@ -193,7 +195,7 @@ export const ViagensPublico: React.FC = () => {
                             <select
                                 value={filtroDestino}
                                 onChange={(e) => setFiltroDestino(e.target.value)}
-                                className="w-full pl-10 pr-8 py-3 rounded-xl bg-white text-slate-800 focus:ring-2 focus:ring-white/50 outline-none text-sm appearance-none cursor-pointer"
+                                className="w-full pl-10 pr-8 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm appearance-none cursor-pointer shadow-sm border border-white/20 transition-all hover:bg-white"
                             >
                                 <option value="">Destino</option>
                                 {cidadesDestino.map(cidade => (
@@ -210,7 +212,7 @@ export const ViagensPublico: React.FC = () => {
                                 type="date"
                                 value={filtroData}
                                 onChange={(e) => setFiltroData(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-slate-800 focus:ring-2 focus:ring-white/50 outline-none text-sm"
+                                className="w-full pl-10 pr-4 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm shadow-sm border border-white/20 transition-all hover:bg-white"
                             />
                         </div>
 
@@ -222,7 +224,7 @@ export const ViagensPublico: React.FC = () => {
                                 placeholder="Buscar..."
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-white/50 outline-none text-sm"
+                                className="w-full pl-10 pr-4 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 placeholder-slate-400 focus:ring-4 focus:ring-white/20 outline-none text-sm shadow-sm border border-white/20 transition-all hover:bg-white"
                             />
                         </div>
                     </div>
@@ -335,12 +337,30 @@ export const ViagensPublico: React.FC = () => {
                                     <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-3">
                                         <div className="flex items-center gap-1">
                                             <MapPin size={14} className="text-green-600" />
-                                            <span>{viagem.origin_city || 'Origem'}</span>
+                                            <span>
+                                                {(() => {
+                                                    const stops = viagem.route_stops && Array.isArray(viagem.route_stops) ? viagem.route_stops : [];
+                                                    if (stops.length > 0) return stops[0].nome;
+
+                                                    return viagem.origin_city && viagem.origin_state
+                                                        ? `${viagem.origin_city}, ${viagem.origin_state}`
+                                                        : (viagem.origin_city || 'Origem');
+                                                })()}
+                                            </span>
                                         </div>
                                         <ArrowRight size={14} className="text-slate-400" />
                                         <div className="flex items-center gap-1">
                                             <MapPin size={14} className="text-red-600" />
-                                            <span>{viagem.destination_city || 'Destino'}</span>
+                                            <span>
+                                                {(() => {
+                                                    const stops = viagem.route_stops && Array.isArray(viagem.route_stops) ? viagem.route_stops : [];
+                                                    if (stops.length > 0) return stops[stops.length - 1].nome;
+
+                                                    return viagem.destination_city && viagem.destination_state
+                                                        ? `${viagem.destination_city}, ${viagem.destination_state}`
+                                                        : (viagem.destination_city || 'Destino');
+                                                })()}
+                                            </span>
                                         </div>
                                     </div>
 
