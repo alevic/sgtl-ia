@@ -1,11 +1,115 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { EmpresaContexto } from '../types';
-import { Save, Bell, Shield, Monitor, Building, RefreshCw, Database } from 'lucide-react';
+import { Save, Bell, Shield, Monitor, RefreshCw, Database, Settings2, Plus, Trash2, AlertCircle, Loader2 } from 'lucide-react';
+import { authClient } from '../lib/auth-client';
+
+interface IParameter {
+    id: string;
+    key: string;
+    value: string;
+    description: string;
+    updated_at: string;
+}
 
 export const Configuracoes: React.FC = () => {
     const { currentContext } = useApp();
-    const [activeTab, setActiveTab] = useState<'notificacoes' | 'aparencia' | 'sistema'>('notificacoes');
+    const [activeTab, setActiveTab] = useState<'notificacoes' | 'aparencia' | 'sistema' | 'parametros'>('notificacoes');
+
+    // Parameters State
+    const [parameters, setParameters] = React.useState<IParameter[]>([]);
+    const [isLoadingParams, setIsLoadingParams] = React.useState(false);
+    const [error, setError] = React.useState('');
+    const [success, setSuccess] = React.useState('');
+
+    // New/Edit Parameter State
+    const [isSavingParam, setIsSavingParam] = React.useState(false);
+    const [newParam, setNewParam] = React.useState({ key: '', value: '', description: '' });
+
+    const fetchParameters = async () => {
+        setIsLoadingParams(true);
+        setError('');
+        try {
+            const { data: session } = await authClient.getSession();
+            if (!session?.session.activeOrganizationId) return;
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setParameters(data);
+            } else {
+                setError('Falha ao carregar parâmetros.');
+            }
+        } catch (err) {
+            setError('Erro de conexão ao buscar parâmetros.');
+        } finally {
+            setIsLoadingParams(false);
+        }
+    };
+
+    const handleSaveParameter = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSavingParam(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const { data: session } = await authClient.getSession();
+            if (!session?.session.activeOrganizationId) return;
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newParam)
+            });
+
+            if (response.ok) {
+                setSuccess('Parâmetro salvo com sucesso!');
+                setNewParam({ key: '', value: '', description: '' });
+                fetchParameters();
+            } else {
+                const data = await response.json();
+                setError(data.error || 'Falha ao salvar parâmetro.');
+            }
+        } catch (err) {
+            setError('Erro ao salvar parâmetro.');
+        } finally {
+            setIsSavingParam(false);
+        }
+    };
+
+    const handleDeleteParameter = async (paramId: string) => {
+        if (!window.confirm('Excluir este parâmetro?')) return;
+
+        try {
+            const { data: session } = await authClient.getSession();
+            if (!session?.session.activeOrganizationId) return;
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters/${paramId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                setSuccess('Parâmetro excluído.');
+                fetchParameters();
+            } else {
+                setError('Falha ao excluir.');
+            }
+        } catch (err) {
+            setError('Erro ao excluir.');
+        }
+    };
+
+    React.useEffect(() => {
+        if (activeTab === 'parametros') {
+            fetchParameters();
+        }
+    }, [activeTab]);
 
     const themeColor = currentContext === EmpresaContexto.TURISMO ? 'blue' : 'orange';
 
@@ -54,6 +158,16 @@ export const Configuracoes: React.FC = () => {
                     >
                         <Shield size={18} />
                         Sistema
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('parametros')}
+                        className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'parametros'
+                            ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
+                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                            }`}
+                    >
+                        <Settings2 size={18} />
+                        Parâmetros
                     </button>
                 </div>
 
@@ -157,6 +271,125 @@ export const Configuracoes: React.FC = () => {
                                         <RefreshCw size={16} />
                                         Limpar Cache
                                     </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'parametros' && (
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                                {/* Form */}
+                                <div className="lg:col-span-1">
+                                    <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                            <Plus size={18} className="text-blue-500" />
+                                            Novo Parâmetro
+                                        </h3>
+                                        <form onSubmit={handleSaveParameter} className="space-y-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Chave (Key)</label>
+                                                <input
+                                                    type="text"
+                                                    value={newParam.key}
+                                                    onChange={(e) => setNewParam({ ...newParam, key: e.target.value })}
+                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="ex: trip_safety_margin"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Valor (Value)</label>
+                                                <input
+                                                    type="text"
+                                                    value={newParam.value}
+                                                    onChange={(e) => setNewParam({ ...newParam, value: e.target.value })}
+                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                                    placeholder="ex: 168"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+                                                <textarea
+                                                    value={newParam.description}
+                                                    onChange={(e) => setNewParam({ ...newParam, description: e.target.value })}
+                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                                                    placeholder="Para que serve este parâmetro?"
+                                                />
+                                            </div>
+
+                                            {error && (
+                                                <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs rounded-lg flex items-center gap-2">
+                                                    <AlertCircle size={14} />
+                                                    {error}
+                                                </div>
+                                            )}
+
+                                            {success && (
+                                                <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs rounded-lg">
+                                                    {success}
+                                                </div>
+                                            )}
+
+                                            <button
+                                                type="submit"
+                                                disabled={isSavingParam}
+                                                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
+                                            >
+                                                {isSavingParam ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                                                Salvar Parâmetro
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                {/* List */}
+                                <div className="lg:col-span-2">
+                                    <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-4">Configurações Atuais</h3>
+                                    {isLoadingParams ? (
+                                        <div className="flex justify-center p-8">
+                                            <Loader2 className="animate-spin text-slate-400" size={24} />
+                                        </div>
+                                    ) : parameters.length === 0 ? (
+                                        <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-500">
+                                            Nenhum parâmetro cadastrado.
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {parameters.map((param) => (
+                                                <div key={param.id} className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-start">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center gap-2">
+                                                            <code className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded text-sm font-bold">
+                                                                {param.key}
+                                                            </code>
+                                                            <span className="text-slate-400 text-xs">=</span>
+                                                            <span className="font-mono text-slate-900 dark:text-slate-100">{param.value}</span>
+                                                        </div>
+                                                        <p className="text-sm text-slate-500 dark:text-slate-400">{param.description}</p>
+                                                        <p className="text-[10px] text-slate-400">Atualizado em: {new Date(param.updated_at).toLocaleString()}</p>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => setNewParam({ key: param.key, value: param.value, description: param.description })}
+                                                            className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                            title="Editar"
+                                                        >
+                                                            <Settings2 size={16} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteParameter(param.id)}
+                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                            title="Excluir"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

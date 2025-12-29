@@ -76,22 +76,31 @@ export const initCronJobs = () => {
             }
 
             // 2. Auto-Complete Trips
-            // Completes if arrival time passed OR if trip is older than 24h as a fallback
+            // Completes if arrival time passed OR if trip passed a safety margin since departure
             const completeQuery = `
-                UPDATE trips
+                UPDATE trips t
                 SET status = 'COMPLETED',
                     active = false,
                     updated_at = CURRENT_TIMESTAMP
-                WHERE status IN ('IN_TRANSIT')
+                FROM organization o
+                LEFT JOIN system_parameters sp ON sp.organization_id = o.id AND sp.key = 'trip_auto_complete_safety_margin_hours'
+                WHERE t.organization_id = o.id
+                  AND t.status = 'IN_TRANSIT'
                   AND (
-                      (arrival_date IS NOT NULL AND arrival_time IS NOT NULL AND (arrival_date + arrival_time) AT TIME ZONE 'America/Sao_Paulo' <= CURRENT_TIMESTAMP)
+                      -- Primary condition: Arrival time reached/passed
+                      (t.arrival_date IS NOT NULL AND t.arrival_time IS NOT NULL AND (t.arrival_date + t.arrival_time) AT TIME ZONE 'America/Sao_Paulo' <= CURRENT_TIMESTAMP)
                       OR 
-                      (departure_date + departure_time) AT TIME ZONE 'America/Sao_Paulo' < NOW() - INTERVAL '24 hours'
+                      -- Fallback condition: Use safety margin (default 168h/7 days) if arrival info is missing
+                      (
+                          (t.arrival_date IS NULL OR t.arrival_time IS NULL)
+                          AND 
+                          (t.departure_date + t.departure_time) AT TIME ZONE 'America/Sao_Paulo' < NOW() - (COALESCE(sp.value, '168') || ' hours')::INTERVAL
+                      )
                   )
-                RETURNING id
+                RETURNING t.id
             `;
             const completeResult = await client.query(completeQuery);
-            if (completeResult.rows.length > 0) {
+            if (completeResult.rows && completeResult.rows.length > 0) {
                 console.log(`✅ [CRON] Completed and Deactivated ${completeResult.rows.length} trips.`);
             }
 

@@ -386,7 +386,7 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
                 departure_date, departure_time, arrival_date, arrival_time,
                 price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
                 seats_available, notes, organization_id, created_by,
-                title, trip_type, cover_image, gallery, baggage_limit, alerts
+                title, tags, cover_image, gallery, baggage_limit, alerts
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
             RETURNING *`,
             [

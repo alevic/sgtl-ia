@@ -34,7 +34,7 @@ router.get("/trips", async (req, res) => {
         let query = `
             SELECT t.id, t.departure_date, t.departure_time, t.arrival_date, t.arrival_time,
                    t.price_conventional, t.price_executive, t.price_semi_sleeper, t.price_sleeper,
-                   t.seats_available,
+                   t.seats_available, t.tags, t.cover_image, t.title,
                    r.name as route_name, r.origin_city, r.destination_city, r.duration_minutes,
                    v.tipo as vehicle_type
             FROM trips t

@@ -1096,6 +1096,84 @@ app.put("/api/organization/:id/details", authorize(['admin', 'user']), async (re
     }
 });
 
+// ===== SYSTEM PARAMETERS ROUTES =====
+
+// GET all parameters for an organization
+app.get("/api/organization/:id/parameters", authorize(['admin', 'operacional']), async (req, res) => {
+    const { id } = req.params;
+    try {
+        const session = (req as any).session;
+        if (session.session.activeOrganizationId !== id) {
+            return res.status(403).json({ error: "You can only view parameters of the active organization" });
+        }
+
+        const result = await pool.query(
+            "SELECT * FROM system_parameters WHERE organization_id = $1 ORDER BY key ASC",
+            [id]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching system parameters:", error);
+        res.status(500).json({ error: "Failed to fetch system parameters" });
+    }
+});
+
+// POST/PUT upsert a parameter
+app.post("/api/organization/:id/parameters", authorize(['admin', 'operacional']), async (req, res) => {
+    const { id } = req.params;
+    const { key, value, description } = req.body;
+
+    try {
+        const session = (req as any).session;
+        if (session.session.activeOrganizationId !== id) {
+            return res.status(403).json({ error: "You can only manage parameters of the active organization" });
+        }
+
+        const result = await pool.query(
+            `INSERT INTO system_parameters (organization_id, key, value, description)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (organization_id, key) 
+             DO UPDATE SET 
+                value = EXCLUDED.value,
+                description = COALESCE(EXCLUDED.description, system_parameters.description),
+                updated_at = NOW()
+             RETURNING *`,
+            [id, key, value, description]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error upserting system parameter:", error);
+        res.status(500).json({ error: "Failed to save system parameter" });
+    }
+});
+
+// DELETE a parameter
+app.delete("/api/organization/:id/parameters/:paramId", authorize(['admin']), async (req, res) => {
+    const { id, paramId } = req.params;
+
+    try {
+        const session = (req as any).session;
+        if (session.session.activeOrganizationId !== id) {
+            return res.status(403).json({ error: "You can only manage parameters of the active organization" });
+        }
+
+        const result = await pool.query(
+            "DELETE FROM system_parameters WHERE id = $1 AND organization_id = $2 RETURNING id",
+            [paramId, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Parameter not found" });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting system parameter:", error);
+        res.status(500).json({ error: "Failed to delete system parameter" });
+    }
+});
+
 
 // Start server
 const startServer = async () => {
