@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
-    MapPin, Flag, Building, Plus, Search, Edit, Trash2, Save, X
+    MapPin, Flag, Building, Plus, Search, Edit, Trash2, Save, X, Tag
 } from 'lucide-react';
-import { IEstado, ICidade, IBairro } from '../types';
+import { IEstado, ICidade, IBairro, ITag } from '../types';
+import { tripsService } from '../services/tripsService';
 import { locationService } from '../services/locationService';
 
-type TabType = 'estados' | 'cidades' | 'bairros';
+type TabType = 'estados' | 'cidades' | 'bairros' | 'tags';
 
 export const CadastrosAuxiliares: React.FC = () => {
     const [activeTab, setActiveTab] = useState<TabType>('estados');
@@ -15,6 +16,7 @@ export const CadastrosAuxiliares: React.FC = () => {
     const [estados, setEstados] = useState<IEstado[]>([]);
     const [cidades, setCidades] = useState<ICidade[]>([]);
     const [bairros, setBairros] = useState<IBairro[]>([]);
+    const [tags, setTags] = useState<ITag[]>([]);
 
     // State for editing/creating
     const [isEditing, setIsEditing] = useState(false);
@@ -83,6 +85,9 @@ export const CadastrosAuxiliares: React.FC = () => {
                 }
                 setBairros(allNeighborhoods);
                 setCidades(allCities);
+            } else if (activeTab === 'tags') {
+                const data = await tripsService.getTags();
+                setTags(data);
             }
         } catch (error) {
             console.error('Error loading data:', error);
@@ -135,6 +140,12 @@ export const CadastrosAuxiliares: React.FC = () => {
                     }
                     await locationService.createNeighborhood(formData.nome, parseInt(formData.cidade_id));
                 }
+            } else if (activeTab === 'tags') {
+                if (editingId) {
+                    await tripsService.updateTag(editingId, { nome: formData.nome, cor: formData.cor });
+                } else {
+                    await tripsService.createTag({ nome: formData.nome, cor: formData.cor });
+                }
             }
             handleCancel();
             await loadData();
@@ -155,6 +166,8 @@ export const CadastrosAuxiliares: React.FC = () => {
                 await locationService.deleteCity(parseInt(id));
             } else if (activeTab === 'bairros') {
                 await locationService.deleteNeighborhood(parseInt(id));
+            } else if (activeTab === 'tags') {
+                await tripsService.deleteTag(id);
             }
             await loadData();
         } catch (error) {
@@ -223,6 +236,30 @@ export const CadastrosAuxiliares: React.FC = () => {
                         </div>
                     </div>
                 );
+            case 'tags':
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome da Tag</label>
+                            <input
+                                type="text"
+                                value={formData.nome || ''}
+                                onChange={e => setFormData({ ...formData, nome: e.target.value })}
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                placeholder="Ex: Turismo"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cor (Opcional)</label>
+                            <input
+                                type="color"
+                                value={formData.cor || '#3b82f6'}
+                                onChange={e => setFormData({ ...formData, cor: e.target.value })}
+                                className="w-full h-10 p-1 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800"
+                            />
+                        </div>
+                    </div>
+                );
         }
     };
 
@@ -252,6 +289,24 @@ export const CadastrosAuxiliares: React.FC = () => {
             columns = [
                 { key: 'nome', label: 'Nome' },
                 { key: 'cidade_id', label: 'Cidade', render: (item) => cidades.find(c => c.id === item.cidade_id)?.nome || 'N/A' },
+            ];
+        } else if (activeTab === 'tags') {
+            data = tags;
+            columns = [
+                {
+                    key: 'nome',
+                    label: 'Tag',
+                    render: (item) => (
+                        <div className="flex items-center gap-2">
+                            <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: item.cor || '#3b82f6' }}
+                            />
+                            <span className="font-medium">{item.nome}</span>
+                        </div>
+                    )
+                },
+                { key: 'cor', label: 'Código da Cor' },
             ];
         }
 
@@ -373,6 +428,16 @@ export const CadastrosAuxiliares: React.FC = () => {
                     >
                         <MapPin size={18} />
                         Bairros
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('tags')}
+                        className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'tags'
+                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
+                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                            }`}
+                    >
+                        <Tag size={18} />
+                        Tags de Viagem
                     </button>
                 </div>
 

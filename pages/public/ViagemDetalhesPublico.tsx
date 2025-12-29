@@ -193,9 +193,17 @@ export const ViagemDetalhesPublico: React.FC = () => {
                             </div>
                             <div>
                                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
-                                        {viagem.trip_type?.replace('_', ' ') || 'REGULAR'}
-                                    </span>
+                                    {viagem.tags && viagem.tags.length > 0 ? (
+                                        viagem.tags.map(tag => (
+                                            <span key={tag} className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                                                {tag.replace('_', ' ')}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <span className="text-xs font-semibold px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                                            REGULAR
+                                        </span>
+                                    )}
                                     {availableSeats <= 5 && availableSeats > 0 && (
                                         <span className="text-xs font-semibold px-2 py-1 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
                                             Últimas {availableSeats} vagas!

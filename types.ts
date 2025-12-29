@@ -309,7 +309,7 @@ export interface IViagem {
 
   // New Fields
   title?: string;
-  trip_type?: string; // 'TURISMO_NACIONAL', 'INTERNACIONAL', 'COMPRAS', 'NEGOCIOS'
+  tags?: string[]; // Replacing trip_type
   cover_image?: string;
   gallery?: string[]; // JSONB in DB
   baggage_limit?: string;
@@ -654,4 +654,11 @@ export interface IBairro {
   id: string;
   nome: string;
   cidade_id: string;
+}
+
+export interface ITag {
+  id: string;
+  nome: string;
+  cor?: string;
+  organization_id?: string;
 }

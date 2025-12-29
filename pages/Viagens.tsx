@@ -39,7 +39,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 export const Viagens: React.FC = () => {
     const [viagens, setViagens] = useState<IViagem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filtroStatus, setFiltroStatus] = useState<string[]>([]);
+    const [filtroStatus, setFiltroStatus] = useState<string[]>(['SCHEDULED', 'CONFIRMED', 'IN_TRANSIT']);
     const [filtroAtiva, setFiltroAtiva] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
     const [busca, setBusca] = useState('');
     const [filtroDataPartida, setFiltroDataPartida] = useState('');
@@ -417,11 +417,11 @@ export const Viagens: React.FC = () => {
                                                 {viagem.title || 'Viagem sem título'}
                                             </h3>
                                             <div className="flex items-center gap-2">
-                                                {viagem.trip_type && (
-                                                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 uppercase tracking-wide">
-                                                        {viagem.trip_type.replace('_', ' ')}
+                                                {viagem.tags && viagem.tags.map(tag => (
+                                                    <span key={tag} className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 uppercase tracking-wide">
+                                                        {tag.replace('_', ' ')}
                                                     </span>
-                                                )}
+                                                ))}
                                                 <StatusBadge status={viagem.status} />
                                                 <span className={`px-2 py-1 rounded text-xs font-semibold ${viagem.active !== false
                                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'

@@ -308,7 +308,19 @@ export async function setupDb() {
             CREATE INDEX IF NOT EXISTS idx_trips_route ON trips(route_id);
             CREATE INDEX IF NOT EXISTS idx_trips_date ON trips(departure_date);
         `);
-        console.log("Trips table created successfully.");
+        // Create Trip Tags table
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS trip_tags (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                nome TEXT NOT NULL,
+                cor TEXT,
+                organization_id TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(nome, organization_id)
+            );
+            CREATE INDEX IF NOT EXISTS idx_trip_tags_org ON trip_tags(organization_id);
+        `);
+        console.log("Trip Tags table created successfully.");
 
         // Migration: Add return_route_id column if it doesn't exist
         await pool.query(`
@@ -324,6 +336,7 @@ export async function setupDb() {
             ALTER TABLE trips
             ADD COLUMN IF NOT EXISTS title TEXT,
             ADD COLUMN IF NOT EXISTS trip_type TEXT,
+            ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}',
             ADD COLUMN IF NOT EXISTS cover_image TEXT,
             ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]',
             ADD COLUMN IF NOT EXISTS baggage_limit TEXT,
@@ -331,6 +344,14 @@ export async function setupDb() {
             ADD COLUMN IF NOT EXISTS price_bed DECIMAL(10, 2),
             ADD COLUMN IF NOT EXISTS price_master_bed DECIMAL(10, 2),
             ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
+        `);
+
+        // Migrate existing trip_type data to tags if tags is empty
+        await pool.query(`
+            UPDATE trips 
+            SET tags = ARRAY[trip_type] 
+            WHERE trip_type IS NOT NULL 
+            AND (tags IS NULL OR array_length(tags, 1) IS NULL OR array_length(tags, 1) = 0);
         `);
 
         // Create Reservations Table

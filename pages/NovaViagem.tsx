@@ -8,6 +8,7 @@ import { SeletorRota } from '../components/Rotas/SeletorRota';
 import { SeletorMotoristaMultiplo } from '../components/Selectors/SeletorMotoristaMultiplo';
 import { calcularCamposViagem } from '../utils/rotaValidation';
 import { tripsService } from '../services/tripsService';
+import { SeletorTags } from '../components/Selectors/SeletorTags';
 import { routesService } from '../services/routesService';
 import { vehiclesService } from '../services/vehiclesService';
 import { driversService } from '../services/driversService';
@@ -28,7 +29,7 @@ export const NovaViagem: React.FC = () => {
     // Form State
     const [titulo, setTitulo] = useState('');
     const [tipoViagem, setTipoViagem] = useState<'IDA_E_VOLTA' | 'IDA' | 'VOLTA'>('IDA');
-    const [tipoTurismo, setTipoTurismo] = useState('TURISMO_NACIONAL'); // New field
+    const [tags, setTags] = useState<string[]>([]); // New field
     const [internacional, setInternacional] = useState(false);
     const [moeda, setMoeda] = useState<Moeda>(Moeda.BRL);
     const [veiculoId, setVeiculoId] = useState('');
@@ -130,7 +131,7 @@ export const NovaViagem: React.FC = () => {
 
                 // New fields
                 setTitulo(viagem.title || '');
-                setTipoTurismo(viagem.trip_type || 'TURISMO_NACIONAL');
+                setTags(viagem.tags || []);
                 setImagemCapa(viagem.cover_image || '');
                 setGaleria(viagem.gallery || []);
                 setLimiteBagagem(viagem.baggage_limit || '');
@@ -265,7 +266,7 @@ export const NovaViagem: React.FC = () => {
 
                 // New fields
                 title: titulo,
-                trip_type: tipoTurismo,
+                tags: tags,
                 cover_image: imagemCapa,
                 gallery: galeria,
                 baggage_limit: limiteBagagem,
@@ -339,21 +340,12 @@ export const NovaViagem: React.FC = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Tipo de Viagem
+                            Tags da Viagem
                         </label>
-                        <select
-                            value={tipoTurismo}
-                            onChange={(e) => setTipoTurismo(e.target.value)}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
-                        >
-                            <option value="TURISMO_NACIONAL">Turismo Nacional</option>
-                            <option value="INTERNACIONAL">Internacional</option>
-                            <option value="COMPRAS">Compras</option>
-                            <option value="NEGOCIOS">Negócios</option>
-                            <option value="RELIGIOSO">Religioso</option>
-                            <option value="EVENTO">Evento</option>
-                            <option value="OUTRO">Outro</option>
-                        </select>
+                        <SeletorTags
+                            selectedTags={tags}
+                            onChange={setTags}
+                        />
                     </div>
                 </div>
             </div>

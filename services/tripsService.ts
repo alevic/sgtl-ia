@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IViagem, IAssento } from "../types";
+import { IViagem, IAssento, ITag } from "../types";
 
 export const tripsService = {
     getAll: async (filters?: { status?: string; search?: string }) => {
@@ -28,5 +28,22 @@ export const tripsService = {
 
     delete: async (id: string) => {
         return api.delete<{ success: boolean }>(`/api/trips/${id}`);
+    },
+
+    // Tags Management
+    getTags: async () => {
+        return api.get<ITag[]>('/api/trips/tags');
+    },
+
+    createTag: async (tag: Omit<ITag, 'id'>) => {
+        return api.post<ITag>('/api/trips/tags', tag);
+    },
+
+    updateTag: async (id: string, tag: Partial<ITag>) => {
+        return api.put<ITag>(`/api/trips/tags/${id}`, tag);
+    },
+
+    deleteTag: async (id: string) => {
+        return api.delete<{ success: boolean }>(`/api/trips/tags/${id}`);
     }
 };

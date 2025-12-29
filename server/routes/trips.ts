@@ -233,6 +233,98 @@ router.get("/trips", authorize(['admin', 'operacional', 'vendas']), async (req, 
     }
 });
 
+// ===== TAGS MANAGEMENT =====
+
+// GET all tags
+router.get("/trips/tags", authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+
+        const result = await pool.query(
+            "SELECT * FROM trip_tags WHERE organization_id = $1 ORDER BY nome ASC",
+            [orgId]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching tags:", error);
+        res.status(500).json({ error: "Failed to fetch tags" });
+    }
+});
+
+// POST create tag
+router.post("/trips/tags", authorize(['admin', 'operacional']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { nome, cor } = req.body;
+
+        const result = await pool.query(
+            `INSERT INTO trip_tags (nome, cor, organization_id) 
+             VALUES ($1, $2, $3) 
+             ON CONFLICT (nome, organization_id) DO UPDATE SET cor = EXCLUDED.cor
+             RETURNING *`,
+            [nome, cor || null, orgId]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error creating tag:", error);
+        res.status(500).json({ error: "Failed to create tag" });
+    }
+});
+
+// PUT update tag
+router.put("/trips/tags/:id", authorize(['admin', 'operacional']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+        const { nome, cor } = req.body;
+
+        const result = await pool.query(
+            `UPDATE trip_tags SET 
+                nome = COALESCE($1, nome),
+                cor = COALESCE($2, cor)
+             WHERE id = $3 AND organization_id = $4
+             RETURNING *`,
+            [nome, cor, id, orgId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Tag not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error updating tag:", error);
+        res.status(500).json({ error: "Failed to update tag" });
+    }
+});
+
+// DELETE tag
+router.delete("/trips/tags/:id", authorize(['admin', 'operacional']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const result = await pool.query(
+            "DELETE FROM trip_tags WHERE id = $1 AND organization_id = $2 RETURNING id",
+            [id, orgId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Tag not found" });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting tag:", error);
+        res.status(500).json({ error: "Failed to delete tag" });
+    }
+});
+
 // GET single trip
 router.get("/trips/:id", authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
     try {
@@ -276,7 +368,7 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
             departure_date, departure_time, arrival_date, arrival_time,
             price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
             seats_available, notes,
-            title, trip_type, cover_image, gallery, baggage_limit, alerts
+            title, tags, cover_image, gallery, baggage_limit, alerts
         } = req.body;
 
         // If vehicle is selected, get its capacity for seats_available if not provided
@@ -302,7 +394,7 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
                 departure_date, departure_time, arrival_date || null, arrival_time || null,
                 price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null, price_bed || null, price_master_bed || null,
                 finalSeats || 0, notes || null, orgId, userId,
-                title || null, trip_type || null, cover_image || null, JSON.stringify(gallery || []), baggage_limit || null, alerts || null
+                title || null, tags || [], cover_image || null, JSON.stringify(gallery || []), baggage_limit || null, alerts || null
             ]
         );
 
@@ -326,7 +418,7 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
             status,
             price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
             seats_available, notes,
-            title, trip_type, cover_image, gallery, baggage_limit, alerts, active
+            title, tags, cover_image, gallery, baggage_limit, alerts, active
         } = req.body;
 
         const result = await pool.query(
@@ -348,7 +440,7 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
                 seats_available = COALESCE($15, seats_available),
                 notes = COALESCE($16, notes),
                 title = COALESCE($17, title),
-                trip_type = COALESCE($18, trip_type),
+                tags = COALESCE($18, tags),
                 cover_image = COALESCE($19, cover_image),
                 gallery = COALESCE($20, gallery),
                 baggage_limit = COALESCE($21, baggage_limit),
@@ -363,7 +455,7 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
                 status,
                 price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
                 seats_available, notes,
-                title, trip_type, cover_image, gallery ? JSON.stringify(gallery) : null, baggage_limit, alerts,
+                title, tags, cover_image, gallery ? JSON.stringify(gallery) : null, baggage_limit, alerts,
                 active,
                 id, orgId
             ]
