@@ -8,7 +8,7 @@ import { TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa } fr
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
     Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle,
-    UserCheck, CheckCircle
+    UserCheck, CheckCircle, ChevronDown, Check
 } from 'lucide-react';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -20,7 +20,11 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
         CANCELADA: { color: 'red', label: StatusReservaLabel.CANCELLED },
         CANCELLED: { color: 'red', label: StatusReservaLabel.CANCELLED },
         UTILIZADA: { color: 'blue', label: StatusReservaLabel.USED },
-        COMPLETED: { color: 'blue', label: StatusReservaLabel.USED }
+        USED: { color: 'blue', label: StatusReservaLabel.USED },
+        COMPLETED: { color: 'blue', label: StatusReservaLabel.USED },
+        CHECKED_IN: { color: 'indigo', label: StatusReservaLabel.CHECKED_IN },
+        EMBARCADO: { color: 'indigo', label: StatusReservaLabel.CHECKED_IN },
+        NO_SHOW: { color: 'gray', label: StatusReservaLabel.NO_SHOW }
     };
 
     const config = configs[status] || configs['PENDENTE'];
@@ -35,7 +39,9 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 export const Reservas: React.FC = () => {
     const [reservas, setReservas] = useState<IReserva[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
+    const [filtroStatus, setFiltroStatus] = useState<string[]>(['PENDING', 'CONFIRMED']);
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    const dropdownRef = React.useRef<HTMLDivElement>(null);
     const [busca, setBusca] = useState('');
 
     // Action States
@@ -77,6 +83,22 @@ export const Reservas: React.FC = () => {
     useEffect(() => {
         fetchReservas();
     }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsStatusDropdownOpen(false);
+            }
+        };
+
+        if (isStatusDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isStatusDropdownOpen]);
 
     const handleEditClick = (reserva: IReserva) => {
         setEditingReserva(reserva);
@@ -292,8 +314,25 @@ export const Reservas: React.FC = () => {
         }
     };
 
+    const toggleStatus = (status: string) => {
+        setFiltroStatus(prev =>
+            prev.includes(status)
+                ? prev.filter(s => s !== status)
+                : [...prev, status]
+        );
+    };
+
+    const statusOptions = [
+        { value: 'PENDING', label: 'Pendente' },
+        { value: 'CONFIRMED', label: 'Confirmada' },
+        { value: 'CHECKED_IN', label: 'Embarcado' },
+        { value: 'USED', label: 'Utilizada' },
+        { value: 'NO_SHOW', label: 'Não Compareceu' },
+        { value: 'CANCELLED', label: 'Cancelada' },
+    ];
+
     const reservasFiltradas = reservas.filter(r => {
-        const matchStatus = filtroStatus === 'TODOS' || r.status === filtroStatus;
+        const matchStatus = filtroStatus.length === 0 || filtroStatus.includes(r.status);
         const passengerName = (r as any).passenger_name || '';
         const ticketCode = (r as any).ticket_code || r.codigo || '';
 
@@ -342,32 +381,56 @@ export const Reservas: React.FC = () => {
                             />
                         </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
-                        <button
-                            onClick={() => setFiltroStatus('TODOS')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroStatus === 'TODOS' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            <Filter size={16} />
-                            Todos
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus('PENDING')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'PENDING' ? 'bg-yellow-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Pendente
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus('CONFIRMED')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CONFIRMED' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Confirmada
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus('CANCELLED')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'CANCELLED' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Cancelada
-                        </button>
+                    <div className="flex gap-2 flex-wrap items-center">
+                        <div className="flex items-center gap-2 relative" ref={dropdownRef}>
+                            <Filter size={18} className="text-slate-500" />
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    className="flex items-center justify-between min-w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-left text-sm"
+                                    onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                                >
+                                    <span className="truncate">
+                                        {filtroStatus.length === 0
+                                            ? 'Todos os status'
+                                            : `${filtroStatus.length} selecionado(s)`}
+                                    </span>
+                                    <ChevronDown size={14} className={`text-slate-400 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isStatusDropdownOpen && (
+                                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                                        <div className="p-2 space-y-1">
+                                            <button
+                                                onClick={() => {
+                                                    setFiltroStatus([]);
+                                                    setIsStatusDropdownOpen(false);
+                                                }}
+                                                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.length === 0 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
+                                            >
+                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.length === 0 ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
+                                                    {filtroStatus.length === 0 && <Check size={12} className="text-white" />}
+                                                </div>
+                                                Todos os status
+                                            </button>
+                                            <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
+                                            {statusOptions.map((option) => (
+                                                <button
+                                                    key={option.value}
+                                                    onClick={() => toggleStatus(option.value)}
+                                                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.includes(option.value) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
+                                                >
+                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.includes(option.value) ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
+                                                        {filtroStatus.includes(option.value) && <Check size={12} className="text-white" />}
+                                                    </div>
+                                                    {option.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

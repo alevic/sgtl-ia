@@ -140,7 +140,7 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
         } = req.body;
 
         // Verify status if provided
-        const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW'];
+        const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'USED', 'COMPLETED'];
         const finalStatus = (status && validStatuses.includes(status)) ? status : 'PENDING';
 
         // Check for double booking using seat_number if provided (fallback for when seat_id is missing or to cover all bases)

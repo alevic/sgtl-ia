@@ -291,7 +291,7 @@ export async function setupDb() {
                 departure_time TIME NOT NULL,
                 arrival_date DATE,
                 arrival_time TIME,
-                status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'BOARDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED', 'DELAYED')),
+                status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'BOARDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED', 'DELAYED', 'AGENDADA', 'CONFIRMADA', 'EM_CURSO', 'FINALIZADA', 'CONFIRMED')),
                 price_conventional DECIMAL(10, 2),
                 price_executive DECIMAL(10, 2),
                 price_semi_sleeper DECIMAL(10, 2),
@@ -367,7 +367,7 @@ export async function setupDb() {
                 passenger_email TEXT,
                 passenger_phone TEXT,
                 
-                status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW')),
+                status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'USED', 'COMPLETED')),
                 ticket_code TEXT NOT NULL UNIQUE, -- Short code for lookup
                 price DECIMAL(10, 2) NOT NULL,
                 
@@ -568,12 +568,6 @@ export async function setupDb() {
             ADD COLUMN IF NOT EXISTS external_payment_id TEXT;
         `);
 
-        // Migration: Update Reservation Status Check Constraint to include COMPLETED
-        await pool.query(`
-            ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_status_check;
-            ALTER TABLE reservations ADD CONSTRAINT reservations_status_check 
-            CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'COMPLETED'));
-        `);
 
         // Migration: Add CPF and Phone to user table
         await pool.query(`
@@ -610,6 +604,20 @@ export async function setupDb() {
             SELECT id, 'trip_auto_complete_safety_margin_hours', '168', 'Margem de segurança para finalização automática de viagens (em horas)'
             FROM "organization"
             ON CONFLICT (organization_id, key) DO NOTHING;
+        `);
+
+        // Migration: Update status constraints for existing tables
+        console.log("Updating existing status constraints...");
+        await pool.query(`
+            -- Reservations Status
+            ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_status_check;
+            ALTER TABLE reservations ADD CONSTRAINT reservations_status_check 
+            CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'USED', 'COMPLETED'));
+
+            -- Trips Status
+            ALTER TABLE trips DROP CONSTRAINT IF EXISTS trips_status_check;
+            ALTER TABLE trips ADD CONSTRAINT trips_status_check
+            CHECK (status IN ('SCHEDULED', 'BOARDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED', 'DELAYED', 'AGENDADA', 'CONFIRMADA', 'EM_CURSO', 'FINALIZADA', 'CONFIRMED'));
         `);
 
         console.log("System parameters table created and seeded successfully.");
