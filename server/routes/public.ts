@@ -34,13 +34,13 @@ router.get("/trips", async (req, res) => {
         let query = `
             SELECT t.id, t.departure_date, t.departure_time, t.arrival_date, t.arrival_time,
                    t.price_conventional, t.price_executive, t.price_semi_sleeper, t.price_sleeper,
-                   t.seats_available, t.tags, t.cover_image, t.title,
-                   r.name as route_name, r.origin_city, r.destination_city, r.duration_minutes,
-                   v.tipo as vehicle_type
+                   t.seats_available, t.tags, t.cover_image, t.title, t.baggage_limit, t.alerts,
+                   r.name as route_name, r.origin_city, r.origin_state, r.destination_city, r.destination_state, r.duration_minutes, r.stops as route_stops,
+                   v.tipo as vehicle_type, v.modelo as vehicle_model, v.placa as vehicle_plate
             FROM trips t
             JOIN routes r ON t.route_id = r.id
             LEFT JOIN vehicle v ON t.vehicle_id = v.id
-            WHERE t.status = 'SCHEDULED' AND t.seats_available > 0
+            WHERE t.status IN ('SCHEDULED', 'AGENDADA', 'CONFIRMADA', 'CONFIRMED') AND (t.active = true OR t.active IS NULL)
         `;
         const params: any[] = [];
         let paramCount = 0;
@@ -70,6 +70,33 @@ router.get("/trips", async (req, res) => {
     } catch (error) {
         console.error("Error searching trips:", error);
         res.status(500).json({ error: "Failed to search trips" });
+    }
+});
+
+// GET /public/trips/:id - Get single trip details publicly
+router.get("/trips/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const result = await pool.query(
+            `SELECT t.*, 
+                   r.name as route_name, r.origin_city, r.origin_state, r.destination_city, r.destination_state, r.stops as route_stops,
+                   v.placa as vehicle_plate, v.modelo as vehicle_model, v.tipo as vehicle_type, v.capacidade_passageiros, v.id as vehicle_id
+            FROM trips t
+            JOIN routes r ON t.route_id = r.id
+            LEFT JOIN vehicle v ON t.vehicle_id = v.id
+            WHERE t.id = $1 AND (t.active = true OR t.active IS NULL)`,
+            [id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Trip not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching public trip:", error);
+        res.status(500).json({ error: "Failed to fetch trip" });
     }
 });
 

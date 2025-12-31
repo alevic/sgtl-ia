@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Bus, MapPin, Calendar, Clock, Users,
-    DollarSign, Loader, AlertCircle, Check
+    DollarSign, Loader, AlertCircle, Check, Briefcase, AlertTriangle
 } from 'lucide-react';
 import { tripsService } from '../../services/tripsService';
 import { vehiclesService } from '../../services/vehiclesService';
 import { reservationsService } from '../../services/reservationsService';
 import { MapaAssentosReserva } from '../../components/Veiculos/MapaAssentosReserva';
+import { publicService } from '../../services/publicService';
 import { IViagem, IVeiculo, TipoAssento, ITag } from '../../types';
 
 // Helper to format date
@@ -76,8 +77,8 @@ export const ViagemDetalhesPublico: React.FC = () => {
         try {
             setLoading(true);
             const [tripData, tagsData] = await Promise.all([
-                tripsService.getById(id!),
-                tripsService.getTags()
+                publicService.getTripById(id!),
+                tripsService.getTags().catch(() => []) // Fallback if tags fail (e.g. public access)
             ]);
             setViagem(tripData);
             setAllTags(tagsData);
@@ -308,6 +309,34 @@ export const ViagemDetalhesPublico: React.FC = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Baggage and Alerts Section */}
+                    {(viagem.baggage_limit || viagem.alerts) && (
+                        <div className={`grid grid-cols-1 ${viagem.baggage_limit && viagem.alerts ? 'md:grid-cols-2' : ''} gap-4`}>
+                            {viagem.baggage_limit && (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 p-6">
+                                    <h3 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
+                                        <Briefcase size={20} />
+                                        Limite de Bagagens
+                                    </h3>
+                                    <p className="text-blue-700 dark:text-blue-400">
+                                        {viagem.baggage_limit}
+                                    </p>
+                                </div>
+                            )}
+                            {viagem.alerts && (
+                                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 p-6">
+                                    <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-2">
+                                        <AlertTriangle size={20} />
+                                        Alertas Importantes
+                                    </h3>
+                                    <p className="text-amber-700 dark:text-amber-400 whitespace-pre-line">
+                                        {viagem.alerts}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
 
 

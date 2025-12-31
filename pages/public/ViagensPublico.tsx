@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Bus, MapPin, Calendar, Clock, Users, Search, Filter,
-    ChevronRight, Loader, ArrowRight, ChevronDown
+    ChevronRight, Loader, ArrowRight, ChevronDown, Briefcase, AlertTriangle
 } from 'lucide-react';
 import { tripsService } from '../../services/tripsService';
 import { publicService } from '../../services/publicService';
@@ -403,6 +403,18 @@ export const ViagensPublico: React.FC = () => {
                                             <Users size={14} />
                                             <span>{viagem.seats_available || 0} vagas</span>
                                         </div>
+                                        {viagem.baggage_limit && (
+                                            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium">
+                                                <Briefcase size={14} />
+                                                <span>{viagem.baggage_limit}</span>
+                                            </div>
+                                        )}
+                                        {viagem.alerts && (
+                                            <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium" title={viagem.alerts}>
+                                                <AlertTriangle size={14} />
+                                                <span>Avisos importantes</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
