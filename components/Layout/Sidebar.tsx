@@ -21,7 +21,7 @@ import { authClient } from '../../lib/auth-client';
 // ... imports ...
 
 export const Sidebar: React.FC = () => {
-  const { currentContext, isSidebarOpen } = useApp();
+  const { currentContext, isSidebarOpen, systemSettings } = useApp();
   const { data: session } = authClient.useSession();
   const userRole = session?.user?.role || 'user';
 
@@ -38,7 +38,9 @@ export const Sidebar: React.FC = () => {
         <div className={`w-8 h-8 rounded bg-${themeColor}-600 flex items-center justify-center text-white font-bold mr-3 shadow-md shadow-${themeColor}-600/20`}>
           <Bus size={18} />
         </div>
-        <span className="font-bold text-slate-800 dark:text-white text-lg">SGTL v2.1</span>
+        <span className="font-bold text-slate-800 dark:text-white text-lg">
+          {systemSettings.system_name || 'SGTL-IA'} {systemSettings.system_display_version || 'v2.1'}
+        </span>
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 space-y-1">

@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { EmpresaContexto } from '../types';
-import { Save, Bell, Shield, Monitor, RefreshCw, Database, Settings2, Plus, Trash2, AlertCircle, Loader2 } from 'lucide-react';
+import {
+    Save, Bell, Shield, Monitor, RefreshCw, Database,
+    Settings2, Plus, Trash2, AlertCircle, Loader2,
+    Globe, CalendarClock, Wallet, Truck, Users, CreditCard,
+    Search, X, ChevronRight, Check
+} from 'lucide-react';
 import { authClient } from '../lib/auth-client';
 
 interface IParameter {
@@ -9,12 +14,151 @@ interface IParameter {
     key: string;
     value: string;
     description: string;
+    group_name?: string;
     updated_at: string;
 }
 
+interface ISettingFieldProps {
+    label: string;
+    description?: string;
+    k: string;
+    type?: 'text' | 'number' | 'textarea' | 'select' | 'checkbox';
+    placeholder?: string;
+    options?: { label: string, value: string }[];
+    allSettings: Record<string, string>;
+    setAllSettings: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+    themeColor: string;
+}
+
+const SettingField: React.FC<ISettingFieldProps> = ({
+    label, description, k, type = 'text', placeholder = '', options = [], allSettings, setAllSettings, themeColor
+}) => {
+    const value = allSettings[k] || '';
+
+    const handleChange = (newVal: string) => {
+        setAllSettings(prev => ({ ...prev, [k]: newVal }));
+    };
+
+    return (
+        <div className="space-y-1">
+            <div className="flex justify-between items-baseline">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
+                <code className="text-[10px] text-slate-400 bg-slate-50 dark:bg-slate-900 px-1 rounded">{k}</code>
+            </div>
+            {description && <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{description}</p>}
+
+            {type === 'textarea' ? (
+                <textarea
+                    value={value}
+                    onChange={(e) => handleChange(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                />
+            ) : type === 'select' ? (
+                <select
+                    value={value}
+                    onChange={(e) => handleChange(e.target.value)}
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+            ) : type === 'checkbox' ? (
+                <label className="relative inline-flex items-center cursor-pointer mt-1">
+                    <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={value === 'true'}
+                        onChange={(e) => handleChange(e.target.checked ? 'true' : 'false')}
+                    />
+                    <div className={`w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-${themeColor}-300 dark:peer-focus:ring-${themeColor}-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-${themeColor}-600`}></div>
+                </label>
+            ) : (
+                <input
+                    type={type}
+                    value={value}
+                    onChange={(e) => handleChange(e.target.value)}
+                    placeholder={placeholder}
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                />
+            )}
+        </div>
+    );
+};
+
+
+interface IParameterMetadata {
+    label: string;
+    group: string;
+    type: 'text' | 'number' | 'select' | 'checkbox' | 'textarea';
+    description: string;
+    options?: { label: string, value: string }[];
+    contexts?: EmpresaContexto[]; // Optional: show only in these contexts
+}
+
+const PARAM_METADATA: Record<string, IParameterMetadata> = {
+    // Geral
+    'system_timezone': { label: 'Fuso Horário', group: 'Geral', type: 'text', description: 'Fuso horário padrão para datas e horários.' },
+    'system_currency': { label: 'Moeda', group: 'Geral', type: 'text', description: 'Símbolo monetário (ex: R$, $).' },
+    'system_language': { label: 'Idioma', group: 'Geral', type: 'select', description: 'Idioma principal da interface.', options: [{ label: 'Português (Brasil)', value: 'pt-BR' }] },
+    'system_date_format': { label: 'Formato de Data', group: 'Geral', type: 'text', description: 'Formato de exibição de datas.' },
+
+    // Operacional
+    'booking_deadline_hours': { label: 'Prazo limite de reserva (horas)', group: 'Operacional', type: 'number', description: 'Horas antes da partida para bloquear vendas online.', contexts: [EmpresaContexto.TURISMO] },
+    'reservation_expiration_minutes': { label: 'Expiração de pendência (minutos)', group: 'Operacional', type: 'number', description: 'Minutos para cancelar reservas pendentes automaticamente.', contexts: [EmpresaContexto.TURISMO] },
+    'trip_auto_complete_safety_margin_hours': { label: 'Margem de conclusão (horas)', group: 'Operacional', type: 'number', description: 'Horas após a partida para marcar viagem como concluída (fallback).', contexts: [EmpresaContexto.TURISMO] },
+    'auto_start_trips': { label: 'Automação de Status', group: 'Operacional', type: 'checkbox', description: 'Mudar para \'Em Trânsito\' automaticamente no horário de partida.', contexts: [EmpresaContexto.TURISMO] },
+
+    // Financeiro
+    'finance_convenience_fee_percent': { label: 'Taxa de Conveniência (%)', group: 'Financeiro', type: 'number', description: 'Taxa de conveniência aplicada em vendas web.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
+    'finance_default_payment_method': {
+        label: 'Método Padrão', group: 'Financeiro', type: 'select', description: 'Método de pagamento sugerido no checkout.', options: [
+            { label: 'Cartão de Crédito', value: 'CREDIT_CARD' }, { label: 'PIX', value: 'PIX' }, { label: 'Boleto', value: 'BOLETO' }, { label: 'Dinheiro', value: 'CASH' }
+        ],
+        contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS]
+    },
+    'finance_auto_generate_invoice': { label: 'Faturamento Automático', group: 'Financeiro', type: 'checkbox', description: 'Gerar contas a receber ao confirmar reserva.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
+
+    // Frota
+    'fleet_maintenance_km_threshold': { label: 'Alerta de Manutenção (KM)', group: 'Frota', type: 'number', description: 'Quilometragem padrão para alerta de revisão.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
+    'fleet_maintenance_days_threshold': { label: 'Alerta de Manutenção (Dias)', group: 'Frota', type: 'number', description: 'Dias padrão para alerta de revisão por tempo.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
+    'fleet_default_vehicle_type': {
+        label: 'Tipo de Veículo Padrão', group: 'Frota', type: 'select', description: 'Tipo de veículo padrão para novas viagens.', options: [
+            { label: 'Ônibus (Convencional)', value: 'BUS_CONV' }, { label: 'Ônibus (Executivo)', value: 'BUS_EXEC' }, { label: 'Micro-ônibus', value: 'MICRO' }, { label: 'Van', value: 'VAN' }
+        ],
+        contexts: [EmpresaContexto.TURISMO]
+    },
+
+    // CRM
+    'crm_enable_reward_points': { label: 'Ativar Pontos de Fidelidade', group: 'CRM', type: 'checkbox', description: 'Habilitar sistema de pontos por viagem.', contexts: [EmpresaContexto.TURISMO] },
+    'crm_points_per_trip': { label: 'Pontos por Real (R$ 1.00)', group: 'CRM', type: 'number', description: 'Pontos ganhos por cada real gasto.', contexts: [EmpresaContexto.TURISMO] },
+    'crm_vip_threshold_trips': { label: 'Limite para VIP (Viagens)', group: 'CRM', type: 'number', description: 'Número de viagens para tornar cliente VIP.', contexts: [EmpresaContexto.TURISMO] },
+
+    // Portal
+    'portal_logo_text': { label: 'Nome do Logotipo', group: 'Portal Público', type: 'text', description: 'Texto do logotipo no portal público.' },
+    'portal_header_slogan': { label: 'Slogan do Header', group: 'Portal Público', type: 'text', description: 'Slogan abaixo do logo no portal.' },
+    'portal_hero_title': { label: 'Título do Banner', group: 'Portal Público', type: 'text', description: 'Título principal da página inicial do portal.' },
+    'portal_hero_subtitle': { label: 'Subtítulo do Banner', group: 'Portal Público', type: 'textarea', description: 'Subtítulo do banner na página inicial.' },
+    'portal_contact_phone': { label: 'Telefone de Contato', group: 'Portal Público', type: 'text', description: 'Telefone de contato no portal.' },
+    'portal_contact_email': { label: 'Email de Contato', group: 'Portal Público', type: 'text', description: 'Email de contato no portal.' },
+    'portal_contact_address': { label: 'Endereço', group: 'Portal Público', type: 'text', description: 'Localização/Endereço no rodapé.' },
+    'portal_social_instagram': { label: 'Instagram', group: 'Portal Público', type: 'text', description: 'Usuário do Instagram (@usuario).' },
+    'portal_social_facebook': { label: 'Facebook', group: 'Portal Público', type: 'text', description: 'Link da página do Facebook.' },
+    'portal_footer_description': { label: 'Descrição do Rodapé', group: 'Portal Público', type: 'textarea', description: 'Breve descrição sobre a empresa no rodapé.' },
+    'portal_copyright': { label: 'Copyright Portal', group: 'Portal Público', type: 'text', description: 'Texto de copyright no final do rodapé do portal.' },
+
+    // Sistema
+    'system_name': { label: 'Nome do Sistema', group: 'Sistema', type: 'text', description: 'Nome do dashboard administrativo.' },
+    'system_slogan': { label: 'Slogan/Subtítulo', group: 'Sistema', type: 'text', description: 'Slogan ou subtítulo do sistema.' },
+    'system_display_version': { label: 'Versão Exibida', group: 'Sistema', type: 'text', description: 'Sobrescrever manualmente a versão visível.' },
+    'system_footer_text': { label: 'Rodapé do Sistema', group: 'Sistema', type: 'text', description: 'Texto global de rodapé do dashboard.' },
+    'system_support_email': { label: 'Email de Suporte', group: 'Sistema', type: 'text', description: 'Email para suporte técnico.' },
+    'system_support_phone': { label: 'Telefone de Suporte', group: 'Sistema', type: 'text', description: 'Telefone para suporte técnico.' },
+};
+
 export const Configuracoes: React.FC = () => {
-    const { currentContext } = useApp();
-    const [activeTab, setActiveTab] = useState<'notificacoes' | 'aparencia' | 'sistema' | 'parametros'>('notificacoes');
+    const { currentContext, refreshSettings } = useApp();
+    const [selectedGroup, setSelectedGroup] = useState<string>('Geral');
+    const [searchQuery, setSearchQuery] = useState('');
 
     // Parameters State
     const [parameters, setParameters] = React.useState<IParameter[]>([]);
@@ -23,8 +167,9 @@ export const Configuracoes: React.FC = () => {
     const [success, setSuccess] = React.useState('');
 
     // New/Edit Parameter State
-    const [isSavingParam, setIsSavingParam] = React.useState(false);
-    const [newParam, setNewParam] = React.useState({ key: '', value: '', description: '' });
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [newParam, setNewParam] = React.useState({ key: '', value: '', description: '', group_name: 'Avançado' });
+    const [allSettings, setAllSettings] = React.useState<Record<string, string>>({});
 
     const fetchParameters = async () => {
         setIsLoadingParams(true);
@@ -40,6 +185,13 @@ export const Configuracoes: React.FC = () => {
             if (response.ok) {
                 const data = await response.json();
                 setParameters(data);
+
+                // Initialize settings dictionary
+                const settingsDict: Record<string, string> = {};
+                data.forEach((p: IParameter) => {
+                    settingsDict[p.key] = p.value;
+                });
+                setAllSettings(settingsDict);
             } else {
                 setError('Falha ao carregar parâmetros.');
             }
@@ -51,8 +203,8 @@ export const Configuracoes: React.FC = () => {
     };
 
     const handleSaveParameter = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSavingParam(true);
+        if (e) e.preventDefault();
+        setIsSaving(true);
         setError('');
         setSuccess('');
 
@@ -69,8 +221,9 @@ export const Configuracoes: React.FC = () => {
 
             if (response.ok) {
                 setSuccess('Parâmetro salvo com sucesso!');
-                setNewParam({ key: '', value: '', description: '' });
+                setNewParam({ key: '', value: '', description: '', group_name: 'Avançado' });
                 fetchParameters();
+                refreshSettings();
             } else {
                 const data = await response.json();
                 setError(data.error || 'Falha ao salvar parâmetro.');
@@ -78,9 +231,48 @@ export const Configuracoes: React.FC = () => {
         } catch (err) {
             setError('Erro ao salvar parâmetro.');
         } finally {
-            setIsSavingParam(false);
+            setIsSaving(false);
         }
     };
+
+    const handleSaveBatch = async (keys: { key: string, description: string }[]) => {
+        setIsSaving(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const { data: session } = await authClient.getSession();
+            if (!session?.session.activeOrganizationId) return;
+
+            const batchParams = keys.map(k => ({
+                key: k.key,
+                value: allSettings[k.key] || '',
+                description: k.description,
+                group_name: parameters.find(p => p.key === k.key)?.group_name || PARAM_METADATA[k.key]?.group || 'Avançado'
+            }));
+
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters/batch`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ parameters: batchParams })
+            });
+
+            if (response.ok) {
+                setSuccess('Configurações salvas com sucesso!');
+                fetchParameters();
+                refreshSettings();
+            } else {
+                const data = await response.json();
+                setError(data.error || 'Falha ao salvar configurações.');
+            }
+        } catch (err) {
+            setError('Erro ao salvar configurações.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
 
     const handleDeleteParameter = async (paramId: string) => {
         if (!window.confirm('Excluir este parâmetro?')) return;
@@ -97,6 +289,7 @@ export const Configuracoes: React.FC = () => {
             if (response.ok) {
                 setSuccess('Parâmetro excluído.');
                 fetchParameters();
+                refreshSettings();
             } else {
                 setError('Falha ao excluir.');
             }
@@ -105,293 +298,286 @@ export const Configuracoes: React.FC = () => {
         }
     };
 
+    const { data: session } = authClient.useSession();
+
     React.useEffect(() => {
-        if (activeTab === 'parametros') {
-            fetchParameters();
-        }
-    }, [activeTab]);
+        setError('');
+        setSuccess('');
+        fetchParameters();
+    }, [selectedGroup, session?.session.activeOrganizationId]);
 
     const themeColor = currentContext === EmpresaContexto.TURISMO ? 'blue' : 'orange';
+    const groups = ['Geral', 'Operacional', 'Financeiro', 'Frota', 'CRM', 'Portal Público', 'Sistema', 'Avançado'];
+
+    const filteredParameters = parameters.filter(p => {
+        const meta = PARAM_METADATA[p.key];
+        const currentGroup = p.group_name || meta?.group || 'Avançado';
+
+        const matchesSearch =
+            p.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (meta?.label.toLowerCase().includes(searchQuery.toLowerCase() || '')) ||
+            (p.description?.toLowerCase().includes(searchQuery.toLowerCase() || '')) ||
+            (meta?.description.toLowerCase().includes(searchQuery.toLowerCase() || ''));
+
+        if (searchQuery) return matchesSearch;
+
+        // Context filtering: Only show parameters relevant to the current business context
+        if (meta?.contexts && !meta.contexts.includes(currentContext)) {
+            return false;
+        }
+
+        if (selectedGroup === 'Avançado') {
+            return currentGroup === 'Avançado';
+        }
+
+        return currentGroup === selectedGroup;
+    });
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <div className="flex flex-col h-[calc(100vh-120px)] group">
+            {/* Header with Search */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Configurações</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Gerencie as preferências do sistema.</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Configurações do Sistema</h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">Administre todos os parâmetros e preferências globais.</p>
                 </div>
-                <button className={`flex items-center gap-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white px-4 py-2 rounded-lg transition-colors`}>
-                    <Save size={18} />
-                    <span>Salvar Alterações</span>
-                </button>
+                <div className="relative w-full md:w-96">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Pesquisar parâmetro, descrição ou chave..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+                    />
+                    {searchQuery && (
+                        <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
+                </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                {/* Tabs */}
-                <div className="flex border-b border-slate-200 dark:border-slate-700">
-                    <button
-                        onClick={() => setActiveTab('notificacoes')}
-                        className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'notificacoes'
-                            ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Bell size={18} />
-                        Notificações
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('aparencia')}
-                        className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'aparencia'
-                            ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Monitor size={18} />
-                        Aparência
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('sistema')}
-                        className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'sistema'
-                            ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Shield size={18} />
-                        Sistema
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('parametros')}
-                        className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'parametros'
-                            ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Settings2 size={18} />
-                        Parâmetros
-                    </button>
+            <div className="flex flex-1 overflow-hidden gap-6">
+                {/* Sidebar Groups */}
+                <div className="w-64 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col shrink-0">
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-700">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Módulos</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto py-2">
+                        {groups.map(group => (
+                            <button
+                                key={group}
+                                onClick={() => { setSelectedGroup(group); setSearchQuery(''); }}
+                                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-all ${selectedGroup === group && !searchQuery
+                                    ? `bg-${themeColor}-50 dark:bg-${themeColor}-900/20 text-${themeColor}-600 dark:text-${themeColor}-400 border-r-4 border-${themeColor}-600`
+                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                                    }`}
+                            >
+                                {group}
+                                {selectedGroup === group && !searchQuery && <ChevronRight size={14} />}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="p-4 border-t border-slate-100 dark:border-slate-700">
+                        <button
+                            onClick={() => { setSelectedGroup('Avançado'); setSearchQuery(''); }}
+                            className="flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-blue-500 transition-colors"
+                        >
+                            <Plus size={14} /> Novo Parâmetro
+                        </button>
+                    </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6">
-                    {activeTab === 'notificacoes' && (
-                        <div className="space-y-6 max-w-2xl">
-                            <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-4">Preferências de Notificação</h3>
-
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-700 rounded-lg">
-                                    <div>
-                                        <p className="font-medium text-slate-800 dark:text-white">Notificações por Email</p>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Receber atualizações importantes via email</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" className="sr-only peer" defaultChecked />
-                                        <div className={`w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-${themeColor}-300 dark:peer-focus:ring-${themeColor}-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-${themeColor}-600`}></div>
-                                    </label>
+                {/* Main Content Area */}
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                    {/* Feedback Messages */}
+                    {(error || success) && (
+                        <div className="mb-6 space-y-2">
+                            {error && (
+                                <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2 border border-red-100 dark:border-red-900/30">
+                                    <AlertCircle size={18} /> {error}
                                 </div>
-
-                                <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-700 rounded-lg">
-                                    <div>
-                                        <p className="font-medium text-slate-800 dark:text-white">Notificações SMS</p>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Receber alertas urgentes via SMS</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" className="sr-only peer" />
-                                        <div className={`w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-${themeColor}-300 dark:peer-focus:ring-${themeColor}-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-${themeColor}-600`}></div>
-                                    </label>
+                            )}
+                            {success && (
+                                <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm rounded-lg border border-green-100 dark:border-green-900/30 flex items-center gap-2">
+                                    <Check size={18} /> {success}
                                 </div>
-
-                                <div className="flex items-center justify-between p-4 border border-slate-100 dark:border-slate-700 rounded-lg">
-                                    <div>
-                                        <p className="font-medium text-slate-800 dark:text-white">Notificações Push</p>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">Receber notificações no navegador</p>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" className="sr-only peer" defaultChecked />
-                                        <div className={`w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-${themeColor}-300 dark:peer-focus:ring-${themeColor}-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-${themeColor}-600`}></div>
-                                    </label>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     )}
 
-                    {activeTab === 'aparencia' && (
-                        <div className="space-y-6 max-w-2xl">
-                            <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-4">Personalização</h3>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 transition-colors">
-                                    <div className="h-20 bg-slate-100 rounded mb-3"></div>
-                                    <p className="font-medium text-center text-slate-700 dark:text-slate-300">Modo Claro</p>
-                                </div>
-                                <div className="p-4 border-2 border-slate-200 dark:border-slate-700 rounded-lg cursor-pointer hover:border-blue-500 transition-colors bg-slate-900">
-                                    <div className="h-20 bg-slate-800 rounded mb-3"></div>
-                                    <p className="font-medium text-center text-white">Modo Escuro</p>
-                                </div>
+                    {isLoadingParams ? (
+                        <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
+                            <Loader2 className="animate-spin" size={32} />
+                            <p className="text-sm">Carregando parâmetros...</p>
+                        </div>
+                    ) : filteredParameters.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 gap-4">
+                            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-full">
+                                <Search size={32} className="text-slate-300" />
                             </div>
-
-                            <div className="mt-6">
-                                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 block">Cor do Tema</label>
-                                <div className="flex gap-3">
-                                    <button className="w-8 h-8 rounded-full bg-blue-600 ring-2 ring-offset-2 ring-blue-600"></button>
-                                    <button className="w-8 h-8 rounded-full bg-orange-600"></button>
-                                    <button className="w-8 h-8 rounded-full bg-green-600"></button>
-                                    <button className="w-8 h-8 rounded-full bg-purple-600"></button>
-                                </div>
+                            <div className="text-center">
+                                <p className="font-medium text-slate-800 dark:text-white">Nenhum parâmetro encontrado</p>
+                                <p className="text-sm">Tente ajustar sua pesquisa ou trocar de módulo.</p>
                             </div>
                         </div>
-                    )}
-
-                    {activeTab === 'sistema' && (
-                        <div className="space-y-6 max-w-2xl">
-                            <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-4">Informações do Sistema</h3>
-
-                            <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700 space-y-3">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Versão</span>
-                                    <span className="font-mono text-slate-700 dark:text-slate-300">v2.1.0</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Build</span>
-                                    <span className="font-mono text-slate-700 dark:text-slate-300">20231125-stable</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500 dark:text-slate-400">Ambiente</span>
-                                    <span className="font-mono text-green-600 dark:text-green-400">Produção</span>
-                                </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
-                                <h4 className="font-medium text-slate-800 dark:text-white mb-3">Manutenção de Dados</h4>
-                                <div className="flex gap-3">
-                                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                        <Database size={16} />
-                                        Backup Manual
+                    ) : (
+                        <div className="space-y-6 pb-12">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                                    {searchQuery ? `Resultados para "${searchQuery}"` : selectedGroup}
+                                    <span className="text-xs font-normal text-slate-400 normal-case">({filteredParameters.length} itens)</span>
+                                </h2>
+                                {!searchQuery && (
+                                    <button
+                                        onClick={() => handleSaveBatch(filteredParameters.map(p => ({ key: p.key, description: PARAM_METADATA[p.key]?.description || p.description })))}
+                                        disabled={isSaving}
+                                        className={`flex items-center gap-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white px-4 py-2 rounded-lg transition-all text-sm font-bold shadow-md shadow-${themeColor}-600/20 disabled:opacity-50`}
+                                    >
+                                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
+                                        Salvar Tudo ({selectedGroup})
                                     </button>
-                                    <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                                        <RefreshCw size={16} />
-                                        Limpar Cache
-                                    </button>
-                                </div>
+                                )}
                             </div>
-                        </div>
-                    )}
 
-                    {activeTab === 'parametros' && (
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                {/* Form */}
-                                <div className="lg:col-span-1">
-                                    <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                                        <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                            <Plus size={18} className="text-blue-500" />
-                                            Novo Parâmetro
+                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                {filteredParameters.map(param => {
+                                    const meta = PARAM_METADATA[param.key];
+                                    return (
+                                        <div key={param.id} className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col justify-between group/card">
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h4 className="font-bold text-slate-800 dark:text-white">{meta?.label || param.key}</h4>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <code className="text-[10px] font-mono bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-800 uppercase">
+                                                                {param.key}
+                                                            </code>
+                                                            <select
+                                                                value={param.group_name || meta?.group || 'Avançado'}
+                                                                onChange={(e) => {
+                                                                    const newGroup = e.target.value;
+                                                                    const { data: session } = authClient.getSession() as any;
+                                                                    if (!session?.session.activeOrganizationId) return;
+
+                                                                    fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters`, {
+                                                                        method: 'POST',
+                                                                        credentials: 'include',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify({
+                                                                            key: param.key,
+                                                                            value: param.value,
+                                                                            description: param.description,
+                                                                            group_name: newGroup
+                                                                        })
+                                                                    }).then(() => {
+                                                                        setSuccess('Módulo atualizado!');
+                                                                        fetchParameters();
+                                                                    });
+                                                                }}
+                                                                className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-none outline-none focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
+                                                            >
+                                                                {groups.map(g => <option key={g} value={g}>{g}</option>)}
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                                                        <button
+                                                            onClick={() => handleDeleteParameter(param.id)}
+                                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
+                                                            title="Excluir Parâmetro"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                                                    {meta?.description || param.description || 'Sem descrição definida.'}
+                                                </p>
+                                                <div className="pt-2">
+                                                    <SettingField
+                                                        label=""
+                                                        k={param.key}
+                                                        type={meta?.type || 'text'}
+                                                        options={meta?.options}
+                                                        allSettings={allSettings}
+                                                        setAllSettings={setAllSettings}
+                                                        themeColor={themeColor}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {selectedGroup === 'Avançado' && !searchQuery && (
+                                <div className="mt-8 p-1 border-t border-slate-200 dark:border-slate-700 pt-8">
+                                    <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+                                            <Plus size={20} className="text-blue-500" />
+                                            Criar Novo Parâmetro Técnico
                                         </h3>
-                                        <form onSubmit={handleSaveParameter} className="space-y-4">
+                                        <form onSubmit={handleSaveParameter} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Chave (Key)</label>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Chave (Key)</label>
                                                 <input
                                                     type="text"
                                                     value={newParam.key}
                                                     onChange={(e) => setNewParam({ ...newParam, key: e.target.value })}
-                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="ex: trip_safety_margin"
+                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                    placeholder="ex: my_custom_key"
                                                     required
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Valor (Value)</label>
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Módulo</label>
+                                                <select
+                                                    value={newParam.group_name}
+                                                    onChange={(e) => setNewParam({ ...newParam, group_name: e.target.value })}
+                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm appearance-none"
+                                                >
+                                                    {groups.map(g => <option key={g} value={g}>{g}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="md:col-span-1">
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Valor Inicial</label>
                                                 <input
                                                     type="text"
                                                     value={newParam.value}
                                                     onChange={(e) => setNewParam({ ...newParam, value: e.target.value })}
-                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
-                                                    placeholder="ex: 168"
+                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                    placeholder="ex: 123"
                                                     required
                                                 />
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+                                            <div className="md:col-span-3">
+                                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Descrição</label>
                                                 <textarea
                                                     value={newParam.description}
                                                     onChange={(e) => setNewParam({ ...newParam, description: e.target.value })}
-                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                                                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none text-sm"
                                                     placeholder="Para que serve este parâmetro?"
                                                 />
                                             </div>
-
-                                            {error && (
-                                                <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs rounded-lg flex items-center gap-2">
-                                                    <AlertCircle size={14} />
-                                                    {error}
-                                                </div>
-                                            )}
-
-                                            {success && (
-                                                <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-xs rounded-lg">
-                                                    {success}
-                                                </div>
-                                            )}
-
-                                            <button
-                                                type="submit"
-                                                disabled={isSavingParam}
-                                                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                                            >
-                                                {isSavingParam ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                                                Salvar Parâmetro
-                                            </button>
+                                            <div className="md:col-span-3 flex justify-end">
+                                                <button
+                                                    type="submit"
+                                                    disabled={isSaving}
+                                                    className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-70 shadow-lg shadow-blue-600/20"
+                                                >
+                                                    {isSaving ? <Loader2 className="animate-spin text-white" size={18} /> : <Save size={18} />}
+                                                    Registrar Parâmetro
+                                                </button>
+                                            </div>
                                         </form>
                                     </div>
                                 </div>
-
-                                {/* List */}
-                                <div className="lg:col-span-2">
-                                    <h3 className="text-lg font-medium text-slate-800 dark:text-white mb-4">Configurações Atuais</h3>
-                                    {isLoadingParams ? (
-                                        <div className="flex justify-center p-8">
-                                            <Loader2 className="animate-spin text-slate-400" size={24} />
-                                        </div>
-                                    ) : parameters.length === 0 ? (
-                                        <div className="p-8 text-center bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-500">
-                                            Nenhum parâmetro cadastrado.
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {parameters.map((param) => (
-                                                <div key={param.id} className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-start">
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center gap-2">
-                                                            <code className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 rounded text-sm font-bold">
-                                                                {param.key}
-                                                            </code>
-                                                            <span className="text-slate-400 text-xs">=</span>
-                                                            <span className="font-mono text-slate-900 dark:text-slate-100">{param.value}</span>
-                                                        </div>
-                                                        <p className="text-sm text-slate-500 dark:text-slate-400">{param.description}</p>
-                                                        <p className="text-[10px] text-slate-400">Atualizado em: {new Date(param.updated_at).toLocaleString()}</p>
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => setNewParam({ key: param.key, value: param.value, description: param.description })}
-                                                            className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                                            title="Editar"
-                                                        >
-                                                            <Settings2 size={16} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteParameter(param.id)}
-                                                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                            title="Excluir"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            )}
                         </div>
                     )}
                 </div>
@@ -399,3 +585,4 @@ export const Configuracoes: React.FC = () => {
         </div>
     );
 };
+

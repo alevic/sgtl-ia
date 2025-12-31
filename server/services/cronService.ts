@@ -12,15 +12,17 @@ export const initCronJobs = () => {
         console.log('⏰ Running Cron: Auto-Cancel Pending Reservations');
         const client = await pool.connect();
         try {
-            const EXPIRATION_MINUTES = 5;
             const query = `
-                UPDATE reservations 
+                UPDATE reservations r
                 SET status = 'CANCELLED', 
-                    notes = COALESCE(notes, '') || ' [Cancelado Automaticamente por Expiração]',
+                    notes = COALESCE(r.notes, '') || ' [Cancelado Automaticamente por Expiração]',
                     updated_at = CURRENT_TIMESTAMP
-                WHERE status = 'PENDING' 
-                  AND created_at < NOW() - INTERVAL '${EXPIRATION_MINUTES} minutes'
-                RETURNING id
+                FROM organization o
+                LEFT JOIN system_parameters sp ON sp.organization_id = o.id AND sp.key = 'reservation_expiration_minutes'
+                WHERE r.organization_id = o.id
+                  AND r.status = 'PENDING' 
+                  AND r.created_at < NOW() - (COALESCE(sp.value, '5') || ' minutes')::INTERVAL
+                RETURNING r.id
             `;
             const result = await client.query(query);
             if (result.rows.length > 0) {

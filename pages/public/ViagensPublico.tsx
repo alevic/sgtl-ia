@@ -5,6 +5,7 @@ import {
     ChevronRight, Loader, ArrowRight, ChevronDown
 } from 'lucide-react';
 import { tripsService } from '../../services/tripsService';
+import { publicService } from '../../services/publicService';
 import { IViagem, ITag } from '../../types';
 
 // Helper to format date
@@ -33,6 +34,7 @@ export const ViagensPublico: React.FC = () => {
     const [filtroData, setFiltroData] = useState('');
     const [filtroOrigem, setFiltroOrigem] = useState('');
     const [filtroDestino, setFiltroDestino] = useState('');
+    const [settings, setSettings] = useState<any>(null);
 
     useEffect(() => {
         fetchViagens();
@@ -41,9 +43,10 @@ export const ViagensPublico: React.FC = () => {
     const fetchViagens = async () => {
         try {
             setLoading(true);
-            const [data, tagsData] = await Promise.all([
+            const [data, tagsData, settingsData] = await Promise.all([
                 tripsService.getAll(),
-                tripsService.getTags()
+                tripsService.getTags(),
+                publicService.getSettings('')
             ]);
             // Filter only active and future trips
             const activeTrips = data.filter((v: IViagem) =>
@@ -52,6 +55,7 @@ export const ViagensPublico: React.FC = () => {
             );
             setViagens(activeTrips);
             setAllTags(tagsData);
+            setSettings(settingsData);
         } catch (error) {
             console.error('Erro ao carregar viagens:', error);
         } finally {
@@ -169,10 +173,10 @@ export const ViagensPublico: React.FC = () => {
                 <div className="max-w-5xl mx-auto">
                     <div className="mb-10 text-center md:text-left">
                         <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">
-                            Encontre sua próxima viagem
+                            {settings?.portal_hero_title || 'Encontre sua próxima viagem'}
                         </h1>
                         <p className="text-blue-100 text-base md:text-lg max-w-xl">
-                            Viagens rodoviárias com conforto, segurança e os melhores preços garantidos para você.
+                            {settings?.portal_hero_subtitle || 'Viagens rodoviárias com conforto, segurança e os melhores preços garantidos para você.'}
                         </p>
                     </div>
 

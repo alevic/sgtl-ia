@@ -591,11 +591,23 @@ export async function setupDb() {
                 key TEXT NOT NULL,
                 value TEXT NOT NULL,
                 description TEXT,
+                group_name TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(organization_id, key)
             );
             CREATE INDEX IF NOT EXISTS idx_system_parameters_org ON system_parameters(organization_id);
+        `);
+
+        // Migration: Add group_name column if it doesn't exist
+        await pool.query(`
+            ALTER TABLE system_parameters 
+            ADD COLUMN IF NOT EXISTS group_name TEXT;
+        `);
+
+        // Create index for group_name after ensuring it exists
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_system_parameters_group ON system_parameters(group_name);
         `);
 
         // Seed default trip safety margin if not exists

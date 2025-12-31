@@ -13,6 +13,8 @@ interface AppContextType {
   toggleSidebar: () => void;
   theme: Theme;
   toggleTheme: () => void;
+  systemSettings: Record<string, string>;
+  refreshSettings: () => Promise<void>;
 }
 
 const MOCK_EMPRESAS: Record<EmpresaContexto, IEmpresa> = {
@@ -36,6 +38,54 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentContext, setCurrentContext] = useState<EmpresaContexto>(EmpresaContexto.TURISMO);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<Theme>('light');
+  const [systemSettings, setSystemSettings] = useState<Record<string, string>>({});
+  const { data: session } = authClient.useSession();
+
+  const refreshSettings = async () => {
+    try {
+      // Get current session to find active org
+      const { data: sessionData } = await authClient.getSession();
+      const orgId = sessionData?.session.activeOrganizationId;
+
+      // 1. First try to get public settings (available even before login)
+      const publicUrl = orgId
+        ? `${import.meta.env.VITE_API_URL}/api/public/parameters?organizationId=${orgId}`
+        : `${import.meta.env.VITE_API_URL}/api/public/parameters`;
+
+      const publicResponse = await fetch(publicUrl);
+      let combinedSettings: Record<string, string> = {};
+
+      if (publicResponse.ok) {
+        const publicData = await publicResponse.json();
+        publicData.forEach((p: { key: string; value: string }) => {
+          combinedSettings[p.key] = p.value;
+        });
+      }
+
+      // 2. If user is logged in and has an active organization, fetch private settings too
+      if (orgId) {
+        const orgResponse = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/organization/${orgId}/parameters`,
+          { credentials: 'include' }
+        );
+
+        if (orgResponse.ok) {
+          const orgData = await orgResponse.json();
+          orgData.forEach((p: { key: string; value: string }) => {
+            combinedSettings[p.key] = p.value;
+          });
+        }
+      }
+
+      setSystemSettings(combinedSettings);
+    } catch (err) {
+      console.error('Failed to fetch system settings:', err);
+    }
+  };
+
+  useEffect(() => {
+    refreshSettings();
+  }, [session?.session.activeOrganizationId]);
 
   const switchContext = (context: EmpresaContexto) => {
     setCurrentContext(context);
@@ -53,7 +103,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   }, [theme]);
 
-  const { data: session } = authClient.useSession();
 
   // Sync active organization and context
   useEffect(() => {
@@ -101,7 +150,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       isSidebarOpen,
       toggleSidebar: () => setIsSidebarOpen(!isSidebarOpen),
       theme,
-      toggleTheme
+      toggleTheme,
+      systemSettings,
+      refreshSettings
     }}>
       {children}
     </AppContext.Provider>

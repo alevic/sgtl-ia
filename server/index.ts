@@ -1098,6 +1098,32 @@ app.put("/api/organization/:id/details", authorize(['admin', 'user']), async (re
 
 // ===== SYSTEM PARAMETERS ROUTES =====
 
+// GET public settings (no auth required for logo, system name, footer, etc.)
+app.get("/api/public/parameters", async (req, res) => {
+    const { organizationId } = req.query;
+    try {
+        const publicKeys = [
+            'system_name', 'system_slogan', 'system_display_version', 'system_footer_text',
+            'portal_logo_text', 'portal_header_slogan', 'portal_copyright'
+        ];
+
+        let query = "SELECT key, value FROM system_parameters WHERE key = ANY($1)";
+        const params: any[] = [publicKeys];
+
+        if (organizationId) {
+            query += " AND organization_id = $2";
+            params.push(organizationId);
+        } else {
+            query += " AND organization_id IN (SELECT id FROM organization LIMIT 1)";
+        }
+
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching public parameters:", error);
+        res.status(500).json({ error: "Failed to fetch public settings" });
+    }
+});
 // GET all parameters for an organization
 app.get("/api/organization/:id/parameters", authorize(['admin', 'operacional']), async (req, res) => {
     const { id } = req.params;
@@ -1121,7 +1147,7 @@ app.get("/api/organization/:id/parameters", authorize(['admin', 'operacional']),
 // POST/PUT upsert a parameter
 app.post("/api/organization/:id/parameters", authorize(['admin', 'operacional']), async (req, res) => {
     const { id } = req.params;
-    const { key, value, description } = req.body;
+    const { key, value, description, group_name } = req.body;
 
     try {
         const session = (req as any).session;
@@ -1130,21 +1156,69 @@ app.post("/api/organization/:id/parameters", authorize(['admin', 'operacional'])
         }
 
         const result = await pool.query(
-            `INSERT INTO system_parameters (organization_id, key, value, description)
-             VALUES ($1, $2, $3, $4)
+            `INSERT INTO system_parameters (organization_id, key, value, description, group_name)
+             VALUES ($1, $2, $3, $4, $5)
              ON CONFLICT (organization_id, key) 
              DO UPDATE SET 
                 value = EXCLUDED.value,
                 description = COALESCE(EXCLUDED.description, system_parameters.description),
+                group_name = COALESCE(EXCLUDED.group_name, system_parameters.group_name),
                 updated_at = NOW()
              RETURNING *`,
-            [id, key, value, description]
+            [id, key, value, description, group_name || null]
         );
 
         res.json(result.rows[0]);
     } catch (error) {
         console.error("Error upserting system parameter:", error);
         res.status(500).json({ error: "Failed to save system parameter" });
+    }
+});
+
+// POST/PUT upsert multiple parameters
+app.post("/api/organization/:id/parameters/batch", authorize(['admin', 'operacional']), async (req, res) => {
+    const { id } = req.params;
+    const { parameters } = req.body; // Expects array of { key, value, description }
+
+    if (!Array.isArray(parameters)) {
+        return res.status(400).json({ error: "Parameters must be an array" });
+    }
+
+    const client = await pool.connect();
+    try {
+        const session = (req as any).session;
+        if (session.session.activeOrganizationId !== id) {
+            return res.status(403).json({ error: "You can only manage parameters of the active organization" });
+        }
+
+        await client.query('BEGIN');
+
+        const results = [];
+        for (const param of parameters) {
+            const { key, value, description, group_name } = param;
+            const result = await client.query(
+                `INSERT INTO system_parameters (organization_id, key, value, description, group_name)
+                 VALUES ($1, $2, $3, $4, $5)
+                 ON CONFLICT (organization_id, key) 
+                 DO UPDATE SET 
+                    value = EXCLUDED.value,
+                    description = COALESCE(EXCLUDED.description, system_parameters.description),
+                    group_name = COALESCE(EXCLUDED.group_name, system_parameters.group_name),
+                    updated_at = NOW()
+                 RETURNING *`,
+                [id, key, value, description, group_name || null]
+            );
+            results.push(result.rows[0]);
+        }
+
+        await client.query('COMMIT');
+        res.json(results);
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error("Error batch upserting system parameters:", error);
+        res.status(500).json({ error: "Failed to save system parameters" });
+    } finally {
+        client.release();
     }
 });
 

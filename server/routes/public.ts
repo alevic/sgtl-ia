@@ -208,4 +208,53 @@ router.post("/client/signup", async (req, res) => {
     }
 });
 
+// GET /public/settings - Get portal public settings (logo, title, etc)
+router.get("/settings", async (req, res) => {
+    try {
+        // We can pass an organization_id via query or use a default one
+        // For now, let's allow fetching by organization_id
+        const { organization_id } = req.query;
+        let orgId = organization_id as string;
+
+        if (!orgId) {
+            // If no org specified, try to find the first organization
+            const orgResult = await pool.query('SELECT id FROM "organization" LIMIT 1');
+            if (orgResult.rows.length === 0) {
+                return res.status(404).json({ error: "No organization found" });
+            }
+            orgId = orgResult.rows[0].id;
+        }
+
+        const whitelistedKeys = [
+            'portal_logo_text',
+            'portal_header_slogan',
+            'portal_hero_title',
+            'portal_hero_subtitle',
+            'portal_footer_description',
+            'portal_contact_phone',
+            'portal_contact_email',
+            'portal_contact_address',
+            'portal_social_instagram',
+            'portal_social_facebook',
+            'portal_copyright'
+        ];
+
+        const result = await pool.query(
+            "SELECT key, value FROM system_parameters WHERE organization_id = $1 AND key = ANY($2)",
+            [orgId, whitelistedKeys]
+        );
+
+        // Convert rows to an object
+        const settings = result.rows.reduce((acc: any, row) => {
+            acc[row.key] = row.value;
+            return acc;
+        }, {});
+
+        res.json(settings);
+    } catch (error) {
+        console.error("Error fetching public settings:", error);
+        res.status(500).json({ error: "Failed to fetch settings" });
+    }
+});
+
 export default router;

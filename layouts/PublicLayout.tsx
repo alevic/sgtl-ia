@@ -1,9 +1,24 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Bus, MapPin, Phone, Mail, Instagram, Facebook } from 'lucide-react';
+import { publicService } from '../services/publicService';
 
 export const PublicLayout: React.FC = () => {
     const location = useLocation();
+    const [settings, setSettings] = React.useState<any>(null);
+
+    React.useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                // Pass empty string to let backend decide which org to use (defaults to first one)
+                const data = await publicService.getSettings('');
+                setSettings(data);
+            } catch (error) {
+                console.error('Error fetching portal settings:', error);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
@@ -18,10 +33,10 @@ export const PublicLayout: React.FC = () => {
                             </div>
                             <div>
                                 <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    SGTL Viagens
+                                    {settings?.portal_logo_text || 'SGTL Viagens'}
                                 </span>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 -mt-1">
-                                    Sua viagem começa aqui
+                                    {settings?.portal_header_slogan || 'Sua viagem começa aqui'}
                                 </p>
                             </div>
                         </Link>
@@ -54,10 +69,10 @@ export const PublicLayout: React.FC = () => {
                                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                                     <Bus size={18} className="text-white" />
                                 </div>
-                                <span className="font-bold text-lg">SGTL Viagens</span>
+                                <span className="font-bold text-lg">{settings?.portal_logo_text || 'SGTL Viagens'}</span>
                             </div>
                             <p className="text-slate-400 text-sm">
-                                Viagens rodoviárias com conforto e segurança para você e sua família.
+                                {settings?.portal_footer_description || 'Viagens rodoviárias com conforto e segurança para você e sua família.'}
                             </p>
                         </div>
 
@@ -67,15 +82,15 @@ export const PublicLayout: React.FC = () => {
                             <div className="space-y-2 text-sm text-slate-400">
                                 <div className="flex items-center gap-2">
                                     <Phone size={14} />
-                                    <span>(11) 99999-9999</span>
+                                    <span>{settings?.portal_contact_phone || '(11) 99999-9999'}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Mail size={14} />
-                                    <span>contato@sgtlviagens.com.br</span>
+                                    <span>{settings?.portal_contact_email || 'contato@sgtlviagens.com.br'}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <MapPin size={14} />
-                                    <span>São Paulo, SP</span>
+                                    <span>{settings?.portal_contact_address || 'São Paulo, SP'}</span>
                                 </div>
                             </div>
                         </div>
@@ -84,18 +99,32 @@ export const PublicLayout: React.FC = () => {
                         <div>
                             <h3 className="font-semibold mb-4">Redes Sociais</h3>
                             <div className="flex gap-3">
-                                <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors">
-                                    <Instagram size={20} />
-                                </a>
-                                <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors">
-                                    <Facebook size={20} />
-                                </a>
+                                {settings?.portal_social_instagram && (
+                                    <a href={`https://instagram.com/${settings.portal_social_instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors">
+                                        <Instagram size={20} />
+                                    </a>
+                                )}
+                                {settings?.portal_social_facebook && (
+                                    <a href={`https://facebook.com/${settings.portal_social_facebook}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors">
+                                        <Facebook size={20} />
+                                    </a>
+                                )}
+                                {!settings?.portal_social_instagram && !settings?.portal_social_facebook && (
+                                    <>
+                                        <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors">
+                                            <Instagram size={20} />
+                                        </a>
+                                        <a href="#" className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center hover:bg-slate-700 transition-colors">
+                                            <Facebook size={20} />
+                                        </a>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
 
                     <div className="border-t border-slate-800 mt-8 pt-6 text-center text-sm text-slate-500">
-                        © {new Date().getFullYear()} SGTL Viagens. Todos os direitos reservados.
+                        {settings?.portal_copyright || `© ${new Date().getFullYear()} SGTL Viagens. Todos os direitos reservados.`}
                     </div>
                 </div>
             </footer>
