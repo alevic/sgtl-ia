@@ -96,19 +96,44 @@ interface IParameterMetadata {
 }
 
 const PARAM_METADATA: Record<string, IParameterMetadata> = {
-    // Geral
-    'system_timezone': { label: 'Fuso Horário', group: 'Geral', type: 'text', description: 'Fuso horário padrão para datas e horários.' },
-    'system_currency': { label: 'Moeda', group: 'Geral', type: 'text', description: 'Símbolo monetário (ex: R$, $).' },
-    'system_language': { label: 'Idioma', group: 'Geral', type: 'select', description: 'Idioma principal da interface.', options: [{ label: 'Português (Brasil)', value: 'pt-BR' }] },
-    'system_date_format': { label: 'Formato de Data', group: 'Geral', type: 'text', description: 'Formato de exibição de datas.' },
+    // Sistema
+    'system_name': { label: 'Nome do Sistema', group: 'Sistema', type: 'text', description: 'Nome do dashboard administrativo.' },
+    'system_slogan': { label: 'Slogan/Subtítulo', group: 'Sistema', type: 'text', description: 'Slogan ou subtítulo do sistema.' },
+    'system_display_version': { label: 'Versão Exibida', group: 'Sistema', type: 'text', description: 'Sobrescrever manualmente a versão visível.' },
+    'system_footer_text': { label: 'Rodapé do Sistema', group: 'Sistema', type: 'text', description: 'Texto global de rodapé do dashboard.' },
+    'system_support_email': { label: 'Email de Suporte', group: 'Sistema', type: 'text', description: 'Email para suporte técnico.' },
+    'system_support_phone': { label: 'Telefone de Suporte', group: 'Sistema', type: 'text', description: 'Telefone para suporte técnico.' },
+    'system_timezone': { label: 'Fuso Horário', group: 'Sistema', type: 'text', description: 'Fuso horário padrão para datas e horários.' },
+    'system_language': { label: 'Idioma', group: 'Sistema', type: 'select', description: 'Idioma principal da interface.', options: [{ label: 'Português (Brasil)', value: 'pt-BR' }] },
+    'system_date_format': { label: 'Formato de Data', group: 'Sistema', type: 'text', description: 'Formato de exibição de datas.' },
 
-    // Operacional
-    'booking_deadline_hours': { label: 'Prazo limite de reserva (horas)', group: 'Operacional', type: 'number', description: 'Horas antes da partida para bloquear vendas online.', contexts: [EmpresaContexto.TURISMO] },
-    'reservation_expiration_minutes': { label: 'Expiração de pendência (minutos)', group: 'Operacional', type: 'number', description: 'Minutos para cancelar reservas pendentes automaticamente.', contexts: [EmpresaContexto.TURISMO] },
-    'trip_auto_complete_safety_margin_hours': { label: 'Margem de conclusão (horas)', group: 'Operacional', type: 'number', description: 'Horas após a partida para marcar viagem como concluída (fallback).', contexts: [EmpresaContexto.TURISMO] },
-    'auto_start_trips': { label: 'Automação de Status', group: 'Operacional', type: 'checkbox', description: 'Mudar para \'Em Trânsito\' automaticamente no horário de partida.', contexts: [EmpresaContexto.TURISMO] },
+    // Viagens
+    'trip_auto_complete_safety_margin_hours': { label: 'Margem de conclusão (horas)', group: 'Viagens', type: 'number', description: 'Horas após a partida para marcar viagem como concluída (fallback).', contexts: [EmpresaContexto.TURISMO] },
+    'auto_start_trips': { label: 'Automação de Status', group: 'Viagens', type: 'checkbox', description: 'Mudar para \'Em Trânsito\' automaticamente no horário de partida.', contexts: [EmpresaContexto.TURISMO] },
+    'crm_enable_reward_points': { label: 'Ativar Pontos de Fidelidade', group: 'Viagens', type: 'checkbox', description: 'Habilitar sistema de pontos por viagem.', contexts: [EmpresaContexto.TURISMO] },
+    'crm_points_per_trip': { label: 'Pontos por Real (R$ 1.00)', group: 'Viagens', type: 'number', description: 'Pontos ganhos por cada real gasto.', contexts: [EmpresaContexto.TURISMO] },
+
+    // Reservas
+    'booking_deadline_hours': { label: 'Prazo limite de reserva (horas)', group: 'Reservas', type: 'number', description: 'Horas antes da partida para bloquear vendas online.', contexts: [EmpresaContexto.TURISMO] },
+    'reservation_expiration_minutes': { label: 'Expiração de pendência (minutos)', group: 'Reservas', type: 'number', description: 'Minutos para cancelar reservas pendentes automaticamente.', contexts: [EmpresaContexto.TURISMO] },
+
+    // Clientes
+    'crm_vip_threshold_trips': { label: 'Limite para VIP (Viagens)', group: 'Clientes', type: 'number', description: 'Número de viagens para tornar cliente VIP.', contexts: [EmpresaContexto.TURISMO] },
+
+    // Frota
+    'fleet_default_vehicle_type': {
+        label: 'Tipo de Veículo Padrão', group: 'Frota', type: 'select', description: 'Tipo de veículo padrão para novas viagens.', options: [
+            { label: 'Ônibus (Convencional)', value: 'BUS_CONV' }, { label: 'Ônibus (Executivo)', value: 'BUS_EXEC' }, { label: 'Micro-ônibus', value: 'MICRO' }, { label: 'Van', value: 'VAN' }
+        ],
+        contexts: [EmpresaContexto.TURISMO]
+    },
+
+    // Manutenção
+    'fleet_maintenance_km_threshold': { label: 'Alerta de Manutenção (KM)', group: 'Manutenção', type: 'number', description: 'Quilometragem padrão para alerta de revisão.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
+    'fleet_maintenance_days_threshold': { label: 'Alerta de Manutenção (Dias)', group: 'Manutenção', type: 'number', description: 'Dias padrão para alerta de revisão por tempo.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
 
     // Financeiro
+    'system_currency': { label: 'Moeda', group: 'Financeiro', type: 'text', description: 'Símbolo monetário (ex: R$, $).' },
     'finance_convenience_fee_percent': { label: 'Taxa de Conveniência (%)', group: 'Financeiro', type: 'number', description: 'Taxa de conveniência aplicada em vendas web.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
     'finance_default_payment_method': {
         label: 'Método Padrão', group: 'Financeiro', type: 'select', description: 'Método de pagamento sugerido no checkout.', options: [
@@ -118,22 +143,7 @@ const PARAM_METADATA: Record<string, IParameterMetadata> = {
     },
     'finance_auto_generate_invoice': { label: 'Faturamento Automático', group: 'Financeiro', type: 'checkbox', description: 'Gerar contas a receber ao confirmar reserva.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
 
-    // Frota
-    'fleet_maintenance_km_threshold': { label: 'Alerta de Manutenção (KM)', group: 'Frota', type: 'number', description: 'Quilometragem padrão para alerta de revisão.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
-    'fleet_maintenance_days_threshold': { label: 'Alerta de Manutenção (Dias)', group: 'Frota', type: 'number', description: 'Dias padrão para alerta de revisão por tempo.', contexts: [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS] },
-    'fleet_default_vehicle_type': {
-        label: 'Tipo de Veículo Padrão', group: 'Frota', type: 'select', description: 'Tipo de veículo padrão para novas viagens.', options: [
-            { label: 'Ônibus (Convencional)', value: 'BUS_CONV' }, { label: 'Ônibus (Executivo)', value: 'BUS_EXEC' }, { label: 'Micro-ônibus', value: 'MICRO' }, { label: 'Van', value: 'VAN' }
-        ],
-        contexts: [EmpresaContexto.TURISMO]
-    },
-
-    // CRM
-    'crm_enable_reward_points': { label: 'Ativar Pontos de Fidelidade', group: 'CRM', type: 'checkbox', description: 'Habilitar sistema de pontos por viagem.', contexts: [EmpresaContexto.TURISMO] },
-    'crm_points_per_trip': { label: 'Pontos por Real (R$ 1.00)', group: 'CRM', type: 'number', description: 'Pontos ganhos por cada real gasto.', contexts: [EmpresaContexto.TURISMO] },
-    'crm_vip_threshold_trips': { label: 'Limite para VIP (Viagens)', group: 'CRM', type: 'number', description: 'Número de viagens para tornar cliente VIP.', contexts: [EmpresaContexto.TURISMO] },
-
-    // Portal
+    // Portal Público
     'portal_logo_text': { label: 'Nome do Logotipo', group: 'Portal Público', type: 'text', description: 'Texto do logotipo no portal público.' },
     'portal_header_slogan': { label: 'Slogan do Header', group: 'Portal Público', type: 'text', description: 'Slogan abaixo do logo no portal.' },
     'portal_hero_title': { label: 'Título do Banner', group: 'Portal Público', type: 'text', description: 'Título principal da página inicial do portal.' },
@@ -145,19 +155,11 @@ const PARAM_METADATA: Record<string, IParameterMetadata> = {
     'portal_social_facebook': { label: 'Facebook', group: 'Portal Público', type: 'text', description: 'Link da página do Facebook.' },
     'portal_footer_description': { label: 'Descrição do Rodapé', group: 'Portal Público', type: 'textarea', description: 'Breve descrição sobre a empresa no rodapé.' },
     'portal_copyright': { label: 'Copyright Portal', group: 'Portal Público', type: 'text', description: 'Texto de copyright no final do rodapé do portal.' },
-
-    // Sistema
-    'system_name': { label: 'Nome do Sistema', group: 'Sistema', type: 'text', description: 'Nome do dashboard administrativo.' },
-    'system_slogan': { label: 'Slogan/Subtítulo', group: 'Sistema', type: 'text', description: 'Slogan ou subtítulo do sistema.' },
-    'system_display_version': { label: 'Versão Exibida', group: 'Sistema', type: 'text', description: 'Sobrescrever manualmente a versão visível.' },
-    'system_footer_text': { label: 'Rodapé do Sistema', group: 'Sistema', type: 'text', description: 'Texto global de rodapé do dashboard.' },
-    'system_support_email': { label: 'Email de Suporte', group: 'Sistema', type: 'text', description: 'Email para suporte técnico.' },
-    'system_support_phone': { label: 'Telefone de Suporte', group: 'Sistema', type: 'text', description: 'Telefone para suporte técnico.' },
 };
 
 export const Configuracoes: React.FC = () => {
     const { currentContext, refreshSettings } = useApp();
-    const [selectedGroup, setSelectedGroup] = useState<string>('Geral');
+    const [selectedGroup, setSelectedGroup] = useState<string>('Sistema');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Parameters State
@@ -307,7 +309,12 @@ export const Configuracoes: React.FC = () => {
     }, [selectedGroup, session?.session.activeOrganizationId]);
 
     const themeColor = currentContext === EmpresaContexto.TURISMO ? 'blue' : 'orange';
-    const groups = ['Geral', 'Operacional', 'Financeiro', 'Frota', 'CRM', 'Portal Público', 'Sistema', 'Avançado'];
+    const groups = [
+        'Dashboard', 'Viagens', 'Reservas', 'Fretamento B2B', 'Rotas', 'Rotas Express',
+        'Encomendas', 'Clientes', 'Frota', 'Motoristas', 'Manutenção', 'Financeiro',
+        'Relatórios', 'Documentos', 'Usuários', 'Organizações', 'Cadastros Auxiliares',
+        'Portal Público', 'Sistema', 'Avançado'
+    ];
 
     const filteredParameters = parameters.filter(p => {
         const meta = PARAM_METADATA[p.key];
