@@ -308,13 +308,41 @@ export const Configuracoes: React.FC = () => {
         fetchParameters();
     }, [selectedGroup, session?.session.activeOrganizationId]);
 
+    const GROUP_CONTEXTS: Record<string, EmpresaContexto[]> = {
+        'Dashboard': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Viagens': [EmpresaContexto.TURISMO],
+        'Reservas': [EmpresaContexto.TURISMO],
+        'Fretamento B2B': [EmpresaContexto.TURISMO],
+        'Rotas': [EmpresaContexto.TURISMO],
+        'Rotas Express': [EmpresaContexto.EXPRESS],
+        'Encomendas': [EmpresaContexto.EXPRESS],
+        'Clientes': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Frota': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Motoristas': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Manutenção': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Financeiro': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Relatórios': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Documentos': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Usuários': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Organizações': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Cadastros Auxiliares': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Portal Público': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Sistema': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS],
+        'Avançado': [EmpresaContexto.TURISMO, EmpresaContexto.EXPRESS]
+    };
+
+    const groups = Object.keys(GROUP_CONTEXTS).filter(g =>
+        GROUP_CONTEXTS[g].includes(currentContext)
+    );
+
+    // If switching context makes current selected group disappear, fallback to Sistema
+    React.useEffect(() => {
+        if (!groups.includes(selectedGroup)) {
+            setSelectedGroup('Sistema');
+        }
+    }, [currentContext]);
+
     const themeColor = currentContext === EmpresaContexto.TURISMO ? 'blue' : 'orange';
-    const groups = [
-        'Dashboard', 'Viagens', 'Reservas', 'Fretamento B2B', 'Rotas', 'Rotas Express',
-        'Encomendas', 'Clientes', 'Frota', 'Motoristas', 'Manutenção', 'Financeiro',
-        'Relatórios', 'Documentos', 'Usuários', 'Organizações', 'Cadastros Auxiliares',
-        'Portal Público', 'Sistema', 'Avançado'
-    ];
 
     const filteredParameters = parameters.filter(p => {
         const meta = PARAM_METADATA[p.key];
