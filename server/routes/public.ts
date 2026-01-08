@@ -35,10 +35,15 @@ router.get("/trips", async (req, res) => {
             SELECT t.id, t.departure_date, t.departure_time, t.arrival_date, t.arrival_time,
                    t.price_conventional, t.price_executive, t.price_semi_sleeper, t.price_sleeper,
                    t.seats_available, t.tags, t.cover_image, t.title, t.baggage_limit, t.alerts,
-                   r.name as route_name, r.origin_city, r.origin_state, r.destination_city, r.destination_state, r.duration_minutes, r.stops as route_stops,
-                   v.tipo as vehicle_type, v.modelo as vehicle_model, v.placa as vehicle_plate
+                   t.status, t.active,
+                   r.name as route_name, r.origin_city, r.origin_state, r.destination_city, r.destination_state, 
+                   r.origin_neighborhood, r.destination_neighborhood,
+                    r.duration_minutes, r.stops as route_stops,
+                    rr.stops as return_route_stops,
+                    v.tipo as vehicle_type, v.modelo as vehicle_model, v.placa as vehicle_plate
             FROM trips t
             JOIN routes r ON t.route_id = r.id
+            LEFT JOIN routes rr ON t.return_route_id = rr.id
             LEFT JOIN vehicle v ON t.vehicle_id = v.id
             WHERE t.status IN ('SCHEDULED', 'AGENDADA', 'CONFIRMADA', 'CONFIRMED') AND (t.active = true OR t.active IS NULL)
         `;
@@ -80,10 +85,14 @@ router.get("/trips/:id", async (req, res) => {
 
         const result = await pool.query(
             `SELECT t.*, 
-                   r.name as route_name, r.origin_city, r.origin_state, r.destination_city, r.destination_state, r.stops as route_stops,
-                   v.placa as vehicle_plate, v.modelo as vehicle_model, v.tipo as vehicle_type, v.capacidade_passageiros, v.id as vehicle_id
+                   r.name as route_name, r.origin_city, r.origin_state, r.destination_city, r.destination_state, 
+                   r.origin_neighborhood, r.destination_neighborhood,
+                    r.stops as route_stops,
+                    rr.stops as return_route_stops,
+                    v.placa as vehicle_plate, v.modelo as vehicle_model, v.tipo as vehicle_type, v.capacidade_passageiros, v.id as vehicle_id
             FROM trips t
             JOIN routes r ON t.route_id = r.id
+            LEFT JOIN routes rr ON t.return_route_id = rr.id
             LEFT JOIN vehicle v ON t.vehicle_id = v.id
             WHERE t.id = $1 AND (t.active = true OR t.active IS NULL)`,
             [id]
@@ -97,6 +106,59 @@ router.get("/trips/:id", async (req, res) => {
     } catch (error) {
         console.error("Error fetching public trip:", error);
         res.status(500).json({ error: "Failed to fetch trip" });
+    }
+});
+
+// GET /public/vehicles/:id - Get basic vehicle info publicly
+router.get("/vehicles/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            "SELECT id, modelo, placa, ano, tipo, capacidade_passageiros, imagem, galeria FROM vehicle WHERE id = $1",
+            [id]
+        );
+        if (result.rows.length === 0) return res.status(404).json({ error: "Vehicle not found" });
+
+        // Fetch features
+        const features = await pool.query("SELECT label, category FROM vehicle_feature WHERE vehicle_id = $1", [id]);
+
+        res.json({ ...result.rows[0], features: features.rows });
+    } catch (error) {
+        console.error("Error fetching public vehicle:", error);
+        res.status(500).json({ error: "Failed to fetch vehicle" });
+    }
+});
+
+// GET /public/vehicles/:id/seats - Get seats publicly
+router.get("/vehicles/:id/seats", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            "SELECT * FROM seat WHERE vehicle_id = $1 ORDER BY andar, posicao_y, posicao_x",
+            [id]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching public seats:", error);
+        res.status(500).json({ error: "Failed to fetch seats" });
+    }
+});
+
+// GET /public/trips/:id/reserved-seats - Get reserved seats for a trip
+router.get("/trips/:id/reserved-seats", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            `SELECT s.numero as seat_number 
+             FROM reservations r
+             JOIN seat s ON r.seat_id = s.id
+             WHERE r.trip_id = $1 AND r.status != 'CANCELLED'`,
+            [id]
+        );
+        res.json(result.rows.map(r => r.seat_number));
+    } catch (error) {
+        console.error("Error fetching reserved seats:", error);
+        res.status(500).json({ error: "Failed to fetch reserved seats" });
     }
 });
 
@@ -281,6 +343,55 @@ router.get("/settings", async (req, res) => {
     } catch (error) {
         console.error("Error fetching public settings:", error);
         res.status(500).json({ error: "Failed to fetch settings" });
+    }
+});
+
+// GET /public/tags - List trip tags publicly
+router.get("/tags", async (req, res) => {
+    try {
+        const result = await pool.query(
+            "SELECT * FROM trip_tags ORDER BY nome ASC"
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching public tags:", error);
+        res.status(500).json({ error: "Failed to fetch tags" });
+    }
+});
+
+// GET /public/resolve-identifier - Find email by CPF or Phone
+router.get("/resolve-identifier", async (req, res) => {
+    try {
+        const { identifier } = req.query;
+        if (!identifier) return res.status(400).json({ error: "Identifier is required" });
+
+        const cleanIdentifier = (identifier as string).replace(/\D/g, '');
+
+        // Search by CPF or Phone (cleaning non-digits)
+        const result = await pool.query(
+            "SELECT email FROM clients WHERE REPLACE(documento_numero, '.', '') REPLACE(REPLACE(documento_numero, '-', ''), '/', '') = $1 OR REPLACE(telefone, ' ', '') REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') LIKE $2 LIMIT 1",
+            [cleanIdentifier, `%${cleanIdentifier}%`]
+        );
+
+        // More robust search if the above simple cleanup isn't enough for DB formatting
+        // Let's use a simpler check first:
+        const betterResult = await pool.query(
+            `SELECT email FROM clients 
+             WHERE documento_numero ILIKE $1 
+                OR telefone ILIKE $1 
+                OR email ILIKE $1 
+             LIMIT 1`,
+            [`%${identifier}%`]
+        );
+
+        if (betterResult.rows.length === 0) {
+            return res.status(404).json({ error: "Identifier not found" });
+        }
+
+        res.json({ email: betterResult.rows[0].email });
+    } catch (error) {
+        console.error("Error resolving identifier:", error);
+        res.status(500).json({ error: "Failed to resolve identifier" });
     }
 });
 

@@ -228,7 +228,7 @@ export const NovaReserva: React.FC = () => {
   const podeAvancarStep1 = viagemSelecionada !== null;
   const podeAvancarStep2 = assentosSelecionados.length > 0 && assentosSelecionados.every(a => {
     const p = passageirosMap[a.numero];
-    return p && p.nome && p.documento; // Validate required fields
+    return p && p.nome && p.documento && p.boarding_point && p.dropoff_point; // Validate required fields including points
   });
 
   const handleConfirmarReserva = async () => {
@@ -273,6 +273,8 @@ export const NovaReserva: React.FC = () => {
           forma_pagamento: paymentMethod === 'DIGITAL' ? 'DIGITAL' : detailedPaymentMethod, // Send payment method
           client_id: p.cliente_id,
           notes: `Reserva ${paymentMethod} - ${isPartialPayment ? 'SINAL/PARCIAL' : 'INTEGRAL'}`,
+          boarding_point: p.boarding_point,
+          dropoff_point: p.dropoff_point,
           // Add credit usage info to first reservation (or distribute? Simple: first)
           credits_used: (seat.numero === assentosSelecionados[0].numero) ? creditsToUse : 0,
           external_payment_id: paymentMethod === 'DIGITAL' ? paymentData?.paymentId : null // Send Payment ID
@@ -658,6 +660,53 @@ export const NovaReserva: React.FC = () => {
                             className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                             placeholder="000.000.000-00"
                           />
+                        </div>
+                      </div>
+
+                      {/* Boarding and Dropoff Points - UI */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                            Ponto de Embarque *
+                          </label>
+                          <select
+                            value={passageirosMap[seat.numero]?.boarding_point || ''}
+                            onChange={(e) => handlePassengerChange(seat.numero, 'boarding_point', e.target.value)}
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                          >
+                            <option value="">Selecione...</option>
+                            {(() => {
+                              const stops = viagemSelecionada?.route_stops && (typeof viagemSelecionada.route_stops === 'string' ? JSON.parse(viagemSelecionada.route_stops) : viagemSelecionada.route_stops);
+                              if (Array.isArray(stops)) {
+                                return stops.filter((s: any) => s.permite_embarque !== false).map((stop: any, idx: number) => (
+                                  <option key={idx} value={stop.nome}>{stop.nome}</option>
+                                ));
+                              }
+                              return null;
+                            })()}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                            Ponto de Desembarque *
+                          </label>
+                          <select
+                            value={passageirosMap[seat.numero]?.dropoff_point || ''}
+                            onChange={(e) => handlePassengerChange(seat.numero, 'dropoff_point', e.target.value)}
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                          >
+                            <option value="">Selecione...</option>
+                            {(() => {
+                              // Alighting points come from Return Route as requested
+                              const stops = viagemSelecionada?.return_route_stops && (typeof viagemSelecionada.return_route_stops === 'string' ? JSON.parse(viagemSelecionada.return_route_stops) : viagemSelecionada.return_route_stops);
+                              if (Array.isArray(stops)) {
+                                return stops.filter((s: any) => s.permite_desembarque !== false).map((stop: any, idx: number) => (
+                                  <option key={idx} value={stop.nome}>{stop.nome}</option>
+                                ));
+                              }
+                              return null;
+                            })()}
+                          </select>
                         </div>
                       </div>
                     </div>

@@ -63,7 +63,9 @@ export const Reservas: React.FC = () => {
         passenger_name: '',
         passenger_document: '',
         passenger_email: '',
-        passenger_phone: ''
+        passenger_phone: '',
+        boarding_point: '',
+        dropoff_point: ''
     });
 
     const navigate = useNavigate();
@@ -106,7 +108,9 @@ export const Reservas: React.FC = () => {
             passenger_name: (reserva as any).passenger_name || '',
             passenger_document: (reserva as any).passenger_document || '',
             passenger_email: (reserva as any).passenger_email || '',
-            passenger_phone: (reserva as any).passenger_phone || ''
+            passenger_phone: (reserva as any).passenger_phone || '',
+            boarding_point: (reserva as any).boarding_point || '',
+            dropoff_point: (reserva as any).dropoff_point || ''
         });
     };
 
@@ -519,6 +523,23 @@ export const Reservas: React.FC = () => {
                                                         <span className="text-xs">Assento</span>
                                                         <span className="text-sm font-bold">{reserva.seat_number || 'N/A'}</span>
                                                     </div>
+
+                                                    {(reserva.boarding_point || reserva.dropoff_point) && (
+                                                        <div className="flex flex-wrap gap-4 w-full mt-2 pt-2 border-t border-slate-50 dark:border-slate-700/30">
+                                                            {reserva.boarding_point && (
+                                                                <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+                                                                    <span className="font-bold uppercase">Embarque:</span>
+                                                                    <span>{reserva.boarding_point}</span>
+                                                                </div>
+                                                            )}
+                                                            {reserva.dropoff_point && (
+                                                                <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+                                                                    <span className="font-bold uppercase">Desembarque:</span>
+                                                                    <span>{reserva.dropoff_point}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -637,6 +658,42 @@ export const Reservas: React.FC = () => {
                                     onChange={e => setEditForm({ ...editForm, passenger_phone: e.target.value })}
                                     className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                                 />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ponto de Embarque</label>
+                                    <select
+                                        value={editForm.boarding_point}
+                                        onChange={e => setEditForm({ ...editForm, boarding_point: e.target.value })}
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {(() => {
+                                            const stops = (editingReserva as any)?.route_stops;
+                                            const stopsList = typeof stops === 'string' ? JSON.parse(stops) : (Array.isArray(stops) ? stops : []);
+                                            return stopsList.filter((s: any) => s.permite_embarque !== false).map((stop: any, idx: number) => (
+                                                <option key={idx} value={stop.nome}>{stop.nome}</option>
+                                            ));
+                                        })()}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ponto de Desembarque</label>
+                                    <select
+                                        value={editForm.dropoff_point}
+                                        onChange={e => setEditForm({ ...editForm, dropoff_point: e.target.value })}
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {(() => {
+                                            const stops = (editingReserva as any)?.return_route_stops;
+                                            const stopsList = typeof stops === 'string' ? JSON.parse(stops) : (Array.isArray(stops) ? stops : []);
+                                            return stopsList.filter((s: any) => s.permite_desembarque !== false).map((stop: any, idx: number) => (
+                                                <option key={idx} value={stop.nome}>{stop.nome}</option>
+                                            ));
+                                        })()}
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 p-6 border-t border-slate-100 dark:border-slate-700">

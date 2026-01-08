@@ -44,8 +44,8 @@ export const ViagensPublico: React.FC = () => {
         try {
             setLoading(true);
             const [data, tagsData, settingsData] = await Promise.all([
-                tripsService.getAll(),
-                tripsService.getTags(),
+                publicService.getTrips(),
+                publicService.getTags(),
                 publicService.getSettings('')
             ]);
             // Filter only active and future trips
@@ -367,9 +367,11 @@ export const ViagensPublico: React.FC = () => {
                                                     const stops = viagem.route_stops && Array.isArray(viagem.route_stops) ? viagem.route_stops : [];
                                                     if (stops.length > 0) return stops[0].nome;
 
-                                                    return viagem.origin_city && viagem.origin_state
-                                                        ? `${viagem.origin_city}, ${viagem.origin_state}`
-                                                        : (viagem.origin_city || 'Origem');
+                                                    return viagem.origin_neighborhood
+                                                        ? `${viagem.origin_neighborhood}, ${viagem.origin_city}/${viagem.origin_state}`
+                                                        : viagem.origin_city && viagem.origin_state
+                                                            ? `${viagem.origin_city}, ${viagem.origin_state}`
+                                                            : (viagem.origin_city || 'Origem');
                                                 })()}
                                             </span>
                                         </div>
@@ -381,9 +383,11 @@ export const ViagensPublico: React.FC = () => {
                                                     const stops = viagem.route_stops && Array.isArray(viagem.route_stops) ? viagem.route_stops : [];
                                                     if (stops.length > 0) return stops[stops.length - 1].nome;
 
-                                                    return viagem.destination_city && viagem.destination_state
-                                                        ? `${viagem.destination_city}, ${viagem.destination_state}`
-                                                        : (viagem.destination_city || 'Destino');
+                                                    return viagem.destination_neighborhood
+                                                        ? `${viagem.destination_neighborhood}, ${viagem.destination_city}/${viagem.destination_state}`
+                                                        : viagem.destination_city && viagem.destination_state
+                                                            ? `${viagem.destination_city}, ${viagem.destination_state}`
+                                                            : (viagem.destination_city || 'Destino');
                                                 })()}
                                             </span>
                                         </div>
@@ -410,9 +414,9 @@ export const ViagensPublico: React.FC = () => {
                                             </div>
                                         )}
                                         {viagem.alerts && (
-                                            <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium" title={viagem.alerts}>
-                                                <AlertTriangle size={14} />
-                                                <span>Avisos importantes</span>
+                                            <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                                                <AlertTriangle size={14} className="shrink-0" />
+                                                <span className="truncate max-w-[150px] md:max-w-[200px]">{viagem.alerts}</span>
                                             </div>
                                         )}
                                     </div>

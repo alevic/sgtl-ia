@@ -13,5 +13,46 @@ export const publicService = {
             throw new Error('Failed to fetch public trip details');
         }
         return response.json();
+    },
+
+    getTrips: async () => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/trips`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch public trips');
+        }
+        return response.json();
+    },
+
+    getTags: async () => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/tags`);
+        if (!response.ok) {
+            // Silently fail tags as they are not critical
+            return [];
+        }
+        return response.json();
+    },
+
+    getVehicleById: async (id: string) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/vehicles/${id}`);
+        if (!response.ok) throw new Error('Failed to fetch public vehicle');
+        return response.json();
+    },
+
+    getVehicleSeats: async (id: string) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/vehicles/${id}/seats`);
+        if (!response.ok) throw new Error('Failed to fetch public vehicle seats');
+        return response.json();
+    },
+
+    getReservedSeats: async (tripId: string) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/trips/${tripId}/reserved-seats`);
+        if (!response.ok) throw new Error('Failed to fetch reserved seats');
+        return response.json();
+    },
+
+    resolveIdentifier: async (identifier: string) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/resolve-identifier?identifier=${encodeURIComponent(identifier)}`);
+        if (!response.ok) throw new Error('Failed to resolve identifier');
+        return response.json();
     }
 };

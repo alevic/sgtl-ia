@@ -18,11 +18,28 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
     const [showUpperDeck, setShowUpperDeck] = useState(false);
     const [hasSeatPlan, setHasSeatPlan] = useState(true);
     const [driverPosition, setDriverPosition] = useState<DriverPosition>('Left');
-    const [seatRows, setSeatRows] = useState(8);
-    const [seatColumns, setSeatColumns] = useState(5);
+    const [activeTab, setActiveTab] = useState<'LOWER' | 'UPPER'>('LOWER');
+
+    // Independent dimensions for each deck
+    const [deckDims, setDeckDims] = useState({
+        LOWER: { rows: 8, cols: 5 },
+        UPPER: { rows: 8, cols: 5 }
+    });
+
+    // Helper getters for currently active deck dimensions
+    const seatRows = deckDims[activeTab].rows;
+    const seatColumns = deckDims[activeTab].cols;
+
+    // Helper setters that update the dimensions for the active deck only
+    const setSeatRows = (val: number) => {
+        setDeckDims(prev => ({ ...prev, [activeTab]: { ...prev[activeTab], rows: val } }));
+    };
+    const setSeatColumns = (val: number) => {
+        setDeckDims(prev => ({ ...prev, [activeTab]: { ...prev[activeTab], cols: val } }));
+    };
+
     const [lowerDeckSeats, setLowerDeckSeats] = useState<string[][]>([]);
     const [upperDeckSeats, setUpperDeckSeats] = useState<string[][]>([]);
-    const [activeTab, setActiveTab] = useState<'LOWER' | 'UPPER'>('LOWER');
 
     // Novos estados para configuração de tipos
     const [editMode, setEditMode] = useState<'NUMBER' | 'TYPE'>('NUMBER');
@@ -38,35 +55,80 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
         [TipoAssento.LEITO]: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700',
         [TipoAssento.CAMA]: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700',
         [TipoAssento.CAMA_MASTER]: 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-700',
+        [TipoAssento.BLOQUEADO]: 'bg-amber-100 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700',
     };
 
     useEffect(() => {
-        if (seats && seats.length > 0) {
-            loadSavedSeats();
-        }
+        loadSavedSeats();
     }, [seats]);
 
     const loadSavedSeats = () => {
+        if (!seats || seats.length === 0) return;
+
         try {
-            // Find dimensions
-            let maxRow = 0;
-            let maxCol = 0;
+            // Find dimensions independently for each deck
+            let maxRowL = 0;
+            let maxColL = 0;
+            let maxRowU = 0;
+            let maxColU = 0;
             const types: Record<string, TipoAssento> = {};
 
             seats.forEach(seat => {
-                if (seat.posicao_y > maxRow) maxRow = seat.posicao_y;
-                if (seat.posicao_x > maxCol) maxCol = seat.posicao_x;
+                if (seat.posicao_x < 0 || seat.posicao_y < 0) return;
+
+                // Track max bounds separately
+                if (!seat.disabled && !seat.numero.startsWith('DISABLED_')) {
+                    if (seat.andar === 1) {
+                        if (seat.posicao_y > maxRowL) maxRowL = seat.posicao_y;
+                        if (seat.posicao_x > maxColL) maxColL = seat.posicao_x;
+                    } else {
+                        if (seat.posicao_y > maxRowU) maxRowU = seat.posicao_y;
+                        if (seat.posicao_x > maxColU) maxColU = seat.posicao_x;
+                    }
+                }
+
                 if (seat.numero && !seat.numero.startsWith('DISABLED_')) {
                     types[seat.numero] = seat.tipo;
                 }
             });
 
-            // Update dimensions state
-            setSeatRows(maxRow + 1);
-            setSeatColumns(maxCol + 1);
-            setSeatRows(maxRow + 1);
-            setSeatColumns(maxCol + 1);
+            // Update types
             setSeatTypes(types);
+
+            // Update deck dimensions independently
+            setDeckDims({
+                LOWER: { rows: maxRowL + 1, cols: maxColL + 1 },
+                UPPER: { rows: maxRowU + 1, cols: maxColU + 1 }
+            });
+
+            // Check if upper deck has seats
+            const hasUpper = seats.some(s => s.andar === 2);
+            setShowUpperDeck(hasUpper);
+
+            // Initialize grids with EXACT dimensions found for EACH deck
+            const lower: string[][] = Array(maxRowL + 1).fill(null).map(() => Array(maxColL + 1).fill(''));
+            const upper: string[][] = hasUpper
+                ? Array(maxRowU + 1).fill(null).map(() => Array(maxColU + 1).fill(''))
+                : [];
+
+            // Populate grids with safety checks
+            seats.forEach(seat => {
+                const grid = seat.andar === 1 ? lower : upper;
+                const mRow = seat.andar === 1 ? maxRowL : maxRowU;
+                const mCol = seat.andar === 1 ? maxColL : maxColU;
+
+                if (grid && grid.length > 0 &&
+                    seat.posicao_y >= 0 && seat.posicao_y <= mRow &&
+                    seat.posicao_x >= 0 && seat.posicao_x <= mCol &&
+                    grid[seat.posicao_y]) {
+
+                    if (seat.disabled || (seat.numero && seat.numero.startsWith('DISABLED_'))) {
+                        grid[seat.posicao_y][seat.posicao_x] = ''; // Empty string for disabled
+                    } else {
+                        grid[seat.posicao_y][seat.posicao_x] = seat.numero || '';
+                    }
+                }
+            });
 
             // Populate statuses
             const statuses: Record<string, AssentoStatus> = {};
@@ -77,34 +139,9 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
             });
             setSeatStatuses(statuses);
 
-            // Check if upper deck has seats
-            const hasUpper = seats.some(s => s.andar === 2);
-            setShowUpperDeck(hasUpper);
-
-            // Initialize grids with empty string (editable slot) instead of Blank (Corridor)
-            const lower: string[][] = Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill(''));
-            // Only initialize upper grid if there are seats for it
-            const upper: string[][] = hasUpper
-                ? Array(maxRow + 1).fill(null).map(() => Array(maxCol + 1).fill(''))
-                : [];
-
-            // Populate grids
-            seats.forEach(seat => {
-                const grid = seat.andar === 1 ? lower : upper;
-                if (grid && grid.length > 0 && grid[seat.posicao_y]) {
-                    if (seat.disabled || (seat.numero && seat.numero.startsWith('DISABLED_'))) {
-                        grid[seat.posicao_y][seat.posicao_x] = ''; // Empty string for disabled
-                    } else {
-                        grid[seat.posicao_y][seat.posicao_x] = seat.numero || '';
-                    }
-                }
-            });
-
-            // Auto-detect corridors: If a column is completely empty in a deck, mark it as 'Blank'
+            // Auto-detect corridors
             const detectCorridors = (grid: string[][]) => {
                 if (!grid || grid.length === 0) return;
-
-                // Get number of columns from first row
                 const numCols = grid[0].length;
 
                 for (let c = 0; c < numCols; c++) {
@@ -230,15 +267,23 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                     }
 
                     const isEmpty = seat.trim() === '';
+                    const tipo = seatTypes[seat] || TipoAssento.CONVENCIONAL;
+
+                    // Seat is commercially blocked if its type is BLOQUEADO
+                    // Seat is structurally disabled if its name is empty
+                    const isCommerciallyBlocked = tipo === TipoAssento.BLOQUEADO;
+                    const isStructurallyDisabled = isEmpty;
 
                     allSeats.push({
                         numero: isEmpty ? `DISABLED_D${deck}_R${rowIndex}_C${colIndex}` : seat.trim(),
                         andar: deck,
                         posicao_x: colIndex,
                         posicao_y: rowIndex,
-                        tipo: seatTypes[seat] || TipoAssento.CONVENCIONAL,
-                        status: isEmpty ? 'BLOQUEADO' as AssentoStatus : (seatStatuses[seat.trim()] || AssentoStatus.LIVRE),
-                        disabled: isEmpty
+                        tipo: tipo,
+                        status: (isCommerciallyBlocked || isStructurallyDisabled)
+                            ? AssentoStatus.BLOQUEADO
+                            : (seatStatuses[seat.trim()] || AssentoStatus.LIVRE),
+                        disabled: isStructurallyDisabled
                     } as IAssento);
                 });
             });
@@ -285,11 +330,6 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                 {/* Ghost element for centering */}
                                 <div className="w-[42px] flex-shrink-0 opacity-0 pointer-events-none" aria-hidden="true" />
                                 {row.map((seat, colIndex) => {
-                                    // Safety check
-                                    if (typeof seat !== 'string') {
-                                        return null;
-                                    }
-
                                     const isEmpty = seat.trim() === '';
                                     const isBlank = seat === 'Blank';
 
@@ -341,8 +381,6 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                                 <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
                                                     {(isEmpty || seatStatuses[seat] === 'BLOQUEADO') ? 'BLOQUEADO' : getSeatType(seat).replace('_', ' ')}
                                                 </div>
-
-
                                             </div>
                                         );
                                     }
@@ -383,8 +421,6 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                 <p className="text-sm text-slate-500 dark:text-slate-400">Configure o layout dos assentos do ônibus.</p>
             </div>
 
-
-
             {/* Seat Type - Optional */}
             <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -402,7 +438,6 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                     Selecione o tipo de plano - Padrão: Sem Plano de Assentos
                 </p>
             </div>
-
 
             {hasSeatPlan ? (
                 <>
@@ -433,7 +468,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                             : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'}
                                     `}
                                 >
-                                    <span className={`flex items-center justify-center w-6 h-6 rounded-full mr-3 text-xs ${activeTab === 'UPPER' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-purple-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'}`}>
+                                    <span className={`flex items-center justify-center w-6 h-6 rounded-full mr-3 text-xs ${activeTab === 'UPPER' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/50 dark:text-blue-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'}`}>
                                         2
                                     </span>
                                     Andar Superior
@@ -443,7 +478,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                     </div>
 
                     <div className="mt-6">
-                        {/* Configuration Controls (Shared Inputs, but applied on Generate) */}
+                        {/* Configuration Controls */}
                         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-6">
                             <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-4">
                                 Parâmetros de Geração ({activeTab === 'LOWER' ? 'Térreo' : 'Superior'})

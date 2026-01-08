@@ -56,6 +56,10 @@ import { ProtectedRoute } from './components/Auth/ProtectedRoute';
 import { PublicLayout } from './layouts/PublicLayout';
 import { ViagensPublico } from './pages/public/ViagensPublico';
 import { ViagemDetalhesPublico } from './pages/public/ViagemDetalhesPublico';
+import { LoginCliente } from './pages/public/LoginCliente';
+import { DashboardCliente } from './pages/public/DashboardCliente';
+import { ReservaDetalhesCliente } from './pages/public/ReservaDetalhesCliente';
+import { EncomendaDetalhesCliente } from './pages/public/EncomendaDetalhesCliente';
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
@@ -174,23 +178,14 @@ const App: React.FC = () => {
             <Route path=":id" element={<ViagemDetalhesPublico />} />
           </Route>
 
-          {/* Client Portal Login (placeholder) */}
-          <Route path="/cliente/login" element={
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-800 p-4">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 max-w-md w-full border border-slate-200 dark:border-slate-700">
-                <div className="text-center mb-6">
-                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4">
-                    <span className="text-2xl">🚌</span>
-                  </div>
-                  <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Entrar</h1>
-                  <p className="text-slate-500 dark:text-slate-400 mt-1">Acesse com seu CPF ou Telefone</p>
-                </div>
-                <p className="text-center text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-lg p-4">
-                  🚧 Login de clientes em desenvolvimento...
-                </p>
-              </div>
-            </div>
-          } />
+          {/* Client Portal */}
+          <Route path="/cliente/login" element={<LoginCliente />} />
+          <Route path="/cliente/dashboard" element={<DashboardCliente />} />
+          <Route path="/cliente/reservas/:id" element={<ReservaDetalhesCliente />} />
+          <Route path="/cliente/encomendas/:id" element={<EncomendaDetalhesCliente />} />
+
+
+
 
         </Routes>
       </HashRouter>

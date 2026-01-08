@@ -29,3 +29,21 @@ export const authorize = (allowedRoles: string[] = []) => {
         }
     };
 };
+
+export const clientAuthorize = () => {
+    return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        try {
+            const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+            if (!session) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+
+            // For clients, we DON'T check for activeOrganizationId because they can span multiple orgs
+            (req as any).session = session;
+            next();
+        } catch (error) {
+            console.error("Client auth middleware error:", error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    };
+};

@@ -55,7 +55,8 @@ export enum TipoAssento {
   SEMI_LEITO = 'SEMI_LEITO',
   LEITO = 'LEITO',
   CAMA = 'CAMA',
-  CAMA_MASTER = 'CAMA_MASTER'
+  CAMA_MASTER = 'CAMA_MASTER',
+  BLOQUEADO = 'BLOQUEADO'
 }
 
 // ===== FINANCIAL ENUMS =====
@@ -382,6 +383,8 @@ export interface IReserva {
   price?: number; // Backend column name
   amount_paid?: number;
   payment_method?: string;
+  boarding_point?: string;
+  dropoff_point?: string;
 }
 
 export const StatusReservaLabel: Record<string, string> = {

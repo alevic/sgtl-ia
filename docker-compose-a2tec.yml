@@ -26,6 +26,9 @@ services:
       - BETTER_AUTH_URL=http://192.168.0.113:4000
       - CLIENT_URL=http://192.168.0.113:8080
       - TZ=America/Sao_Paulo
+      - WHATSAPP_API_URL=${WHATSAPP_API_URL}
+      - WHATSAPP_API_KEY=${WHATSAPP_API_KEY}
+      - WHATSAPP_INSTANCE_NAME=${WHATSAPP_INSTANCE_NAME}
     depends_on:
       - db
 

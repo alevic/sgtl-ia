@@ -143,6 +143,10 @@ app.use("/api/charters", chartersRouter);
 // Public Routes (Portal)
 app.use("/api/public", publicRouter);
 
+// Client Portal Routes (Authenticated)
+import clientRouter from "./routes/client";
+app.use("/api/client", clientRouter);
+
 // Webhook Routes
 import webhooksRouter from "./routes/webhooks";
 app.use("/api/webhooks", webhooksRouter);
@@ -573,6 +577,7 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
             });
 
             // 2. Process new seats (Upsert)
+            const processedIds = new Set();
             const processedNumeros = new Set();
 
             for (const seat of seats) {
@@ -580,6 +585,7 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
                 const existingSeat = existingSeatsMap.get(seat.numero);
 
                 if (existingSeat) {
+                    processedIds.add(existingSeat.id);
                     // Update existing
                     await client.query(
                         `UPDATE seat SET
@@ -594,23 +600,44 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
                         ]
                     );
                 } else {
-                    // Insert new
-                    await client.query(
-                        `INSERT INTO seat (
-                            vehicle_id, numero, andar, posicao_x, posicao_y, tipo, status, preco, disabled
-                        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-                        [
-                            id, seat.numero, seat.andar, seat.posicao_x, seat.posicao_y,
-                            seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false
-                        ]
-                    );
+                    // Check if there is already a seat at this coordinate for this vehicle
+                    const coordKey = `${seat.andar}-${seat.posicao_x}-${seat.posicao_y}`;
+                    const existingAtCoord = existingSeatsResult.rows.find(s => `${s.andar}-${s.posicao_x}-${s.posicao_y}` === coordKey);
+
+                    if (existingAtCoord) {
+                        processedIds.add(existingAtCoord.id);
+                        // Update existing seat at this coordinate with new number
+                        await client.query(
+                            `UPDATE seat SET
+                                numero = $1, tipo = $2, status = $3, preco = $4, disabled = $5,
+                                updated_at = CURRENT_TIMESTAMP
+                            WHERE id = $6`,
+                            [
+                                seat.numero, seat.tipo, seat.status || 'LIVRE',
+                                seat.preco || null, seat.disabled || false,
+                                existingAtCoord.id
+                            ]
+                        );
+                    } else {
+                        // Insert new
+                        const insertResult = await client.query(
+                            `INSERT INTO seat (
+                                vehicle_id, numero, andar, posicao_x, posicao_y, tipo, status, preco, disabled
+                            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+                            [
+                                id, seat.numero, seat.andar, seat.posicao_x, seat.posicao_y,
+                                seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false
+                            ]
+                        );
+                        processedIds.add(insertResult.rows[0].id);
+                    }
                 }
             }
 
             // 3. Delete or Disable removed seats
             const warnings: string[] = [];
-            for (const [numero, existingSeat] of existingSeatsMap.entries()) {
-                if (!processedNumeros.has(numero)) {
+            for (const existingSeat of existingSeatsResult.rows) {
+                if (!processedIds.has(existingSeat.id)) {
                     try {
                         // Create a savepoint before attempting delete
                         await client.query("SAVEPOINT seat_delete");
@@ -622,7 +649,7 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
 
                         // specialized error handling for foreign key violation
                         if (deleteError.code === '23503') {
-                            const msg = `O assento ${numero} não pode ser excluído pois possui reservas vinculadas. Ele foi mantido mas marcado como desabilitado.`;
+                            const msg = `O assento ${existingSeat.numero} não pode ser excluído pois possui reservas vinculadas. Ele foi mantido mas marcado como desabilitado.`;
                             console.warn(msg);
                             warnings.push(msg);
 

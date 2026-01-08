@@ -565,7 +565,9 @@ export async function setupDb() {
             ALTER TABLE reservations 
             ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10, 2),
             ADD COLUMN IF NOT EXISTS payment_method TEXT,
-            ADD COLUMN IF NOT EXISTS external_payment_id TEXT;
+            ADD COLUMN IF NOT EXISTS external_payment_id TEXT,
+            ADD COLUMN IF NOT EXISTS boarding_point TEXT,
+            ADD COLUMN IF NOT EXISTS dropoff_point TEXT;
         `);
 
 

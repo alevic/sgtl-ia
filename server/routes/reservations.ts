@@ -43,11 +43,13 @@ router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) 
         let query = `
             SELECT r.*, 
                    t.departure_date, t.departure_time, t.title as trip_title,
-                   route.name as route_name,
+                   route.name as route_name, route.stops as route_stops,
+                   rr.stops as return_route_stops,
                    s.numero as seat_number, s.tipo as seat_type
             FROM reservations r
             JOIN trips t ON r.trip_id = t.id
             JOIN routes route ON t.route_id = route.id
+            LEFT JOIN routes rr ON t.return_route_id = rr.id
             LEFT JOIN seat s ON r.seat_id = s.id
             WHERE r.organization_id = $1
         `;
@@ -133,10 +135,11 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
         const userId = session.user.id;
 
         const {
-            trip_id, seat_id, seat_number, // Add seat_number here
+            trip_id, seat_id, seat_number,
             passenger_name, passenger_document, passenger_email, passenger_phone,
             price, client_id, notes, status,
-            valor_pago, forma_pagamento
+            valor_pago, forma_pagamento,
+            boarding_point, dropoff_point
         } = req.body;
 
         // Verify status if provided
@@ -190,8 +193,9 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 status, ticket_code, price,
                 user_id, client_id, notes,
                 organization_id, created_by,
-                amount_paid, payment_method, external_payment_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+                amount_paid, payment_method, external_payment_id,
+                boarding_point, dropoff_point
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
             RETURNING *`,
             [
                 trip_id, seat_id || null,
@@ -200,7 +204,8 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 null, client_id || null, notes || null,
                 orgId, userId,
                 valor_pago || 0, forma_pagamento || null,
-                req.body.external_payment_id || null // Store External Payment ID
+                req.body.external_payment_id || null, // Store External Payment ID
+                boarding_point || null, dropoff_point || null
             ]
         );
 
@@ -243,7 +248,7 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
-        const { status, notes, passenger_name, passenger_document, forma_pagamento, valor_pago } = req.body;
+        const { status, notes, passenger_name, passenger_document, forma_pagamento, valor_pago, boarding_point, dropoff_point } = req.body;
 
         const currentRes = await pool.query(
             "SELECT status, trip_id FROM reservations WHERE id = $1 AND organization_id = $2",
@@ -264,10 +269,12 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
                 passenger_document = COALESCE($4, passenger_document),
                 payment_method = COALESCE($5, payment_method),
                 amount_paid = COALESCE($6, amount_paid),
+                boarding_point = COALESCE($7, boarding_point),
+                dropoff_point = COALESCE($8, dropoff_point),
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $7 AND organization_id = $8
+            WHERE id = $9 AND organization_id = $10
             RETURNING *`,
-            [status, notes, passenger_name, passenger_document, forma_pagamento, valor_pago, id, orgId]
+            [status, notes, passenger_name, passenger_document, forma_pagamento, valor_pago, boarding_point, dropoff_point, id, orgId]
         );
 
         // Handle seat count logic if status changes

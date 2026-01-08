@@ -2,14 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Bus, MapPin, Calendar, Clock, Users,
-    DollarSign, Loader, AlertCircle, Check, Briefcase, AlertTriangle
+    DollarSign, Loader, AlertCircle, Check, Briefcase, AlertTriangle,
+    ChevronDown, ChevronRight
 } from 'lucide-react';
 import { tripsService } from '../../services/tripsService';
 import { vehiclesService } from '../../services/vehiclesService';
 import { reservationsService } from '../../services/reservationsService';
 import { MapaAssentosReserva } from '../../components/Veiculos/MapaAssentosReserva';
 import { publicService } from '../../services/publicService';
-import { IViagem, IVeiculo, TipoAssento, ITag } from '../../types';
+import { IViagem, IVeiculo, TipoAssento, ITag, AssentoStatus } from '../../types';
+import { Circle, Star, Armchair, Moon, Bed, Crown, Lock } from 'lucide-react';
+
+const SEAT_ICONS: Record<string, React.ElementType> = {
+    'CONVENCIONAL': Circle,
+    'EXECUTIVO': Star,
+    'SEMI_LEITO': Armchair,
+    'LEITO': Moon,
+    'CAMA': Bed,
+    'CAMA_MASTER': Crown,
+    'BLOQUEADO': Lock,
+};
 
 // Helper to format date
 const formatDate = (date: string | Date) => {
@@ -66,6 +78,8 @@ export const ViagemDetalhesPublico: React.FC = () => {
     const [assentosReservados, setAssentosReservados] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [assentosSelecionados, setAssentosSelecionados] = useState<{ numero: string; tipo: TipoAssento; valor: number }[]>([]);
+    const [precosAbertos, setPrecosAbertos] = useState(false);
+    const [veiculoAberto, setVeiculoAberto] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -78,7 +92,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
             setLoading(true);
             const [tripData, tagsData] = await Promise.all([
                 publicService.getTripById(id!),
-                tripsService.getTags().catch(() => []) // Fallback if tags fail (e.g. public access)
+                publicService.getTags()
             ]);
             setViagem(tripData);
             setAllTags(tagsData);
@@ -86,12 +100,12 @@ export const ViagemDetalhesPublico: React.FC = () => {
             // Fetch vehicle if exists
             if (tripData.vehicle_id) {
                 try {
-                    const vehicleData = await vehiclesService.getById(tripData.vehicle_id);
+                    const vehicleData = await publicService.getVehicleById(tripData.vehicle_id);
 
                     // If vehicle doesn't have mapa_assentos, try to fetch seats separately
                     if (!vehicleData.mapa_assentos || vehicleData.mapa_assentos.length === 0) {
                         try {
-                            const seatsData = await vehiclesService.getSeats(tripData.vehicle_id);
+                            const seatsData = await publicService.getVehicleSeats(tripData.vehicle_id);
                             if (seatsData && seatsData.length > 0) {
                                 setVeiculo({ ...vehicleData, mapa_assentos: seatsData });
                             } else {
@@ -109,9 +123,9 @@ export const ViagemDetalhesPublico: React.FC = () => {
                 }
             }
 
-            // Fetch reserved seats from reservations API
+            // Fetch reserved seats from public API
             try {
-                const reservedSeats = await reservationsService.getReservedSeats(id!);
+                const reservedSeats = await publicService.getReservedSeats(id!);
                 setAssentosReservados(reservedSeats);
             } catch (e) {
                 console.error('Erro ao carregar assentos reservados:', e);
@@ -182,7 +196,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Cover Image Banner */}
                     {viagem.cover_image && (
-                        <div className="rounded-2xl overflow-hidden">
+                        <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700">
                             <img
                                 src={viagem.cover_image}
                                 alt={viagem.title || 'Viagem'}
@@ -192,17 +206,14 @@ export const ViagemDetalhesPublico: React.FC = () => {
                     )}
 
                     {/* Trip Header */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                <Bus size={28} className="text-white" />
-                            </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                        <div className="flex flex-col gap-4">
                             <div>
-                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                     {viagem.tags && viagem.tags.length > 0 ? (
                                         viagem.tags.map(tagName => {
                                             const tagDef = allTags.find(t => t.nome === tagName);
-                                            const bgColor = tagDef?.cor || '#3b82f6'; // default blue-500
+                                            const bgColor = tagDef?.cor || '#3b82f6';
                                             return (
                                                 <span
                                                     key={tagName}
@@ -224,347 +235,357 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                         </span>
                                     )}
                                 </div>
-                                <h1 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-white">
+                                <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white leading-tight">
                                     {viagem.title || viagem.route_name || 'Viagem'}
                                 </h1>
                             </div>
-                        </div>
 
-                        {/* Route Path */}
-                        <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl mb-4">
-                            <div className="flex-1">
-                                <div className="flex items-center gap-2 text-green-600 mb-1">
-                                    <MapPin size={16} />
-                                    <span className="text-sm font-medium">Origem</span>
-                                </div>
-                                <p className="font-semibold text-slate-800 dark:text-white">
-                                    {(() => {
-                                        const stops = typeof viagem.route_stops === 'string' ? JSON.parse(viagem.route_stops) : viagem.route_stops;
-                                        if (stops && stops.length > 0) {
-                                            return stops[0].nome;
-                                        }
-                                        return (viagem.origin_city && viagem.origin_state)
-                                            ? `${viagem.origin_city}, ${viagem.origin_state}`
-                                            : (viagem.origin_city || 'Não informado');
-                                    })()}
-                                </p>
-                            </div>
-                            <div className="text-slate-300 dark:text-slate-600">→</div>
-                            <div className="flex-1 text-right">
-                                <div className="flex items-center gap-2 justify-end text-red-600 mb-1">
-                                    <span className="text-sm font-medium">Destino</span>
-                                    <MapPin size={16} />
-                                </div>
-                                <p className="font-semibold text-slate-800 dark:text-white">
-                                    {(() => {
-                                        const stops = typeof viagem.route_stops === 'string' ? JSON.parse(viagem.route_stops) : viagem.route_stops;
-                                        if (stops && stops.length > 0) {
-                                            return stops[stops.length - 1].nome;
-                                        }
-                                        return (viagem.destination_city && viagem.destination_state)
-                                            ? `${viagem.destination_city}, ${viagem.destination_state}`
-                                            : (viagem.destination_city || 'Não informado');
-                                    })()}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Date & Time */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                                <Calendar size={18} className="text-blue-600" />
-                                <div>
-                                    <p className="text-xs text-slate-500">Data</p>
-                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                                        {formatDate(viagem.departure_date)}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                                <Clock size={18} className="text-blue-600" />
-                                <div>
-                                    <p className="text-xs text-slate-500">Horário</p>
-                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                                        {formatTime(viagem.departure_time)}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                                <Users size={18} className="text-blue-600" />
-                                <div>
-                                    <p className="text-xs text-slate-500">Vagas</p>
-                                    <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                                        {availableSeats} disponíveis
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                                <DollarSign size={18} className="text-green-600" />
-                                <div>
-                                    <p className="text-xs text-slate-500">A partir de</p>
-                                    <p className="text-sm font-semibold text-green-600">
-                                        R$ {minPrice > 0 ? minPrice.toFixed(2) : 'Consulte'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Baggage and Alerts Section */}
-                    {(viagem.baggage_limit || viagem.alerts) && (
-                        <div className={`grid grid-cols-1 ${viagem.baggage_limit && viagem.alerts ? 'md:grid-cols-2' : ''} gap-4`}>
-                            {viagem.baggage_limit && (
-                                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 p-6">
-                                    <h3 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                                        <Briefcase size={20} />
-                                        Limite de Bagagens
-                                    </h3>
-                                    <p className="text-blue-700 dark:text-blue-400">
-                                        {viagem.baggage_limit}
-                                    </p>
-                                </div>
-                            )}
+                            {/* Alertas - Showing inline if exists */}
                             {viagem.alerts && (
-                                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 p-6">
-                                    <h3 className="text-lg font-bold text-amber-800 dark:text-amber-300 mb-2 flex items-center gap-2">
-                                        <AlertTriangle size={20} />
-                                        Alertas Importantes
-                                    </h3>
-                                    <p className="text-amber-700 dark:text-amber-400 whitespace-pre-line">
+                                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30 p-4 flex items-start gap-3">
+                                    <AlertTriangle size={20} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                    <p className="text-amber-700 dark:text-amber-400 text-sm font-medium leading-relaxed">
                                         {viagem.alerts}
                                     </p>
                                 </div>
                             )}
                         </div>
-                    )}
 
-
-
-                    {/* Seat Map */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4">
-                            Escolha seu assento
-                        </h2>
-
-                        {!veiculo || !veiculo.mapa_assentos || veiculo.mapa_assentos.length === 0 ? (
-                            <div className="text-center py-8 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                <AlertCircle size={32} className="mx-auto text-amber-500 mb-3" />
-                                <p className="text-slate-600 dark:text-slate-400">
-                                    Mapa de assentos não disponível para esta viagem.
-                                </p>
-                                <p className="text-sm text-slate-500 mt-1">
-                                    Entre em contato para mais informações.
+                        {/* Route Path */}
+                        <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl my-6 border border-slate-100 dark:border-slate-800">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 text-green-600 mb-1">
+                                    <MapPin size={16} />
+                                    <span className="text-xs font-bold uppercase tracking-wider">Origem</span>
+                                </div>
+                                <p className="font-bold text-slate-800 dark:text-white">
+                                    {(() => {
+                                        const stops = typeof viagem.route_stops === 'string' ? JSON.parse(viagem.route_stops) : (viagem.route_stops || []);
+                                        if (stops && Array.isArray(stops) && stops.length > 0) {
+                                            return stops[0].nome;
+                                        }
+                                        return viagem.origin_neighborhood
+                                            ? `${viagem.origin_neighborhood}, ${viagem.origin_city}/${viagem.origin_state}`
+                                            : (viagem.origin_city && viagem.origin_state)
+                                                ? `${viagem.origin_city}, ${viagem.origin_state}`
+                                                : (viagem.origin_city || 'Não informado');
+                                    })()}
                                 </p>
                             </div>
-                        ) : (
-                            <MapaAssentosReserva
-                                veiculo={veiculo}
-                                assentosReservados={assentosReservados}
-                                assentosSelecionados={assentosSelecionados}
-                                onSelecionarAssento={handleSelecionarAssento}
-                                precos={precos}
-                            />
-                        )}
-                    </div>
+                            <div className="text-slate-300 dark:text-slate-600 self-center">→</div>
+                            <div className="flex-1 text-right">
+                                <div className="flex items-center gap-2 justify-end text-red-600 mb-1">
+                                    <span className="text-xs font-bold uppercase tracking-wider">Destino</span>
+                                    <MapPin size={16} />
+                                </div>
+                                <p className="font-bold text-slate-800 dark:text-white">
+                                    {(() => {
+                                        const stops = typeof viagem.route_stops === 'string' ? JSON.parse(viagem.route_stops) : (viagem.route_stops || []);
+                                        if (stops && Array.isArray(stops) && stops.length > 0) {
+                                            return stops[stops.length - 1].nome;
+                                        }
+                                        return viagem.destination_neighborhood
+                                            ? `${viagem.destination_neighborhood}, ${viagem.destination_city}/${viagem.destination_state}`
+                                            : (viagem.destination_city && viagem.destination_state)
+                                                ? `${viagem.destination_city}, ${viagem.destination_state}`
+                                                : (viagem.destination_city || 'Não informado');
+                                    })()}
+                                </p>
+                            </div>
+                        </div>
 
-                    {/* Vehicle Gallery */}
-                    {veiculo && (
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                <Bus size={20} className="text-blue-600" />
-                                Conheça nosso veículo
-                            </h2>
-
-                            {/* Vehicle Info */}
-                            <div className="flex items-center gap-3 mb-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                    <Bus size={24} className="text-blue-600" />
+                        {/* Date & Time Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                    <Calendar size={20} className="text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-slate-800 dark:text-white">
-                                        {veiculo.modelo || 'Ônibus'}
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data</p>
+                                    <p className="text-sm font-bold text-slate-800 dark:text-white">
+                                        {formatDate(viagem.departure_date)}
                                     </p>
-                                    {veiculo.placa && (
-                                        <p className="text-sm text-slate-500">{veiculo.placa}</p>
-                                    )}
-                                    {veiculo.ano && (
-                                        <p className="text-xs text-slate-400">Ano {veiculo.ano}</p>
-                                    )}
                                 </div>
                             </div>
-
-                            {/* Vehicle Features */}
-                            {veiculo.features && veiculo.features.length > 0 && (
-                                <div className="mb-4">
-                                    <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-2">Comodidades e Características</h4>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        {veiculo.features.map((feature, idx) => (
-                                            <div key={idx} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300">
-                                                <Check size={16} className="text-green-500 mt-0.5 flex-shrink-0" />
-                                                <span>{feature.label}</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                    <Clock size={20} className="text-blue-600" />
                                 </div>
-                            )}
-
-                            {/* Gallery Images */}
-                            {(veiculo.imagem || (veiculo.galeria && veiculo.galeria.length > 0)) ? (
-                                <div className="flex gap-3 overflow-x-auto pb-2">
-                                    {veiculo.imagem && (
-                                        <img
-                                            src={veiculo.imagem}
-                                            alt={veiculo.modelo || 'Veículo'}
-                                            className="flex-shrink-0 w-48 h-32 object-cover rounded-xl"
-                                        />
-                                    )}
-                                    {veiculo.galeria?.map((img, idx) => (
-                                        <img
-                                            key={idx}
-                                            src={img}
-                                            alt={`Foto ${idx + 1}`}
-                                            className="flex-shrink-0 w-48 h-32 object-cover rounded-xl"
-                                        />
-                                    ))}
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Horário</p>
+                                    <p className="text-sm font-bold text-slate-800 dark:text-white">
+                                        {formatTime(viagem.departure_time)}
+                                    </p>
                                 </div>
-                            ) : (
-                                <p className="text-sm text-slate-500 italic">
-                                    Fotos do veículo em breve disponíveis.
-                                </p>
-                            )}
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                    <Users size={20} className="text-blue-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vagas</p>
+                                    <p className="text-sm font-bold text-slate-800 dark:text-white">
+                                        {availableSeats} disponíveis
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                    <DollarSign size={20} className="text-green-600" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mínimo</p>
+                                    <p className="text-sm font-bold text-green-600">
+                                        R$ {minPrice > 0 ? minPrice.toFixed(2) : '--'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Baggage Limit if exists */}
+                    {viagem.baggage_limit && (
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 p-4 flex items-center gap-3">
+                            <Briefcase size={20} className="text-blue-600 shrink-0" />
+                            <div>
+                                <p className="text-xs font-bold text-blue-800/60 uppercase tracking-wider">Limite de Bagagens</p>
+                                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">{viagem.baggage_limit}</p>
+                            </div>
                         </div>
                     )}
-                </div>
 
-                {/* Sidebar - Booking Summary */}
-                <div className="lg:col-span-1 space-y-6">
-                    {/* Price Table - Moved from Main Column */}
+                    {/* Price Table - Collapsible Section */}
                     {Object.keys(precos).length > 0 && (
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                <DollarSign size={20} className="text-green-600" />
-                                Tabela de Preços
-                            </h2>
-                            <div className="grid grid-cols-1 gap-3">
-                                {viagem.price_conventional && Number(viagem.price_conventional) > 0 && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        <div className="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
-                                            <span className="text-lg">💺</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500">Convencional</p>
-                                            <p className="font-bold text-green-600">R$ {Number(viagem.price_conventional).toFixed(2)}</p>
-                                        </div>
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                            <button
+                                onClick={() => setPrecosAbertos(!precosAbertos)}
+                                className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                        <DollarSign size={20} className="text-green-600" />
                                     </div>
-                                )}
-                                {viagem.price_executive && Number(viagem.price_executive) > 0 && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-                                            <span className="text-lg">⭐</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500">Executivo</p>
-                                            <p className="font-bold text-green-600">R$ {Number(viagem.price_executive).toFixed(2)}</p>
-                                        </div>
+                                    <h2 className="text-lg font-bold text-slate-800 dark:text-white">Tabela de Preços</h2>
+                                </div>
+                                <div className={`p-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 transition-transform ${precosAbertos ? 'rotate-180' : ''}`}>
+                                    <ChevronDown size={20} />
+                                </div>
+                            </button>
+
+                            {precosAbertos && (
+                                <div className="p-5 pt-0 border-t border-slate-100 dark:border-slate-700">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                                        {Object.entries(precos).map(([tipo, valor]) => {
+                                            const Icon = SEAT_ICONS[tipo] || Circle;
+                                            return (
+                                                <div key={tipo} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon size={16} className="text-slate-400" />
+                                                        <span className="text-sm font-bold text-slate-500 dark:text-slate-400 capitalize">
+                                                            {tipo.replace(/_/g, ' ').toLowerCase()}
+                                                        </span>
+                                                    </div>
+                                                    <span className="font-bold text-slate-800 dark:text-white">
+                                                        R$ {valor.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                )}
-                                {viagem.price_semi_sleeper && Number(viagem.price_semi_sleeper) > 0 && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                                            <span className="text-lg">🛋️</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500">Semi-Leito</p>
-                                            <p className="font-bold text-green-600">R$ {Number(viagem.price_semi_sleeper).toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                )}
-                                {viagem.price_sleeper && Number(viagem.price_sleeper) > 0 && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                                            <span className="text-lg">🌙</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500">Leito</p>
-                                            <p className="font-bold text-green-600">R$ {Number(viagem.price_sleeper).toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                )}
-                                {viagem.price_bed && Number(viagem.price_bed) > 0 && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                            <span className="text-lg">🛏️</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500">Cama</p>
-                                            <p className="font-bold text-green-600">R$ {Number(viagem.price_bed).toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                )}
-                                {viagem.price_master_bed && Number(viagem.price_master_bed) > 0 && (
-                                    <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                                            <span className="text-lg">👑</span>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500">Cama Master</p>
-                                            <p className="font-bold text-green-600">R$ {Number(viagem.price_master_bed).toFixed(2)}</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 sticky top-24">
-                        <h3 className="font-bold text-slate-800 dark:text-white mb-4">Resumo da Reserva</h3>
+                    {/* Vehicle Gallery - Collapsible Section */}
+                    {veiculo && (
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                            <button
+                                onClick={() => setVeiculoAberto(!veiculoAberto)}
+                                className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                        <Bus size={20} className="text-blue-600" />
+                                    </div>
+                                    <h2 className="text-lg font-bold text-slate-800 dark:text-white">Conheça nosso veículo</h2>
+                                </div>
+                                <div className={`p-2 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 transition-transform ${veiculoAberto ? 'rotate-180' : ''}`}>
+                                    <ChevronDown size={20} />
+                                </div>
+                            </button>
 
-                        {assentosSelecionados.length > 0 ? (
-                            <>
-                                <div className="space-y-3 mb-6">
-                                    {assentosSelecionados.map(assento => (
-                                        <div key={assento.numero} className="flex justify-between text-sm p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            {veiculoAberto && (
+                                <div className="p-5 pt-0 border-t border-slate-100 dark:border-slate-700">
+                                    <div className="space-y-6 mt-4">
+                                        <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
                                             <div>
-                                                <p className="font-semibold text-slate-800 dark:text-white">
-                                                    Assento {assento.numero}
+                                                <p className="text-lg font-bold text-slate-800 dark:text-white leading-tight">
+                                                    {veiculo.modelo || 'Ônibus'}
                                                 </p>
-                                                <p className="text-xs text-slate-500">{assento.tipo}</p>
+                                                <div className="flex gap-2 mt-1">
+                                                    {veiculo.placa && (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded uppercase">
+                                                            {veiculo.placa}
+                                                        </span>
+                                                    )}
+                                                    {veiculo.ano && (
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded uppercase">
+                                                            Ano {veiculo.ano}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <span className="font-semibold text-blue-600">
-                                                R$ {assento.valor.toFixed(2)}
-                                            </span>
                                         </div>
-                                    ))}
 
-                                    <div className="border-t border-slate-100 dark:border-slate-700 pt-3">
-                                        <div className="flex justify-between">
-                                            <span className="text-slate-600 dark:text-slate-400">Total</span>
-                                            <span className="text-2xl font-bold text-blue-600">
-                                                R$ {totalSelecionado.toFixed(2)}
-                                            </span>
-                                        </div>
+                                        {veiculo.features && veiculo.features.length > 0 && (
+                                            <div>
+                                                <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Comodidades</h4>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {veiculo.features.map((feature, idx) => (
+                                                        <div key={idx} className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/30 rounded-lg text-sm text-slate-700 dark:text-slate-300">
+                                                            <Check size={16} className="text-green-500 flex-shrink-0" />
+                                                            <span>{feature.label}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {(veiculo.imagem || (veiculo.galeria && veiculo.galeria.length > 0)) ? (
+                                            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                                {veiculo.imagem && (
+                                                    <img
+                                                        src={veiculo.imagem}
+                                                        alt={veiculo.modelo || 'Veículo'}
+                                                        className="flex-shrink-0 w-64 h-40 object-cover rounded-xl shadow-md border-2 border-white dark:border-slate-800"
+                                                    />
+                                                )}
+                                                {veiculo.galeria?.map((img, idx) => (
+                                                    <img
+                                                        key={idx}
+                                                        src={img}
+                                                        alt={`Foto ${idx + 1}`}
+                                                        className="flex-shrink-0 w-64 h-40 object-cover rounded-xl shadow-md border-2 border-white dark:border-slate-800"
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-6 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-sm italic">
+                                                Galeria de fotos em breve
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
+                            )}
+                        </div>
+                    )}
 
-                                <button
-                                    onClick={handleReservar}
-                                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-colors"
-                                >
-                                    Reservar Agora
-                                </button>
+                    {/* Seat Map - The CORE interactive part */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                                Escolha seu assento
+                            </h2>
+                        </div>
 
-                                <p className="text-xs text-center text-slate-500 mt-3">
-                                    Você será redirecionado para fazer login
+                        {!veiculo || !veiculo.mapa_assentos || veiculo.mapa_assentos.length === 0 ? (
+                            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                                <AlertCircle size={40} className="mx-auto text-amber-500 mb-3" />
+                                <p className="font-bold text-slate-800 dark:text-white">Mapa indisponível</p>
+                                <p className="text-sm text-slate-500 mt-1 max-w-[200px] mx-auto">
+                                    Não foi possível carregar o mapa de assentos para esta viagem.
                                 </p>
-                            </>
+                            </div>
                         ) : (
-                            <div className="text-center py-8">
-                                <Bus size={32} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
-                                <p className="text-slate-500 dark:text-slate-400 text-sm">
-                                    Selecione um assento no mapa para continuar
-                                </p>
+                            <div className="overflow-x-auto pb-4 -mx-2 px-2 scrollbar-none">
+                                <MapaAssentosReserva
+                                    veiculo={veiculo}
+                                    assentosReservados={assentosReservados}
+                                    assentosSelecionados={assentosSelecionados}
+                                    onSelecionarAssento={handleSelecionarAssento}
+                                    precos={precos}
+                                />
                             </div>
                         )}
+                    </div>
+                </div>
+
+                {/* Sidebar - Summary Stickiness */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-6 space-y-4">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-blue-600/20 dark:border-blue-500/10 p-6 shadow-lg">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
+                                Resumo da Reserva
+                            </h3>
+
+                            {assentosSelecionados.length > 0 ? (
+                                <>
+                                    <div className="space-y-3 mb-8">
+                                        {assentosSelecionados.map(assento => (
+                                            <div key={assento.numero} className="group flex justify-between items-center p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                                <div>
+                                                    <p className="font-bold text-slate-800 dark:text-white">
+                                                        Assento {assento.numero}
+                                                    </p>
+                                                    <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">{assento.tipo}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="font-bold text-slate-800 dark:text-white px-2 py-1 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+                                                        R$ {assento.valor.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-sm font-bold text-slate-400 uppercase">Total Geral</span>
+                                                <span className="text-3xl font-black text-blue-600 dark:text-blue-400">
+                                                    R$ {totalSelecionado.toFixed(2)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={handleReservar}
+                                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transform active:scale-[0.98] transition-all"
+                                    >
+                                        Continuar Reserva
+                                    </button>
+
+                                    <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                            Ambiente 100% Seguro
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-center py-12 px-4">
+                                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-slate-200 dark:border-slate-700">
+                                        <Bus size={32} className="text-slate-300 dark:text-slate-600" />
+                                    </div>
+                                    <p className="font-bold text-slate-800 dark:text-white mb-2">Seu carrinho está vazio</p>
+                                    <p className="text-xs text-slate-500 leading-relaxed">
+                                        Selecione os assentos desejados no mapa para prosseguir com sua reserva.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Additional Info / Security */}
+                        <div className="px-4 flex items-center justify-center gap-4 text-slate-400">
+                            <div className="flex items-center gap-1.5 grayscale opacity-50">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span className="text-[10px] font-bold uppercase">Pagamento via PIX</span>
+                            </div>
+                            <div className="w-1 h-1 rounded-full bg-slate-300"></div>
+                            <div className="flex items-center gap-1.5 grayscale opacity-50">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span className="text-[10px] font-bold uppercase">Suporte 24h</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
