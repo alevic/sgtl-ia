@@ -6,7 +6,7 @@ import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
     CheckCircle, Clock, Loader, XCircle, TrendingUp,
     Edit, Trash2, ToggleLeft, ToggleRight, ClipboardList,
-    ChevronDown, Check
+    ChevronDown, Check, Ticket
 } from 'lucide-react';
 import { PassengerListModal } from '../components/PassengerListModal';
 
@@ -526,6 +526,13 @@ export const Viagens: React.FC = () => {
 
                                     {/* Ações */}
                                     <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => navigate(`/admin/reservas?trip_id=${viagem.id}`)}
+                                            className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                                            title="Ver Reservas"
+                                        >
+                                            <Ticket size={18} className="text-orange-600 dark:text-orange-400" />
+                                        </button>
                                         <button
                                             onClick={() => handleOpenPassengerList(viagem)}
                                             className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"

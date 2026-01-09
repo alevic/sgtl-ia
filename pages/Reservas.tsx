@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { IReserva, StatusReservaLabel } from '../types';
 import { reservationsService } from '../services/reservationsService';
 import { transactionsService } from '../services/transactionsService';
 import { clientsService } from '../services/clientsService';
-import { TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa } from '../types';
+import { vehiclesService } from '../services/vehiclesService';
+import { tripsService } from '../services/tripsService';
+import { TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa, IVeiculo, IViagem } from '../types';
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
     Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle,
@@ -40,9 +42,17 @@ export const Reservas: React.FC = () => {
     const [reservas, setReservas] = useState<IReserva[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<string[]>(['PENDING', 'CONFIRMED']);
+    const [filtroVeiculo, setFiltroVeiculo] = useState<string>('');
+    const [filtroViagem, setFiltroViagem] = useState<string>('');
+    const [veiculos, setVeiculos] = useState<IVeiculo[]>([]);
+    const [viagens, setViagens] = useState<IViagem[]>([]);
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    const [isTripDropdownOpen, setIsTripDropdownOpen] = useState(false);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
+    const tripDropdownRef = React.useRef<HTMLDivElement>(null);
     const [busca, setBusca] = useState('');
+    const [buscaViagem, setBuscaViagem] = useState('');
+    const [searchParams] = useSearchParams();
 
     // Action States
     const [editingReserva, setEditingReserva] = useState<IReserva | null>(null);
@@ -82,9 +92,37 @@ export const Reservas: React.FC = () => {
         }
     };
 
+    const fetchVeiculos = async () => {
+        try {
+            const data = await vehiclesService.getAll();
+            setVeiculos(data);
+        } catch (error) {
+            console.error('Erro ao carregar veículos:', error);
+        }
+    };
+
+    const fetchViagens = async () => {
+        try {
+            const data = await tripsService.getAll();
+            setViagens(data);
+        } catch (error) {
+            console.error('Erro ao carregar viagens:', error);
+        }
+    };
+
     useEffect(() => {
         fetchReservas();
-    }, []);
+        fetchVeiculos();
+        fetchViagens();
+
+        // Handle URL Filter
+        const trip_id = searchParams.get('trip_id');
+        if (trip_id) {
+            setFiltroViagem(trip_id);
+            // Optionally clear other filters or set appropriate defaults
+            setFiltroStatus([]); // Show all statuses if specifically looking for a trip's reservations
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -101,6 +139,22 @@ export const Reservas: React.FC = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isStatusDropdownOpen]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (tripDropdownRef.current && !tripDropdownRef.current.contains(event.target as Node)) {
+                setIsTripDropdownOpen(false);
+            }
+        };
+
+        if (isTripDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isTripDropdownOpen]);
 
     const handleEditClick = (reserva: IReserva) => {
         setEditingReserva(reserva);
@@ -337,13 +391,15 @@ export const Reservas: React.FC = () => {
 
     const reservasFiltradas = reservas.filter(r => {
         const matchStatus = filtroStatus.length === 0 || filtroStatus.includes(r.status);
+        const matchVeiculo = filtroVeiculo === '' || (r as any).vehicle_id === filtroVeiculo;
+        const matchViagem = filtroViagem === '' || (r as any).trip_id === filtroViagem;
         const passengerName = (r as any).passenger_name || '';
         const ticketCode = (r as any).ticket_code || r.codigo || '';
 
         const matchBusca = busca === '' ||
             ticketCode.toLowerCase().includes(busca.toLowerCase()) ||
             passengerName.toLowerCase().includes(busca.toLowerCase());
-        return matchStatus && matchBusca;
+        return matchStatus && matchVeiculo && matchViagem && matchBusca;
     });
 
     if (loading) {
@@ -430,6 +486,94 @@ export const Reservas: React.FC = () => {
                                                     {option.label}
                                                 </button>
                                             ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Filtro de Veículo */}
+                        <div className="flex items-center gap-2">
+                            <Bus size={18} className="text-slate-500" />
+                            <select
+                                value={filtroVeiculo}
+                                onChange={(e) => setFiltroVeiculo(e.target.value)}
+                                className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            >
+                                <option value="">Todos os veículos</option>
+                                {veiculos.map(v => (
+                                    <option key={v.id} value={v.id}>
+                                        {v.modelo} - {v.placa}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Filtro de Viagem (Searchable) */}
+                        <div className="flex items-center gap-2 relative" ref={tripDropdownRef}>
+                            <Calendar size={18} className="text-slate-500" />
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsTripDropdownOpen(!isTripDropdownOpen)}
+                                    className="flex items-center justify-between min-w-[250px] px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-left text-sm"
+                                >
+                                    <span className="truncate">
+                                        {filtroViagem
+                                            ? viagens.find(v => v.id === filtroViagem)?.title || viagens.find(v => v.id === filtroViagem)?.route_name || 'Viagem selecionada'
+                                            : 'Todas as viagens'}
+                                    </span>
+                                    <ChevronDown size={14} className={`text-slate-400 transition-transform ${isTripDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+
+                                {isTripDropdownOpen && (
+                                    <div className="absolute top-full left-0 mt-1 w-[300px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                                        <div className="p-2 border-b border-slate-100 dark:border-slate-700">
+                                            <div className="relative">
+                                                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Pesquisar viagem..."
+                                                    value={buscaViagem}
+                                                    onChange={(e) => setBuscaViagem(e.target.value)}
+                                                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
+                                                    autoFocus
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="max-h-[250px] overflow-y-auto p-1">
+                                            <button
+                                                onClick={() => {
+                                                    setFiltroViagem('');
+                                                    setIsTripDropdownOpen(false);
+                                                    setBuscaViagem('');
+                                                }}
+                                                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${!filtroViagem ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
+                                            >
+                                                Todas as viagens
+                                            </button>
+                                            <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
+                                            {viagens
+                                                .filter(v => {
+                                                    const title = (v.title || v.route_name || '').toLowerCase();
+                                                    return title.includes(buscaViagem.toLowerCase());
+                                                })
+                                                .map(v => (
+                                                    <button
+                                                        key={v.id}
+                                                        onClick={() => {
+                                                            setFiltroViagem(v.id);
+                                                            setIsTripDropdownOpen(false);
+                                                            setBuscaViagem('');
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${filtroViagem === v.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
+                                                    >
+                                                        <div className="font-medium truncate">{v.title || v.route_name}</div>
+                                                        <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                                                            {new Date(v.departure_date).toLocaleDateString()} - {v.departure_time?.substring(0, 5)}
+                                                        </div>
+                                                    </button>
+                                                ))}
                                         </div>
                                     </div>
                                 )}

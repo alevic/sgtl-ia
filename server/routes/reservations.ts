@@ -38,19 +38,22 @@ router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) 
     try {
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
-        const { trip_id, status, ticket_code, passenger_name } = req.query;
+        const { trip_id, status, ticket_code, passenger_name, vehicle_id } = req.query;
 
         let query = `
             SELECT r.*, 
-                   t.departure_date, t.departure_time, t.title as trip_title,
+                   t.departure_date, t.departure_time, t.title as trip_title, t.id as trip_id,
+                   t.vehicle_id,
                    route.name as route_name, route.stops as route_stops,
                    rr.stops as return_route_stops,
-                   s.numero as seat_number, s.tipo as seat_type
+                   s.numero as seat_number, s.tipo as seat_type,
+                   v.placa as vehicle_plate, v.modelo as vehicle_model
             FROM reservations r
             JOIN trips t ON r.trip_id = t.id
             JOIN routes route ON t.route_id = route.id
             LEFT JOIN routes rr ON t.return_route_id = rr.id
             LEFT JOIN seat s ON r.seat_id = s.id
+            LEFT JOIN vehicle v ON t.vehicle_id = v.id
             WHERE r.organization_id = $1
         `;
         const params: any[] = [orgId];
@@ -66,6 +69,12 @@ router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) 
             paramCount++;
             query += ` AND r.status = $${paramCount}`;
             params.push(status);
+        }
+
+        if (vehicle_id) {
+            paramCount++;
+            query += ` AND t.vehicle_id = $${paramCount}`;
+            params.push(vehicle_id);
         }
 
         if (ticket_code) {
