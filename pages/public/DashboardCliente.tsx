@@ -146,7 +146,7 @@ export const DashboardCliente: React.FC = () => {
                                         if (Array.isArray(stops) && stops.length > 0) return stops[0].nome;
                                         return nextTrip.origin_neighborhood
                                             ? `${nextTrip.origin_neighborhood}, ${nextTrip.origin_city}/${nextTrip.origin_state}`
-                                            : `${nextTrip.origin_city}/${nextTrip.origin_state}`;
+                                            : nextTrip.origin_city ? `${nextTrip.origin_city}/${nextTrip.origin_state}` : 'Embarque';
                                     })()}
                                 </p>
                             </div>
@@ -162,7 +162,7 @@ export const DashboardCliente: React.FC = () => {
                                         if (Array.isArray(stops) && stops.length > 0) return stops[stops.length - 1].nome;
                                         return nextTrip.destination_neighborhood
                                             ? `${nextTrip.destination_neighborhood}, ${nextTrip.destination_city}/${nextTrip.destination_state}`
-                                            : `${nextTrip.destination_city}/${nextTrip.destination_state}`;
+                                            : nextTrip.destination_city ? `${nextTrip.destination_city}/${nextTrip.destination_state}` : 'Destino';
                                     })()}
                                 </p>
                             </div>

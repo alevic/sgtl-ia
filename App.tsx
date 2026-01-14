@@ -58,6 +58,7 @@ import { ViagensPublico } from './pages/public/ViagensPublico';
 import { ViagemDetalhesPublico } from './pages/public/ViagemDetalhesPublico';
 import { LoginCliente } from './pages/public/LoginCliente';
 import { DashboardCliente } from './pages/public/DashboardCliente';
+import { CheckoutReserva } from './pages/public/CheckoutReserva';
 import { ReservaDetalhesCliente } from './pages/public/ReservaDetalhesCliente';
 import { EncomendaDetalhesCliente } from './pages/public/EncomendaDetalhesCliente';
 
@@ -176,6 +177,7 @@ const App: React.FC = () => {
           <Route path="/viagens" element={<PublicLayout />}>
             <Route index element={<ViagensPublico />} />
             <Route path=":id" element={<ViagemDetalhesPublico />} />
+            <Route path=":id/checkout" element={<CheckoutReserva />} />
           </Route>
 
           {/* Client Portal */}

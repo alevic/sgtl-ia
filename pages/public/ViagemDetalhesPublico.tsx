@@ -151,10 +151,9 @@ export const ViagemDetalhesPublico: React.FC = () => {
 
     const handleReservar = () => {
         if (assentosSelecionados.length === 0) return;
-        // Redirect to login with return URL containing all selected seats
+        // Redirect to checkout with selected seats
         const seatNumbers = assentosSelecionados.map(a => a.numero).join(',');
-        const returnUrl = `/viagens/${id}?seats=${seatNumbers}`;
-        navigate(`/cliente/login?returnUrl=${encodeURIComponent(returnUrl)}`);
+        navigate(`/viagens/${id}/checkout?seats=${encodeURIComponent(seatNumbers)}`);
     };
 
     if (loading) {
