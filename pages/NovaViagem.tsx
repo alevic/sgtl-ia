@@ -222,7 +222,7 @@ export const NovaViagem: React.FC = () => {
 
     const tiposAssento = useMemo(() => {
         if (!veiculoSelecionado?.mapa_assentos) return [];
-        return Array.from(new Set(veiculoSelecionado.mapa_assentos.map(a => a.tipo)))
+        return Array.from(new Set(veiculoSelecionado.mapa_assentos.filter(a => !a.disabled).map(a => a.tipo)))
             .filter(tipo => tipo !== 'BLOQUEADO');
     }, [veiculoSelecionado]);
 
