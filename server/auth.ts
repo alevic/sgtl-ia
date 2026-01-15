@@ -32,6 +32,10 @@ export const auth = betterAuth({
     },
     advanced: {
         useSecureCookies: config.betterAuthUrl.startsWith('https://'),
+        crossOriginCookies: {
+            enabled: true,
+            origin: config.clientUrls,
+        },
     },
     plugins: [
         admin(),
