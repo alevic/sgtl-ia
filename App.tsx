@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { Sidebar } from './components/Layout/Sidebar';
 import { Header } from './components/Layout/Header';
@@ -83,7 +83,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const App: React.FC = () => {
   return (
     <AppProvider>
-      <HashRouter>
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
@@ -192,7 +192,7 @@ const App: React.FC = () => {
 
 
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
     </AppProvider>
   );
 };
