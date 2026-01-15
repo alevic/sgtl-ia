@@ -36,12 +36,9 @@ export async function setupDb() {
 
         console.log("Transaction table created successfully.");
 
-        // Ensure transaction table has client_id and updated_at
+        // Ensure transaction table has updated_at
         await pool.query(`
-            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS reservation_id UUID REFERENCES reservations(id);
-            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS maintenance_id UUID REFERENCES maintenance(id);
         `);
 
         // Create Vehicle table
@@ -575,6 +572,7 @@ export async function setupDb() {
 
         // Manual Migrations (Ensure these columns exist)
         await pool.query(`
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS maintenance_id UUID REFERENCES maintenance(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS reservation_id UUID REFERENCES reservations(id);
         `);
