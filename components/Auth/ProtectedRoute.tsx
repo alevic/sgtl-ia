@@ -24,7 +24,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
-    if (allowedRoles && !allowedRoles.includes(session.user.role || 'user')) {
+    // Check if accessing admin routes
+    const isAdminRoute = location.pathname.startsWith('/admin');
+    const userRole = session.user.role || 'user';
+
+    // For admin routes, only allow admin, operacional, and financeiro roles
+    if (isAdminRoute) {
+        const allowedAdminRoles = ['admin', 'operacional', 'financeiro'];
+
+        if (!allowedAdminRoles.includes(userRole)) {
+            // Redirect public portal users to their dashboard
+            return <Navigate to="/cliente/dashboard" replace />;
+        }
+    }
+
+    // Check specific route permissions if allowedRoles is provided
+    if (allowedRoles && !allowedRoles.includes(userRole)) {
         // Redirect to dashboard if user doesn't have permission
         // Or to a 403 page
         return <Navigate to="/admin/dashboard" replace />;
