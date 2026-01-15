@@ -58,5 +58,10 @@ export const config: Config = {
     }
 };
 
+// Log configuration for debugging
+console.log('🔧 Server Configuration:');
+console.log('   CLIENT_URL:', config.clientUrls);
+console.log('   BETTER_AUTH_URL:', config.betterAuthUrl);
+
 // Exportar como default também para facilitar
 export default config;
