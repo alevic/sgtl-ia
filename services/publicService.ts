@@ -54,5 +54,20 @@ export const publicService = {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/resolve-identifier?identifier=${encodeURIComponent(identifier)}`);
         if (!response.ok) throw new Error('Failed to resolve identifier');
         return response.json();
+    },
+
+    signupClient: async (data: any) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/client/signup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to sign up');
+        }
+        return response.json();
     }
 };

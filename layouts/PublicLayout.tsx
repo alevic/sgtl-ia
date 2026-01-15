@@ -2,15 +2,16 @@ import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Bus, MapPin, Phone, Mail, Instagram, Facebook } from 'lucide-react';
 import { publicService } from '../services/publicService';
+import { authClient } from '../lib/auth-client';
 
 export const PublicLayout: React.FC = () => {
     const location = useLocation();
     const [settings, setSettings] = React.useState<any>(null);
+    const { data: session } = authClient.useSession();
 
     React.useEffect(() => {
         const fetchSettings = async () => {
             try {
-                // Pass empty string to let backend decide which org to use (defaults to first one)
                 const data = await publicService.getSettings('');
                 setSettings(data);
             } catch (error) {
@@ -18,7 +19,11 @@ export const PublicLayout: React.FC = () => {
             }
         };
         fetchSettings();
-    }, []);
+    }, [location.pathname]);
+
+    const handleLogout = async () => {
+        await authClient.signOut();
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
@@ -42,13 +47,30 @@ export const PublicLayout: React.FC = () => {
                         </Link>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-3">
-                            <Link
-                                to="/cliente/login"
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold text-sm transition-colors"
-                            >
-                                Entrar
-                            </Link>
+                        <div className="flex items-center gap-4">
+                            {session ? (
+                                <div className="flex items-center gap-4">
+                                    <Link
+                                        to="/cliente/dashboard"
+                                        className="text-sm font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                    >
+                                        Olá, {session.user.name.split(' ')[0]}
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors uppercase tracking-wider"
+                                    >
+                                        Sair
+                                    </button>
+                                </div>
+                            ) : (
+                                <Link
+                                    to="/cliente/login"
+                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold text-sm transition-colors"
+                                >
+                                    Entrar
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>

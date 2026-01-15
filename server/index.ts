@@ -3,7 +3,7 @@ import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 import { auth, pool } from "./auth";
 import { authorize } from "./middleware";
-import dotenv from "dotenv";
+import { config } from "./config";
 import crypto from "crypto";
 import clientsRouter from "./routes/clients";
 import maintenanceRouter from "./routes/maintenance";
@@ -16,12 +16,9 @@ import publicRouter from "./routes/public";
 
 import { setupDb } from "./setup-db";
 
-dotenv.config();
-
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = config.port;
 
-// Run DB setup/migrations on startup
 // Run DB setup/migrations on startup
 setupDb().catch(console.error);
 
@@ -30,7 +27,7 @@ import { initCronJobs } from "./services/cronService";
 initCronJobs();
 
 app.use(cors({
-    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : ["http://localhost:3000", "http://localhost:8080"],
+    origin: config.clientUrls,
     credentials: true,
 }));
 

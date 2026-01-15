@@ -1,19 +1,14 @@
 import { betterAuth } from "better-auth";
 import { admin, organization, phoneNumber } from "better-auth/plugins";
-import pg from "pg";
-import dotenv from "dotenv";
 import { sendWhatsAppMessage } from "./services/whatsappService";
+import { config, pool } from "./config";
 
-dotenv.config();
-
-export const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
-});
+export { pool };
 
 export const auth = betterAuth({
     database: pool,
-    secret: process.env.BETTER_AUTH_SECRET,
-    baseURL: process.env.BETTER_AUTH_URL,
+    secret: config.betterAuthSecret,
+    baseURL: config.betterAuthUrl,
     emailAndPassword: {
         enabled: true,
         requireEmailVerification: false,
@@ -55,5 +50,5 @@ export const auth = betterAuth({
             },
         })
     ],
-    trustedOrigins: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(",") : ["http://localhost:3000", "http://localhost:8080"],
+    trustedOrigins: config.clientUrls,
 });

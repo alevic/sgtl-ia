@@ -58,6 +58,7 @@ import { ViagensPublico } from './pages/public/ViagensPublico';
 import { ViagemDetalhesPublico } from './pages/public/ViagemDetalhesPublico';
 import { LoginCliente } from './pages/public/LoginCliente';
 import { DashboardCliente } from './pages/public/DashboardCliente';
+import { SignupCliente } from './pages/public/SignupCliente';
 import { CheckoutReserva } from './pages/public/CheckoutReserva';
 import { ReservaDetalhesCliente } from './pages/public/ReservaDetalhesCliente';
 import { EncomendaDetalhesCliente } from './pages/public/EncomendaDetalhesCliente';
@@ -182,6 +183,7 @@ const App: React.FC = () => {
 
           {/* Client Portal */}
           <Route path="/cliente/login" element={<LoginCliente />} />
+          <Route path="/cliente/signup" element={<SignupCliente />} />
           <Route path="/cliente/dashboard" element={<DashboardCliente />} />
           <Route path="/cliente/reservas/:id" element={<ReservaDetalhesCliente />} />
           <Route path="/cliente/encomendas/:id" element={<EncomendaDetalhesCliente />} />

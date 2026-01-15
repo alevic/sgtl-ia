@@ -3,11 +3,13 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     ArrowLeft, Bus, MapPin, Calendar, Clock, User,
     ShieldCheck, Loader, AlertTriangle, CheckCircle2,
-    Briefcase, CreditCard
+    Briefcase, CreditCard, ChevronDown
 } from 'lucide-react';
 import { publicService } from '../../services/publicService';
 import { IViagem, TipoAssento } from '../../types';
 import { authClient } from '../../lib/auth-client';
+import { paymentService, IPaymentResponse } from '../../services/paymentService';
+import { Copy, QrCode, ExternalLink, CheckCircle2 } from 'lucide-react';
 
 export const CheckoutReserva: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -23,40 +25,116 @@ export const CheckoutReserva: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const { data: sessionData, isPending: sessionPending } = authClient.useSession();
     const [session, setSession] = useState<any>(null);
 
-    // Form states for each seat
+    // Form states
     const [passengers, setPassengers] = useState<any[]>([]);
+    const [paymentMethod, setPaymentMethod] = useState<'PIX' | 'LINK'>('PIX');
+    const [paymentResult, setPaymentResult] = useState<IPaymentResponse | null>(null);
+
+    const [needsAuth, setNeedsAuth] = useState(false);
 
     useEffect(() => {
         checkAuthAndFetchData();
-    }, [id]);
+    }, [id, sessionData]);
+
+    const getPriceBySeatType = (v: IViagem, type: string) => {
+        const t = (type || '').toUpperCase();
+        if (t === 'CONVENCIONAL') return Number(v.price_conventional || 0);
+        if (t === 'EXECUTIVO') return Number(v.price_executive || 0);
+        if (t === 'SEMI_LEITO' || t === 'SEMI-LEITO') return Number(v.price_semi_sleeper || 0);
+        if (t === 'LEITO') return Number(v.price_sleeper || 0);
+        if (t === 'CAMA') return Number(v.price_bed || 0);
+        if (t === 'CAMA_MASTER') return Number(v.price_master_bed || 0);
+        return Number(v.price_conventional || 0);
+    };
 
     const checkAuthAndFetchData = async () => {
         try {
             setLoading(true);
 
-            // 1. Check Session
-            const { data } = await authClient.getSession();
-            if (!data) {
-                navigate(`/cliente/login?returnUrl=${encodeURIComponent(location.pathname + location.search)}`);
-                return;
-            }
-            setSession(data);
-
-            // 2. Fetch Trip Details
+            // 1. Fetch Trip Details
             const tripData = await publicService.getTripById(id!);
             setViagem(tripData);
 
-            // 3. Initialize passengers based on seats
-            const initialPassengers = seatNumbers.map(num => ({
-                seat_number: num,
-                name: data.user.name || '',
-                document: '',
-                email: data.user.email || '',
-                phone: '',
-            }));
+            // 2. Fetch Seats to get their types and prices
+            const seatMap = await publicService.getVehicleSeats(tripData.vehicle_id!);
+
+            // 3. Check Session (from useSession hook)
+            if (!sessionData) {
+                setSession(null);
+                setNeedsAuth(true);
+
+                // Initialize temporary price data for the summary even if not logged in
+                const stops = typeof tripData.route_stops === 'string' ? JSON.parse(tripData.route_stops) : (tripData.route_stops || []);
+                const returnStops = typeof tripData.return_route_stops === 'string' ? JSON.parse(tripData.return_route_stops) : (tripData.return_route_stops || []);
+
+                const defaultBoarding = stops.length > 0 ? stops[0].nome : (tripData.origin_city || '');
+                const defaultDropoff = returnStops.length > 0 ? returnStops[returnStops.length - 1].nome : (tripData.destination_city || '');
+
+                const guestPassengers = seatNumbers.map(num => {
+                    const seatObj = seatMap.find((s: any) => s.numero === num);
+                    const price = seatObj ? getPriceBySeatType(tripData, seatObj.tipo) : Number(tripData.price_conventional || 0);
+                    return {
+                        seat_number: num,
+                        price,
+                        boarding_point: defaultBoarding,
+                        dropoff_point: defaultDropoff
+                    };
+                });
+                setPassengers(guestPassengers);
+                return;
+            }
+
+            setSession(sessionData);
+            setNeedsAuth(false);
+
+            // 4. Fetch Client Profile for better pre-fill (CPF, etc)
+            let clientProfile: any = null;
+            try {
+                const profileData = await fetch(`${import.meta.env.VITE_API_URL}/api/client/dashboard`, {
+                    credentials: 'include'
+                });
+                if (profileData.ok) {
+                    const result = await profileData.json();
+                    clientProfile = result.profile;
+                }
+            } catch (err) {
+                console.error('Erro ao buscar perfil do cliente:', err);
+            }
+
+            // 5. Initialize passengers based on selected seats and their real prices
+            const stops = typeof tripData.route_stops === 'string' ? JSON.parse(tripData.route_stops) : (tripData.route_stops || []);
+            const returnStops = typeof tripData.return_route_stops === 'string' ? JSON.parse(tripData.return_route_stops) : (tripData.return_route_stops || []);
+
+            const defaultBoarding = stops.length > 0 ? stops[0].nome : (tripData.origin_city || '');
+            const defaultDropoff = returnStops.length > 0 ? returnStops[returnStops.length - 1].nome : (tripData.destination_city || '');
+
+            const initialPassengers = seatNumbers.map((num, index) => {
+                const seatObj = seatMap.find((s: any) => s.numero === num);
+                const price = seatObj ? getPriceBySeatType(tripData, seatObj.tipo) : Number(tripData.price_conventional || 0);
+
+                // Pre-fill only the first passenger with the logged-in user's data
+                const name = (index === 0 && (clientProfile?.nome || sessionData?.user?.name)) ? (clientProfile?.nome || sessionData.user.name) : '';
+                const email = (index === 0 && (clientProfile?.email || sessionData?.user?.email)) ? (clientProfile?.email || sessionData.user.email) : '';
+                const phone = (index === 0 && (clientProfile?.telefone || sessionData?.user?.phoneNumber)) ? (clientProfile?.telefone || sessionData.user.phoneNumber) : '';
+                const document = (index === 0 && clientProfile?.documento_numero) ? clientProfile.documento_numero : '';
+
+                return {
+                    seat_number: num,
+                    seat_id: seatObj?.id,
+                    name: name,
+                    document: document,
+                    email: email,
+                    phone: phone,
+                    price: price,
+                    boarding_point: defaultBoarding,
+                    dropoff_point: defaultDropoff
+                };
+            });
             setPassengers(initialPassengers);
+
 
         } catch (err) {
             console.error('Erro ao preparar checkout:', err);
@@ -75,47 +153,59 @@ export const CheckoutReserva: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (passengers.some(p => !p.boarding_point || !p.dropoff_point)) {
+            setError('Por favor, selecione os pontos de embarque e desembarque para todos os passageiros.');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            // In a real app, we might need a dedicated checkout endpoint that handles multiple seats
-            // For now, let's assume we loop or have a bulk endpoint.
-            // Our backend /api/client/checkout currently supports ONE reservation at a time.
-
-            // Collect all seat IDs from the vehicle mapa_assentos
-            const vehicle = await publicService.getVehicleById(viagem!.vehicle_id!);
-            const seatMap = await publicService.getVehicleSeats(viagem!.vehicle_id!);
-
+            // 1. Create Reservations
             for (const p of passengers) {
-                const seatObj = seatMap.find((s: any) => s.numero === p.seat_number);
-                if (!seatObj) throw new Error(`Assento ${p.seat_number} não encontrado.`);
+                if (!p.seat_id) throw new Error(`Dados do assento ${p.seat_number} incompletos.`);
 
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/client/checkout`, {
+                await authClient.$fetch('/api/client/checkout', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                    body: {
                         trip_id: id,
-                        seat_id: seatObj.id,
+                        seat_id: p.seat_id,
                         passenger_name: p.name,
                         passenger_document: p.document,
                         passenger_email: p.email,
                         passenger_phone: p.phone,
-                        price: (viagem as any)[`price_${seatObj.tipo.toLowerCase().replace('_', '')}`] || viagem?.price_conventional || 0,
-                        boarding_point: voyageBoardingPoint(),
-                        dropoff_point: voyageDropoffPoint()
-                    }),
-                    // Credentials needed for clientAuthorize middleware
-                    // Note: fetch needs credentials: 'include' for better-auth cookies
+                        price: p.price,
+                        boarding_point: p.boarding_point,
+                        dropoff_point: p.dropoff_point
+                    }
                 });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Erro ao processar reserva.');
-                }
             }
 
-            setSuccess(true);
-            setTimeout(() => navigate('/cliente/dashboard'), 3000);
+            // 2. Generate Payment via N8N/ASAAS
+            const mainPassenger = passengers[0];
+            const payResponse = await paymentService.createPayment({
+                amount: totalSelecionado,
+                type: paymentMethod,
+                customer: {
+                    name: mainPassenger.name,
+                    cpf: mainPassenger.document.replace(/\D/g, ''),
+                    email: mainPassenger.email,
+                    phone: mainPassenger.phone
+                },
+                items: [{
+                    description: `Reserva de Viagem - ${viagem?.title || viagem?.route_name} (${passengers.length} assentos)`,
+                    amount: totalSelecionado,
+                    quantity: 1
+                }]
+            });
+
+            if (payResponse.success) {
+                setPaymentResult(payResponse);
+                setSuccess(true);
+            } else {
+                throw new Error(payResponse.message || 'Erro ao gerar pagamento');
+            }
 
         } catch (err: any) {
             setError(err.message);
@@ -124,15 +214,14 @@ export const CheckoutReserva: React.FC = () => {
         }
     };
 
-    const voyageBoardingPoint = () => {
-        const stops = typeof viagem?.route_stops === 'string' ? JSON.parse(viagem.route_stops) : (viagem?.route_stops || []);
-        return stops.length > 0 ? stops[0].nome : viagem?.origin_city;
-    };
+    const stops = typeof viagem?.route_stops === 'string' ? JSON.parse(viagem.route_stops) : (viagem?.route_stops || []);
+    const returnStops = typeof viagem?.return_route_stops === 'string' ? JSON.parse(viagem.return_route_stops) : (viagem?.return_route_stops || []);
+    const boardingOptions = stops.filter((s: any) => s.permite_embarque !== false);
+    const dropoffOptions = returnStops.filter((s: any) => s.permite_desembarque !== false);
 
-    const voyageDropoffPoint = () => {
-        const stops = typeof viagem?.route_stops === 'string' ? JSON.parse(viagem.route_stops) : (viagem?.route_stops || []);
-        return stops.length > 0 ? stops[stops.length - 1].nome : viagem?.destination_city;
-    };
+    const totalSelecionado = passengers.length > 0
+        ? passengers.reduce((sum, p) => sum + (Number(p.price) || 0), 0)
+        : seatNumbers.length * (Number(viagem?.price_conventional) || 0); // fallback pricing for summary
 
     if (loading) {
         return (
@@ -143,21 +232,173 @@ export const CheckoutReserva: React.FC = () => {
         );
     }
 
-    if (success) {
+    if (success && paymentResult) {
         return (
-            <div className="max-w-md mx-auto px-4 py-20 text-center">
-                <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle2 size={48} />
+            <div className="max-w-xl mx-auto px-4 py-12">
+                <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
+                    <div className="p-8 text-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
+                        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle2 size={48} />
+                        </div>
+                        <h2 className="text-3xl font-black mb-2">Reserva Realizada!</h2>
+                        <p className="text-blue-100 font-medium">Sua vaga está garantida. Agora falta pouco para finalizarmos.</p>
+                    </div>
+
+                    <div className="p-8">
+                        {paymentMethod === 'PIX' ? (
+                            <div className="space-y-6 text-center">
+                                <div className="inline-block p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-sm mb-4">
+                                    {paymentResult.qrCode ? (
+                                        <img src={paymentResult.qrCode} alt="PIX QR Code" className="w-48 h-48 mx-auto" />
+                                    ) : (
+                                        <div className="w-48 h-48 bg-slate-100 flex items-center justify-center mx-auto">
+                                            <QrCode size={48} className="text-slate-300" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Pix Copia e Cola</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            readOnly
+                                            value={paymentResult.copyPasteCode}
+                                            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-mono truncate"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(paymentResult.copyPasteCode || '');
+                                                alert('Código PIX copiado!');
+                                            }}
+                                            className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                                        >
+                                            <Copy size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-100 dark:border-amber-800 text-left">
+                                    <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
+                                        <strong>⚠️ Atenção:</strong> O pagamento via PIX é instantâneo. Assim que o processamento for concluído, você receberá um e-mail de confirmação.
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-6 text-center py-8">
+                                <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                    <CreditCard size={40} />
+                                </div>
+                                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Pague com Cartão ou Boleto</h3>
+                                <p className="text-slate-500 dark:text-slate-400 mb-8 px-4">
+                                    Utilizamos o ambiente seguro do ASAAS para processar seu pagamento. Clique no botão abaixo para continuar.
+                                </p>
+                                <a
+                                    href={paymentResult.paymentLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/30 hover:bg-blue-700 transition-all active:scale-[0.98]"
+                                >
+                                    Pagar Agora
+                                    <ExternalLink size={20} />
+                                </a>
+                            </div>
+                        )}
+
+                        <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-700">
+                            <button
+                                onClick={() => navigate('/cliente/dashboard')}
+                                className="w-full py-4 text-slate-500 font-bold hover:text-slate-800 transition-colors"
+                            >
+                                Ir para o meu Painel de Reservas
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-4">Reserva realizada!</h2>
-                <p className="text-slate-500 dark:text-slate-400 mb-8">
-                    Suas poltronas foram reservadas com sucesso. Você será redirecionado para o seu painel em instantes.
-                </p>
-                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Próximo Passo</p>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                        Acesse seu dashboard para realizar o pagamento via PIX e garantir sua vaga.
-                    </p>
+            </div>
+        );
+    }
+
+    if (needsAuth) {
+        const returnUrl = encodeURIComponent(location.pathname + location.search);
+        return (
+            <div className="max-w-4xl mx-auto px-4 py-12">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+                            <ShieldCheck size={14} />
+                            Checkout Seguro
+                        </div>
+                        <h2 className="text-4xl font-black text-slate-800 dark:text-white mb-6 leading-tight">
+                            Quase lá! <br />
+                            Precisa estar logado para continuar.
+                        </h2>
+                        <p className="text-lg text-slate-500 dark:text-slate-400 mb-10 leading-relaxed">
+                            Para garantir sua reserva e carregar seus dados automaticamente, escolha uma das opções abaixo:
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button
+                                onClick={() => navigate(`/cliente/login?returnUrl=${returnUrl}`)}
+                                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl hover:border-blue-500 transition-all group"
+                            >
+                                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <User size={24} />
+                                </div>
+                                <span className="font-bold text-slate-800 dark:text-white">Já sou cliente</span>
+                                <span className="text-xs text-slate-400 mt-1">Fazer Login</span>
+                            </button>
+
+                            <button
+                                onClick={() => navigate(`/cliente/signup?returnUrl=${returnUrl}`)}
+                                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl hover:border-emerald-500 transition-all group"
+                            >
+                                <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                    <User size={24} />
+                                </div>
+                                <span className="font-bold text-slate-800 dark:text-white">Ainda não sou cliente</span>
+                                <span className="text-xs text-slate-400 mt-1">Criar Cadastro</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800">
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Resumo da Reserva</h3>
+
+                        <div className="space-y-6">
+                            <div className="flex gap-4">
+                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
+                                    <Bus size={24} />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-slate-800 dark:text-white">{viagem?.title || viagem?.route_name}</p>
+                                    <p className="text-xs text-slate-500">{viagem?.vehicle_model}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
+                                    <Calendar size={24} />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-slate-800 dark:text-white">
+                                        {viagem?.departure_date ? new Date(viagem.departure_date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'UTC' }) : '--'}
+                                    </p>
+                                    <p className="text-xs text-slate-500">{viagem?.departure_time?.slice(0, 5)}h</p>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 border-t border-slate-200 dark:border-slate-700">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-sm font-bold text-slate-400 uppercase">Assentos selecionados</span>
+                                    <span className="font-black text-slate-700 dark:text-slate-300">{seatNumbers.join(', ')}</span>
+                                </div>
+                                <div className="flex justify-between items-end">
+                                    <span className="text-sm font-bold text-slate-400 uppercase">Valor Total</span>
+                                    <span className="text-3xl font-black text-blue-600 dark:text-blue-400">R$ {totalSelecionado.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -189,43 +430,126 @@ export const CheckoutReserva: React.FC = () => {
                                         Assento {p.seat_number}
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="md:col-span-2">
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Nome Completo</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={p.name}
-                                                onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                                placeholder="Como no documento"
-                                            />
+                                    <div className="space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="md:col-span-2">
+                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Nome Completo</label>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={p.name}
+                                                    onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                                    placeholder="Como no documento"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Documento (CPF/RG)</label>
+                                                <input
+                                                    type="text"
+                                                    required
+                                                    value={p.document}
+                                                    onChange={(e) => handlePassengerChange(index, 'document', e.target.value)}
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                                    placeholder="000.000.000-00"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Telefone</label>
+                                                <input
+                                                    type="tel"
+                                                    required
+                                                    value={p.phone}
+                                                    onChange={(e) => handlePassengerChange(index, 'phone', e.target.value)}
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                                    placeholder="(00) 00000-0000"
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">CPF</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={p.document}
-                                                onChange={(e) => handlePassengerChange(index, 'document', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                                placeholder="000.000.000-00"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Telefone</label>
-                                            <input
-                                                type="tel"
-                                                required
-                                                value={p.phone}
-                                                onChange={(e) => handlePassengerChange(index, 'phone', e.target.value)}
-                                                className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                                placeholder="(00) 00000-0000"
-                                            />
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-6 border-t border-slate-200 dark:border-slate-700">
+                                            <div className="relative">
+                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-2">
+                                                    <MapPin size={14} className="text-blue-500" />
+                                                    Embarque (IDA)
+                                                </label>
+                                                <select
+                                                    value={p.boarding_point || ''}
+                                                    onChange={(e) => handlePassengerChange(index, 'boarding_point', e.target.value)}
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all dark:text-white font-medium"
+                                                    required
+                                                >
+                                                    <option value="">Selecione...</option>
+                                                    {boardingOptions.map((s: any) => (
+                                                        <option key={s.nome} value={s.nome}>
+                                                            {s.nome} {s.horario_partida ? `- ${s.horario_partida.slice(0, 5)}` : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-4 top-9 pointer-events-none text-slate-400">
+                                                    <ChevronDown size={18} />
+                                                </div>
+                                            </div>
+                                            <div className="relative">
+                                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-2">
+                                                    <MapPin size={14} className="text-purple-500" />
+                                                    Desembarque (VOLTA)
+                                                </label>
+                                                <select
+                                                    value={p.dropoff_point || ''}
+                                                    onChange={(e) => handlePassengerChange(index, 'dropoff_point', e.target.value)}
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all dark:text-white font-medium"
+                                                    required
+                                                >
+                                                    <option value="">Selecione...</option>
+                                                    {dropoffOptions.map((s: any) => (
+                                                        <option key={s.nome} value={s.nome}>
+                                                            {s.nome} {s.horario_chegada ? `- ${s.horario_chegada.slice(0, 5)}` : ''}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-4 top-9 pointer-events-none text-slate-400">
+                                                    <ChevronDown size={18} />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             ))}
+
+                            {/* Payment Selection */}
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
+                                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <CreditCard size={16} />
+                                    Forma de Pagamento
+                                </h3>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod('PIX')}
+                                        className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-2xl transition-all ${paymentMethod === 'PIX' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
+                                    >
+                                        <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-3">
+                                            <QrCode size={24} />
+                                        </div>
+                                        <span className="font-bold text-slate-800 dark:text-white">PIX</span>
+                                        <span className="text-xs text-slate-400 mt-1">Confirmação Instantânea</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod('LINK')}
+                                        className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-2xl transition-all ${paymentMethod === 'LINK' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
+                                    >
+                                        <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center mb-3">
+                                            <CreditCard size={24} />
+                                        </div>
+                                        <span className="font-bold text-slate-800 dark:text-white">Cartão ou Boleto</span>
+                                        <span className="text-xs text-slate-400 mt-1">Ambiente Seguro ASAAS</span>
+                                    </button>
+                                </div>
+                            </div>
 
                             {error && (
                                 <div className="p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 text-sm flex items-center gap-3">
@@ -277,7 +601,7 @@ export const CheckoutReserva: React.FC = () => {
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-slate-800 dark:text-white">
-                                            {viagem?.departure_date ? new Date(viagem.departure_date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }) : '--'}
+                                            {viagem?.departure_date ? new Date(viagem.departure_date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'UTC' }) : '--'}
                                         </p>
                                         <p className="text-xs text-slate-500">{viagem?.departure_time?.slice(0, 5)}h</p>
                                     </div>
@@ -286,23 +610,29 @@ export const CheckoutReserva: React.FC = () => {
                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
                                     <div className="flex items-center gap-2 text-green-600 mb-2">
                                         <MapPin size={14} />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">Embarque</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Itinerário</span>
                                     </div>
-                                    <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        {voyageBoardingPoint()}
+                                    <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                                        {passengers.length > 0 && Array.from(new Set(passengers.map(p => p.boarding_point))).length === 1
+                                            ? passengers[0].boarding_point
+                                            : 'Pontos Múltiplos'}
+                                        <span className="text-slate-300 dark:text-slate-600 mx-1">→</span>
+                                        {passengers.length > 0 && Array.from(new Set(passengers.map(p => p.dropoff_point))).length === 1
+                                            ? passengers[0].dropoff_point
+                                            : 'Pontos Múltiplos'}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className="text-xs font-bold text-slate-500 uppercase">Total {passengers.length}x</span>
-                                    <span className="text-sm font-bold text-slate-400 line-through">R$ {(passengers.length * (viagem?.price_conventional || 0) * 1.1).toFixed(2)}</span>
+                                    <span className="text-xs font-bold text-slate-500 uppercase">Assentos ({passengers.length})</span>
+                                    <span className="text-xs font-bold text-slate-400">{passengers.map(p => p.seat_number).join(', ')}</span>
                                 </div>
                                 <div className="flex justify-between items-end">
-                                    <span className="font-bold text-slate-700 dark:text-slate-200">Valor Total</span>
+                                    <span className="font-bold text-slate-700 dark:text-slate-200">Total</span>
                                     <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                                        R$ {(passengers.length * (viagem?.price_conventional || 0)).toFixed(2)}
+                                        R$ {totalSelecionado.toFixed(2)}
                                     </span>
                                 </div>
                             </div>
@@ -314,7 +644,7 @@ export const CheckoutReserva: React.FC = () => {
                                 <p className="font-bold text-sm">Reserva 100% Segura</p>
                             </div>
                             <p className="text-[11px] text-blue-100 leading-relaxed">
-                                Seus dados estão protegidos por criptografia de ponta a ponta. A SGTL não armazena dados de pagamento sensíveis.
+                                Seus dados estão protegidos por criptografia. A SGTL não armazena dados de pagamento sensíveis.
                             </p>
                         </div>
                     </div>

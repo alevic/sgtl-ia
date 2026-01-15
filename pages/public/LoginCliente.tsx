@@ -9,7 +9,7 @@ type LoginMode = 'WHATSAPP' | 'PASSWORD';
 
 export const LoginCliente: React.FC = () => {
     const navigate = useNavigate();
-    const [mode, setMode] = useState<LoginMode>('WHATSAPP');
+    const [mode, setMode] = useState<LoginMode>('PASSWORD');
     const [step, setStep] = useState<LoginStep>('IDENTIFIER');
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
@@ -35,7 +35,7 @@ export const LoginCliente: React.FC = () => {
         setError('');
 
         if (!identifier.trim()) {
-            setError('Por favor, informe seu CPF ou Telefone.');
+            setError('Por favor, informe seu Telefone.');
             return;
         }
 
@@ -87,7 +87,7 @@ export const LoginCliente: React.FC = () => {
         setError('');
 
         if (!identifier.trim() || !password.trim()) {
-            setError('Por favor, informe suas credenciais.');
+            setError('Por favor, informe suas credenciais (E-mail, CPF ou Telefone e senha).');
             return;
         }
 
@@ -122,7 +122,9 @@ export const LoginCliente: React.FC = () => {
                 return;
             }
 
-            navigate('/cliente/dashboard');
+            const searchParams = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
+            const returnUrl = searchParams.get('returnUrl');
+            navigate(returnUrl || '/cliente/dashboard');
         } catch (err: any) {
             console.error('[AUTH EXCEPTION] login:', err);
             setError('Erro ao realizar login. Verifique seus dados.');
@@ -191,7 +193,10 @@ export const LoginCliente: React.FC = () => {
             }
 
             console.log('[AUTH SUCCESS] verify:', data);
-            navigate('/cliente/dashboard');
+
+            const searchParams = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
+            const returnUrl = searchParams.get('returnUrl');
+            navigate(returnUrl || '/cliente/dashboard');
         } catch (err: any) {
             console.error('[AUTH EXCEPTION] verify:', err);
             setError('Erro ao verificar código.');
@@ -223,24 +228,24 @@ export const LoginCliente: React.FC = () => {
                 {step === 'IDENTIFIER' && (
                     <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-xl mb-8">
                         <button
-                            onClick={() => setMode('WHATSAPP')}
-                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${mode === 'WHATSAPP'
-                                    ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                }`}
-                        >
-                            <MessageCircle size={16} />
-                            WhatsApp
-                        </button>
-                        <button
                             onClick={() => setMode('PASSWORD')}
                             className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${mode === 'PASSWORD'
-                                    ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                 }`}
                         >
                             <Lock size={16} />
                             Senha
+                        </button>
+                        <button
+                            onClick={() => setMode('WHATSAPP')}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${mode === 'WHATSAPP'
+                                ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            <MessageCircle size={16} />
+                            WhatsApp
                         </button>
                     </div>
                 )}
@@ -255,7 +260,7 @@ export const LoginCliente: React.FC = () => {
                     <form onSubmit={mode === 'WHATSAPP' ? handleWhatsAppSubmit : handlePasswordSubmit} className="space-y-6">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                {mode === 'WHATSAPP' ? 'CPF ou Telefone' : 'E-mail ou CPF'}
+                                {mode === 'WHATSAPP' ? 'Seu Telefone (WhatsApp)' : 'E-mail, CPF ou Telefone'}
                             </label>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -265,7 +270,7 @@ export const LoginCliente: React.FC = () => {
                                     type="text"
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
-                                    placeholder={mode === 'WHATSAPP' ? "000.000.000-00 ou (00) 00000-0000" : "exemplo@email.com ou CPF"}
+                                    placeholder={mode === 'WHATSAPP' ? "(00) 00000-0000" : "E-mail, CPF ou Telefone"}
                                     disabled={isLoading}
                                     className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white text-lg"
                                 />
@@ -383,6 +388,19 @@ export const LoginCliente: React.FC = () => {
 
                 {/* Footer Info */}
                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-700 text-center">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        Ainda não tem uma conta? {' '}
+                        <button
+                            onClick={() => {
+                                const params = new URLSearchParams(location.search);
+                                const returnUrl = params.get('returnUrl');
+                                navigate(`/cliente/signup${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`);
+                            }}
+                            className="text-blue-600 font-bold hover:underline"
+                        >
+                            Cadastre-se agora
+                        </button>
+                    </p>
                     <p className="text-xs text-slate-400 dark:text-slate-500">
                         Ao entrar, você concorda com nossos <br />
                         <a href="#" className="underline">Termos de Uso</a> e <a href="#" className="underline">Privacidade</a>.

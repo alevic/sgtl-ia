@@ -89,7 +89,7 @@ router.get("/trips/:id", async (req, res) => {
                    r.origin_neighborhood, r.destination_neighborhood,
                     r.stops as route_stops,
                     rr.stops as return_route_stops,
-                    v.placa as vehicle_plate, v.modelo as vehicle_model, v.tipo as vehicle_type, v.capacidade_passageiros, v.id as vehicle_id
+                    v.placa as vehicle_plate, v.modelo as vehicle_model, v.tipo as vehicle_type, v.capacidade_passageiros, v.id as vehicle_id, v.is_double_deck as vehicle_is_double_deck
             FROM trips t
             JOIN routes r ON t.route_id = r.id
             LEFT JOIN routes rr ON t.return_route_id = rr.id
@@ -114,7 +114,7 @@ router.get("/vehicles/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const result = await pool.query(
-            "SELECT id, modelo, placa, ano, tipo, capacidade_passageiros, imagem, galeria FROM vehicle WHERE id = $1",
+            "SELECT id, modelo, placa, ano, tipo, capacidade_passageiros, imagem, galeria, is_double_deck FROM vehicle WHERE id = $1",
             [id]
         );
         if (result.rows.length === 0) return res.status(404).json({ error: "Vehicle not found" });
@@ -272,8 +272,11 @@ router.post("/client/signup", async (req, res) => {
 
         const userId = authResponse.user.id;
 
-        // Force role update to ensure it is 'client'
-        await pool.query('UPDATE "user" SET role = $1 WHERE id = $2', ['client', userId]);
+        // Force role update and sync CPF/Phone to user table
+        await pool.query(
+            'UPDATE "user" SET role = $1, cpf = $2, phone = $3 WHERE id = $4',
+            ['client', document || null, phone || null, userId]
+        );
 
         // 2. Create Client Profile
         await pool.query(
