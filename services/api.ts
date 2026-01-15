@@ -1,6 +1,23 @@
 import { authClient } from "../lib/auth-client";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+// Smart API URL detection (same logic as auth-client)
+function getApiUrl(): string {
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        if (hostname === 'jjeturismo.com.br' || hostname.endsWith('.jjeturismo.com.br')) {
+            return 'https://api.jjeturismo.com.br';
+        }
+        return window.location.origin;
+    }
+
+    return "http://localhost:4000";
+}
+
+const API_URL = getApiUrl();
 
 // Removed getHeaders as better-auth uses cookies
 // If you need specific headers, add them here
