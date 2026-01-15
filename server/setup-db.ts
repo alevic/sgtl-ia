@@ -95,12 +95,13 @@ export async function setupDb() {
                 "expiresAt" TIMESTAMP NOT NULL,
                 "inviterId" TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
             );
-
-            CREATE INDEX IF NOT EXISTS idx_session_user ON session("userId");
-            CREATE INDEX IF NOT EXISTS idx_account_user ON account("userId");
-            CREATE INDEX IF NOT EXISTS idx_member_org ON member("organizationId");
-            CREATE INDEX IF NOT EXISTS idx_member_user ON member("userId");
         `);
+
+        // Create indexes separately to ensure IF NOT EXISTS works properly
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_session_user ON session("userId");`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_account_user ON account("userId");`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_member_org ON member("organizationId");`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_member_user ON member("userId");`);
 
         console.log("Better Auth tables created successfully.");
 
