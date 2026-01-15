@@ -21,7 +21,7 @@ services:
     build:
       context: .
       dockerfile: server/Dockerfile
-    command: sh -c "npm run migrate && npm start"
+    command: sh -c "npx @better-auth/cli migrate --yes && npm start"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@db:5432/${POSTGRES_DB:-sgtl_db}
       - PORT=4000
