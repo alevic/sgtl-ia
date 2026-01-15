@@ -16,6 +16,7 @@ export interface IPaymentRequest {
         quantity: number;
     }[];
     type: 'PIX' | 'LINK';
+    externalReference?: string;
 }
 
 export interface IPaymentResponse {

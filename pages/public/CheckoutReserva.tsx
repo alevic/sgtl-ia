@@ -254,7 +254,8 @@ export const CheckoutReserva: React.FC = () => {
                     description: `Reserva de Viagem - ${viagem?.title || viagem?.route_name} (${passengers.length} assentos)`,
                     amount: amountToPayNow,
                     quantity: 1
-                }]
+                }],
+                externalReference: response.reservations[0].id
             });
 
             if (payResponse.success) {
