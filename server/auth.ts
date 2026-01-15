@@ -31,7 +31,7 @@ export const auth = betterAuth({
         },
     },
     advanced: {
-        useSecureCookies: false, // Force false for localhost
+        useSecureCookies: config.betterAuthUrl.startsWith('https://'),
     },
     plugins: [
         admin(),

@@ -865,6 +865,51 @@ export async function setupDb() {
 
         console.log("System parameters table created and seeded successfully.");
 
+        // Create default admin user if none exists
+        const userCount = await pool.query('SELECT COUNT(*) FROM "user"');
+        if (parseInt(userCount.rows[0].count) === 0) {
+            console.log("Creating default admin user...");
+            // Import crypto for password hashing
+            const crypto = await import('crypto');
+            const password = 'admin123'; // Default password
+            const salt = crypto.randomBytes(16).toString('hex');
+            const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+
+            await pool.query(`
+                INSERT INTO "user" (id, name, email, "emailVerified", role, "createdAt", "updatedAt")
+                VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            `, [
+                crypto.randomUUID(),
+                'Administrador',
+                'admin@jjeturismo.com.br',
+                true,
+                'admin'
+            ]);
+
+            await pool.query(`
+                INSERT INTO account (id, "accountId", "providerId", "userId", password, "createdAt", "updatedAt")
+                SELECT 
+                    $1,
+                    u.email,
+                    'credential',
+                    u.id,
+                    $2,
+                    CURRENT_TIMESTAMP,
+                    CURRENT_TIMESTAMP
+                FROM "user" u
+                WHERE u.email = $3
+            `, [
+                crypto.randomUUID(),
+                `${salt}:${hash}`,
+                'admin@jjeturismo.com.br'
+            ]);
+
+            console.log("✅ Default admin user created:");
+            console.log("   Email: admin@jjeturismo.com.br");
+            console.log("   Password: admin123");
+            console.log("   ⚠️  IMPORTANTE: Altere a senha após o primeiro login!");
+        }
+
         console.log("Database setup completed successfully!");
     } catch (error) {
         console.error("Error setting up database:", error);
