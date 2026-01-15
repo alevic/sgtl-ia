@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import {
     ITransacao, TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa,
-    FormaPagamento, Moeda, CentroCusto, ClassificacaoContabil
+    FormaPagamento, Moeda, CentroCusto, ClassificacaoContabil, StatusTransacaoLabel, TipoTransacaoLabel
 } from '../types';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
@@ -85,11 +85,11 @@ export const Transacoes: React.FC = () => {
 
     const resumo = useMemo(() => {
         const receitas = transacoesFiltradas
-            .filter(t => t.tipo === TipoTransacao.RECEITA)
+            .filter(t => t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA')
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesas = transacoesFiltradas
-            .filter(t => t.tipo === TipoTransacao.DESPESA)
+            .filter(t => t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA')
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const saldo = receitas - despesas;
@@ -107,34 +107,40 @@ export const Transacoes: React.FC = () => {
     };
 
     const getStatusBadge = (status: StatusTransacao) => {
-        const styles = {
-            [StatusTransacao.PAGA]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-            [StatusTransacao.PENDENTE]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-            [StatusTransacao.VENCIDA]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-            [StatusTransacao.CANCELADA]: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
-            [StatusTransacao.PARCIALMENTE_PAGA]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+        const styles: Record<string, string> = {
+            [StatusTransacao.PAID]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+            [StatusTransacao.PENDING]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+            [StatusTransacao.OVERDUE]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+            [StatusTransacao.CANCELLED]: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
+            [StatusTransacao.PARTIALLY_PAID]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+            // Legacy fallbacks
+            'PAGA': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+            'PENDENTE': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+            'VENCIDA': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+            'CANCELADA': 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
+            'PARCIALMENTE_PAGA': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
         };
 
         return (
-            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${styles[status]}`}>
-                {status}
+            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${styles[status] || styles[StatusTransacao.PENDING]}`}>
+                {StatusTransacaoLabel[status as StatusTransacao] || (status as string)}
             </span>
         );
     };
 
     const getTipoBadge = (tipo: TipoTransacao) => {
-        if (tipo === TipoTransacao.RECEITA) {
+        if (tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') {
             return (
                 <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-semibold flex items-center gap-1">
                     <ArrowUpRight size={12} />
-                    RECEITA
+                    {TipoTransacaoLabel[TipoTransacao.INCOME].toUpperCase()}
                 </span>
             );
         }
         return (
             <span className="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded text-xs font-semibold flex items-center gap-1">
                 <ArrowDownRight size={12} />
-                DESPESA
+                {TipoTransacaoLabel[TipoTransacao.EXPENSE].toUpperCase()}
             </span>
         );
     };
@@ -237,8 +243,8 @@ export const Transacoes: React.FC = () => {
                             className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="TODAS">Todos os Tipos</option>
-                            <option value={TipoTransacao.RECEITA}>Receitas</option>
-                            <option value={TipoTransacao.DESPESA}>Despesas</option>
+                            <option value={TipoTransacao.INCOME}>{TipoTransacaoLabel[TipoTransacao.INCOME]}</option>
+                            <option value={TipoTransacao.EXPENSE}>{TipoTransacaoLabel[TipoTransacao.EXPENSE]}</option>
                         </select>
                     </div>
 
@@ -250,10 +256,10 @@ export const Transacoes: React.FC = () => {
                             className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="TODAS">Todos os Status</option>
-                            <option value={StatusTransacao.PAGA}>Paga</option>
-                            <option value={StatusTransacao.PENDENTE}>Pendente</option>
-                            <option value={StatusTransacao.VENCIDA}>Vencida</option>
-                            <option value={StatusTransacao.PARCIALMENTE_PAGA}>Parcial</option>
+                            <option value={StatusTransacao.PAID}>{StatusTransacaoLabel[StatusTransacao.PAID]}</option>
+                            <option value={StatusTransacao.PENDING}>{StatusTransacaoLabel[StatusTransacao.PENDING]}</option>
+                            <option value={StatusTransacao.OVERDUE}>{StatusTransacaoLabel[StatusTransacao.OVERDUE]}</option>
+                            <option value={StatusTransacao.PARTIALLY_PAID}>{StatusTransacaoLabel[StatusTransacao.PARTIALLY_PAID]}</option>
                         </select>
                     </div>
 
@@ -389,11 +395,11 @@ export const Transacoes: React.FC = () => {
                                     </div>
                                     <div className="text-right ml-4 flex items-center gap-3">
                                         <div>
-                                            <p className={`text-xl font-bold ${transacao.tipo === TipoTransacao.RECEITA
+                                            <p className={`text-xl font-bold ${transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA'
                                                 ? 'text-green-600 dark:text-green-400'
                                                 : 'text-red-600 dark:text-red-400'
                                                 }`}>
-                                                {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
+                                                {transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
                                             </p>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                                 {transacao.moeda}

@@ -21,7 +21,7 @@ export async function setupDb() {
                 date DATE NOT NULL,
                 due_date DATE,
                 payment_date DATE,
-                status TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('PENDING', 'PAID', 'OVERDUE', 'CANCELLED', 'PARTIALLY_PAID')),
                 payment_method TEXT,
                 category TEXT,
                 cost_center TEXT,
@@ -36,6 +36,14 @@ export async function setupDb() {
 
         console.log("Transaction table created successfully.");
 
+        // Ensure transaction table has client_id and updated_at
+        await pool.query(`
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS reservation_id UUID REFERENCES reservations(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS maintenance_id UUID REFERENCES maintenance(id);
+        `);
+
         // Create Vehicle table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS vehicle (
@@ -43,7 +51,7 @@ export async function setupDb() {
                 placa TEXT NOT NULL UNIQUE,
                 modelo TEXT NOT NULL,
                 tipo TEXT NOT NULL CHECK (tipo IN ('ONIBUS', 'CAMINHAO')),
-                status TEXT NOT NULL CHECK (status IN ('ATIVO', 'MANUTENCAO', 'EM_VIAGEM')),
+                status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'MAINTENANCE', 'IN_TRANSIT')),
                 ano INTEGER NOT NULL,
                 km_atual INTEGER NOT NULL DEFAULT 0,
                 proxima_revisao_km INTEGER NOT NULL,
@@ -93,8 +101,8 @@ export async function setupDb() {
                 andar INTEGER NOT NULL CHECK (andar IN (1, 2)),
                 posicao_x INTEGER NOT NULL,
                 posicao_y INTEGER NOT NULL,
-                tipo TEXT NOT NULL CHECK (tipo IN ('CONVENCIONAL', 'EXECUTIVO', 'SEMI_LEITO', 'LEITO', 'CAMA', 'CAMA_MASTER')),
-                status TEXT NOT NULL DEFAULT 'LIVRE' CHECK (status IN ('LIVRE', 'OCUPADO', 'PENDENTE', 'BLOQUEADO')),
+                tipo TEXT NOT NULL CHECK (tipo IN ('CONVENCIONAL', 'EXECUTIVO', 'SEMI_LEITO', 'LEITO', 'CAMA', 'CAMA_MASTER', 'BLOQUEADO')),
+                status TEXT NOT NULL DEFAULT 'AVAILABLE' CHECK (status IN ('AVAILABLE', 'OCCUPIED', 'PENDING', 'BLOCKED')),
                 preco DECIMAL(10, 2),
                 disabled BOOLEAN DEFAULT FALSE,
                 
@@ -132,7 +140,7 @@ export async function setupDb() {
                 cidade TEXT,
                 estado TEXT,
                 pais TEXT,
-                status TEXT NOT NULL CHECK (status IN ('DISPONIVEL', 'EM_VIAGEM', 'FOLGA', 'AFASTADO')),
+                status TEXT NOT NULL DEFAULT 'AVAILABLE' CHECK (status IN ('AVAILABLE', 'IN_TRANSIT', 'ON_LEAVE', 'AWAY')),
                 data_contratacao DATE NOT NULL,
                 salario DECIMAL(10, 2),
                 anos_experiencia INTEGER,
@@ -273,7 +281,7 @@ export async function setupDb() {
         // Add type column if it doesn't exist (migration)
         await pool.query(`
             ALTER TABLE routes 
-            ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'IDA' CHECK (type IN ('IDA', 'VOLTA'));
+            ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'OUTBOUND' CHECK (type IN ('OUTBOUND', 'INBOUND', 'IDA', 'VOLTA'));
         `);
 
         console.log("Routes table created successfully.");
@@ -379,6 +387,16 @@ export async function setupDb() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            
+            -- Ensure existing tables have the new columns for signal/credits/points
+            ALTER TABLE reservations ADD COLUMN IF NOT EXISTS boarding_point TEXT;
+            ALTER TABLE reservations ADD COLUMN IF NOT EXISTS dropoff_point TEXT;
+            ALTER TABLE reservations ADD COLUMN IF NOT EXISTS amount_paid DECIMAL(10, 2) DEFAULT 0;
+            ALTER TABLE reservations ADD COLUMN IF NOT EXISTS payment_method TEXT;
+            ALTER TABLE reservations ADD COLUMN IF NOT EXISTS external_payment_id TEXT;
+            ALTER TABLE reservations ADD COLUMN IF NOT EXISTS credits_used DECIMAL(10, 2) DEFAULT 0;
+            ALTER TABLE reservations ADD COLUMN IF NOT EXISTS is_partial BOOLEAN DEFAULT FALSE;
+
             CREATE INDEX IF NOT EXISTS idx_reservations_org ON reservations(organization_id);
             CREATE INDEX IF NOT EXISTS idx_reservations_trip ON reservations(trip_id);
             CREATE INDEX IF NOT EXISTS idx_reservations_code ON reservations(ticket_code);
@@ -409,7 +427,7 @@ export async function setupDb() {
                 weight DECIMAL(10, 2),
                 dimensions TEXT,
                 
-                status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'RECEIVED', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED')),
+                status TEXT NOT NULL DEFAULT 'AWAITING' CHECK (status IN ('AWAITING', 'IN_TRANSIT', 'DELIVERED', 'RETURNED', 'PENDING', 'CANCELLED')),
                 tracking_code TEXT NOT NULL UNIQUE,
                 price DECIMAL(10, 2) NOT NULL,
                 
@@ -453,7 +471,7 @@ export async function setupDb() {
                 vehicle_type_requested TEXT, -- e.g., 'CONVENTIONAL', 'EXECUTIVE'
                 
                 description TEXT,
-                status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'QUOTED', 'APPROVED', 'REJECTED', 'COMPLETED')),
+                status TEXT NOT NULL DEFAULT 'REQUEST' CHECK (status IN ('REQUEST', 'QUOTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'PENDING', 'APPROVED', 'REJECTED')),
                 
                 quote_price DECIMAL(10, 2), -- Price offered by admin
                 
@@ -476,7 +494,7 @@ export async function setupDb() {
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 vehicle_id UUID NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
                 tipo TEXT NOT NULL,
-                status TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
                 data_agendada DATE NOT NULL,
                 data_inicio DATE,
                 data_conclusao DATE,
@@ -620,27 +638,144 @@ export async function setupDb() {
             ON CONFLICT (organization_id, key) DO NOTHING;
         `);
 
-        // Migration: Update status constraints for existing tables
-        console.log("Updating existing status constraints...");
+        // Migration: Update existing data to English Enums
+        console.log("Normalizing database statuses to English Enums...");
         await pool.query(`
-            -- Reservations Status
+            -- First drop all existing status constraints to allow updates
             ALTER TABLE reservations DROP CONSTRAINT IF EXISTS reservations_status_check;
+            ALTER TABLE trips DROP CONSTRAINT IF EXISTS trips_status_check;
+            ALTER TABLE vehicle DROP CONSTRAINT IF EXISTS vehicle_status_check;
+            ALTER TABLE seat DROP CONSTRAINT IF EXISTS seat_status_check;
+            ALTER TABLE driver DROP CONSTRAINT IF EXISTS driver_status_check;
+            ALTER TABLE parcel_orders DROP CONSTRAINT IF EXISTS parcel_orders_status_check;
+            ALTER TABLE charter_requests DROP CONSTRAINT IF EXISTS charter_requests_status_check;
+            ALTER TABLE maintenance DROP CONSTRAINT IF EXISTS maintenance_status_check;
+            ALTER TABLE transaction DROP CONSTRAINT IF EXISTS transaction_status_check;
+            ALTER TABLE routes DROP CONSTRAINT IF EXISTS routes_type_check;
+
+            -- Migrate data
+            -- Vehicle
+            UPDATE vehicle SET status = 'ACTIVE' WHERE status IN ('LIVRE', 'ATIVO', 'ACTIVE');
+            UPDATE vehicle SET status = 'MAINTENANCE' WHERE status IN ('EM_MANUTENCAO', 'MAINTENANCE');
+            UPDATE vehicle SET status = 'IN_TRANSIT' WHERE status IN ('EM_TRANSITO', 'EM_CURSO', 'IN_TRANSIT');
+            UPDATE vehicle SET tipo = 'ONIBUS' WHERE tipo IN ('ONIBUS', 'BUS');
+            UPDATE vehicle SET tipo = 'CAMINHAO' WHERE tipo IN ('CAMINHAO', 'TRUCK');
+
+            -- Routes
+            UPDATE routes SET type = 'OUTBOUND' WHERE type IN ('IDA', 'OUTBOUND');
+            UPDATE routes SET type = 'INBOUND' WHERE type IN ('VOLTA', 'INBOUND');
+
+            -- Trips
+            UPDATE trips SET status = 'SCHEDULED' WHERE status IN ('AGENDADA', 'AGENDADO', 'SCHEDULED');
+            UPDATE trips SET status = 'BOARDING' WHERE status IN ('EMBARQUE', 'BOARDING');
+            UPDATE trips SET status = 'IN_TRANSIT' WHERE status IN ('EM_CURSO', 'EM_TRANSITO', 'IN_TRANSIT');
+            UPDATE trips SET status = 'COMPLETED' WHERE status IN ('FINALIZADA', 'FINALIZADO', 'CONCLUIDA', 'CONCLUIDO', 'COMPLETED');
+            UPDATE trips SET status = 'CANCELLED' WHERE status IN ('CANCELADA', 'CANCELADO', 'CANCELLED');
+            UPDATE trips SET status = 'DELAYED' WHERE status IN ('ATRASADA', 'ATRASADO', 'DELAYED');
+
+            -- Transaction
+            UPDATE transaction SET status = 'PENDING' WHERE status IN ('PENDENTE', 'PENDING');
+            UPDATE transaction SET status = 'PAID' WHERE status IN ('PAGA', 'PAGO', 'PAID');
+            UPDATE transaction SET status = 'OVERDUE' WHERE status IN ('VENCIDA', 'VENCIDO', 'OVERDUE');
+            UPDATE transaction SET status = 'CANCELLED' WHERE status IN ('CANCELADA', 'CANCELADO', 'CANCELLED');
+            UPDATE transaction SET status = 'PARTIALLY_PAID' WHERE status IN ('PAGA_PARCIAL', 'PAGO_PARCIAL', 'PARCIALMENTE_PAGO', 'PARCIALMENTE_PAGA', 'PARTIALLY_PAID');
+            UPDATE transaction SET type = 'INCOME' WHERE type IN ('RECEITA', 'INCOME');
+            UPDATE transaction SET type = 'EXPENSE' WHERE type IN ('DESPESA', 'EXPENSE');
+            UPDATE transaction SET type = 'TRANSFER' WHERE type IN ('TRANSFERENCIA', 'TRANSFER');
+
+            -- Driver
+            UPDATE driver SET status = 'AVAILABLE' WHERE status IN ('DISPONIVEL', 'LIVRE', 'AVAILABLE');
+            UPDATE driver SET status = 'IN_TRANSIT' WHERE status IN ('EM_VIAGEM', 'EM_TRANSITO', 'IN_TRANSIT');
+            UPDATE driver SET status = 'ON_LEAVE' WHERE status IN ('FOLGA', 'ON_LEAVE');
+            UPDATE driver SET status = 'AWAY' WHERE status IN ('AFASTADO', 'AWAY');
+
+            -- Parcel Orders
+            UPDATE parcel_orders SET status = 'AWAITING' WHERE status IN ('PENDENTE', 'AGUARDANDO', 'AWAITING', 'PENDING');
+            UPDATE parcel_orders SET status = 'IN_TRANSIT' WHERE status IN ('EM_TRANSITO', 'EM_CURSO', 'IN_TRANSIT');
+            UPDATE parcel_orders SET status = 'DELIVERED' WHERE status IN ('ENTREGUE', 'DELIVERED');
+            UPDATE parcel_orders SET status = 'RETURNED' WHERE status IN ('DEVOLVIDA', 'DEVOLVIDO', 'RETURNED');
+            -- Update carrier types if they exist or were used
+            -- UPDATE parcel_orders SET carrier_type = 'BUS_CARGO' WHERE carrier_type IN ('CARGA_ONIBUS', 'BUS_CARGO');
+            -- UPDATE parcel_orders SET carrier_type = 'TRUCK_FREIGHT' WHERE carrier_type IN ('FRETE_CAMINHAO', 'TRUCK_FREIGHT');
+
+            -- Charter Requests
+            UPDATE charter_requests SET status = 'REQUEST' WHERE status IN ('SOLICITACAO', 'SOLICITADO', 'SOLICITADA', 'PENDENTE', 'REQUEST', 'PENDING');
+            UPDATE charter_requests SET status = 'QUOTED' WHERE status IN ('ORCAMENTO', 'COTADO', 'COTADA', 'QUOTED');
+            UPDATE charter_requests SET status = 'CONFIRMED' WHERE status IN ('CONFIRMADO', 'CONFIRMADA', 'APROVADO', 'APROVADA', 'CONFIRMED');
+            UPDATE charter_requests SET status = 'IN_PROGRESS' WHERE status IN ('EM_ANDAMENTO', 'EM_CURSO', 'IN_PROGRESS');
+            UPDATE charter_requests SET status = 'COMPLETED' WHERE status IN ('CONCLUIDO', 'CONCLUIDA', 'FINALIZADO', 'FINALIZADA', 'COMPLETED');
+            UPDATE charter_requests SET status = 'CANCELLED' WHERE status IN ('CANCELADO', 'CANCELADA', 'CANCELLED');
+
+            -- Maintenance
+            UPDATE maintenance SET status = 'SCHEDULED' WHERE status IN ('AGENDADA', 'AGENDADO', 'SCHEDULED');
+            UPDATE maintenance SET status = 'IN_PROGRESS' WHERE status IN ('EM_ANDAMENTO', 'EM_CURSO', 'IN_PROGRESS');
+            UPDATE maintenance SET status = 'COMPLETED' WHERE status IN ('CONCLUIDA', 'CONCLUIDO', 'FINALIZADA', 'FINALIZADO', 'COMPLETED');
+            UPDATE maintenance SET status = 'CANCELLED' WHERE status IN ('CANCELADA', 'CANCELADO', 'CANCELLED');
+            UPDATE maintenance SET tipo = 'PREVENTIVE' WHERE tipo IN ('PREVENTIVA', 'PREVENTIVE');
+            UPDATE maintenance SET tipo = 'CORRECTIVE' WHERE tipo IN ('CORRETIVA', 'CORRECTIVE');
+            UPDATE maintenance SET tipo = 'PREDICTIVE' WHERE tipo IN ('PREDITIVA', 'PREDICTIVE');
+            UPDATE maintenance SET tipo = 'INSPECTION' WHERE tipo IN ('INSPECAO', 'INSPECTION');
+
+            -- Reservations
+            UPDATE reservations SET status = 'PENDING' WHERE status IN ('PENDENTE', 'PENDING');
+            UPDATE reservations SET status = 'CONFIRMED' WHERE status IN ('CONFIRMADA', 'CONFIRMED');
+            UPDATE reservations SET status = 'CANCELLED' WHERE status IN ('CANCELADA', 'CANCELLED');
+            UPDATE reservations SET status = 'USED' WHERE status IN ('UTILIZADA', 'USED');
+            UPDATE reservations SET status = 'CHECKED_IN' WHERE status IN ('EMBARCADO', 'CHECKED_IN');
+
+            -- Seat
+            UPDATE seat SET status = 'AVAILABLE' WHERE status IN ('LIVRE', 'DISPONIVEL', 'AVAILABLE');
+            UPDATE seat SET status = 'OCCUPIED' WHERE status IN ('OCUPADO', 'OCCUPIED');
+            UPDATE seat SET status = 'PENDING' WHERE status IN ('PENDENTE', 'PENDING');
+            UPDATE seat SET status = 'BLOCKED' WHERE status IN ('BLOQUEADO', 'BLOCKED');
+
+            -- Re-apply strict constraints
+            -- Reservations Status
             ALTER TABLE reservations ADD CONSTRAINT reservations_status_check 
-            CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'USED', 'COMPLETED'));
+            CHECK (status IN ('PENDING', 'PENDENTE', 'CONFIRMED', 'CONFIRMADA', 'CANCELLED', 'CANCELADA', 'CHECKED_IN', 'NO_SHOW', 'USED', 'COMPLETED'));
 
             -- Trips Status
-            ALTER TABLE trips DROP CONSTRAINT IF EXISTS trips_status_check;
             ALTER TABLE trips ADD CONSTRAINT trips_status_check
-            CHECK (status IN ('SCHEDULED', 'BOARDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED', 'DELAYED', 'AGENDADA', 'CONFIRMADA', 'EM_CURSO', 'FINALIZADA', 'CONFIRMED'));
+            CHECK (status IN ('SCHEDULED', 'BOARDING', 'IN_TRANSIT', 'COMPLETED', 'CANCELLED', 'DELAYED'));
+
+            -- Vehicle Status
+            ALTER TABLE vehicle ADD CONSTRAINT vehicle_status_check
+            CHECK (status IN ('ACTIVE', 'MAINTENANCE', 'IN_TRANSIT'));
+
+            -- Seat Status
+            ALTER TABLE seat ADD CONSTRAINT seat_status_check
+            CHECK (status IN ('AVAILABLE', 'OCCUPIED', 'PENDING', 'BLOCKED'));
+
+            -- Driver Status
+            ALTER TABLE driver ADD CONSTRAINT driver_status_check
+            CHECK (status IN ('AVAILABLE', 'IN_TRANSIT', 'ON_LEAVE', 'AWAY'));
+
+            -- Parcel Orders Status
+            ALTER TABLE parcel_orders ADD CONSTRAINT parcel_orders_status_check
+            CHECK (status IN ('AWAITING', 'IN_TRANSIT', 'DELIVERED', 'RETURNED'));
+
+            -- Charter Requests Status
+            ALTER TABLE charter_requests ADD CONSTRAINT charter_requests_status_check
+            CHECK (status IN ('REQUEST', 'QUOTED', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'));
+
+            -- Maintenance Status
+            ALTER TABLE maintenance ADD CONSTRAINT maintenance_status_check
+            CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'));
+
+            -- Transaction Status
+            ALTER TABLE transaction ADD CONSTRAINT transaction_status_check
+            CHECK (status IN ('PENDING', 'PAID', 'OVERDUE', 'CANCELLED', 'PARTIALLY_PAID'));
+
+            -- Route Type Status
+            ALTER TABLE routes ADD CONSTRAINT routes_type_check
+            CHECK (type IN ('OUTBOUND', 'INBOUND'));
         `);
 
         console.log("System parameters table created and seeded successfully.");
 
         console.log("Database setup completed successfully!");
-        // process.exit(0); // Don't exit if called from index.ts
     } catch (error) {
         console.error("Error setting up database:", error);
-        // process.exit(1); // Don't exit if called from index.ts
         throw error;
     }
 }

@@ -7,7 +7,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 
 
 import { useNavigate } from 'react-router-dom';
-import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, StatusReservaLabel } from '../types';
+import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, ReservationStatus, ReservationStatusLabel, TripStatus, TripStatusLabel } from '../types';
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
 import { ModalNovoCliente } from '../components/Selectors/ModalNovoCliente';
@@ -22,18 +22,19 @@ import { transactionsService } from '../services/transactionsService';
 import { TipoTransacao, StatusTransacao, CategoriaReceita, FormaPagamento } from '../types';
 
 const TRIP_STATUS_LABELS: Record<string, string> = {
-  SCHEDULED: 'Agendada',
-  AGENDADA: 'Agendada',
-  CONFIRMED: 'Confirmada',
-  CONFIRMADA: 'Confirmada',
-  BOARDING: 'Embarcando',
-  IN_TRANSIT: 'Em Curso',
-  EM_CURSO: 'Em Curso',
-  COMPLETED: 'Finalizada',
-  FINALIZADA: 'Finalizada',
-  CANCELLED: 'Cancelada',
-  CANCELADA: 'Cancelada',
-  DELAYED: 'Atrasada'
+  [TripStatus.SCHEDULED]: TripStatusLabel[TripStatus.SCHEDULED],
+  [TripStatus.BOARDING]: TripStatusLabel[TripStatus.BOARDING],
+  [TripStatus.IN_TRANSIT]: TripStatusLabel[TripStatus.IN_TRANSIT],
+  [TripStatus.COMPLETED]: TripStatusLabel[TripStatus.COMPLETED],
+  [TripStatus.CANCELLED]: TripStatusLabel[TripStatus.CANCELLED],
+  [TripStatus.DELAYED]: TripStatusLabel[TripStatus.DELAYED],
+  // Legacy
+  AGENDADA: TripStatusLabel[TripStatus.SCHEDULED],
+  CONFIRMED: TripStatusLabel[TripStatus.SCHEDULED],
+  CONFIRMADA: TripStatusLabel[TripStatus.SCHEDULED],
+  EM_CURSO: TripStatusLabel[TripStatus.IN_TRANSIT],
+  FINALIZADA: TripStatusLabel[TripStatus.COMPLETED],
+  CANCELADA: TripStatusLabel[TripStatus.CANCELLED],
 };
 
 type Step = 1 | 2 | 3;
@@ -105,8 +106,8 @@ export const NovaReserva: React.FC = () => {
       ]);
       // Filter only scheduled/confirmed trips
       const activeTrips = tripsData.filter(t =>
-        t.status === 'SCHEDULED' || t.status === 'CONFIRMED' ||
-        t.status === 'AGENDADA' || t.status === 'CONFIRMADA'
+        t.status === TripStatus.SCHEDULED || t.status === TripStatus.BOARDING ||
+        (t.status as any) === 'AGENDADA' || (t.status as any) === 'CONFIRMADA'
       );
       setViagens(activeTrips);
       setClientes(clientsData);
@@ -169,7 +170,7 @@ export const NovaReserva: React.FC = () => {
       // 2. Fetch Reservations (for occupied seats)
       // We want ALL active reservations (CONFIRMED, PENDING, etc) to block seats
       const reservations = await reservationsService.getAll({ status: 'TODOS' });
-      const tripReservations = reservations.filter((r: any) => r.trip_id === viagem.id && r.status !== 'CANCELLED');
+      const tripReservations = reservations.filter((r: any) => r.trip_id === viagem.id && r.status !== ReservationStatus.CANCELLED && r.status !== 'CANCELADA');
       const occupied = tripReservations.map((r: any) => r.seat_number || r.assento_numero).filter(Boolean);
       setAssentosOcupados(occupied);
 
@@ -240,7 +241,7 @@ export const NovaReserva: React.FC = () => {
       // LOGIC:
       // If paymentMethod is DIGITAL -> Status 'PENDING'
       // If paymentMethod is MANUAL -> Status 'CONFIRMED'
-      const status = paymentMethod === 'DIGITAL' ? 'PENDING' : 'CONFIRMED';
+      const status = paymentMethod === 'DIGITAL' ? ReservationStatus.PENDING : ReservationStatus.CONFIRMED;
 
       // Create a reservation for each passenger
       const promises = assentosSelecionados.map(async (seat) => {
@@ -294,14 +295,14 @@ export const NovaReserva: React.FC = () => {
           if (isPartialPayment && remainingValue > 0) {
             // 1. ENTRY (Sinal) - PAID
             const entryPayload = {
-              tipo: TipoTransacao.RECEITA,
+              tipo: TipoTransacao.INCOME,
               descricao: `Reserva (Entrada) - ${passageirosMap[assentosSelecionados[0].numero].nome} - ${assentosSelecionados.length} assentos`,
               valor: entryValue,
               moeda: Moeda.BRL,
               data_emissao: new Date().toISOString(),
               data_vencimento: new Date().toISOString(),
               data_pagamento: new Date().toISOString(),
-              status: StatusTransacao.PAGA,
+              status: StatusTransacao.PAID,
               forma_pagamento: detailedPaymentMethod,
               categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
               reserva_id: firstReserva.id,
@@ -323,13 +324,13 @@ export const NovaReserva: React.FC = () => {
 
             // 2. REMAINING (Restante) - PENDING
             const remainingPayload = {
-              tipo: TipoTransacao.RECEITA,
+              tipo: TipoTransacao.INCOME,
               descricao: `Reserva (Restante) - ${passageirosMap[assentosSelecionados[0].numero].nome} - ${assentosSelecionados.length} assentos`,
               valor: remainingValue,
               moeda: Moeda.BRL,
               data_emissao: new Date().toISOString(),
               data_vencimento: viagemSelecionada.departure_date ? new Date(viagemSelecionada.departure_date).toISOString() : new Date().toISOString(), // Due on trip date
-              status: StatusTransacao.PENDENTE, // Pending
+              status: StatusTransacao.PENDING, // Pending
               // No payment date or method yet
               categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
               reserva_id: firstReserva.id,
@@ -343,14 +344,14 @@ export const NovaReserva: React.FC = () => {
           } else {
             // FULL PAYMENT
             const payload = {
-              tipo: TipoTransacao.RECEITA,
+              tipo: TipoTransacao.INCOME,
               descricao: `Reserva (Integral) - ${passageirosMap[assentosSelecionados[0].numero].nome} - ${assentosSelecionados.length} assentos`,
               valor: entryValue,
               moeda: Moeda.BRL,
               data_emissao: new Date().toISOString(),
               data_vencimento: new Date().toISOString(),
               data_pagamento: new Date().toISOString(),
-              status: StatusTransacao.PAGA,
+              status: StatusTransacao.PAID,
               forma_pagamento: detailedPaymentMethod,
               categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
               reserva_id: firstReserva.id,
@@ -375,10 +376,10 @@ export const NovaReserva: React.FC = () => {
         }
       }
 
-      if (status === 'PENDING') {
-        alert(`Reservas criadas como ${StatusReservaLabel.PENDING}. Aguardando confirmação do pagamento via sistema (N8N).`);
+      if (status === ReservationStatus.PENDING) {
+        alert(`Reservas criadas como ${ReservationStatusLabel[ReservationStatus.PENDING]}. Aguardando confirmação do pagamento via sistema (N8N).`);
       } else {
-        alert(`Reservas ${StatusReservaLabel.CONFIRMED} com sucesso!`);
+        alert(`Reservas ${ReservationStatusLabel[ReservationStatus.CONFIRMED]} com sucesso!`);
       }
       navigate('/admin/reservas');
     } catch (error) {

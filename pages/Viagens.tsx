@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { IViagem, ITag } from '../types';
+import { IViagem, ITag, TripStatus, TripStatusLabel } from '../types';
 import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
@@ -12,20 +12,22 @@ import { PassengerListModal } from '../components/PassengerListModal';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
-        SCHEDULED: { color: 'yellow', icon: Clock, label: 'Agendada' },
-        AGENDADA: { color: 'yellow', icon: Clock, label: 'Agendada' },
-        CONFIRMED: { color: 'green', icon: CheckCircle, label: 'Confirmada' },
-        CONFIRMADA: { color: 'green', icon: CheckCircle, label: 'Confirmada' },
-        IN_TRANSIT: { color: 'blue', icon: Loader, label: 'Em Curso' },
-        EM_CURSO: { color: 'blue', icon: Loader, label: 'Em Curso' },
-        COMPLETED: { color: 'slate', icon: CheckCircle, label: 'Finalizada' },
-        FINALIZADA: { color: 'slate', icon: CheckCircle, label: 'Finalizada' },
-        CANCELLED: { color: 'red', icon: XCircle, label: 'Cancelada' },
-        CANCELADA: { color: 'red', icon: XCircle, label: 'Cancelada' },
-        DELAYED: { color: 'orange', icon: Clock, label: 'Atrasada' }
+        [TripStatus.SCHEDULED]: { color: 'yellow', icon: Clock, label: TripStatusLabel[TripStatus.SCHEDULED] },
+        [TripStatus.BOARDING]: { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.BOARDING] },
+        [TripStatus.IN_TRANSIT]: { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.IN_TRANSIT] },
+        [TripStatus.COMPLETED]: { color: 'slate', icon: CheckCircle, label: TripStatusLabel[TripStatus.COMPLETED] },
+        [TripStatus.CANCELLED]: { color: 'red', icon: XCircle, label: TripStatusLabel[TripStatus.CANCELLED] },
+        [TripStatus.DELAYED]: { color: 'orange', icon: Clock, label: TripStatusLabel[TripStatus.DELAYED] },
+        // Legacy fallbacks
+        'AGENDADA': { color: 'yellow', icon: Clock, label: TripStatusLabel[TripStatus.SCHEDULED] },
+        'CONFIRMED': { color: 'green', icon: CheckCircle, label: TripStatusLabel[TripStatus.SCHEDULED] }, // Maps to scheduled or custom
+        'CONFIRMADA': { color: 'green', icon: CheckCircle, label: TripStatusLabel[TripStatus.SCHEDULED] },
+        'EM_CURSO': { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.IN_TRANSIT] },
+        'FINALIZADA': { color: 'slate', icon: CheckCircle, label: TripStatusLabel[TripStatus.COMPLETED] },
+        'CANCELADA': { color: 'red', icon: XCircle, label: TripStatusLabel[TripStatus.CANCELLED] }
     };
 
-    const config = configs[status] || configs['SCHEDULED'];
+    const config = configs[status] || configs[TripStatus.SCHEDULED];
     const Icon = config.icon;
 
     return (
@@ -40,7 +42,7 @@ export const Viagens: React.FC = () => {
     const [viagens, setViagens] = useState<IViagem[]>([]);
     const [allTags, setAllTags] = useState<ITag[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filtroStatus, setFiltroStatus] = useState<string[]>(['SCHEDULED', 'CONFIRMED', 'IN_TRANSIT']);
+    const [filtroStatus, setFiltroStatus] = useState<string[]>([TripStatus.SCHEDULED, TripStatus.BOARDING, TripStatus.IN_TRANSIT]);
     const [filtroAtiva, setFiltroAtiva] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
     const [busca, setBusca] = useState('');
     const [filtroDataPartida, setFiltroDataPartida] = useState('');
@@ -163,11 +165,12 @@ export const Viagens: React.FC = () => {
     });
 
     const statusOptions = [
-        { value: 'SCHEDULED', label: 'Agendada' },
-        { value: 'CONFIRMED', label: 'Confirmada' },
-        { value: 'IN_TRANSIT', label: 'Em Curso' },
-        { value: 'COMPLETED', label: 'Finalizada' },
-        { value: 'CANCELLED', label: 'Cancelada' },
+        { value: TripStatus.SCHEDULED, label: TripStatusLabel[TripStatus.SCHEDULED] },
+        { value: TripStatus.BOARDING, label: TripStatusLabel[TripStatus.BOARDING] },
+        { value: TripStatus.IN_TRANSIT, label: TripStatusLabel[TripStatus.IN_TRANSIT] },
+        { value: TripStatus.COMPLETED, label: TripStatusLabel[TripStatus.COMPLETED] },
+        { value: TripStatus.DELAYED, label: TripStatusLabel[TripStatus.DELAYED] },
+        { value: TripStatus.CANCELLED, label: TripStatusLabel[TripStatus.CANCELLED] },
     ];
 
     const toggleStatus = (status: string) => {
@@ -180,8 +183,8 @@ export const Viagens: React.FC = () => {
 
     // Estatísticas
     const totalViagens = viagens.length;
-    const viagensConfirmadas = viagens.filter(v => v.status === 'CONFIRMED' || v.status === 'CONFIRMADA').length;
-    const viagensEmCurso = viagens.filter(v => v.status === 'IN_TRANSIT' || v.status === 'EM_CURSO').length;
+    const viagensConfirmadas = viagens.filter(v => v.status === TripStatus.SCHEDULED || v.status === 'CONFIRMADA').length;
+    const viagensEmCurso = viagens.filter(v => v.status === TripStatus.IN_TRANSIT || v.status === TripStatus.BOARDING || v.status === 'EM_CURSO').length;
 
     if (loading) {
         return (

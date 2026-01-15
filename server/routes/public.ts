@@ -1,5 +1,6 @@
 import express from "express";
 import { pool, auth } from "../auth";
+import { TripStatus, ReservationStatus, FretamentoStatus, EncomendaStatus } from "../../types";
 
 const router = express.Router();
 
@@ -45,10 +46,10 @@ router.get("/trips", async (req, res) => {
             JOIN routes r ON t.route_id = r.id
             LEFT JOIN routes rr ON t.return_route_id = rr.id
             LEFT JOIN vehicle v ON t.vehicle_id = v.id
-            WHERE t.status IN ('SCHEDULED', 'AGENDADA', 'CONFIRMADA', 'CONFIRMED') AND (t.active = true OR t.active IS NULL)
+            WHERE t.status IN ($1, 'AGENDADA', 'CONFIRMADA', 'CONFIRMED') AND (t.active = true OR t.active IS NULL)
         `;
-        const params: any[] = [];
-        let paramCount = 0;
+        const params: any[] = [TripStatus.SCHEDULED];
+        let paramCount = 1;
 
         if (origin_city) {
             paramCount++;
@@ -152,8 +153,8 @@ router.get("/trips/:id/reserved-seats", async (req, res) => {
             `SELECT s.numero as seat_number 
              FROM reservations r
              JOIN seat s ON r.seat_id = s.id
-             WHERE r.trip_id = $1 AND r.status != 'CANCELLED'`,
-            [id]
+             WHERE r.trip_id = $1 AND r.status != $2`,
+            [id, ReservationStatus.CANCELLED]
         );
         res.json(result.rows.map(r => r.seat_number));
     } catch (error) {
@@ -185,14 +186,14 @@ router.post("/charters", async (req, res) => {
                 passenger_count, vehicle_type_requested,
                 description, status,
                 organization_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'PENDING', $16)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             RETURNING id`,
             [
                 contact_name, contact_email, contact_phone, company_name || null,
                 origin_city, origin_state, destination_city, destination_state,
                 departure_date, departure_time || null, return_date || null, return_time || null,
                 passenger_count, vehicle_type_requested || null,
-                description || null, organization_id
+                description || null, FretamentoStatus.REQUEST, organization_id
             ]
         );
 
@@ -230,14 +231,14 @@ router.post("/parcels", async (req, res) => {
                 description, weight, dimensions,
                 status, tracking_code, price,
                 organization_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'PENDING', $14, 0, $15)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             RETURNING id, tracking_code`,
             [
                 sender_name, sender_document, sender_phone,
                 recipient_name, recipient_document, recipient_phone,
                 origin_city, origin_state, destination_city, destination_state,
                 description, weight || 0, dimensions || null,
-                tracking_code, organization_id
+                EncomendaStatus.AWAITING, tracking_code, 0, organization_id
             ]
         );
 

@@ -4,7 +4,7 @@ import {
     DollarSign, TrendingUp, TrendingDown, Calendar, Plus, FileText,
     CreditCard, AlertCircle, ArrowUpRight, ArrowDownRight, PieChart
 } from 'lucide-react';
-import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa } from '../types';
+import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa, StatusTransacaoLabel } from '../types';
 
 // Mock data - em produção viria do backend
 import { authClient } from '../lib/auth-client';
@@ -45,25 +45,25 @@ export const Financeiro: React.FC = () => {
     // Cálculos financeiros
     const resumo = useMemo(() => {
         const receitas = transacoes
-            .filter(t => t.tipo === TipoTransacao.RECEITA && t.status !== StatusTransacao.CANCELADA)
+            .filter(t => t.tipo === TipoTransacao.INCOME && t.status !== StatusTransacao.CANCELLED)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesas = transacoes
-            .filter(t => t.tipo === TipoTransacao.DESPESA && t.status !== StatusTransacao.CANCELADA)
+            .filter(t => t.tipo === TipoTransacao.EXPENSE && t.status !== StatusTransacao.CANCELLED)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const saldo = receitas - despesas;
 
         const receitasPagas = transacoes
-            .filter(t => t.tipo === TipoTransacao.RECEITA && t.status === StatusTransacao.PAGA)
+            .filter(t => t.tipo === TipoTransacao.INCOME && t.status === StatusTransacao.PAID)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesasPagas = transacoes
-            .filter(t => t.tipo === TipoTransacao.DESPESA && t.status === StatusTransacao.PAGA)
+            .filter(t => t.tipo === TipoTransacao.EXPENSE && t.status === StatusTransacao.PAID)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const contasVencidas = transacoes.filter(t => {
-            if (t.status !== StatusTransacao.PENDENTE) return false;
+            if (t.status !== StatusTransacao.PENDING) return false;
             const vencimento = new Date(t.data_vencimento);
             return vencimento < new Date();
         }).length;
@@ -83,17 +83,23 @@ export const Financeiro: React.FC = () => {
     };
 
     const getStatusBadge = (status: StatusTransacao) => {
-        const styles = {
-            [StatusTransacao.PAGA]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-            [StatusTransacao.PENDENTE]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-            [StatusTransacao.VENCIDA]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-            [StatusTransacao.CANCELADA]: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
-            [StatusTransacao.PARCIALMENTE_PAGA]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+        const styles: Record<string, string> = {
+            [StatusTransacao.PAID]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+            [StatusTransacao.PENDING]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+            [StatusTransacao.OVERDUE]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+            [StatusTransacao.CANCELLED]: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
+            [StatusTransacao.PARTIALLY_PAID]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+            // Legacy fallbacks
+            'PAGA': 'bg-green-100 text-green-700',
+            'PENDENTE': 'bg-yellow-100 text-yellow-700',
+            'VENCIDA': 'bg-red-100 text-red-700',
+            'CANCELADA': 'bg-slate-100 text-slate-700',
+            'PARCIALMENTE_PAGA': 'bg-blue-100 text-blue-700'
         };
 
         return (
-            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${styles[status]}`}>
-                {status}
+            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${styles[status] || styles[StatusTransacao.PENDING]}`}>
+                {StatusTransacaoLabel[status] || status}
             </span>
         );
     };
@@ -339,11 +345,11 @@ export const Financeiro: React.FC = () => {
                             <div key={transacao.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3 flex-1">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${transacao.tipo === TipoTransacao.RECEITA
+                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME'
                                             ? 'bg-green-100 dark:bg-green-900/30'
                                             : 'bg-red-100 dark:bg-red-900/30'
                                             }`}>
-                                            {transacao.tipo === TipoTransacao.RECEITA ? (
+                                            {transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME' ? (
                                                 <ArrowUpRight size={20} className="text-green-600 dark:text-green-400" />
                                             ) : (
                                                 <ArrowDownRight size={20} className="text-red-600 dark:text-red-400" />
@@ -360,11 +366,11 @@ export const Financeiro: React.FC = () => {
                                     </div>
                                     <div className="flex items-center gap-3">
                                         {getStatusBadge(transacao.status)}
-                                        <p className={`text-lg font-semibold ${transacao.tipo === TipoTransacao.RECEITA
+                                        <p className={`text-lg font-semibold ${transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME'
                                             ? 'text-green-600 dark:text-green-400'
                                             : 'text-red-600 dark:text-red-400'
                                             }`}>
-                                            {transacao.tipo === TipoTransacao.RECEITA ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
+                                            {transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME' ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
                                         </p>
                                         <TransactionActions transacao={transacao} onUpdate={fetchTransacoes} />
                                     </div>

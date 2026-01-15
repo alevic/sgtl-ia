@@ -1,30 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IFretamento, IClienteCorporativo, Moeda } from '../types';
+import { IFretamento, IClienteCorporativo, Moeda, FretamentoStatus, FretamentoStatusLabel } from '../types';
 import { Bus, Building2, Calendar, DollarSign, FileText, CheckCircle, Loader } from 'lucide-react';
 import { chartersService } from '../services/chartersService';
 import { clientsService } from '../services/clientsService';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-    const configs: any = {
-        SOLICITACAO: { color: 'slate', label: 'Solicitação' },
-        PENDING: { color: 'slate', label: 'Solicitação' },
-        ORCAMENTO_ENVIADO: { color: 'yellow', label: 'Orçamento Enviado' },
-        QUOTED: { color: 'yellow', label: 'Orçamento Enviado' },
-        CONFIRMADO: { color: 'green', label: 'Confirmado' },
-        APPROVED: { color: 'green', label: 'Confirmado' },
-        EM_ANDAMENTO: { color: 'blue', label: 'Em Andamento' },
-        CONCLUIDO: { color: 'green', label: 'Concluído' },
-        COMPLETED: { color: 'green', label: 'Concluído' },
-        CANCELADO: { color: 'red', label: 'Cancelado' },
-        REJECTED: { color: 'red', label: 'Cancelado' }
+    const configs: Record<string, { color: string }> = {
+        [FretamentoStatus.REQUEST]: { color: 'slate' },
+        [FretamentoStatus.QUOTED]: { color: 'yellow' },
+        [FretamentoStatus.CONFIRMED]: { color: 'green' },
+        [FretamentoStatus.IN_PROGRESS]: { color: 'blue' },
+        [FretamentoStatus.COMPLETED]: { color: 'green' },
+        [FretamentoStatus.CANCELLED]: { color: 'red' },
+        // Legacy fallbacks
+        'SOLICITACAO': { color: 'slate' },
+        'PENDING': { color: 'slate' },
+        'ORCAMENTO_ENVIADO': { color: 'yellow' },
+        'CONFIRMADO': { color: 'green' },
+        'APPROVED': { color: 'green' },
+        'EM_ANDAMENTO': { color: 'blue' },
+        'CONCLUIDO': { color: 'green' },
+        'CANCELADO': { color: 'red' },
+        'REJECTED': { color: 'red' }
     };
 
-    const config = configs[status] || configs['PENDING'];
+    const config = configs[status] || configs[FretamentoStatus.REQUEST];
 
     return (
         <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
-            {config.label}
+            {FretamentoStatusLabel[status as FretamentoStatus] || (status as string)}
         </span>
     );
 };
@@ -170,12 +175,12 @@ export const Fretamento: React.FC = () => {
                                     )}
 
                                     <div className="flex gap-2 mt-4">
-                                        {fretamento.status === 'PENDING' && (
+                                        {(fretamento.status === FretamentoStatus.REQUEST || fretamento.status === 'PENDING' || fretamento.status === 'SOLICITACAO') && (
                                             <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors">
                                                 Enviar Orçamento
                                             </button>
                                         )}
-                                        {fretamento.status === 'QUOTED' && (
+                                        {(fretamento.status === FretamentoStatus.QUOTED || fretamento.status === 'ORCAMENTO_ENVIADO') && (
                                             <button className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
                                                 <CheckCircle size={16} />
                                                 Confirmar Fretamento

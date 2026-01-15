@@ -14,14 +14,14 @@ export const NovaTransacao: React.FC = () => {
 
     // Form state
     const [id, setId] = useState<string | null>(null);
-    const [tipo, setTipo] = useState<TipoTransacao>(TipoTransacao.DESPESA);
+    const [tipo, setTipo] = useState<TipoTransacao>(TipoTransacao.EXPENSE);
     const [descricao, setDescricao] = useState('');
     const [valor, setValor] = useState('');
     const [moeda, setMoeda] = useState<Moeda>(Moeda.BRL);
     const [dataEmissao, setDataEmissao] = useState(new Date().toISOString().split('T')[0]);
     const [dataVencimento, setDataVencimento] = useState(new Date().toISOString().split('T')[0]);
-    const [status, setStatus] = useState<StatusTransacao>(StatusTransacao.PENDENTE);
-    const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>(FormaPagamento.DINHEIRO);
+    const [status, setStatus] = useState<StatusTransacao>(StatusTransacao.PENDING);
+    const [formaPagamento, setFormaPagamento] = useState<FormaPagamento>(FormaPagamento.CASH);
     const [categoriaReceita, setCategoriaReceita] = useState<CategoriaReceita>(CategoriaReceita.OUTROS);
     const [categoriaDespesa, setCategoriaDespesa] = useState<CategoriaDespesa>(CategoriaDespesa.OUTROS);
     const [numeroDocumento, setNumeroDocumento] = useState('');
@@ -35,13 +35,13 @@ export const NovaTransacao: React.FC = () => {
 
     // Auto-sugerir classificação quando categoria de despesa mudar
     useEffect(() => {
-        if (tipo === TipoTransacao.DESPESA) {
+        if (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') {
             const sugestao = getSugestaoClassificacao(categoriaDespesa);
             if (sugestao) {
                 setCentroCusto(sugestao.centro_custo);
                 setClassificacaoContabil(sugestao.classificacao_contabil);
             }
-        } else if (tipo === TipoTransacao.RECEITA) {
+        } else if (tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') {
             setCentroCusto(CentroCusto.VENDAS);
         }
     }, [tipo, categoriaDespesa]);
@@ -68,7 +68,7 @@ export const NovaTransacao: React.FC = () => {
                 setNumeroDocumento(state.numero_documento || '');
                 setObservacoes(state.observacoes || '');
 
-                if (state.tipo === TipoTransacao.RECEITA) {
+                if (state.tipo === TipoTransacao.INCOME || state.tipo === 'RECEITA') {
                     setCategoriaReceita(state.categoria_receita);
                 } else {
                     setCategoriaDespesa(state.categoria_despesa);
@@ -81,7 +81,7 @@ export const NovaTransacao: React.FC = () => {
                 if (state.valor) setValor(state.valor.toString());
                 if (state.descricao) setDescricao(state.descricao);
                 if (state.categoria_despesa) {
-                    setTipo(TipoTransacao.DESPESA);
+                    setTipo(TipoTransacao.EXPENSE);
                     setCategoriaDespesa(state.categoria_despesa);
                 }
                 if (state.centro_custo) setCentroCusto(state.centro_custo);
@@ -101,10 +101,10 @@ export const NovaTransacao: React.FC = () => {
             data_vencimento: dataVencimento,
             status,
             forma_pagamento: formaPagamento,
-            categoria_receita: tipo === TipoTransacao.RECEITA ? categoriaReceita : undefined,
-            categoria_despesa: tipo === TipoTransacao.DESPESA ? categoriaDespesa : undefined,
+            categoria_receita: (tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') ? categoriaReceita : undefined,
+            categoria_despesa: (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') ? categoriaDespesa : undefined,
             centro_custo: centroCusto,
-            classificacao_contabil: tipo === TipoTransacao.DESPESA ? classificacaoContabil : undefined,
+            classificacao_contabil: (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') ? classificacaoContabil : undefined,
             numero_documento: numeroDocumento,
             observacoes,
             maintenance_id: maintenanceId
@@ -171,32 +171,32 @@ export const NovaTransacao: React.FC = () => {
                     <div className="flex gap-4">
                         <button
                             type="button"
-                            onClick={() => setTipo(TipoTransacao.RECEITA)}
-                            className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.RECEITA
+                            onClick={() => setTipo(TipoTransacao.INCOME)}
+                            className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA'
                                 ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                                 : 'border-slate-200 dark:border-slate-700 hover:border-green-300'
                                 }`}
                         >
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <DollarSign size={24} className={tipo === TipoTransacao.RECEITA ? 'text-green-600' : 'text-slate-400'} />
+                                <DollarSign size={24} className={tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA' ? 'text-green-600' : 'text-slate-400'} />
                             </div>
-                            <p className={`font-semibold ${tipo === TipoTransacao.RECEITA ? 'text-green-700 dark:text-green-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                            <p className={`font-semibold ${tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA' ? 'text-green-700 dark:text-green-400' : 'text-slate-600 dark:text-slate-400'}`}>
                                 Receita
                             </p>
                         </button>
 
                         <button
                             type="button"
-                            onClick={() => setTipo(TipoTransacao.DESPESA)}
-                            className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.DESPESA
+                            onClick={() => setTipo(TipoTransacao.EXPENSE)}
+                            className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA'
                                 ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                                 : 'border-slate-200 dark:border-slate-700 hover:border-red-300'
                                 }`}
                         >
                             <div className="flex items-center justify-center gap-2 mb-2">
-                                <DollarSign size={24} className={tipo === TipoTransacao.DESPESA ? 'text-red-600' : 'text-slate-400'} />
+                                <DollarSign size={24} className={tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA' ? 'text-red-600' : 'text-slate-400'} />
                             </div>
-                            <p className={`font-semibold ${tipo === TipoTransacao.DESPESA ? 'text-red-700 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
+                            <p className={`font-semibold ${tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA' ? 'text-red-700 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
                                 Despesa
                             </p>
                         </button>
@@ -265,7 +265,7 @@ export const NovaTransacao: React.FC = () => {
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                 Categoria <span className="text-red-500">*</span>
                             </label>
-                            {tipo === TipoTransacao.RECEITA ? (
+                            {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') ? (
                                 <select
                                     required
                                     value={categoriaReceita}
@@ -339,7 +339,7 @@ export const NovaTransacao: React.FC = () => {
                         </div>
 
                         {/* Classificação Contábil (apenas para despesas) */}
-                        {tipo === TipoTransacao.DESPESA && (
+                        {(tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') && (
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                                     Classificação Contábil <span className="text-red-500">*</span>
@@ -365,7 +365,7 @@ export const NovaTransacao: React.FC = () => {
                         <div className="md:col-span-2">
                             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                                 <p className="text-sm text-blue-800 dark:text-blue-300">
-                                    <strong>Dica:</strong> {tipo === TipoTransacao.RECEITA
+                                    <strong>Dica:</strong> {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA')
                                         ? 'Receitas de serviços são VENDAS. Venda de ativos (ex: ônibus) são ESTOQUE.'
                                         : 'Custos relacionam-se à produção/vendas. Despesas são administrativas.'}
                                 </p>
@@ -423,10 +423,15 @@ export const NovaTransacao: React.FC = () => {
                                 onChange={e => setStatus(e.target.value as StatusTransacao)}
                                 className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value={StatusTransacao.PENDENTE}>Pendente</option>
-                                <option value={StatusTransacao.PAGA}>Paga</option>
-                                <option value={StatusTransacao.PARCIALMENTE_PAGA}>Parcialmente Paga</option>
-                                <option value={StatusTransacao.CANCELADA}>Cancelada</option>
+                                <option value={StatusTransacao.PENDING}>Pendente</option>
+                                <option value={StatusTransacao.PAID}>Paga</option>
+                                <option value={StatusTransacao.PARTIALLY_PAID}>Parcialmente Paga</option>
+                                <option value={StatusTransacao.CANCELLED}>Cancelada</option>
+                                {/* Legacy */}
+                                <option value="PENDENTE">Pendente (Legacy)</option>
+                                <option value="PAGA">Paga (Legacy)</option>
+                                <option value="PARCIALMENTE_PAGA">Parcialmente Paga (Legacy)</option>
+                                <option value="CANCELADA">Cancelada (Legacy)</option>
                             </select>
                         </div>
 
@@ -440,13 +445,13 @@ export const NovaTransacao: React.FC = () => {
                                 onChange={e => setFormaPagamento(e.target.value as FormaPagamento)}
                                 className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value={FormaPagamento.DINHEIRO}>Dinheiro</option>
+                                <option value={FormaPagamento.CASH}>Dinheiro</option>
                                 <option value={FormaPagamento.PIX}>PIX</option>
-                                <option value={FormaPagamento.CARTAO_CREDITO}>Cartão de Crédito</option>
-                                <option value={FormaPagamento.CARTAO_DEBITO}>Cartão de Débito</option>
+                                <option value={FormaPagamento.CREDIT_CARD}>Cartão de Crédito</option>
+                                <option value={FormaPagamento.DEBIT_CARD}>Cartão de Débito</option>
                                 <option value={FormaPagamento.BOLETO}>Boleto</option>
-                                <option value={FormaPagamento.TRANSFERENCIA}>Transferência</option>
-                                <option value={FormaPagamento.CHEQUE}>Cheque</option>
+                                <option value={FormaPagamento.BANK_TRANSFER}>Transferência</option>
+                                <option value={FormaPagamento.CHECK}>Cheque</option>
                             </select>
                         </div>
                     </div>

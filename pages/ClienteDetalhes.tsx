@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, StatusReservaLabel } from '../types';
+import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, ReservationStatusLabel, TipoInteracao, TipoInteracaoLabel } from '../types';
 import { useAppContext } from '../context/AppContext';
 import {
     ArrowLeft, User, Mail, Phone, MapPin, Calendar, DollarSign,
@@ -37,7 +37,7 @@ const MOCK_INTERACOES: IInteracao[] = [
     {
         id: '1',
         cliente_id: '1',
-        tipo: 'EMAIL',
+        tipo: TipoInteracao.EMAIL,
         descricao: 'Enviado confirmação de reserva para viagem SP-Florianópolis',
         data_hora: '2023-10-14T10:30:00',
         usuario_responsavel: 'Sistema'
@@ -45,7 +45,7 @@ const MOCK_INTERACOES: IInteracao[] = [
     {
         id: '2',
         cliente_id: '1',
-        tipo: 'TELEFONE',
+        tipo: TipoInteracao.PHONE,
         descricao: 'Cliente ligou para confirmar horário de embarque',
         data_hora: '2023-10-13T14:15:00',
         usuario_responsavel: 'João - Atendimento'
@@ -53,7 +53,7 @@ const MOCK_INTERACOES: IInteracao[] = [
     {
         id: '3',
         cliente_id: '1',
-        tipo: 'WHATSAPP',
+        tipo: TipoInteracao.WHATSAPP,
         descricao: 'Enviada promoção de Natal - 20% de desconto',
         data_hora: '2023-10-01T09:00:00',
         usuario_responsavel: 'Marketing'
@@ -98,17 +98,17 @@ export const ClienteDetalhes: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
 
     // New item states
-    const [newInteraction, setNewInteraction] = useState({ tipo: 'TELEFONE', descricao: '' });
+    const [newInteraction, setNewInteraction] = useState({ tipo: TipoInteracao.PHONE, descricao: '' });
     const [newNote, setNewNote] = useState({ titulo: '', conteudo: '', importante: false });
     const [editFormData, setEditFormData] = useState<Partial<ICliente>>({});
 
-    const getTipoIcon = (tipo: IInteracao['tipo']) => {
+    const getTipoIcon = (tipo: TipoInteracao) => {
         switch (tipo) {
-            case 'EMAIL': return <Mail size={16} className="text-blue-600" />;
-            case 'TELEFONE': return <Phone size={16} className="text-green-600" />;
-            case 'WHATSAPP': return <MessageSquare size={16} className="text-green-600" />;
-            case 'PRESENCIAL': return <User size={16} className="text-purple-600" />;
-            case 'SISTEMA': return <History size={16} className="text-slate-600" />;
+            case TipoInteracao.EMAIL: return <Mail size={16} className="text-blue-600" />;
+            case TipoInteracao.PHONE: return <Phone size={16} className="text-green-600" />;
+            case TipoInteracao.WHATSAPP: return <MessageSquare size={16} className="text-green-600" />;
+            case TipoInteracao.IN_PERSON: return <User size={16} className="text-purple-600" />;
+            case TipoInteracao.SYSTEM: return <History size={16} className="text-slate-600" />;
             default: return <MessageSquare size={16} className="text-slate-600" />;
         }
     };
@@ -169,7 +169,7 @@ export const ClienteDetalhes: React.FC = () => {
 
             setInteracoes([addedInteraction, ...interacoes]);
             setShowInteractionModal(false);
-            setNewInteraction({ tipo: 'TELEFONE', descricao: '' });
+            setNewInteraction({ tipo: TipoInteracao.PHONE, descricao: '' });
         } catch (error) {
             console.error('Error adding interaction:', error);
         }
@@ -400,13 +400,14 @@ export const ClienteDetalhes: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Segmento</label>
                                 <select
                                     name="segmento"
-                                    value={editFormData.segmento || 'Standard'}
+                                    value={editFormData.segmento || 'REGULAR'}
                                     onChange={handleEditChange}
                                     className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                                 >
-                                    <option value="Standard">Standard</option>
+                                    <option value="REGULAR">Regular</option>
                                     <option value="VIP">VIP</option>
-                                    <option value="Corporativo">Corporativo</option>
+                                    <option value="NOVO">Novo</option>
+                                    <option value="INATIVO">Inativo</option>
                                 </select>
                             </div>
 
@@ -649,7 +650,7 @@ export const ClienteDetalhes: React.FC = () => {
                                                     ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                                                     : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
                                                 }`}>
-                                                {StatusReservaLabel[reserva.status] || reserva.status}
+                                                {ReservationStatusLabel[reserva.status as any] || reserva.status}
                                             </span>
                                         </div>
                                     </div>
@@ -680,14 +681,14 @@ export const ClienteDetalhes: React.FC = () => {
                                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
                                             <select
                                                 value={newInteraction.tipo}
-                                                onChange={(e) => setNewInteraction({ ...newInteraction, tipo: e.target.value })}
+                                                onChange={(e) => setNewInteraction({ ...newInteraction, tipo: e.target.value as TipoInteracao })}
                                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                                             >
-                                                <option value="TELEFONE">Telefone</option>
-                                                <option value="EMAIL">Email</option>
-                                                <option value="WHATSAPP">WhatsApp</option>
-                                                <option value="PRESENCIAL">Presencial</option>
-                                                <option value="SISTEMA">Sistema</option>
+                                                <option value={TipoInteracao.PHONE}>Telefone</option>
+                                                <option value={TipoInteracao.EMAIL}>Email</option>
+                                                <option value={TipoInteracao.WHATSAPP}>WhatsApp</option>
+                                                <option value={TipoInteracao.IN_PERSON}>Presencial</option>
+                                                <option value={TipoInteracao.SYSTEM}>Sistema</option>
                                             </select>
                                         </div>
                                         <div>
@@ -724,7 +725,7 @@ export const ClienteDetalhes: React.FC = () => {
                                 >
                                     <div className="flex items-center gap-2 mb-2">
                                         {getTipoIcon(interacao.tipo)}
-                                        <span className="font-semibold text-slate-800 dark:text-white">{interacao.tipo}</span>
+                                        <span className="font-semibold text-slate-800 dark:text-white">{TipoInteracaoLabel[interacao.tipo] || interacao.tipo}</span>
                                         <span className="text-xs text-slate-500 dark:text-slate-400">
                                             {new Date(interacao.data_hora).toLocaleString('pt-BR')}
                                         </span>

@@ -1,5 +1,6 @@
 import express from "express";
 import { pool } from "../auth";
+import { ReservationStatus, StatusTransacao, TipoTransacao, CategoriaReceita } from "../../types";
 
 const router = express.Router();
 
@@ -63,7 +64,7 @@ router.post("/payment-confirmed", verifyWebhookSecret, async (req, res) => {
 
         // Determine status: If it covers total or if it's explicitly confirmed
         // Simple logic: If we receive a confirmation webhook, we set to CONFIRMED.
-        const newStatus = 'CONFIRMED';
+        const newStatus = ReservationStatus.CONFIRMED;
 
         await client.query(
             `UPDATE reservations SET 
@@ -90,16 +91,16 @@ router.post("/payment-confirmed", verifyWebhookSecret, async (req, res) => {
                 organization_id, created_by, reservation_id, document_number, notes
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
             [
-                'RECEITA',
+                TipoTransacao.INCOME,
                 `Pagamento Digital - Reserva ${reservation.ticket_code}`,
                 amount,
                 'BRL',
                 new Date().toISOString(), // Emission
                 new Date().toISOString(), // Due
                 payment_date || new Date().toISOString(), // Payment Date
-                'PAGA',
+                StatusTransacao.PAID,
                 payment_method || 'DIGITAL',
-                'VENDA_PASSAGEM',
+                CategoriaReceita.VENDA_PASSAGEM,
                 orgId,
                 userId,
                 reservation_id,
@@ -133,7 +134,8 @@ router.get("/pending-reservations", verifyWebhookSecret, async (req, res) => {
         // Return PENDING reservations created more than 15 minutes ago (optional logic here or in N8N)
         // For flexibility, we return ALL pending and let N8N filter by date.
         const result = await pool.query(
-            "SELECT id, ticket_code, created_at, passenger_name, passenger_email FROM reservations WHERE status = 'PENDING'"
+            "SELECT id, ticket_code, created_at, passenger_name, passenger_email FROM reservations WHERE status = $1",
+            [ReservationStatus.PENDING]
         );
         res.json(result.rows);
     } catch (error) {
@@ -154,10 +156,10 @@ router.post("/cancel-reservation", verifyWebhookSecret, async (req, res) => {
     try {
         const result = await pool.query(
             `UPDATE reservations 
-             SET status = 'CANCELLED', notes = COALESCE(notes, '') || ' [Cancelado via N8N: ' || COALESCE($2, 'Expirado') || ']', updated_at = CURRENT_TIMESTAMP
-             WHERE id = $1
+             SET status = $1, notes = COALESCE(notes, '') || ' [Cancelado via N8N: ' || COALESCE($2, 'Expirado') || ']', updated_at = CURRENT_TIMESTAMP
+             WHERE id = $3
              RETURNING id, status`,
-            [reservation_id, reason]
+            [ReservationStatus.CANCELLED, reason, reservation_id]
         );
 
         if (result.rows.length === 0) {
@@ -165,7 +167,7 @@ router.post("/cancel-reservation", verifyWebhookSecret, async (req, res) => {
         }
 
         console.log(`Webhook: Reservation ${reservation_id} cancelled via N8N`);
-        res.json({ success: true, status: 'CANCELLED' });
+        res.json({ success: true, status: ReservationStatus.CANCELLED });
     } catch (error) {
         console.error("Error cancelling reservation:", error);
         res.status(500).json({ error: "Internal Server Error" });

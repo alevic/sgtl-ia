@@ -15,7 +15,9 @@ services:
     restart: always
 
   api:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     command: sh -c "npm run migrate && npm run dev"
     ports:
       - "4000:4000"

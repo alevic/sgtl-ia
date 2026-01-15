@@ -4,6 +4,10 @@ import { toNodeHandler } from "better-auth/node";
 import { auth, pool } from "./auth";
 import { authorize } from "./middleware";
 import { config } from "./config";
+import {
+    TipoTransacao, StatusTransacao, FormaPagamento,
+    VeiculoStatus, AssentoStatus, DriverStatus
+} from "../types";
 import crypto from "crypto";
 import clientsRouter from "./routes/clients";
 import maintenanceRouter from "./routes/maintenance";
@@ -140,6 +144,23 @@ app.use("/api/charters", chartersRouter);
 // Public Routes (Portal)
 app.use("/api/public", publicRouter);
 
+// DEBUG ROUTE - REMOVE AFTER FIXING VISIBILITY ISSUE
+app.get("/api/debug/reservations", async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT r.id, r.ticket_code, r.passenger_name, r.organization_id, r.status, r.created_at,
+                   t.id as trip_id, t.organization_id as trip_org_id, t.title as trip_title
+            FROM reservations r
+            LEFT JOIN trips t ON r.trip_id = t.id
+            ORDER BY r.created_at DESC
+            LIMIT 20
+        `);
+        res.json(result.rows);
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Client Portal Routes (Authenticated)
 import clientRouter from "./routes/client";
 app.use("/api/client", clientRouter);
@@ -210,8 +231,8 @@ app.post("/api/finance/transactions", authorize(['admin', 'financeiro']), async 
                 organization_id, created_by, maintenance_id, reservation_id
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
             [
-                tipo, descricao, valor, moeda || 'BRL', data_emissao,
-                data_vencimento, data_pagamento || null, status, forma_pagamento || null, (category || null),
+                tipo || TipoTransacao.EXPENSE, descricao, valor, moeda || 'BRL', data_emissao,
+                data_vencimento, data_pagamento || null, status || StatusTransacao.PENDING, forma_pagamento || null, (category || null),
                 centro_custo || null, classificacao_contabil || null, numero_documento || null, observacoes || null,
                 orgId, userId, req.body.maintenance_id || null, req.body.reserva_id || null
             ]
@@ -279,8 +300,8 @@ app.put("/api/finance/transactions/:id", authorize(['admin', 'financeiro']), asy
                 cost_center = $11, accounting_classification = $12, document_number = $13, notes = $14
             WHERE id = $15 AND organization_id = $16`,
             [
-                tipo, descricao, valor, moeda || 'BRL', data_emissao,
-                data_vencimento, data_pagamento || null, status, forma_pagamento || null, (category || null),
+                tipo || TipoTransacao.EXPENSE, descricao, valor, moeda || 'BRL', data_emissao,
+                data_vencimento, data_pagamento || null, status || StatusTransacao.PENDING, forma_pagamento || null, (category || null),
                 centro_custo || null, classificacao_contabil || null, numero_documento || null, observacoes || null,
                 id, orgId
             ]
@@ -396,7 +417,7 @@ app.post("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req,
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
             RETURNING *`,
             [
-                placa, modelo, tipo, status, ano, km_atual || 0, proxima_revisao_km,
+                placa, modelo, tipo, status || VeiculoStatus.ACTIVE, ano, km_atual || 0, proxima_revisao_km,
                 ultima_revisao || null, is_double_deck || false, capacidade_passageiros || null,
                 capacidade_carga || null, observacoes || null, motorista_atual || null,
                 imagem || null, galeria ? JSON.stringify(galeria) : null,
@@ -458,7 +479,7 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
             WHERE id = $16 AND organization_id = $17
             RETURNING *`,
             [
-                placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
+                placa, modelo, tipo, status || VeiculoStatus.ACTIVE, ano, km_atual, proxima_revisao_km,
                 ultima_revisao || null, is_double_deck || false, capacidade_passageiros || null,
                 capacidade_carga || null, observacoes || null, motorista_atual || null,
                 imagem || null, galeria ? JSON.stringify(galeria) : null,
@@ -592,7 +613,7 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
                         WHERE id = $8`,
                         [
                             seat.andar, seat.posicao_x, seat.posicao_y,
-                            seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false,
+                            seat.tipo, seat.status || AssentoStatus.AVAILABLE, seat.preco || null, seat.disabled || false,
                             existingSeat.id
                         ]
                     );
@@ -610,7 +631,7 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
                                 updated_at = CURRENT_TIMESTAMP
                             WHERE id = $6`,
                             [
-                                seat.numero, seat.tipo, seat.status || 'LIVRE',
+                                seat.numero, seat.tipo, seat.status || AssentoStatus.AVAILABLE,
                                 seat.preco || null, seat.disabled || false,
                                 existingAtCoord.id
                             ]
@@ -623,7 +644,7 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
                             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
                             [
                                 id, seat.numero, seat.andar, seat.posicao_x, seat.posicao_y,
-                                seat.tipo, seat.status || 'LIVRE', seat.preco || null, seat.disabled || false
+                                seat.tipo, seat.status || AssentoStatus.AVAILABLE, seat.preco || null, seat.disabled || false
                             ]
                         );
                         processedIds.add(insertResult.rows[0].id);
@@ -651,8 +672,8 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
                             warnings.push(msg);
 
                             await client.query(
-                                "UPDATE seat SET disabled = true, status = 'BLOQUEADO', posicao_x = -1, posicao_y = -1 WHERE id = $1",
-                                [existingSeat.id]
+                                "UPDATE seat SET disabled = true, status = $1, posicao_x = -1, posicao_y = -1 WHERE id = $2",
+                                [AssentoStatus.BLOCKED, existingSeat.id]
                             );
                         } else {
                             throw deleteError;
@@ -828,7 +849,7 @@ app.post("/api/fleet/drivers", authorize(['admin', 'operacional']), async (req, 
             [
                 nome, cnh, categoria_cnh, validade_cnh, passaporte || null, validade_passaporte || null,
                 telefone || null, email || null, endereco || null, cidade || null, estado || null, pais || null,
-                status, data_contratacao, salario || null, anos_experiencia || null, viagens_internacionais || 0,
+                status || DriverStatus.AVAILABLE, data_contratacao, salario || null, anos_experiencia || null, viagens_internacionais || 0,
                 disponivel_internacional || false, observacoes || null,
                 orgId, userId
             ]
@@ -877,7 +898,7 @@ app.put("/api/fleet/drivers/:id", authorize(['admin', 'operacional']), async (re
             [
                 nome, cnh, categoria_cnh, validade_cnh, passaporte || null, validade_passaporte || null,
                 telefone || null, email || null, endereco || null, cidade || null, estado || null, pais || null,
-                status, data_contratacao, salario || null, anos_experiencia || null, viagens_internacionais || 0,
+                status || DriverStatus.AVAILABLE, data_contratacao, salario || null, anos_experiencia || null, viagens_internacionais || 0,
                 disponivel_internacional || false, observacoes || null,
                 id, orgId
             ]

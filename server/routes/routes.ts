@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../auth';
+import { RouteType } from '../../types';
 
 const router = Router();
 
@@ -55,6 +56,7 @@ router.post('/', async (req, res) => {
             duration_minutes,
             stops,
             active,
+            type,
             organization_id
         } = req.body;
 
@@ -63,22 +65,16 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Campos obrigatórios não informados' });
         }
 
-        // Use a default organization_id if not provided (for now, or get from auth middleware)
-        // Assuming 'default-org' or similar if not authenticated, but really should be from auth.
-        // For now, let's assume the frontend sends it or we pick a default.
-        // Since we don't have full auth context here, let's check if auth middleware populates user.
-        // But for simplicity in this fix, let's use a placeholder or check body.
-
         const orgId = organization_id || 'default-org'; // TODO: Get from authenticated user
 
         const result = await pool.query(
             `INSERT INTO routes (
                 name, origin_city, origin_state, destination_city, destination_state,
-                distance_km, duration_minutes, stops, active, organization_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+                distance_km, duration_minutes, stops, active, type, organization_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *`,
             [
                 name, origin_city, origin_state, destination_city, destination_state,
-                distance_km, duration_minutes, JSON.stringify(stops), active, orgId
+                distance_km, duration_minutes, JSON.stringify(stops), active, type || RouteType.OUTBOUND, orgId
             ]
         );
 
@@ -102,7 +98,8 @@ router.put('/:id', async (req, res) => {
             distance_km,
             duration_minutes,
             stops,
-            active
+            active,
+            type
         } = req.body;
 
         const result = await pool.query(
@@ -116,11 +113,12 @@ router.put('/:id', async (req, res) => {
                 duration_minutes = $7,
                 stops = $8,
                 active = $9,
+                type = $10,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE id = $10 RETURNING *`,
+            WHERE id = $11 RETURNING *`,
             [
                 name, origin_city, origin_state, destination_city, destination_state,
-                distance_km, duration_minutes, JSON.stringify(stops), active, id
+                distance_km, duration_minutes, JSON.stringify(stops), active, type || RouteType.OUTBOUND, id
             ]
         );
 

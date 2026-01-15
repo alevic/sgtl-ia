@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IRota } from '../types';
+import { IRota, RouteType, RouteTypeLabel } from '../types';
 import { VisualizadorRota } from '../components/Rotas/VisualizadorRota';
 import { routesService } from '../services/routesService';
 import {
@@ -13,7 +13,7 @@ export const Rotas: React.FC = () => {
     const [rotas, setRotas] = useState<IRota[]>([]);
     const [loading, setLoading] = useState(true);
     const [busca, setBusca] = useState('');
-    const [filtroTipo, setFiltroTipo] = useState<'TODOS' | 'IDA' | 'VOLTA'>('TODOS');
+    const [filtroTipo, setFiltroTipo] = useState<'TODOS' | RouteType>('TODOS');
     const [filtroStatus, setFiltroStatus] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
 
     const fetchRotas = async () => {
@@ -153,8 +153,8 @@ export const Rotas: React.FC = () => {
                             className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="TODOS">Todos os tipos</option>
-                            <option value="IDA">Ida</option>
-                            <option value="VOLTA">Volta</option>
+                            <option value={RouteType.OUTBOUND}>Ida</option>
+                            <option value={RouteType.INBOUND}>Volta</option>
                         </select>
                     </div>
 
@@ -210,11 +210,11 @@ export const Rotas: React.FC = () => {
                                             <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
                                                 {rota.nome || 'Rota sem nome'}
                                             </h3>
-                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${rota.tipo_rota === 'IDA'
+                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${rota.tipo_rota === RouteType.OUTBOUND || (rota.tipo_rota as any) === 'IDA'
                                                 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                                 : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
                                                 }`}>
-                                                {rota.tipo_rota}
+                                                {RouteTypeLabel[rota.tipo_rota] || (rota.tipo_rota as string)}
                                             </span>
                                             <span className={`px-2 py-1 rounded text-xs font-semibold ${rota.ativa
                                                 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'

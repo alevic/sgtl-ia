@@ -30,18 +30,18 @@ export const Relatorios: React.FC = () => {
 
     // Dados Financeiros (Compartilhado/Adaptado)
     const mockTransacoes = useMemo(() => [
-        { tipo: TipoTransacao.RECEITA, valor: 350, categoria_receita: CategoriaReceita.VENDA_PASSAGEM, data_emissao: '2024-11-20' },
-        { tipo: TipoTransacao.RECEITA, valor: 5000, categoria_receita: CategoriaReceita.FRETAMENTO, data_emissao: '2024-11-23' },
-        { tipo: TipoTransacao.RECEITA, valor: 120, categoria_receita: CategoriaReceita.ENCOMENDA, data_emissao: '2024-11-15' },
-        { tipo: TipoTransacao.DESPESA, valor: 3500, categoria_despesa: CategoriaDespesa.COMBUSTIVEL, data_emissao: '2024-11-20' },
-        { tipo: TipoTransacao.DESPESA, valor: 1200, categoria_despesa: CategoriaDespesa.MANUTENCAO, data_emissao: '2024-11-15' },
-        { tipo: TipoTransacao.DESPESA, valor: 850, categoria_despesa: CategoriaDespesa.PECAS, data_emissao: '2024-11-18' },
-        { tipo: TipoTransacao.DESPESA, valor: 2200, categoria_despesa: CategoriaDespesa.SEGURO, data_emissao: '2024-11-01' },
+        { tipo: TipoTransacao.INCOME, valor: 350, categoria_receita: CategoriaReceita.VENDA_PASSAGEM, data_emissao: '2024-11-20' },
+        { tipo: TipoTransacao.INCOME, valor: 5000, categoria_receita: CategoriaReceita.FRETAMENTO, data_emissao: '2024-11-23' },
+        { tipo: TipoTransacao.INCOME, valor: 120, categoria_receita: CategoriaReceita.ENCOMENDA, data_emissao: '2024-11-15' },
+        { tipo: TipoTransacao.EXPENSE, valor: 3500, categoria_despesa: CategoriaDespesa.COMBUSTIVEL, data_emissao: '2024-11-20' },
+        { tipo: TipoTransacao.EXPENSE, valor: 1200, categoria_despesa: CategoriaDespesa.MANUTENCAO, data_emissao: '2024-11-15' },
+        { tipo: TipoTransacao.EXPENSE, valor: 850, categoria_despesa: CategoriaDespesa.PECAS, data_emissao: '2024-11-18' },
+        { tipo: TipoTransacao.EXPENSE, valor: 2200, categoria_despesa: CategoriaDespesa.SEGURO, data_emissao: '2024-11-01' },
     ], []);
 
     const analiseFinanceira = useMemo(() => {
-        const receitas = mockTransacoes.filter(t => t.tipo === TipoTransacao.RECEITA).reduce((sum, t) => sum + t.valor, 0);
-        const despesas = mockTransacoes.filter(t => t.tipo === TipoTransacao.DESPESA).reduce((sum, t) => sum + t.valor, 0);
+        const receitas = mockTransacoes.filter(t => t.tipo === TipoTransacao.INCOME).reduce((sum, t) => sum + t.valor, 0);
+        const despesas = mockTransacoes.filter(t => t.tipo === TipoTransacao.EXPENSE).reduce((sum, t) => sum + t.valor, 0);
         const lucroLiquido = receitas - despesas;
         const margemLucro = receitas > 0 ? (lucroLiquido / receitas) * 100 : 0;
 
@@ -49,9 +49,9 @@ export const Relatorios: React.FC = () => {
         const despesasPorCategoria: Record<string, number> = {};
 
         mockTransacoes.forEach(t => {
-            if (t.tipo === TipoTransacao.RECEITA && t.categoria_receita) {
+            if (t.tipo === TipoTransacao.INCOME && t.categoria_receita) {
                 receitasPorCategoria[t.categoria_receita] = (receitasPorCategoria[t.categoria_receita] || 0) + t.valor;
-            } else if (t.tipo === TipoTransacao.DESPESA && t.categoria_despesa) {
+            } else if (t.tipo === TipoTransacao.EXPENSE && t.categoria_despesa) {
                 despesasPorCategoria[t.categoria_despesa] = (despesasPorCategoria[t.categoria_despesa] || 0) + t.valor;
             }
         });

@@ -2,11 +2,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+# Copy dependency files
+COPY server/package*.json ./server/
 
-RUN npm install
+# Install dependencies
+RUN cd server && npm install
 
-COPY . .
+# Copy source code and shared types
+COPY server/ ./server/
+COPY types.ts ./
+
+# Set workdir to server for running scripts
+WORKDIR /app/server
 
 EXPOSE 4000
 

@@ -13,7 +13,7 @@ import {
     DollarSign,
     TrendingUp
 } from 'lucide-react';
-import { IManutencao, TipoManutencao, StatusManutencao, Moeda } from '../types';
+import { IManutencao, TipoManutencao, StatusManutencao, Moeda, StatusManutencaoLabel, TipoManutencaoLabel } from '../types';
 import { MaintenanceActions } from '../components/Manutencao/MaintenanceActions';
 
 export const Manutencao: React.FC = () => {
@@ -52,20 +52,28 @@ export const Manutencao: React.FC = () => {
 
     const getStatusColor = (status: StatusManutencao) => {
         switch (status) {
-            case StatusManutencao.AGENDADA: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case StatusManutencao.EM_ANDAMENTO: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case StatusManutencao.CONCLUIDA: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case StatusManutencao.CANCELADA: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+            case StatusManutencao.SCHEDULED: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+            case StatusManutencao.IN_PROGRESS: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+            case StatusManutencao.COMPLETED: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+            case StatusManutencao.CANCELLED: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+            // Legacy fallbacks
+            case 'AGENDADA' as any: return 'bg-blue-100 text-blue-800';
+            case 'EM_ANDAMENTO' as any: return 'bg-yellow-100 text-yellow-800';
+            case 'CONCLUIDA' as any: return 'bg-green-100 text-green-800';
+            case 'CANCELADA' as any: return 'bg-red-100 text-red-800';
             default: return 'bg-slate-100 text-slate-800';
         }
     };
 
     const getTipoIcon = (tipo: TipoManutencao) => {
         switch (tipo) {
-            case TipoManutencao.PREVENTIVA: return <Clock size={16} className="text-blue-500" />;
-            case TipoManutencao.CORRETIVA: return <AlertTriangle size={16} className="text-red-500" />;
-            case TipoManutencao.PREDITIVA: return <TrendingUp size={16} className="text-purple-500" />;
-            case TipoManutencao.INSPECAO: return <CheckCircle size={16} className="text-green-500" />;
+            case TipoManutencao.PREVENTIVE: return <Clock size={16} className="text-blue-500" />;
+            case TipoManutencao.CORRECTIVE: return <AlertTriangle size={16} className="text-red-500" />;
+            case TipoManutencao.PREDICTIVE: return <TrendingUp size={16} className="text-purple-500" />;
+            case TipoManutencao.INSPECTION: return <CheckCircle size={16} className="text-green-500" />;
+            // Legacy fallbacks
+            case 'PREVENTIVA' as any: return <Clock size={16} className="text-blue-500" />;
+            case 'CORRETIVA' as any: return <AlertTriangle size={16} className="text-red-500" />;
             default: return <Wrench size={16} />;
         }
     };
@@ -83,10 +91,10 @@ export const Manutencao: React.FC = () => {
 
     // KPIs Calculation
     const totalMaintenances = manutencoes.length;
-    const inProgress = manutencoes.filter(m => m.status === StatusManutencao.EM_ANDAMENTO).length;
+    const inProgress = manutencoes.filter(m => m.status === StatusManutencao.IN_PROGRESS || (m.status as any) === 'EM_ANDAMENTO').length;
     const totalCost = manutencoes.reduce((acc, curr) => acc + Number(curr.custo_pecas || 0) + Number(curr.custo_mao_de_obra || 0), 0);
     const scheduledNext7Days = manutencoes.filter(m => {
-        if (m.status !== StatusManutencao.AGENDADA) return false;
+        if (m.status !== StatusManutencao.SCHEDULED && (m.status as any) !== 'AGENDADA') return false;
         const date = new Date(m.data_agendada);
         const now = new Date();
         const diffTime = Math.abs(date.getTime() - now.getTime());
@@ -180,9 +188,9 @@ export const Manutencao: React.FC = () => {
                         onChange={(e) => setFilterStatus(e.target.value)}
                     >
                         <option value="TODOS">Todos os Status</option>
-                        <option value="AGENDADA">Agendada</option>
-                        <option value="EM_ANDAMENTO">Em Andamento</option>
-                        <option value="CONCLUIDA">Concluída</option>
+                        <option value={StatusManutencao.SCHEDULED}>Agendada</option>
+                        <option value={StatusManutencao.IN_PROGRESS}>Em Andamento</option>
+                        <option value={StatusManutencao.COMPLETED}>Concluída</option>
                     </select>
                     <button className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center gap-2">
                         <Filter size={20} />
@@ -230,7 +238,9 @@ export const Manutencao: React.FC = () => {
                                         <div className="flex items-start gap-2">
                                             <div className="mt-1">{getTipoIcon(manutencao.tipo)}</div>
                                             <div>
-                                                <p className="font-medium text-slate-800 dark:text-white">{manutencao.tipo}</p>
+                                                <p className="font-medium text-slate-800 dark:text-white">
+                                                    {TipoManutencaoLabel[manutencao.tipo] || (manutencao.tipo as any)}
+                                                </p>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{manutencao.descricao}</p>
                                             </div>
                                         </div>
@@ -242,7 +252,7 @@ export const Manutencao: React.FC = () => {
                                                 {new Date(manutencao.data_agendada).toLocaleDateString()}
                                             </div>
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
-                                                {manutencao.status.replace('_', ' ')}
+                                                {StatusManutencaoLabel[manutencao.status] || (manutencao.status as any).replace('_', ' ')}
                                             </span>
                                         </div>
                                     </td>

@@ -3,13 +3,12 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
     ArrowLeft, Bus, MapPin, Calendar, Clock, User,
     ShieldCheck, Loader, AlertTriangle, CheckCircle2,
-    Briefcase, CreditCard, ChevronDown
+    Briefcase, CreditCard, ChevronDown, Wallet, QrCode, Copy, ExternalLink, Link as LinkIcon
 } from 'lucide-react';
 import { publicService } from '../../services/publicService';
 import { IViagem, TipoAssento } from '../../types';
 import { authClient } from '../../lib/auth-client';
 import { paymentService, IPaymentResponse } from '../../services/paymentService';
-import { Copy, QrCode, ExternalLink, CheckCircle2 } from 'lucide-react';
 
 export const CheckoutReserva: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -35,18 +34,46 @@ export const CheckoutReserva: React.FC = () => {
 
     const [needsAuth, setNeedsAuth] = useState(false);
 
+    // Credit and Partial Payment states
+    const [clientProfile, setClientProfile] = useState<any>(null);
+    const [useCredits, setUseCredits] = useState(false);
+    const [creditsToUse, setCreditsToUse] = useState(0);
+    const [isPartialPayment, setIsPartialPayment] = useState(false);
+    const [entryValue, setEntryValue] = useState(0);
+
     useEffect(() => {
         checkAuthAndFetchData();
     }, [id, sessionData]);
 
+    // Reactive logic for credits and partial payments
+    useEffect(() => {
+        const total = passengers.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+        let currentCredits = 0;
+
+        if (useCredits && clientProfile) {
+            currentCredits = Math.min(Number(clientProfile.saldo_creditos || 0), total);
+            setCreditsToUse(currentCredits);
+        } else {
+            setCreditsToUse(0);
+        }
+
+        const effectiveTotal = Math.max(0, total - currentCredits);
+
+        if (isPartialPayment) {
+            setEntryValue(effectiveTotal * 0.20);
+        } else {
+            setEntryValue(effectiveTotal);
+        }
+    }, [useCredits, isPartialPayment, passengers, clientProfile]);
+
     const getPriceBySeatType = (v: IViagem, type: string) => {
         const t = (type || '').toUpperCase();
-        if (t === 'CONVENCIONAL') return Number(v.price_conventional || 0);
-        if (t === 'EXECUTIVO') return Number(v.price_executive || 0);
-        if (t === 'SEMI_LEITO' || t === 'SEMI-LEITO') return Number(v.price_semi_sleeper || 0);
-        if (t === 'LEITO') return Number(v.price_sleeper || 0);
-        if (t === 'CAMA') return Number(v.price_bed || 0);
-        if (t === 'CAMA_MASTER') return Number(v.price_master_bed || 0);
+        if (t === TipoAssento.CONVENCIONAL) return Number(v.price_conventional || 0);
+        if (t === TipoAssento.EXECUTIVO) return Number(v.price_executive || 0);
+        if (t === TipoAssento.SEMI_LEITO) return Number(v.price_semi_sleeper || 0);
+        if (t === TipoAssento.LEITO) return Number(v.price_sleeper || 0);
+        if (t === TipoAssento.CAMA) return Number(v.price_bed || 0);
+        if (t === TipoAssento.CAMA_MASTER) return Number(v.price_master_bed || 0);
         return Number(v.price_conventional || 0);
     };
 
@@ -99,6 +126,7 @@ export const CheckoutReserva: React.FC = () => {
                 if (profileData.ok) {
                     const result = await profileData.json();
                     clientProfile = result.profile;
+                    setClientProfile(result.profile);
                 }
             } catch (err) {
                 console.error('Erro ao buscar perfil do cliente:', err);
@@ -135,6 +163,10 @@ export const CheckoutReserva: React.FC = () => {
             });
             setPassengers(initialPassengers);
 
+            // Initialize entry value
+            const total = initialPassengers.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
+            setEntryValue(total);
+
 
         } catch (err) {
             console.error('Erro ao preparar checkout:', err);
@@ -154,38 +186,63 @@ export const CheckoutReserva: React.FC = () => {
         e.preventDefault();
         setError('');
 
-        if (passengers.some(p => !p.boarding_point || !p.dropoff_point)) {
-            setError('Por favor, selecione os pontos de embarque e desembarque para todos os passageiros.');
-            return;
+        for (const p of passengers) {
+            if (!p.name?.trim() || !p.document?.trim()) {
+                setError('Por favor, preencha o nome e o documento de todos os passageiros.');
+                return;
+            }
+            if (!p.boarding_point || !p.dropoff_point) {
+                setError('Por favor, selecione os pontos de embarque e desembarque para todos os passageiros.');
+                return;
+            }
         }
 
         setIsSubmitting(true);
 
         try {
-            // 1. Create Reservations
-            for (const p of passengers) {
-                if (!p.seat_id) throw new Error(`Dados do assento ${p.seat_number} incompletos.`);
+            // 1. Create Reservations (Batch)
+            const resData = {
+                trip_id: id,
+                reservations: passengers.map(p => ({
+                    seat_id: p.seat_id,
+                    seat_number: p.seat_number,
+                    passenger_name: p.name,
+                    passenger_document: p.document,
+                    passenger_email: p.email,
+                    passenger_phone: p.phone,
+                    price: p.price,
+                    boarding_point: p.boarding_point,
+                    dropoff_point: p.dropoff_point
+                })),
+                credits_used: creditsToUse,
+                is_partial: isPartialPayment,
+                entry_value: entryValue
+            };
 
-                await authClient.$fetch('/api/client/checkout', {
-                    method: 'POST',
-                    body: {
-                        trip_id: id,
-                        seat_id: p.seat_id,
-                        passenger_name: p.name,
-                        passenger_document: p.document,
-                        passenger_email: p.email,
-                        passenger_phone: p.phone,
-                        price: p.price,
-                        boarding_point: p.boarding_point,
-                        dropoff_point: p.dropoff_point
-                    }
-                });
+            const response = await authClient.$fetch('/api/client/checkout', {
+                method: 'POST',
+                body: resData
+            });
+
+            if (!response || (response as any).error) {
+                const errorDetail = (response as any).error;
+                const errorString = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
+                throw new Error(errorString || 'Erro ao processar as reservas.');
             }
 
             // 2. Generate Payment via N8N/ASAAS
+            // We pay the entryValue (which could be the full amount or just the signal)
+            const amountToPayNow = entryValue;
+
+            if (amountToPayNow <= 0) {
+                // If everything was paid with credits
+                setSuccess(true);
+                return;
+            }
+
             const mainPassenger = passengers[0];
             const payResponse = await paymentService.createPayment({
-                amount: totalSelecionado,
+                amount: amountToPayNow,
                 type: paymentMethod,
                 customer: {
                     name: mainPassenger.name,
@@ -195,7 +252,7 @@ export const CheckoutReserva: React.FC = () => {
                 },
                 items: [{
                     description: `Reserva de Viagem - ${viagem?.title || viagem?.route_name} (${passengers.length} assentos)`,
-                    amount: totalSelecionado,
+                    amount: amountToPayNow,
                     quantity: 1
                 }]
             });
@@ -208,7 +265,11 @@ export const CheckoutReserva: React.FC = () => {
             }
 
         } catch (err: any) {
-            setError(err.message);
+            console.error('Checkout error details:', err);
+            const errorMessage = (err.data && typeof err.data.error === 'string')
+                ? err.data.error
+                : (typeof err.message === 'string' ? err.message : 'Erro inesperado ao processar a reserva. Por favor, tente novamente.');
+            setError(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
@@ -517,6 +578,76 @@ export const CheckoutReserva: React.FC = () => {
                                 </div>
                             ))}
 
+                            {/* Credits and Partial Payment logic */}
+                            {(clientProfile?.saldo_creditos > 0 || totalSelecionado > 0) && (
+                                <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-slate-700">
+                                    {clientProfile?.saldo_creditos > 0 && (
+                                        <div className={`p-4 rounded-2xl border transition-all ${useCredits ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${useCredits ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                    <Wallet size={24} />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="font-bold text-slate-800 dark:text-white">Usar meus créditos</span>
+                                                        <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">Saldo: R$ {Number(clientProfile.saldo_creditos).toFixed(2)}</span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Abater valor do saldo disponível em conta.</p>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={useCredits}
+                                                        onChange={(e) => setUseCredits(e.target.checked)}
+                                                        className="w-6 h-6 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                                                    />
+                                                </div>
+                                            </div>
+                                            {useCredits && (
+                                                <div className="mt-4 pt-4 border-t border-blue-200/50 dark:border-blue-800/50">
+                                                    <div className="flex justify-between items-center text-sm">
+                                                        <span className="text-slate-600 dark:text-slate-400">Créditos a aplicar:</span>
+                                                        <span className="font-bold text-emerald-600 dark:text-emerald-400">- R$ {creditsToUse.toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className={`p-4 rounded-2xl border transition-all ${isPartialPayment ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isPartialPayment ? 'bg-purple-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                <CreditCard size={24} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <span className="font-bold text-slate-800 dark:text-white">Pagamento Parcial (Sinal)</span>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pague 20% agora e o restante no embarque.</p>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isPartialPayment}
+                                                    onChange={(e) => setIsPartialPayment(e.target.checked)}
+                                                    className="w-6 h-6 rounded-lg border-slate-300 text-purple-600 focus:ring-purple-500 transition-all cursor-pointer"
+                                                />
+                                            </div>
+                                        </div>
+                                        {isPartialPayment && (
+                                            <div className="mt-4 pt-4 border-t border-purple-200/50 dark:border-purple-800/50 space-y-2">
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <span className="text-slate-600 dark:text-slate-400">Valor da Entrada (Sinal):</span>
+                                                    <span className="font-bold text-slate-800 dark:text-white">R$ {entryValue.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center text-xs text-slate-500 italic">
+                                                    <span>Restante no embarque:</span>
+                                                    <span>R$ {Math.max(0, (totalSelecionado - creditsToUse) - entryValue).toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Payment Selection */}
                             <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
                                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -578,10 +709,11 @@ export const CheckoutReserva: React.FC = () => {
 
                 {/* Summary Section */}
                 <div className="lg:col-span-1">
-                    <div className="sticky top-6 space-y-4">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
-                                Resumo da Viagem
+                    <div className="sticky top-8 space-y-6">
+                        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl p-6">
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                                <ShieldCheck size={20} className="text-blue-600" />
+                                Resumo da Reserva
                             </h3>
 
                             <div className="space-y-4 mb-6">
@@ -624,17 +756,39 @@ export const CheckoutReserva: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
-                                <div className="flex justify-between items-center mb-1">
-                                    <span className="text-xs font-bold text-slate-500 uppercase">Assentos ({passengers.length})</span>
-                                    <span className="text-xs font-bold text-slate-400">{passengers.map(p => p.seat_number).join(', ')}</span>
+                            <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30 space-y-4">
+                                <div className="space-y-1">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-xs font-bold text-slate-500 uppercase">Passagens ({passengers.length})</span>
+                                        <span className="text-xs font-bold text-slate-400">{passengers.map(p => p.seat_number).join(', ')}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-slate-500">Valor Total</span>
+                                        <span className="font-medium text-slate-700">R$ {totalSelecionado.toFixed(2)}</span>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between items-end">
-                                    <span className="font-bold text-slate-700 dark:text-slate-200">Total</span>
+
+                                {useCredits && (
+                                    <div className="flex justify-between items-center text-sm pt-2 border-t border-emerald-200/30">
+                                        <span className="text-slate-500">Créditos Aplicados</span>
+                                        <span className="font-bold text-emerald-600">- R$ {creditsToUse.toFixed(2)}</span>
+                                    </div>
+                                )}
+
+                                <div className="pt-2 border-t border-emerald-200/50 flex justify-between items-end">
+                                    <span className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest mb-1">
+                                        {isPartialPayment ? 'Entrada / Sinal' : 'Total a Pagar'}
+                                    </span>
                                     <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                                        R$ {totalSelecionado.toFixed(2)}
+                                        R$ {entryValue.toFixed(2)}
                                     </span>
                                 </div>
+
+                                {isPartialPayment && (
+                                    <p className="text-[10px] text-slate-400 italic text-right mt-1">
+                                        Restante de R$ {Math.max(0, (totalSelecionado - creditsToUse) - entryValue).toFixed(2)} no embarque
+                                    </p>
+                                )}
                             </div>
                         </div>
 

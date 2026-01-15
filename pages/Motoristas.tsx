@@ -1,25 +1,30 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IMotorista } from '../types';
+import { IMotorista, DriverStatus, DriverStatusLabel } from '../types';
 import { User, Calendar, CheckCircle, XCircle, AlertCircle, FileText, Search, Filter } from 'lucide-react';
 import { DriverActions } from '../components/Motoristas/DriverActions';
 
 
-const StatusBadge: React.FC<{ status: IMotorista['status'] }> = ({ status }) => {
-    const configs = {
-        DISPONIVEL: { color: 'green', icon: CheckCircle, label: 'Disponível' },
-        EM_VIAGEM: { color: 'blue', icon: AlertCircle, label: 'Em Viagem' },
-        FERIAS: { color: 'orange', icon: Calendar, label: 'Férias' },
-        AFASTADO: { color: 'red', icon: XCircle, label: 'Afastado' }
+const StatusBadge: React.FC<{ status: DriverStatus }> = ({ status }) => {
+    const configs: Record<string, { color: string; icon: any }> = {
+        [DriverStatus.AVAILABLE]: { color: 'green', icon: CheckCircle },
+        [DriverStatus.IN_TRANSIT]: { color: 'blue', icon: AlertCircle },
+        [DriverStatus.ON_LEAVE]: { color: 'orange', icon: Calendar },
+        [DriverStatus.AWAY]: { color: 'red', icon: XCircle },
+        // Legacy fallbacks
+        'DISPONIVEL': { color: 'green', icon: CheckCircle },
+        'EM_VIAGEM': { color: 'blue', icon: AlertCircle },
+        'FERIAS': { color: 'orange', icon: Calendar },
+        'AFASTADO': { color: 'red', icon: XCircle }
     };
 
-    const config = configs[status];
+    const config = configs[status] || configs[DriverStatus.AVAILABLE];
     const Icon = config.icon;
 
     return (
         <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
             <Icon size={14} />
-            {config.label}
+            {DriverStatusLabel[status] || (status as string)}
         </span>
     );
 };
@@ -113,26 +118,26 @@ export const Motoristas: React.FC = () => {
                             Todos
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('DISPONIVEL')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'DISPONIVEL' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus(DriverStatus.AVAILABLE)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.AVAILABLE ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Disponível
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('EM_VIAGEM')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'EM_VIAGEM' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus(DriverStatus.IN_TRANSIT)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.IN_TRANSIT ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Em Viagem
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('FERIAS')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'FERIAS' ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus(DriverStatus.ON_LEAVE)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.ON_LEAVE ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Férias
                         </button>
                         <button
-                            onClick={() => setFiltroStatus('AFASTADO')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === 'AFASTADO' ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus(DriverStatus.AWAY)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.AWAY ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Afastado
                         </button>

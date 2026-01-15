@@ -2,6 +2,7 @@ import express from "express";
 import { pool } from "../auth";
 import { auth } from "../auth";
 import crypto from "crypto";
+import { EncomendaStatus } from "../../types";
 
 const router = express.Router();
 
@@ -141,7 +142,7 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 recipient_name, recipient_document, recipient_phone,
                 origin_city, origin_state, destination_city, destination_state,
                 description, weight || 0, dimensions || null,
-                'PENDING', tracking_code, price,
+                EncomendaStatus.PENDING, tracking_code, price,
                 trip_id || null, null, client_id || null, notes || null,
                 orgId, userId
             ]

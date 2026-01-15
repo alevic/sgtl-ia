@@ -17,6 +17,7 @@ const router = express.Router();
 // I will replicate the auth logic using `auth.api.getSession`.
 
 import { auth } from "../auth";
+import { StatusManutencao, StatusTransacao, VeiculoStatus } from "../../types";
 
 const authorize = (allowedRoles: string[]) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -128,10 +129,10 @@ router.post("/", authorize(['admin', 'operacional']), async (req, res) => {
         );
 
         // Update vehicle status if maintenance is in progress
-        if (status === 'EM_ANDAMENTO') {
+        if (status === StatusManutencao.IN_PROGRESS || status === 'EM_ANDAMENTO') {
             await pool.query(
-                `UPDATE vehicle SET status = 'MANUTENCAO' WHERE id = $1 AND organization_id = $2`,
-                [vehicle_id, orgId]
+                `UPDATE vehicle SET status = $1 WHERE id = $2 AND organization_id = $3`,
+                [VeiculoStatus.MAINTENANCE, vehicle_id, orgId]
             );
         }
 
@@ -182,7 +183,7 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
 
         // Update transaction amount/description if it exists and is not cancelled/paid (optional logic, but good for consistency)
         // Only update if maintenance is NOT cancelled
-        if (status !== 'CANCELADA') {
+        if (status !== StatusManutencao.CANCELLED && status !== 'CANCELADA') {
             const custoTotal = (Number(custo_pecas) || 0) + (Number(custo_mao_de_obra) || 0);
             if (custoTotal > 0) {
                 await pool.query(
@@ -190,36 +191,36 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
                         amount = $1, 
                         description = 'Manutenção ' || COALESCE((SELECT placa FROM vehicle WHERE id = $6), 'Veículo') || ' - ' || $2,
                         date = $3
-                      WHERE maintenance_id = $4 AND organization_id = $5 AND status = 'PENDENTE'`,
-                    [custoTotal, tipo, data_agendada, id, orgId, vehicle_id]
+                      WHERE maintenance_id = $4 AND organization_id = $5 AND (status = $7 OR status = 'PENDENTE')`,
+                    [custoTotal, tipo, data_agendada, id, orgId, vehicle_id, StatusTransacao.PENDING]
                 );
             }
         }
 
         // Update vehicle status logic
-        if (status === 'EM_ANDAMENTO') {
+        if (status === StatusManutencao.IN_PROGRESS || status === 'EM_ANDAMENTO') {
             await pool.query(
-                `UPDATE vehicle SET status = 'MANUTENCAO' WHERE id = $1 AND organization_id = $2`,
-                [vehicle_id, orgId]
+                `UPDATE vehicle SET status = $1 WHERE id = $2 AND organization_id = $3`,
+                [VeiculoStatus.MAINTENANCE, vehicle_id, orgId]
             );
-        } else if (status === 'CONCLUIDA') {
+        } else if (status === StatusManutencao.COMPLETED || status === 'CONCLUIDA') {
             // Optionally set back to ATIVO
             await pool.query(
-                `UPDATE vehicle SET status = 'ATIVO' WHERE id = $1 AND organization_id = $2 AND status = 'MANUTENCAO'`,
-                [vehicle_id, orgId]
+                `UPDATE vehicle SET status = $1 WHERE id = $2 AND organization_id = $3 AND (status = $4 OR status = 'MANUTENCAO')`,
+                [VeiculoStatus.ACTIVE, vehicle_id, orgId, VeiculoStatus.MAINTENANCE]
             );
 
             // Update linked transaction to PAID if it is PENDING
             await pool.query(
-                `UPDATE transaction SET status = 'PAGA', payment_date = CURRENT_DATE 
-                 WHERE maintenance_id = $1 AND organization_id = $2 AND status = 'PENDENTE'`,
-                [id, orgId]
+                `UPDATE transaction SET status = $1, payment_date = CURRENT_DATE 
+                 WHERE maintenance_id = $2 AND organization_id = $3 AND (status = $4 OR status = 'PENDENTE')`,
+                [StatusTransacao.PAID, id, orgId, StatusTransacao.PENDING]
             );
-        } else if (status === 'CANCELADA') {
+        } else if (status === StatusManutencao.CANCELLED || status === 'CANCELADA') {
             // Cancel linked transaction if exists
             await pool.query(
-                `UPDATE transaction SET status = 'CANCELADA' WHERE maintenance_id = $1 AND organization_id = $2`,
-                [id, orgId]
+                `UPDATE transaction SET status = $1 WHERE maintenance_id = $2 AND organization_id = $3`,
+                [StatusTransacao.CANCELLED, id, orgId]
             );
         }
 

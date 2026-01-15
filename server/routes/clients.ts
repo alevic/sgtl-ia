@@ -1,5 +1,6 @@
 import express from 'express';
 import { pool, auth } from '../auth';
+import { ReservationStatus } from '../../types';
 
 const router = express.Router();
 
@@ -42,14 +43,14 @@ router.get('/', authorize(['admin', 'operacional', 'vendas', 'financeiro']), asy
                 SELECT COALESCE(COUNT(*), 0)
                 FROM reservations r 
                 WHERE r.client_id = c.id 
-                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND (r.status IN ($2, $3, $4) OR r.status IN ('CONFIRMADA', 'UTILIZADA', 'EMBARCADO', 'CONFIRMED', 'USED', 'CHECKED_IN'))
                 AND r.organization_id = $1
             )::int as historico_viagens,
             (
                 SELECT COALESCE(SUM(r.amount_paid), 0)
                 FROM reservations r 
                 WHERE r.client_id = c.id 
-                AND r.status != 'CANCELLED'
+                AND (r.status NOT IN ($5, $6) AND r.status NOT IN ('CANCELADA', 'PENDENTE', 'CANCELLED', 'PENDING'))
                 AND r.organization_id = $1
             )::float as valor_total_gasto,
             (
@@ -57,17 +58,24 @@ router.get('/', authorize(['admin', 'operacional', 'vendas', 'financeiro']), asy
                 FROM reservations r 
                 JOIN trips t ON r.trip_id = t.id
                 WHERE r.client_id = c.id 
-                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND (r.status IN ($2, $3, $4) OR r.status IN ('CONFIRMADA', 'UTILIZADA', 'EMBARCADO', 'CONFIRMED', 'USED', 'CHECKED_IN'))
                 AND t.departure_date <= CURRENT_DATE
                 AND r.organization_id = $1
             ) as ultima_viagem
             FROM clients c 
             WHERE 1=1
         `;
-        const params: any[] = [orgId];
+        const params: any[] = [
+            orgId,
+            ReservationStatus.CONFIRMED,
+            ReservationStatus.USED,
+            ReservationStatus.CHECKED_IN,
+            ReservationStatus.CANCELLED,
+            ReservationStatus.PENDING
+        ];
 
         if (search) {
-            sql += ` AND (c.nome ILIKE $2 OR c.email ILIKE $2 OR c.documento_numero ILIKE $2)`;
+            sql += ` AND (c.nome ILIKE $6 OR c.email ILIKE $6 OR c.documento_numero ILIKE $6)`;
             params.push(`%${search}%`);
         }
 
@@ -92,14 +100,14 @@ router.get('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
                 SELECT COALESCE(COUNT(*), 0)
                 FROM reservations r 
                 WHERE r.client_id = c.id 
-                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND (r.status IN ($3, $4, $5) OR r.status IN ('CONFIRMADA', 'UTILIZADA', 'EMBARCADO', 'CONFIRMED', 'USED', 'CHECKED_IN'))
                 AND r.organization_id = $2
             )::int as historico_viagens,
             (
                 SELECT COALESCE(SUM(r.amount_paid), 0)
                 FROM reservations r 
                 WHERE r.client_id = c.id 
-                AND r.status != 'CANCELLED'
+                AND (r.status NOT IN ($6, $7) AND r.status NOT IN ('CANCELADA', 'PENDENTE', 'CANCELLED', 'PENDING'))
                 AND r.organization_id = $2
             )::float as valor_total_gasto,
             (
@@ -107,13 +115,21 @@ router.get('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
                 FROM reservations r 
                 JOIN trips t ON r.trip_id = t.id
                 WHERE r.client_id = c.id 
-                AND r.status IN ('CONFIRMED', 'USED', 'CHECKED_IN')
+                AND (r.status IN ($3, $4, $5) OR r.status IN ('CONFIRMADA', 'UTILIZADA', 'EMBARCADO', 'CONFIRMED', 'USED', 'CHECKED_IN'))
                 AND t.departure_date <= CURRENT_DATE
                 AND r.organization_id = $2
             ) as ultima_viagem
             FROM clients c 
             WHERE c.id = $1
-        `, [id, orgId]);
+        `, [
+            id,
+            orgId,
+            ReservationStatus.CONFIRMED,
+            ReservationStatus.USED,
+            ReservationStatus.CHECKED_IN,
+            ReservationStatus.CANCELLED,
+            ReservationStatus.PENDING
+        ]);
 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Client not found' });

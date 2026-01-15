@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { IReserva, StatusReservaLabel } from '../types';
+import { IReserva, ReservationStatus, ReservationStatusLabel } from '../types';
 import { reservationsService } from '../services/reservationsService';
 import { transactionsService } from '../services/transactionsService';
 import { clientsService } from '../services/clientsService';
 import { vehiclesService } from '../services/vehiclesService';
 import { tripsService } from '../services/tripsService';
-import { TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa, IVeiculo, IViagem } from '../types';
+import { TipoTransacao, StatusTransacao, FormaPagamento, CategoriaReceita, CategoriaDespesa, IVeiculo, IViagem } from '../types';
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
     Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle,
@@ -15,21 +15,22 @@ import {
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
-        PENDENTE: { color: 'yellow', label: StatusReservaLabel.PENDING },
-        PENDING: { color: 'yellow', label: StatusReservaLabel.PENDING },
-        CONFIRMADA: { color: 'green', label: StatusReservaLabel.CONFIRMED },
-        CONFIRMED: { color: 'green', label: StatusReservaLabel.CONFIRMED },
-        CANCELADA: { color: 'red', label: StatusReservaLabel.CANCELLED },
-        CANCELLED: { color: 'red', label: StatusReservaLabel.CANCELLED },
-        UTILIZADA: { color: 'blue', label: StatusReservaLabel.USED },
-        USED: { color: 'blue', label: StatusReservaLabel.USED },
-        COMPLETED: { color: 'blue', label: StatusReservaLabel.USED },
-        CHECKED_IN: { color: 'indigo', label: StatusReservaLabel.CHECKED_IN },
-        EMBARCADO: { color: 'indigo', label: StatusReservaLabel.CHECKED_IN },
-        NO_SHOW: { color: 'gray', label: StatusReservaLabel.NO_SHOW }
+        [ReservationStatus.PENDING]: { color: 'yellow', label: ReservationStatusLabel[ReservationStatus.PENDING] },
+        [ReservationStatus.CONFIRMED]: { color: 'green', label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
+        [ReservationStatus.CANCELLED]: { color: 'red', label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
+        [ReservationStatus.USED]: { color: 'blue', label: ReservationStatusLabel[ReservationStatus.USED] },
+        [ReservationStatus.CHECKED_IN]: { color: 'indigo', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] },
+        [ReservationStatus.NO_SHOW]: { color: 'gray', label: ReservationStatusLabel[ReservationStatus.NO_SHOW] },
+        [ReservationStatus.COMPLETED]: { color: 'blue', label: ReservationStatusLabel[ReservationStatus.COMPLETED] },
+        // Legacy fallbacks
+        'PENDENTE': { color: 'yellow', label: ReservationStatusLabel[ReservationStatus.PENDING] },
+        'CONFIRMADA': { color: 'green', label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
+        'CANCELADA': { color: 'red', label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
+        'UTILIZADA': { color: 'blue', label: ReservationStatusLabel[ReservationStatus.USED] },
+        'EMBARCADO': { color: 'indigo', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] }
     };
 
-    const config = configs[status] || configs['PENDENTE'];
+    const config = configs[status] || configs[ReservationStatus.PENDING];
 
     return (
         <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
@@ -41,7 +42,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 export const Reservas: React.FC = () => {
     const [reservas, setReservas] = useState<IReserva[]>([]);
     const [loading, setLoading] = useState(true);
-    const [filtroStatus, setFiltroStatus] = useState<string[]>(['PENDING', 'CONFIRMED']);
+    const [filtroStatus, setFiltroStatus] = useState<string[]>([ReservationStatus.PENDING, ReservationStatus.CONFIRMED]);
     const [filtroVeiculo, setFiltroVeiculo] = useState<string>('');
     const [filtroViagem, setFiltroViagem] = useState<string>('');
     const [veiculos, setVeiculos] = useState<IVeiculo[]>([]);
@@ -65,7 +66,7 @@ export const Reservas: React.FC = () => {
     const [refundAction, setRefundAction] = useState<'NONE' | 'REFUND' | 'CREDIT'>('NONE');
 
     // Payment Form State
-    const [paymentMethod, setPaymentMethod] = useState<'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO'>('PIX');
+    const [paymentMethod, setPaymentMethod] = useState<FormaPagamento>(FormaPagamento.PIX);
     const [amountToPay, setAmountToPay] = useState<string>('');
 
     // Edit Form State
@@ -201,14 +202,14 @@ export const Reservas: React.FC = () => {
             // 1. Process Financial Action
             if (refundAction === 'REFUND' && amountPaid > 0) {
                 await transactionsService.create({
-                    tipo: TipoTransacao.DESPESA,
+                    tipo: TipoTransacao.EXPENSE,
                     descricao: `Reembolso Reserva ${cancelingReserva.ticket_code || cancelingReserva.codigo} - ${cancelingReserva.passenger_name}`,
                     valor: amountPaid,
                     moeda: cancelingReserva.moeda || 'BRL',
                     data_emissao: new Date().toISOString(),
                     data_vencimento: new Date().toISOString(),
                     data_pagamento: new Date().toISOString(),
-                    status: StatusTransacao.PAGA,
+                    status: StatusTransacao.PAID,
                     categoria_despesa: CategoriaDespesa.OUTROS, // Could be specialized category
                     reserva_id: cancelingReserva.id,
                     criado_por: 'Sistema',
@@ -269,7 +270,7 @@ export const Reservas: React.FC = () => {
 
             // 2. Update Reservation Status
             await reservationsService.update(cancelingReserva.id, {
-                status: 'CANCELLED',
+                status: ReservationStatus.CANCELLED,
                 observacoes: cancelingReserva.observacoes
                     ? `${cancelingReserva.observacoes}\n[Cancelamento]: ${cancelReason}`
                     : `[Cancelamento]: ${cancelReason}`
@@ -290,7 +291,7 @@ export const Reservas: React.FC = () => {
 
     const handlePaymentClick = (reserva: IReserva) => {
         setPaymentReserva(reserva);
-        setPaymentMethod('PIX'); // Default
+        setPaymentMethod(FormaPagamento.PIX); // Default
         const pending = Math.max(0, Number(reserva.valor_total || reserva.price || 0) - Number(reserva.amount_paid || reserva.valor_pago || 0));
         setAmountToPay(pending.toFixed(2));
     };
@@ -309,14 +310,14 @@ export const Reservas: React.FC = () => {
 
             // 1. Create Financial Transaction (Revenue)
             await transactionsService.create({
-                tipo: TipoTransacao.RECEITA,
+                tipo: TipoTransacao.INCOME,
                 descricao: `Pagamento Reserva ${paymentReserva.ticket_code || paymentReserva.codigo} - ${paymentReserva.passenger_name}`,
                 valor: paidAmount,
                 moeda: paymentReserva.moeda || 'BRL',
                 data_emissao: new Date().toISOString(),
                 data_vencimento: new Date().toISOString(),
                 data_pagamento: new Date().toISOString(),
-                status: StatusTransacao.PAGA,
+                status: StatusTransacao.PAID,
                 forma_pagamento: paymentMethod,
                 categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
                 reserva_id: paymentReserva.id,
@@ -328,7 +329,7 @@ export const Reservas: React.FC = () => {
             const totalPrice = Number(paymentReserva.valor_total || paymentReserva.price || 0);
 
             // Auto-confirm if paid >= total, otherwise just update amount
-            const newStatus = (currentTotalPaid >= totalPrice && totalPrice > 0) ? 'CONFIRMED' : paymentReserva.status;
+            const newStatus = (currentTotalPaid >= totalPrice && totalPrice > 0) ? ReservationStatus.CONFIRMED : paymentReserva.status;
 
             // Updated payload to match backend expectations
             await reservationsService.update(paymentReserva.id, {
@@ -356,7 +357,7 @@ export const Reservas: React.FC = () => {
     };
 
     const handleStatusChange = async (reserva: IReserva, newStatus: string) => {
-        const label = newStatus === 'CHECKED_IN' ? 'EMBARCADO' : 'UTILIZADA';
+        const label = ReservationStatusLabel[newStatus as ReservationStatus] || newStatus;
         if (!confirm(`Confirma a alteração do status para ${label}?`)) return;
 
         try {
@@ -381,12 +382,12 @@ export const Reservas: React.FC = () => {
     };
 
     const statusOptions = [
-        { value: 'PENDING', label: 'Pendente' },
-        { value: 'CONFIRMED', label: 'Confirmada' },
-        { value: 'CHECKED_IN', label: 'Embarcado' },
-        { value: 'USED', label: 'Utilizada' },
-        { value: 'NO_SHOW', label: 'Não Compareceu' },
-        { value: 'CANCELLED', label: 'Cancelada' },
+        { value: ReservationStatus.PENDING, label: ReservationStatusLabel[ReservationStatus.PENDING] },
+        { value: ReservationStatus.CONFIRMED, label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
+        { value: ReservationStatus.CHECKED_IN, label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] },
+        { value: ReservationStatus.USED, label: ReservationStatusLabel[ReservationStatus.USED] },
+        { value: ReservationStatus.NO_SHOW, label: ReservationStatusLabel[ReservationStatus.NO_SHOW] },
+        { value: ReservationStatus.CANCELLED, label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
     ];
 
     const reservasFiltradas = reservas.filter(r => {
@@ -592,7 +593,7 @@ export const Reservas: React.FC = () => {
                     </div>
                 ) : (
                     reservasFiltradas.map((reserva: any) => {
-                        const isCancelled = reserva.status === 'CANCELLED' || reserva.status === 'CANCELADA';
+                        const isCancelled = reserva.status === ReservationStatus.CANCELLED;
 
                         return (
                             <div key={reserva.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden hover:shadow-md transition-all group">
@@ -612,7 +613,7 @@ export const Reservas: React.FC = () => {
                                                 <StatusBadge status={reserva.status} />
 
                                                 {/* Digital Pending Confirmation Badge */}
-                                                {reserva.status === 'PENDING' && (reserva.payment_method === 'DIGITAL' || (reserva as any).forma_pagamento === 'DIGITAL') && (
+                                                {reserva.status === ReservationStatus.PENDING && (reserva.payment_method === 'DIGITAL' || (reserva as any).forma_pagamento === 'DIGITAL') && (
                                                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
                                                         Aguardando Confirmação (Digital)
                                                     </span>
@@ -692,10 +693,10 @@ export const Reservas: React.FC = () => {
                                         <div className="flex items-center gap-2 ml-4">
                                             {/* Check-in Button */}
                                             {/* Allow Check-in if CONFIRMED OR (PENDING and has paid something) */}
-                                            {((reserva.status === 'CONFIRMED') ||
-                                                (reserva.status === 'PENDING' && Number(reserva.amount_paid || reserva.valor_pago || 0) > 0)) && (
+                                            {((reserva.status === ReservationStatus.CONFIRMED) ||
+                                                (reserva.status === ReservationStatus.PENDING && Number(reserva.amount_paid || reserva.valor_pago || 0) > 0)) && (
                                                     <button
-                                                        onClick={() => handleStatusChange(reserva, 'CHECKED_IN')}
+                                                        onClick={() => handleStatusChange(reserva, ReservationStatus.CHECKED_IN)}
                                                         className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
                                                         title="Realizar Check-in (Embarque)"
                                                         disabled={actionLoading}
@@ -705,9 +706,9 @@ export const Reservas: React.FC = () => {
                                                 )}
 
                                             {/* Finalize Button */}
-                                            {reserva.status === 'CHECKED_IN' && (
+                                            {reserva.status === ReservationStatus.CHECKED_IN && (
                                                 <button
-                                                    onClick={() => handleStatusChange(reserva, 'USED')}
+                                                    onClick={() => handleStatusChange(reserva, ReservationStatus.USED)}
                                                     className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30 hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors"
                                                     title="Finalizar Viagem (Utilizada)"
                                                     disabled={actionLoading}
@@ -1003,13 +1004,14 @@ export const Reservas: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Forma de Pagamento</label>
                                 <select
                                     value={paymentMethod}
-                                    onChange={(e) => setPaymentMethod(e.target.value as any)}
-                                    className="w-full p-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none"
+                                    onChange={e => setPaymentMethod(e.target.value as any)}
+                                    className="w-full text-sm p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                                 >
-                                    <option value="PIX">Pix</option>
-                                    <option value="DINHEIRO">Dinheiro</option>
-                                    <option value="CARTAO">Cartão de Crédito/Débito</option>
-                                    <option value="BOLETO">Boleto (Compensado)</option>
+                                    <option value={FormaPagamento.PIX}>PIX</option>
+                                    <option value={FormaPagamento.CASH}>Dinheiro</option>
+                                    <option value={FormaPagamento.CREDIT_CARD}>Cartão de Crédito</option>
+                                    <option value={FormaPagamento.DEBIT_CARD}>Cartão de Débito</option>
+                                    <option value={FormaPagamento.BOLETO}>Boleto</option>
                                 </select>
                             </div>
 

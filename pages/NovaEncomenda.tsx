@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Package, User, MapPin, Truck, Save, ArrowLeft, Loader } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
 import { tripsService } from '../services/tripsService';
-import { IViagem } from '../types';
+import { IViagem, TripStatus } from '../types';
 
 export const NovaEncomenda: React.FC = () => {
     const navigate = useNavigate();
@@ -39,8 +39,8 @@ export const NovaEncomenda: React.FC = () => {
             const data = await tripsService.getAll();
             // Filter active trips
             const activeTrips = data.filter(t =>
-                t.status === 'SCHEDULED' || t.status === 'CONFIRMED' ||
-                t.status === 'AGENDADA' || t.status === 'CONFIRMADA'
+                t.status === TripStatus.SCHEDULED || (t.status as string) === 'CONFIRMED' ||
+                (t.status as string) === 'AGENDADA' || (t.status as string) === 'CONFIRMADA'
             );
             setTrips(activeTrips);
         } catch (error) {

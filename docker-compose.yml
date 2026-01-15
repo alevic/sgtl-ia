@@ -12,7 +12,9 @@ services:
     restart: always
 
   api:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     ports:
       - "4000:4000"
     environment:

@@ -14,17 +14,124 @@ export enum EmpresaContexto {
 }
 
 export enum VeiculoStatus {
-  ATIVO = 'ATIVO',
-  MANUTENCAO = 'MANUTENCAO',
-  EM_VIAGEM = 'EM_VIAGEM'
+  ACTIVE = 'ACTIVE',
+  MAINTENANCE = 'MAINTENANCE',
+  IN_TRANSIT = 'IN_TRANSIT'
 }
 
+export const VeiculoStatusLabel: Record<VeiculoStatus, string> = {
+  [VeiculoStatus.ACTIVE]: 'Ativo',
+  [VeiculoStatus.MAINTENANCE]: 'Em Manutenção',
+  [VeiculoStatus.IN_TRANSIT]: 'Em Viagem'
+};
+
 export enum AssentoStatus {
-  LIVRE = 'LIVRE',
-  OCUPADO = 'OCUPADO',
-  PENDENTE = 'PENDENTE',
-  BLOQUEADO = 'BLOQUEADO'
+  AVAILABLE = 'AVAILABLE',
+  OCCUPIED = 'OCCUPIED',
+  PENDING = 'PENDING',
+  BLOCKED = 'BLOCKED'
 }
+
+export const AssentoStatusLabel: Record<AssentoStatus, string> = {
+  [AssentoStatus.AVAILABLE]: 'Livre',
+  [AssentoStatus.OCCUPIED]: 'Ocupado',
+  [AssentoStatus.PENDING]: 'Pendente',
+  [AssentoStatus.BLOCKED]: 'Bloqueado'
+};
+
+export enum TripStatus {
+  SCHEDULED = 'SCHEDULED',
+  BOARDING = 'BOARDING',
+  IN_TRANSIT = 'IN_TRANSIT',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+  DELAYED = 'DELAYED'
+}
+
+export const TripStatusLabel: Record<TripStatus, string> = {
+  [TripStatus.SCHEDULED]: 'Agendada',
+  [TripStatus.BOARDING]: 'Embarque',
+  [TripStatus.IN_TRANSIT]: 'Em Curso',
+  [TripStatus.COMPLETED]: 'Finalizada',
+  [TripStatus.CANCELLED]: 'Cancelada',
+  [TripStatus.DELAYED]: 'Atrasada'
+};
+
+export enum ReservationStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+  USED = 'USED',
+  CHECKED_IN = 'CHECKED_IN',
+  NO_SHOW = 'NO_SHOW',
+  COMPLETED = 'COMPLETED'
+}
+
+export const ReservationStatusLabel: Record<ReservationStatus, string> = {
+  [ReservationStatus.PENDING]: 'Pendente',
+  [ReservationStatus.CONFIRMED]: 'Confirmada',
+  [ReservationStatus.CANCELLED]: 'Cancelada',
+  [ReservationStatus.USED]: 'Utilizada',
+  [ReservationStatus.CHECKED_IN]: 'Embarcado',
+  [ReservationStatus.NO_SHOW]: 'Não Compareceu',
+  [ReservationStatus.COMPLETED]: 'Concluída'
+};
+
+export enum EncomendaStatus {
+  AWAITING = 'AWAITING',
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED',
+  RETURNED = 'RETURNED'
+}
+
+export const EncomendaStatusLabel: Record<EncomendaStatus, string> = {
+  [EncomendaStatus.AWAITING]: 'Aguardando',
+  [EncomendaStatus.IN_TRANSIT]: 'Em Trânsito',
+  [EncomendaStatus.DELIVERED]: 'Entregue',
+  [EncomendaStatus.RETURNED]: 'Devolvida'
+};
+
+export enum FretamentoStatus {
+  REQUEST = 'REQUEST',
+  QUOTED = 'QUOTED',
+  CONFIRMED = 'CONFIRMED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
+}
+
+export const FretamentoStatusLabel: Record<FretamentoStatus, string> = {
+  [FretamentoStatus.REQUEST]: 'Solicitação',
+  [FretamentoStatus.QUOTED]: 'Orçamento Enviado',
+  [FretamentoStatus.CONFIRMED]: 'Confirmado',
+  [FretamentoStatus.IN_PROGRESS]: 'Em Andamento',
+  [FretamentoStatus.COMPLETED]: 'Concluído',
+  [FretamentoStatus.CANCELLED]: 'Cancelado'
+};
+
+export enum TipoEncomenda {
+  BUS_CARGO = 'BUS_CARGO',
+  TRUCK_FREIGHT = 'TRUCK_FREIGHT'
+}
+
+export const TipoEncomendaLabel: Record<TipoEncomenda, string> = {
+  [TipoEncomenda.BUS_CARGO]: 'Carga Ônibus',
+  [TipoEncomenda.TRUCK_FREIGHT]: 'Frete Caminhão'
+};
+
+export enum StatusManutencao {
+  SCHEDULED = 'SCHEDULED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
+}
+
+export const StatusManutencaoLabel: Record<StatusManutencao, string> = {
+  [StatusManutencao.SCHEDULED]: 'Agendada',
+  [StatusManutencao.IN_PROGRESS]: 'Em Andamento',
+  [StatusManutencao.COMPLETED]: 'Concluída',
+  [StatusManutencao.CANCELLED]: 'Cancelada'
+};
 
 export enum TipoDocumento {
   RG = 'RG',
@@ -42,6 +149,20 @@ export enum Moeda {
   PYG = 'PYG', // Guarani
   ARS = 'ARS'  // Peso Argentino
 }
+
+export enum TipoManutencao {
+  PREVENTIVE = 'PREVENTIVE',
+  CORRECTIVE = 'CORRECTIVE',
+  PREDICTIVE = 'PREDICTIVE',
+  INSPECTION = 'INSPECTION'
+}
+
+export const TipoManutencaoLabel: Record<TipoManutencao, string> = {
+  [TipoManutencao.PREVENTIVE]: 'Preventiva',
+  [TipoManutencao.CORRECTIVE]: 'Corretiva',
+  [TipoManutencao.PREDICTIVE]: 'Preditiva',
+  [TipoManutencao.INSPECTION]: 'Inspeção'
+};
 
 export enum TipoParada {
   EMBARQUE = 'EMBARQUE',
@@ -61,10 +182,54 @@ export enum TipoAssento {
 
 // ===== FINANCIAL ENUMS =====
 export enum TipoTransacao {
-  RECEITA = 'RECEITA',
-  DESPESA = 'DESPESA',
-  TRANSFERENCIA = 'TRANSFERENCIA'
+  INCOME = 'INCOME',
+  EXPENSE = 'EXPENSE',
+  TRANSFER = 'TRANSFER'
 }
+
+export const TipoTransacaoLabel: Record<TipoTransacao, string> = {
+  [TipoTransacao.INCOME]: 'Receita',
+  [TipoTransacao.EXPENSE]: 'Despesa',
+  [TipoTransacao.TRANSFER]: 'Transferência'
+};
+
+export enum StatusTransacao {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  CANCELLED = 'CANCELLED',
+  PARTIALLY_PAID = 'PARTIALLY_PAID'
+}
+
+export const StatusTransacaoLabel: Record<StatusTransacao, string> = {
+  [StatusTransacao.PENDING]: 'Pendente',
+  [StatusTransacao.PAID]: 'Pago',
+  [StatusTransacao.OVERDUE]: 'Vencido',
+  [StatusTransacao.CANCELLED]: 'Cancelado',
+  [StatusTransacao.PARTIALLY_PAID]: 'Parcialmente Pago'
+};
+
+export enum FormaPagamento {
+  CASH = 'CASH',
+  CREDIT_CARD = 'CREDIT_CARD',
+  DEBIT_CARD = 'DEBIT_CARD',
+  PIX = 'PIX',
+  BOLETO = 'BOLETO',
+  BANK_TRANSFER = 'BANK_TRANSFER',
+  CHECK = 'CHECK',
+  DIGITAL = 'DIGITAL' // For ASAAS/Online
+}
+
+export const FormaPagamentoLabel: Record<FormaPagamento, string> = {
+  [FormaPagamento.CASH]: 'Dinheiro',
+  [FormaPagamento.CREDIT_CARD]: 'Cartão de Crédito',
+  [FormaPagamento.DEBIT_CARD]: 'Cartão de Débito',
+  [FormaPagamento.PIX]: 'PIX',
+  [FormaPagamento.BOLETO]: 'Boleto',
+  [FormaPagamento.BANK_TRANSFER]: 'Transferência',
+  [FormaPagamento.CHECK]: 'Cheque',
+  [FormaPagamento.DIGITAL]: 'Digital (Online)'
+};
 
 export enum CategoriaReceita {
   VENDA_PASSAGEM = 'VENDA_PASSAGEM',
@@ -86,24 +251,6 @@ export enum CategoriaDespesa {
   OUTROS = 'OUTROS'
 }
 
-export enum StatusTransacao {
-  PENDENTE = 'PENDENTE',
-  PAGA = 'PAGA',
-  VENCIDA = 'VENCIDA',
-  CANCELADA = 'CANCELADA',
-  PARCIALMENTE_PAGA = 'PARCIALMENTE_PAGA'
-}
-
-export enum FormaPagamento {
-  DINHEIRO = 'DINHEIRO',
-  CARTAO_CREDITO = 'CARTAO_CREDITO',
-  CARTAO_DEBITO = 'CARTAO_DEBITO',
-  PIX = 'PIX',
-  BOLETO = 'BOLETO',
-  TRANSFERENCIA = 'TRANSFERENCIA',
-  CHEQUE = 'CHEQUE'
-}
-
 // Centros de Custo
 export enum CentroCusto {
   ESTOQUE = 'ESTOQUE',           // Equipamentos e produtos
@@ -119,6 +266,7 @@ export enum ClassificacaoContabil {
   DESPESA_VARIAVEL = 'DESPESA_VARIAVEL' // Ex: Comissões, marketing variável
 }
 
+// INTERFACES
 export interface IEmpresa {
   id: string;
   nome_fantasia: string;
@@ -164,38 +312,40 @@ export interface IVeiculo {
   features?: IVeiculoFeature[];
 }
 
+export enum DriverStatus {
+  AVAILABLE = 'AVAILABLE',
+  IN_TRANSIT = 'IN_TRANSIT',
+  ON_LEAVE = 'ON_LEAVE',
+  AWAY = 'AWAY'
+}
+
+export const DriverStatusLabel: Record<DriverStatus, string> = {
+  [DriverStatus.AVAILABLE]: 'Disponível',
+  [DriverStatus.IN_TRANSIT]: 'Em Viagem',
+  [DriverStatus.ON_LEAVE]: 'Folga',
+  [DriverStatus.AWAY]: 'Afastado'
+};
+
 export interface IMotorista {
   id: string;
   nome: string;
-
-  // Documentação
   cnh: string;
   categoria_cnh: string;
   validade_cnh: string; // ISO Date
   passaporte?: string;
   validade_passaporte?: string; // ISO Date
-
-  // Contatos
   telefone?: string;
   email?: string;
-
-  // Endereço
   endereco?: string;
   cidade?: string;
   estado?: string;
   pais?: string;
-
-  // Status e disponibilidade
-  status: 'DISPONIVEL' | 'EM_VIAGEM' | 'FOLGA' | 'AFASTADO';
+  status: DriverStatus;
   data_contratacao: string; // ISO Date
   salario?: number;
-
-  // Experiência
   anos_experiencia?: number;
   viagens_internacionais?: number;
   disponivel_internacional?: boolean;
-
-  // Observações
   observacoes?: string;
 }
 
@@ -222,10 +372,26 @@ export interface ICliente {
   observacoes?: string;
 }
 
+export enum TipoInteracao {
+  EMAIL = 'EMAIL',
+  PHONE = 'PHONE',
+  WHATSAPP = 'WHATSAPP',
+  IN_PERSON = 'IN_PERSON',
+  SYSTEM = 'SYSTEM'
+}
+
+export const TipoInteracaoLabel: Record<TipoInteracao, string> = {
+  [TipoInteracao.EMAIL]: 'E-mail',
+  [TipoInteracao.PHONE]: 'Telefone',
+  [TipoInteracao.WHATSAPP]: 'WhatsApp',
+  [TipoInteracao.IN_PERSON]: 'Presencial',
+  [TipoInteracao.SYSTEM]: 'Sistema'
+};
+
 export interface IInteracao {
   id: string;
   cliente_id: string;
-  tipo: 'EMAIL' | 'TELEFONE' | 'WHATSAPP' | 'PRESENCIAL' | 'SISTEMA';
+  tipo: TipoInteracao;
   descricao: string;
   data_hora: string; // ISO Date
   usuario_responsavel?: string;
@@ -243,62 +409,63 @@ export interface INota {
 
 export interface IParada {
   id: string;
-  nome: string; // Nome da cidade ou ponto
+  nome: string;
   horario_chegada: string; // ISO Date
   horario_partida: string; // ISO Date
   tipo: 'EMBARQUE' | 'DESEMBARQUE' | 'PARADA_TECNICA';
 }
 
-// Sistema de Rotas v2.0
 export interface IPontoRota {
   id: string;
-  nome: string; // Nome da cidade ou local
-  ordem: number; // Ordem na sequência da rota (0 = origem, last = destino)
-  horario_chegada?: string; // ISO Date - opcional para origem
-  horario_partida?: string; // ISO Date - opcional para destino
+  nome: string;
+  ordem: number;
+  horario_chegada?: string;
+  horario_partida?: string;
   tipo: 'ORIGEM' | 'PARADA_INTERMEDIARIA' | 'DESTINO';
   permite_embarque: boolean;
   permite_desembarque: boolean;
   observacoes?: string;
-  // Location IDs for editing
   state_id?: number;
   city_id?: number;
   neighborhood_id?: number;
-
-  // Novos campos para V2 (Duração Relativa)
   distancia_do_anterior_km?: number;
-  duracao_deslocamento_minutos?: number; // Tempo para chegar do anterior até este
-  duracao_parada_minutos?: number; // Tempo que fica parado neste ponto
-  tempo_acumulado_minutos?: number; // Calculado: tempo total do início até a saída deste ponto
+  duracao_deslocamento_minutos?: number;
+  duracao_parada_minutos?: number;
+  tempo_acumulado_minutos?: number;
 }
+
+export enum RouteType {
+  OUTBOUND = 'OUTBOUND',
+  INBOUND = 'INBOUND'
+}
+
+export const RouteTypeLabel: Record<RouteType, string> = {
+  [RouteType.OUTBOUND]: 'Ida',
+  [RouteType.INBOUND]: 'Volta'
+};
 
 export interface IRota {
   id: string;
-  nome?: string; // Nome descritivo da rota (ex: "São Paulo → Rio via Curitiba")
-  tipo_rota: 'IDA' | 'VOLTA';
-  pontos: IPontoRota[]; // Lista ordenada de pontos (origem, paradas, destino)
+  nome?: string;
+  tipo_rota: RouteType;
+  pontos: IPontoRota[];
   distancia_total_km?: number;
   duracao_estimada_minutos?: number;
-  ativa: boolean; // Indica se a rota está ativa para uso
+  ativa: boolean;
 }
 
 export interface IViagem {
   id: string;
   organization_id?: string;
-
-  // Backend Fields
   route_id: string;
   return_route_id?: string;
   vehicle_id?: string;
   driver_id?: string;
-
-  departure_date: string; // YYYY-MM-DD
-  departure_time: string; // HH:MM:SS
-  arrival_date?: string; // YYYY-MM-DD
-  arrival_time?: string; // HH:MM:SS
-
-  status: 'SCHEDULED' | 'BOARDING' | 'IN_TRANSIT' | 'COMPLETED' | 'CANCELLED' | 'DELAYED' | 'AGENDADA' | 'CONFIRMADA' | 'EM_CURSO' | 'FINALIZADA' | 'CONFIRMED'; // Mixed for compatibility
-
+  departure_date: string;
+  departure_time: string;
+  arrival_date?: string;
+  arrival_time?: string;
+  status: TripStatus;
   price_conventional?: number;
   price_executive?: number;
   price_semi_sleeper?: number;
@@ -307,56 +474,46 @@ export interface IViagem {
   price_master_bed?: number;
   seats_available?: number;
   notes?: string;
-
-  // New Fields
   title?: string;
-  tags?: string[]; // Replacing trip_type
+  tags?: string[];
   cover_image?: string;
-  gallery?: string[]; // JSONB in DB
+  gallery?: string[];
   baggage_limit?: string;
   alerts?: string;
-
-  // Joined Fields (Backend)
   route_name?: string;
   origin_city?: string;
   destination_city?: string;
   vehicle_plate?: string;
   vehicle_model?: string;
   driver_name?: string;
-  route_stops?: any[]; // JSON from DB
+  route_stops?: any[];
   return_route_name?: string;
   return_route_stops?: any[];
   active?: boolean;
-
-  // Frontend Legacy / Derived Fields (Deprecated or Mapped)
-  titulo?: string; // Kept for compatibility if used elsewhere, but now maps to backend 'title'
-  origem?: string; // Mapped from origin_city
-  destino?: string; // Mapped from destination_city
+  titulo?: string;
+  origem?: string;
+  destino?: string;
   paradas?: IParada[];
-  data_partida?: string; // ISO Date
-  data_chegada_prevista?: string; // ISO Date
-
-  // Sistema de Rotas v2.0 Legacy
+  data_partida?: string;
+  data_chegada_prevista?: string;
   rota_ida_id?: string;
   rota_volta_id?: string;
   rota_ida?: IRota;
   rota_volta?: IRota;
   usa_sistema_rotas?: boolean;
-
   motorista_ids?: string[];
   ocupacao_percent?: number;
   internacional?: boolean;
   moeda_base?: Moeda;
-  tipo_viagem?: 'IDA_E_VOLTA' | 'IDA' | 'VOLTA'; // This is for route configuration, distinct from 'trip_type'
+  tipo_viagem?: 'IDA_E_VOLTA' | 'IDA' | 'VOLTA';
   precos_por_tipo?: Record<string, number>;
-  imagem_capa?: string; // Legacy, map to cover_image
-  galeria?: string[]; // Legacy, map to gallery
+  imagem_capa?: string;
+  galeria?: string[];
 }
 
-// Passageiro individual em uma reserva
 export interface IPassageiroReserva {
   id: string;
-  cliente_id: string; // Referência ao cliente
+  cliente_id: string;
   assento_numero: string;
   tipo_assento: TipoAssento;
   valor: number;
@@ -366,45 +523,27 @@ export interface IReserva {
   id: string;
   codigo: string;
   viagem_id: string;
-  responsavel_id: string; // Quem fez a compra/reserva
-  passageiros: IPassageiroReserva[]; // Lista de passageiros
-  data_reserva: string; // ISO Date
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'USED' | 'CHECKED_IN' | 'NO_SHOW' | 'COMPLETED';
-  valor_total: number; // Soma dos valores dos passageiros
+  responsavel_id: string;
+  passageiros: IPassageiroReserva[];
+  data_reserva: string;
+  status: ReservationStatus;
+  valor_total: number;
   moeda: Moeda;
   forma_pagamento?: 'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO';
   observacoes?: string;
-
-  // @deprecated - Campos mantidos para compatibilidade
   cliente_id?: string;
   assento_numero?: string;
   valor_pago?: number;
-  // Backend Mapped Fields
-  price?: number; // Backend column name
+  price?: number;
   amount_paid?: number;
   payment_method?: string;
   boarding_point?: string;
   dropoff_point?: string;
 }
 
-export const StatusReservaLabel: Record<string, string> = {
-  PENDING: 'Pendente',
-  CONFIRMED: 'Confirmada',
-  CANCELLED: 'Cancelada',
-  USED: 'Utilizada',
-  CHECKED_IN: 'Embarcado',
-  NO_SHOW: 'Não Compareceu',
-  COMPLETED: 'Concluída'
-};
-
-export enum TipoEncomenda {
-  CARGA_ONIBUS = 'CARGA_ONIBUS',
-  FRETE_CAMINHAO = 'FRETE_CAMINHAO'
-}
-
 export interface IEventoRastreamento {
   id: string;
-  data_hora: string; // ISO Date
+  data_hora: string;
   local: string;
   descricao: string;
   tipo: 'RECEBIDO' | 'EM_TRANSITO' | 'CHEGOU' | 'SAIU_ENTREGA' | 'ENTREGUE';
@@ -414,7 +553,7 @@ export interface IEncomenda {
   id: string;
   codigo: string;
   tipo: TipoEncomenda;
-  status: 'AGUARDANDO' | 'EM_TRANSITO' | 'ENTREGUE' | 'DEVOLVIDA';
+  status: EncomendaStatus;
   origem: string;
   destino: string;
   remetente_nome: string;
@@ -424,9 +563,9 @@ export interface IEncomenda {
   volume_m3: number;
   valor_declarado: number;
   moeda: Moeda;
-  previsao_entrega: string; // ISO Date
-  viagem_id?: string; // Se for em ônibus
-  caminhao_id?: string; // Se for em caminhão
+  previsao_entrega: string;
+  viagem_id?: string;
+  caminhao_id?: string;
   historico: IEventoRastreamento[];
 }
 
@@ -439,7 +578,7 @@ export interface IClienteCorporativo {
   contato_telefone: string;
   centro_custo?: string;
   credito_disponivel: number;
-  dia_vencimento_fatura: number; // 1-31
+  dia_vencimento_fatura: number;
 }
 
 export interface IFretamento {
@@ -449,29 +588,15 @@ export interface IFretamento {
   motorista_id?: string;
   origem: string;
   destino: string;
-  data_inicio: string; // ISO Date
-  data_fim: string; // ISO Date
+  data_inicio: string;
+  data_fim: string;
   tipo: 'PONTUAL' | 'RECORRENTE';
   rota_ida_id?: string;
   rota_volta_id?: string;
-  status: 'SOLICITACAO' | 'ORCAMENTO_ENVIADO' | 'CONFIRMADO' | 'EM_ANDAMENTO' | 'CONCLUIDO' | 'CANCELADO';
+  status: FretamentoStatus;
   valor_total: number;
   moeda: Moeda;
   observacoes?: string;
-}
-
-export enum TipoManutencao {
-  PREVENTIVA = 'PREVENTIVA',
-  CORRETIVA = 'CORRETIVA',
-  PREDITIVA = 'PREDITIVA',
-  INSPECAO = 'INSPECAO'
-}
-
-export enum StatusManutencao {
-  AGENDADA = 'AGENDADA',
-  EM_ANDAMENTO = 'EM_ANDAMENTO',
-  CONCLUIDA = 'CONCLUIDA',
-  CANCELADA = 'CANCELADA'
 }
 
 export interface IManutencao {
@@ -479,9 +604,9 @@ export interface IManutencao {
   veiculo_id: string;
   tipo: TipoManutencao;
   status: StatusManutencao;
-  data_agendada: string; // ISO Date
-  data_inicio?: string; // ISO Date
-  data_conclusao?: string; // ISO Date
+  data_agendada: string;
+  data_inicio?: string;
+  data_conclusao?: string;
   km_veiculo: number;
   descricao: string;
   custo_pecas: number;
@@ -493,49 +618,35 @@ export interface IManutencao {
   anexos?: string[];
 }
 
-// ===== FINANCIAL INTERFACES =====
-
 export interface ITransacao {
   id: string;
   tipo: TipoTransacao;
   descricao: string;
   valor: number;
   moeda: Moeda;
-  data_emissao: string; // ISO Date
-  data_vencimento: string; // ISO Date
-  data_pagamento?: string; // ISO Date
+  data_emissao: string;
+  data_vencimento: string;
+  data_pagamento?: string;
   status: StatusTransacao;
   forma_pagamento?: FormaPagamento;
-
-  // Categorização
   categoria_receita?: CategoriaReceita;
   categoria_despesa?: CategoriaDespesa;
-
-  // Referências
   cliente_id?: string;
   fornecedor_id?: string;
   viagem_id?: string;
   reserva_id?: string;
   manutencao_id?: string;
   fretamento_id?: string;
-
-  // Dados adicionais
   numero_documento?: string;
   observacoes?: string;
   anexos?: string[];
-
-  // Centros de Custo
   centro_custo?: CentroCusto;
   classificacao_contabil?: ClassificacaoContabil;
-
-  // Parcelas (se aplicável)
   parcela_atual?: number;
   total_parcelas?: number;
-
-  // Auditoria
   criado_por: string;
-  criado_em: string; // ISO Date
-  atualizado_em?: string; // ISO Date
+  criado_em: string;
+  atualizado_em?: string;
 }
 
 export interface IContaPagar {
@@ -570,7 +681,7 @@ export interface IContaReceber {
   categoria: CategoriaReceita;
   numero_documento?: string;
   observacoes?: string;
-  centro_custo?: CentroCusto; // Sempre VENDAS para receitas
+  centro_custo?: CentroCusto;
 }
 
 export interface IFatura {
@@ -594,7 +705,7 @@ export interface IItemFatura {
   quantidade: number;
   valor_unitario: number;
   valor_total: number;
-  referencia_id?: string; // ID da reserva, fretamento, etc.
+  referencia_id?: string;
   referencia_tipo?: 'RESERVA' | 'FRETAMENTO' | 'ENCOMENDA';
 }
 
@@ -609,16 +720,14 @@ export interface IRelatorioFinanceiro {
   despesas_por_categoria: Record<CategoriaDespesa, number>;
 }
 
-// ===== BANK RECONCILIATION =====
-
 export interface ITransacaoBancaria {
-  id: string; // ID único do OFX ou gerado hash para CSV
-  data: string; // ISO Date
+  id: string;
+  data: string;
   descricao: string;
   valor: number;
   tipo: 'CREDITO' | 'DEBITO';
-  id_transacao_sistema?: string; // Link com a transação do sistema se conciliado
-  status: 'PENDENTE' | 'CONCILIADO' | 'IGNORADO';
+  id_transacao_sistema?: string;
+  status: 'PENDING' | 'RECONCILED' | 'IGNORED';
 }
 
 export interface IExtratoBancario {
@@ -630,19 +739,17 @@ export interface IExtratoBancario {
   transacoes: ITransacaoBancaria[];
 }
 
-// ===== AUXILIARY REGISTRATIONS =====
-
 export interface IPais {
   id: string;
   nome: string;
-  sigla: string; // ISO 3166-1 alpha-2 (BR, US, etc.)
-  ddi: string; // +55, +1, etc.
+  sigla: string;
+  ddi: string;
 }
 
 export interface IEstado {
   id: string;
   nome: string;
-  uf: string; // Sigla do estado
+  uf: string;
   pais_id: string;
 }
 

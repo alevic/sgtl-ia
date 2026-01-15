@@ -2,6 +2,7 @@ import express from "express";
 import { pool } from "../auth";
 import { auth } from "../auth";
 import crypto from "crypto";
+import { ReservationStatus } from "../../types";
 
 const router = express.Router();
 
@@ -38,6 +39,7 @@ router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) 
     try {
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
+        console.log(`[Admin] Fetching reservations for org: ${orgId}`);
         const { trip_id, status, ticket_code, passenger_name, vehicle_id } = req.query;
 
         let query = `
@@ -96,8 +98,13 @@ router.get("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) 
         }
 
         query += ` ORDER BY r.created_at DESC`;
-
         const result = await pool.query(query, params);
+        console.log(`[Admin] Query returned ${result.rows.length} reservations for org ${orgId}`);
+        if (result.rows.length === 0) {
+            // Check if there are ANY reservations at all for this org without the joins
+            const countCheck = await pool.query("SELECT COUNT(*) FROM reservations WHERE organization_id = $1", [orgId]);
+            console.log(`[Admin] Total raw reservations for org ${orgId}: ${countCheck.rows[0].count}`);
+        }
         res.json(result.rows);
     } catch (error) {
         console.error("Error fetching reservations:", error);
@@ -152,8 +159,8 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
         } = req.body;
 
         // Verify status if provided
-        const validStatuses = ['PENDING', 'CONFIRMED', 'CANCELLED', 'CHECKED_IN', 'NO_SHOW', 'USED', 'COMPLETED'];
-        const finalStatus = (status && validStatuses.includes(status)) ? status : 'PENDING';
+        const validStatuses = Object.values(ReservationStatus) as string[];
+        const finalStatus = (status && validStatuses.includes(status)) ? status : ReservationStatus.PENDING;
 
         // Check for double booking using seat_number if provided (fallback for when seat_id is missing or to cover all bases)
         if (seat_number) {
@@ -162,8 +169,8 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                  LEFT JOIN seat s ON r.seat_id = s.id
                  WHERE r.trip_id = $1 
                  AND (r.seat_id = $2 OR s.numero = $3)
-                 AND r.status != 'CANCELLED'`,
-                [trip_id, seat_id || '00000000-0000-0000-0000-000000000000', seat_number]
+                 AND r.status != $4`,
+                [trip_id, seat_id || '00000000-0000-0000-0000-000000000000', seat_number, ReservationStatus.CANCELLED]
             );
 
             if (duplicateCheck.rows.length > 0) {
@@ -183,8 +190,8 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
 
             // Check overlap by seat_id
             const reservationCheck = await pool.query(
-                "SELECT id FROM reservations WHERE trip_id = $1 AND seat_id = $2 AND status != 'CANCELLED'",
-                [trip_id, seat_id]
+                "SELECT id FROM reservations WHERE trip_id = $1 AND seat_id = $2 AND status != $3",
+                [trip_id, seat_id, ReservationStatus.CANCELLED]
             );
 
             if (reservationCheck.rows.length > 0) {
@@ -287,12 +294,12 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
         );
 
         // Handle seat count logic if status changes
-        if (status === 'CANCELLED' && oldStatus !== 'CANCELLED') {
+        if (status === ReservationStatus.CANCELLED && oldStatus !== ReservationStatus.CANCELLED) {
             await pool.query(
                 "UPDATE trips SET seats_available = seats_available + 1 WHERE id = $1",
                 [currentRes.rows[0].trip_id]
             );
-        } else if (status !== 'CANCELLED' && oldStatus === 'CANCELLED') {
+        } else if (status !== ReservationStatus.CANCELLED && oldStatus === ReservationStatus.CANCELLED) {
             await pool.query(
                 "UPDATE trips SET seats_available = seats_available - 1 WHERE id = $1",
                 [currentRes.rows[0].trip_id]

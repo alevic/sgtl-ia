@@ -15,7 +15,10 @@ import {
     TipoManutencao,
     StatusManutencao,
     Moeda,
-    IVeiculo
+    IVeiculo,
+    StatusTransacao,
+    StatusManutencaoLabel,
+    TipoManutencaoLabel
 } from '../types';
 import { ModalConfirmacao } from '../components/ui/ModalConfirmacao';
 import { SeletorVeiculo } from '../components/Veiculos/SeletorVeiculo';
@@ -33,8 +36,8 @@ export const NovaManutencao: React.FC = () => {
     const [originalData, setOriginalData] = useState<Partial<IManutencao> | null>(null);
 
     const [formData, setFormData] = useState<Partial<IManutencao>>({
-        tipo: TipoManutencao.PREVENTIVA,
-        status: StatusManutencao.AGENDADA,
+        tipo: TipoManutencao.PREVENTIVE,
+        status: StatusManutencao.SCHEDULED,
         moeda: Moeda.BRL,
         custo_pecas: 0,
         custo_mao_de_obra: 0,
@@ -261,7 +264,7 @@ export const NovaManutencao: React.FC = () => {
             const custoTotal = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
 
             // Scenario 1: Cancellation
-            if (formData.status === 'CANCELADA') {
+            if (formData.status === StatusManutencao.CANCELLED) {
                 setFinancialModalContent({
                     title: 'Cancelar Manutenção e Financeiro',
                     message: (
@@ -284,7 +287,7 @@ export const NovaManutencao: React.FC = () => {
             }
 
             // Scenario 2: Completion (Pay Pending Transaction)
-            else if (formData.status === 'CONCLUIDA' && transactionInfo.status === 'PENDENTE') {
+            else if (formData.status === StatusManutencao.COMPLETED && transactionInfo.status === StatusTransacao.PENDING) {
                 setFinancialModalContent({
                     title: 'Concluir e Pagar',
                     message: (
@@ -426,7 +429,9 @@ export const NovaManutencao: React.FC = () => {
                                     value={formData.tipo}
                                 >
                                     {Object.values(TipoManutencao).map(tipo => (
-                                        <option key={tipo} value={tipo}>{tipo}</option>
+                                        <option key={tipo} value={tipo}>
+                                            {TipoManutencaoLabel[tipo as TipoManutencao] || tipo}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
@@ -443,7 +448,9 @@ export const NovaManutencao: React.FC = () => {
                                     value={formData.status}
                                 >
                                     {Object.values(StatusManutencao).map(status => (
-                                        <option key={status} value={status}>{status.replace('_', ' ')}</option>
+                                        <option key={status} value={status}>
+                                            {StatusManutencaoLabel[status as StatusManutencao] || status}
+                                        </option>
                                     ))}
                                 </select>
                             </div>

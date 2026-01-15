@@ -2,6 +2,7 @@ import express from "express";
 import { pool } from "../auth";
 import { clientAuthorize } from "../middleware";
 import crypto from "crypto";
+import { ReservationStatus, StatusTransacao, TipoTransacao } from "../../types";
 
 const router = express.Router();
 
@@ -36,9 +37,9 @@ router.get("/dashboard", clientAuthorize(), async (req, res) => {
             JOIN trips t ON r.trip_id = t.id
             JOIN routes route ON t.route_id = route.id
             LEFT JOIN seat s ON r.seat_id = s.id
-            WHERE r.client_id = $1 AND r.status != 'CANCELLED'
+            WHERE r.client_id = $1 AND r.status != $2
             ORDER BY t.departure_date ASC, t.departure_time ASC`,
-            [clientId]
+            [clientId, ReservationStatus.CANCELLED]
         );
 
         // 3. Fetch Recent Parcels
@@ -98,62 +99,140 @@ router.get("/reservations/:id", clientAuthorize(), async (req, res) => {
 
 // POST /api/client/checkout
 router.post("/checkout", clientAuthorize(), async (req, res) => {
+    const client = await pool.connect();
     try {
         const userId = (req as any).session.user.id;
         const {
-            trip_id, seat_id,
-            passenger_name, passenger_document, passenger_email, passenger_phone,
-            price, boarding_point, dropoff_point
+            reservations, // Array of reservation objects
+            credits_used,
+            is_partial,
+            entry_value,
+            trip_id
         } = req.body;
 
-        // 1. Get Client ID
-        const clientResult = await pool.query("SELECT id, organization_id FROM clients WHERE user_id = $1", [userId]);
-        if (clientResult.rows.length === 0) return res.status(404).json({ error: "Client not found" });
-
-        const clientId = clientResult.rows[0].id;
-        const orgId = clientResult.rows[0].organization_id;
-
-        // 2. Double Booking Check (simplified version of reservations.ts logic)
-        const reservationCheck = await pool.query(
-            "SELECT id FROM reservations WHERE trip_id = $1 AND seat_id = $2 AND status != 'CANCELLED'",
-            [trip_id, seat_id]
-        );
-
-        if (reservationCheck.rows.length > 0) {
-            return res.status(400).json({ error: "Seat already reserved" });
+        if (!reservations || !Array.isArray(reservations) || reservations.length === 0) {
+            return res.status(400).json({ error: "No reservations provided" });
         }
 
-        // 3. Create Reservation
-        const ticket_code = 'T-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+        await client.query("BEGIN");
 
-        const result = await pool.query(
-            `INSERT INTO reservations (
-                trip_id, seat_id,
-                passenger_name, passenger_document, passenger_email, passenger_phone,
-                status, ticket_code, price,
-                client_id, organization_id,
-                boarding_point, dropoff_point
-            ) VALUES ($1, $2, $3, $4, $5, $6, 'PENDING', $7, $8, $9, $10, $11, $12)
-            RETURNING *`,
-            [
-                trip_id, seat_id,
-                passenger_name, passenger_document, passenger_email || null, passenger_phone || null,
-                ticket_code, price,
-                clientId, orgId,
-                boarding_point || null, dropoff_point || null
-            ]
+        // 1. Get Client Info
+        const clientResult = await client.query("SELECT id, saldo_creditos, organization_id FROM clients WHERE user_id = $1", [userId]);
+        if (clientResult.rows.length === 0) throw new Error("Client not found");
+        const clientId = clientResult.rows[0].id;
+        const clientOrgId = clientResult.rows[0].organization_id;
+
+        // 2. Get Trip Info
+        const tripResult = await client.query("SELECT organization_id, title FROM trips WHERE id = $1", [trip_id]);
+        if (tripResult.rows.length === 0) throw new Error("Trip not found");
+        const orgId = tripResult.rows[0].organization_id;
+
+        // 3. Credit Deduction Logic
+        if (credits_used && Number(credits_used) > 0) {
+            const currentCredits = Number(clientResult.rows[0].saldo_creditos || 0);
+            if (currentCredits < Number(credits_used)) {
+                throw new Error("Saldo de créditos insuficiente");
+            }
+
+            await client.query(
+                "UPDATE clients SET saldo_creditos = saldo_creditos - $1 WHERE id = $2",
+                [credits_used, clientId]
+            );
+
+            // Log Credit Usage (Financial Transaction)
+            await client.query(
+                `INSERT INTO transaction (
+                    organization_id, type, category, amount, description, status, 
+                    client_id, date, created_at
+                ) VALUES ($1, $2, 'OUTROS', $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+                [orgId, TipoTransacao.EXPENSE, credits_used, `Uso de créditos na reserva - ${tripResult.rows[0].title}`, StatusTransacao.PAID, clientId]
+            );
+        }
+
+        const createdReservations = [];
+        const totalAmount = reservations.reduce((sum, r) => sum + Number(r.price || 0), 0);
+
+        // 4. Create Reservations
+        for (const r of reservations) {
+            // Double Booking Check
+            const reservationCheck = await client.query(
+                "SELECT id FROM reservations WHERE trip_id = $1 AND seat_id = $2 AND status != $3",
+                [trip_id, r.seat_id, ReservationStatus.CANCELLED]
+            );
+            if (reservationCheck.rows.length > 0) {
+                throw new Error(`O assento ${r.seat_number} já está reservado.`);
+            }
+
+            const ticket_code = 'T-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+
+            // Calculate individualized stats for this reservation (pro-rata distribution if needed, but usually we just tag the main group)
+            // For now, we store the full price and mark the group
+            const resResult = await client.query(
+                `INSERT INTO reservations (
+                    trip_id, seat_id,
+                    passenger_name, passenger_document, passenger_email, passenger_phone,
+                    status, ticket_code, price,
+                    client_id, organization_id,
+                    boarding_point, dropoff_point,
+                    credits_used, is_partial, amount_paid,
+                    created_at, updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                RETURNING *`,
+                [
+                    trip_id, r.seat_id,
+                    r.passenger_name, r.passenger_document, r.passenger_email || null, r.passenger_phone || null,
+                    ReservationStatus.PENDING, ticket_code, r.price,
+                    clientId, orgId,
+                    r.boarding_point || null, r.dropoff_point || null,
+                    0, // credits_used per reservation (store total on financial or split?) - common practice: store total on financial
+                    is_partial || false,
+                    0 // amount_paid starts at 0 until payment confirmed
+                ]
+            );
+            createdReservations.push(resResult.rows[0]);
+        }
+
+        // 5. Create Financial Transactions (Entry and Remaining Balance)
+        const description = `Reserva Portal: ${tripResult.rows[0].title} (${createdReservations.length} pax)`;
+
+        // Transaction for Entry/Total
+        await client.query(
+            `INSERT INTO transaction (
+                organization_id, type, category, amount, description, status, 
+                client_id, reservation_id, date, created_at
+            ) VALUES ($1, $2, 'VENDA_PASSAGEM', $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+            [orgId, TipoTransacao.INCOME, entry_value || (totalAmount - (credits_used || 0)), description + (is_partial ? " - Entrada/Sinal" : ""), StatusTransacao.PENDING, clientId, createdReservations[0].id]
         );
 
-        // 4. Update Trip Seats
-        await pool.query(
-            "UPDATE trips SET seats_available = seats_available - 1 WHERE id = $1",
-            [trip_id]
+        if (is_partial) {
+            const remaining = totalAmount - (credits_used || 0) - entry_value;
+            if (remaining > 0) {
+                await client.query(
+                    `INSERT INTO transaction (
+                        organization_id, type, category, amount, description, status, 
+                        client_id, reservation_id, date, created_at
+                    ) VALUES ($1, $2, 'VENDA_PASSAGEM', $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+                    [orgId, TipoTransacao.INCOME, remaining, description + " - Restante no Embarque", StatusTransacao.PENDING, clientId, createdReservations[0].id]
+                );
+            }
+        }
+
+        // 6. Update Trip Seats
+        await client.query(
+            "UPDATE trips SET seats_available = seats_available - $1 WHERE id = $2",
+            [reservations.length, trip_id]
         );
 
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error in client checkout:", error);
-        res.status(500).json({ error: "Failed to process reservation" });
+        await client.query("COMMIT");
+        console.log(`[Public Checkout] Success! ${createdReservations.length} reservations created for org ${orgId}`);
+        res.json({ success: true, reservations: createdReservations });
+
+    } catch (error: any) {
+        await client.query("ROLLBACK");
+        console.error("Error in batch client checkout:", error);
+        res.status(500).json({ error: error.message || "Failed to process reservation" });
+    } finally {
+        client.release();
     }
 });
 

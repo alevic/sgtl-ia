@@ -2,6 +2,7 @@ import express from "express";
 import { pool } from "../auth";
 import { auth } from "../auth";
 import { authorize } from "../middleware";
+import { TripStatus, RouteType } from "../../types";
 
 const router = express.Router();
 
@@ -76,7 +77,7 @@ router.post("/routes", authorize(['admin', 'operacional']), async (req, res) => 
             [
                 name, origin_city, origin_state, destination_city, destination_state,
                 distance_km || 0, duration_minutes || 0, JSON.stringify(stops || []),
-                type || 'IDA',
+                type || RouteType.OUTBOUND,
                 orgId, userId
             ]
         );
@@ -385,15 +386,15 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
                 route_id, return_route_id, vehicle_id, driver_id,
                 departure_date, departure_time, arrival_date, arrival_time,
                 price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
-                seats_available, notes, organization_id, created_by,
+                seats_available, status, notes, organization_id, created_by,
                 title, tags, cover_image, gallery, baggage_limit, alerts
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
             RETURNING *`,
             [
                 route_id, return_route_id || null, vehicle_id || null, driver_id || null,
                 departure_date, departure_time, arrival_date || null, arrival_time || null,
                 price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null, price_bed || null, price_master_bed || null,
-                finalSeats || 0, notes || null, orgId, userId,
+                finalSeats || 0, TripStatus.SCHEDULED, notes || null, orgId, userId,
                 title || null, tags || [], cover_image || null, JSON.stringify(gallery || []), baggage_limit || null, alerts || null
             ]
         );

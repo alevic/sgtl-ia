@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IRota, IVeiculo, IMotorista, Moeda, IViagem } from '../types';
+import { IRota, IVeiculo, IMotorista, Moeda, IViagem, TripStatus } from '../types';
 import {
     ArrowLeft, Bus, Save, DollarSign, Image, Route, Clock, MapPin, Users, X, Plus, Calendar, Loader, Trash2
 } from 'lucide-react';
@@ -262,7 +262,7 @@ export const NovaViagem: React.FC = () => {
                 price_bed: precosPorTipo['CAMA'],
                 price_master_bed: precosPorTipo['CAMA_MASTER'],
                 notes: notes,
-                status: 'SCHEDULED',
+                status: TripStatus.SCHEDULED,
                 seats_available: veiculoSelecionado?.capacidade_passageiros || 40, // Default
 
                 // New fields

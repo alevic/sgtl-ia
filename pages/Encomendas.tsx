@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IEncomenda, TipoEncomenda, Moeda } from '../types';
+import { IEncomenda, TipoEncomenda, Moeda, EncomendaStatus, EncomendaStatusLabel } from '../types';
 import { Package, Truck, Bus, MapPin, Calendar, TrendingUp, Check, Loader } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
 
 const TipoTag: React.FC<{ tipo: TipoEncomenda }> = ({ tipo }) => {
-    if (tipo === TipoEncomenda.CARGA_ONIBUS) {
+    if (tipo === TipoEncomenda.BUS_CARGO || (tipo as any) === 'CARGA_ONIBUS') {
         return (
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold">
                 <Bus size={14} />
@@ -21,23 +21,25 @@ const TipoTag: React.FC<{ tipo: TipoEncomenda }> = ({ tipo }) => {
     );
 };
 
-const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
-    const configs: any = {
-        AGUARDANDO: { color: 'slate', label: 'Aguardando' },
-        PENDING: { color: 'slate', label: 'Aguardando' },
-        EM_TRANSITO: { color: 'blue', label: 'Em Trânsito' },
-        IN_TRANSIT: { color: 'blue', label: 'Em Trânsito' },
-        ENTREGUE: { color: 'green', label: 'Entregue' },
-        DELIVERED: { color: 'green', label: 'Entregue' },
-        DEVOLVIDA: { color: 'red', label: 'Devolvida' },
-        RETURNED: { color: 'red', label: 'Devolvida' }
+const StatusBadge: React.FC<{ status: EncomendaStatus }> = ({ status }) => {
+    const configs: Record<string, { color: string }> = {
+        [EncomendaStatus.AWAITING]: { color: 'slate' },
+        [EncomendaStatus.IN_TRANSIT]: { color: 'blue' },
+        [EncomendaStatus.DELIVERED]: { color: 'green' },
+        [EncomendaStatus.RETURNED]: { color: 'red' },
+        // Legacy fallbacks
+        'AGUARDANDO': { color: 'slate' },
+        'PENDING': { color: 'slate' },
+        'EM_TRANSITO': { color: 'blue' },
+        'ENTREGUE': { color: 'green' },
+        'DEVOLVIDA': { color: 'red' }
     };
 
-    const config = configs[status] || configs['AGUARDANDO'];
+    const config = configs[status] || configs[EncomendaStatus.AWAITING];
 
     return (
         <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
-            {config.label}
+            {EncomendaStatusLabel[status] || (status as string)}
         </span>
     );
 };
@@ -101,15 +103,15 @@ export const Encomendas: React.FC = () => {
                     Todos
                 </button>
                 <button
-                    onClick={() => setFiltroTipo(TipoEncomenda.CARGA_ONIBUS)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroTipo === TipoEncomenda.CARGA_ONIBUS ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                    onClick={() => setFiltroTipo(TipoEncomenda.BUS_CARGO)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroTipo === TipoEncomenda.BUS_CARGO ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                 >
                     <Bus size={16} />
                     Carga Ônibus
                 </button>
                 <button
-                    onClick={() => setFiltroTipo(TipoEncomenda.FRETE_CAMINHAO)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroTipo === TipoEncomenda.FRETE_CAMINHAO ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                    onClick={() => setFiltroTipo(TipoEncomenda.TRUCK_FREIGHT)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroTipo === TipoEncomenda.TRUCK_FREIGHT ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
                 >
                     <Truck size={16} />
                     Frete Caminhão
@@ -134,8 +136,8 @@ export const Encomendas: React.FC = () => {
                                     <div>
                                         <h3 className="text-lg font-bold text-slate-800 dark:text-white">{encomenda.tracking_code || encomenda.codigo}</h3>
                                         <div className="flex items-center gap-2 mt-1">
-                                            {/* Default to CARGA_ONIBUS if not specified, or handle logic */}
-                                            <TipoTag tipo={encomenda.trip_id ? TipoEncomenda.CARGA_ONIBUS : TipoEncomenda.FRETE_CAMINHAO} />
+                                            {/* Default to BUS_CARGO if not specified, or handle logic */}
+                                            <TipoTag tipo={encomenda.trip_id ? TipoEncomenda.BUS_CARGO : TipoEncomenda.TRUCK_FREIGHT} />
                                             <StatusBadge status={encomenda.status} />
                                         </div>
                                     </div>

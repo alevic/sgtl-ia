@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { IVeiculo, VeiculoStatus } from '../types';
+import { IVeiculo, VeiculoStatus, VeiculoStatusLabel } from '../types';
 import { useAppContext } from '../context/AppContext';
 import {
     Bus, Truck, Plus, Search, Filter, Gauge, Calendar,
@@ -20,7 +20,7 @@ export const MOCK_VEICULOS: (IVeiculo & {
             placa: 'ABC-1234',
             modelo: 'Mercedes-Benz O500',
             tipo: 'ONIBUS',
-            status: VeiculoStatus.EM_VIAGEM,
+            status: VeiculoStatus.IN_TRANSIT,
             proxima_revisao_km: 95000,
             km_atual: 87500,
             ano: 2020,
@@ -32,7 +32,7 @@ export const MOCK_VEICULOS: (IVeiculo & {
             placa: 'DEF-5678',
             modelo: 'Scania Touring',
             tipo: 'ONIBUS',
-            status: VeiculoStatus.ATIVO,
+            status: VeiculoStatus.ACTIVE,
             proxima_revisao_km: 105000,
             km_atual: 92000,
             ano: 2021,
@@ -43,7 +43,7 @@ export const MOCK_VEICULOS: (IVeiculo & {
             placa: 'GHI-9012',
             modelo: 'Volvo FH 540',
             tipo: 'CAMINHAO',
-            status: VeiculoStatus.MANUTENCAO,
+            status: VeiculoStatus.MAINTENANCE,
             proxima_revisao_km: 120000,
             km_atual: 118500,
             ano: 2019,
@@ -54,7 +54,7 @@ export const MOCK_VEICULOS: (IVeiculo & {
             placa: 'JKL-3456',
             modelo: 'Mercedes-Benz Actros',
             tipo: 'CAMINHAO',
-            status: VeiculoStatus.ATIVO,
+            status: VeiculoStatus.ACTIVE,
             proxima_revisao_km: 130000,
             km_atual: 115000,
             ano: 2022,
@@ -65,7 +65,7 @@ export const MOCK_VEICULOS: (IVeiculo & {
             placa: 'MNO-7890',
             modelo: 'Marcopolo Paradiso',
             tipo: 'ONIBUS',
-            status: VeiculoStatus.EM_VIAGEM,
+            status: VeiculoStatus.IN_TRANSIT,
             proxima_revisao_km: 100000,
             km_atual: 88000,
             ano: 2021,
@@ -75,23 +75,42 @@ export const MOCK_VEICULOS: (IVeiculo & {
     ];
 
 const StatusBadge: React.FC<{ status: VeiculoStatus }> = ({ status }) => {
-    const configs = {
-        ATIVO: {
+    const configs: Record<any, any> = {
+        [VeiculoStatus.ACTIVE]: {
             color: 'green',
+            label: VeiculoStatusLabel[VeiculoStatus.ACTIVE],
+            icon: CheckCircle,
+            bgClass: 'bg-green-100 dark:bg-green-900/30',
+            textClass: 'text-green-700 dark:text-green-300'
+        },
+        [VeiculoStatus.MAINTENANCE]: {
+            color: 'orange',
+            label: VeiculoStatusLabel[VeiculoStatus.MAINTENANCE],
+            icon: Wrench,
+            bgClass: 'bg-orange-100 dark:bg-orange-900/30',
+            textClass: 'text-orange-700 dark:text-orange-300'
+        },
+        [VeiculoStatus.IN_TRANSIT]: {
+            color: 'blue',
+            label: VeiculoStatusLabel[VeiculoStatus.IN_TRANSIT],
+            icon: TrendingUp,
+            bgClass: 'bg-blue-100 dark:bg-blue-900/30',
+            textClass: 'text-blue-700 dark:text-blue-300'
+        },
+        // Legacy fallbacks
+        'ATIVO': {
             label: 'Ativo',
             icon: CheckCircle,
             bgClass: 'bg-green-100 dark:bg-green-900/30',
             textClass: 'text-green-700 dark:text-green-300'
         },
-        MANUTENCAO: {
-            color: 'orange',
+        'MANUTENCAO': {
             label: 'Manutenção',
             icon: Wrench,
             bgClass: 'bg-orange-100 dark:bg-orange-900/30',
             textClass: 'text-orange-700 dark:text-orange-300'
         },
-        EM_VIAGEM: {
-            color: 'blue',
+        'EM_VIAGEM': {
             label: 'Em Viagem',
             icon: TrendingUp,
             bgClass: 'bg-blue-100 dark:bg-blue-900/30',
@@ -99,7 +118,7 @@ const StatusBadge: React.FC<{ status: VeiculoStatus }> = ({ status }) => {
         }
     };
 
-    const config = configs[status];
+    const config = configs[status] || configs[VeiculoStatus.ACTIVE];
     const Icon = config.icon;
 
     return (
@@ -153,9 +172,9 @@ export const Frota: React.FC = () => {
 
     // Estatísticas
     const totalVeiculos = veiculos.length;
-    const veiculosAtivos = veiculos.filter(v => v.status === VeiculoStatus.ATIVO).length;
-    const veiculosEmViagem = veiculos.filter(v => v.status === VeiculoStatus.EM_VIAGEM).length;
-    const veiculosManutencao = veiculos.filter(v => v.status === VeiculoStatus.MANUTENCAO).length;
+    const veiculosAtivos = veiculos.filter(v => v.status === VeiculoStatus.ACTIVE || (v.status as any) === 'ATIVO').length;
+    const veiculosEmViagem = veiculos.filter(v => v.status === VeiculoStatus.IN_TRANSIT || (v.status as any) === 'EM_VIAGEM').length;
+    const veiculosManutencao = veiculos.filter(v => v.status === VeiculoStatus.MAINTENANCE || (v.status as any) === 'MANUTENCAO').length;
 
     const calcularProgressoManutencao = (kmAtual: number, proximaRevisao: number) => {
         const kmDesdeUltimaRevisao = kmAtual % 10000;
@@ -255,20 +274,20 @@ export const Frota: React.FC = () => {
                             Todos
                         </button>
                         <button
-                            onClick={() => setFiltroStatus(VeiculoStatus.ATIVO)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === VeiculoStatus.ATIVO ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus(VeiculoStatus.ACTIVE)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === VeiculoStatus.ACTIVE ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Ativo
                         </button>
                         <button
-                            onClick={() => setFiltroStatus(VeiculoStatus.EM_VIAGEM)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === VeiculoStatus.EM_VIAGEM ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus(VeiculoStatus.IN_TRANSIT)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === VeiculoStatus.IN_TRANSIT ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Em Viagem
                         </button>
                         <button
-                            onClick={() => setFiltroStatus(VeiculoStatus.MANUTENCAO)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === VeiculoStatus.MANUTENCAO ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                            onClick={() => setFiltroStatus(VeiculoStatus.MAINTENANCE)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === VeiculoStatus.MAINTENANCE ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
                         >
                             Manutenção
                         </button>

@@ -1,6 +1,7 @@
 import express from "express";
 import { pool } from "../auth";
 import { auth } from "../auth";
+import { FretamentoStatus } from "../../types";
 
 const router = express.Router();
 
@@ -132,7 +133,7 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 origin_city, origin_state, destination_city, destination_state,
                 departure_date, departure_time || null, return_date || null, return_time || null,
                 passenger_count, vehicle_type_requested || null,
-                description || null, 'PENDING',
+                description || null, FretamentoStatus.REQUEST,
                 null, client_id || null, notes || null,
                 orgId, userId,
                 req.body.vehicle_id || null, req.body.driver_id || null, req.body.rota_ida_id || null, req.body.rota_volta_id || null
