@@ -869,17 +869,18 @@ export async function setupDb() {
         const userCount = await pool.query('SELECT COUNT(*) FROM "user"');
         if (parseInt(userCount.rows[0].count) === 0) {
             console.log("Creating default admin user...");
-            // Import crypto for password hashing
+            // Import bcrypt for password hashing (Better Auth compatible)
+            const bcrypt = await import('bcrypt');
             const crypto = await import('crypto');
             const password = 'admin123'; // Default password
-            const salt = crypto.randomBytes(16).toString('hex');
-            const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, 'sha512').toString('hex');
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const userId = crypto.randomUUID();
 
             await pool.query(`
                 INSERT INTO "user" (id, name, email, "emailVerified", role, "createdAt", "updatedAt")
                 VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             `, [
-                crypto.randomUUID(),
+                userId,
                 'Administrador',
                 'admin@jjeturismo.com.br',
                 true,
@@ -888,20 +889,13 @@ export async function setupDb() {
 
             await pool.query(`
                 INSERT INTO account (id, "accountId", "providerId", "userId", password, "createdAt", "updatedAt")
-                SELECT 
-                    $1,
-                    u.email,
-                    'credential',
-                    u.id,
-                    $2,
-                    CURRENT_TIMESTAMP,
-                    CURRENT_TIMESTAMP
-                FROM "user" u
-                WHERE u.email = $3
+                VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             `, [
                 crypto.randomUUID(),
-                `${salt}:${hash}`,
-                'admin@jjeturismo.com.br'
+                'admin@jjeturismo.com.br',
+                'credential',
+                userId,
+                hashedPassword
             ]);
 
             console.log("✅ Default admin user created:");
