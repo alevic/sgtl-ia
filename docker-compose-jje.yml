@@ -27,7 +27,7 @@ services:
       - PORT=4000
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - BETTER_AUTH_URL=${BETTER_AUTH_URL:-https://api.jjeturismo.com.br}
-      - CLIENT_URL=${CLIENT_URL:-https://jjeturismo.com.br}
+      - CLIENT_URL=${CLIENT_URL:-https://sgtl.jjeturismo.com.br}
       - TZ=America/Sao_Paulo
       - WHATSAPP_API_URL=${WHATSAPP_API_URL}
       - WHATSAPP_API_KEY=${WHATSAPP_API_KEY}

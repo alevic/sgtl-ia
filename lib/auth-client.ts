@@ -5,6 +5,7 @@ import { adminClient, organizationClient, phoneNumberClient } from "better-auth/
 function getApiUrl(): string {
     // First, try environment variable (works in development)
     if (import.meta.env.VITE_API_URL) {
+        console.log('[AUTH] Using VITE_API_URL:', import.meta.env.VITE_API_URL);
         return import.meta.env.VITE_API_URL;
     }
 
@@ -14,10 +15,12 @@ function getApiUrl(): string {
 
         // If we're on jjeturismo.com.br, use api.jjeturismo.com.br
         if (hostname === 'jjeturismo.com.br' || hostname.endsWith('.jjeturismo.com.br')) {
+            console.log('[AUTH] Detected jjeturismo.com.br domain, using API:', 'https://api.jjeturismo.com.br');
             return 'https://api.jjeturismo.com.br';
         }
 
         // Fallback to same origin
+        console.log('[AUTH] Using same origin:', window.location.origin);
         return window.location.origin;
     }
 
