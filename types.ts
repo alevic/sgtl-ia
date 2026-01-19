@@ -134,12 +134,18 @@ export const StatusManutencaoLabel: Record<StatusManutencao, string> = {
 };
 
 export enum TipoDocumento {
-  RG = 'RG',
   CPF = 'CPF',
-  PASSAPORTE = 'PASSAPORTE',
+  RG = 'RG',
   CNH = 'CNH',
+  PASSAPORTE = 'PASSAPORTE',
   RNE = 'RNE',
+  CNPJ = 'CNPJ',
   OUTRO = 'OUTRO'
+}
+
+export enum TipoCliente {
+  PESSOA_FISICA = 'PESSOA_FISICA',
+  PESSOA_JURIDICA = 'PESSOA_JURIDICA'
 }
 
 export enum Moeda {
@@ -351,13 +357,25 @@ export interface IMotorista {
 
 export interface ICliente {
   id: string;
-  nome: string;
+  tipo_cliente: TipoCliente; // PESSOA_FISICA or PESSOA_JURIDICA
+
+  // Fields that change meaning based on tipo_cliente
+  nome: string; // PF: client name | PJ: representative name
   email: string;
   telefone?: string;
+
+  // Document (representative for PF, or representative for PJ)
+  documento_tipo: TipoDocumento;
+  documento: string; // Renamed from documento_numero
+
+  // Corporate fields (null if PF)
+  razao_social?: string;
+  nome_fantasia?: string;
+  cnpj?: string;
+
+  // Common fields
   saldo_creditos: number;
   historico_viagens: number;
-  documento_tipo: TipoDocumento;
-  documento_numero: string;
   nacionalidade: string;
   data_cadastro: string; // ISO Date
   data_nascimento?: string; // ISO Date
@@ -370,6 +388,8 @@ export interface ICliente {
   ultima_viagem?: string; // ISO Date
   valor_total_gasto: number;
   observacoes?: string;
+  user_id?: string;
+  organization_id?: string;
 }
 
 export enum TipoInteracao {

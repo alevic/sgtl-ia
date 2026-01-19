@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Bus, ArrowRight, RefreshCcw, User, Mail, Lock, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Bus, ArrowRight, RefreshCcw, User, Mail, Lock, ShieldCheck, AlertCircle, CheckCircle2, Building2 } from 'lucide-react';
 import { publicService } from '../../services/publicService';
 import { UsernameInput } from '../../components/Form/UsernameInput';
-import { CPFInput } from '../../components/Form/CPFInput';
+import { DocumentInput } from '../../components/Form/DocumentInput';
 import { PhoneInput } from '../../components/Form/PhoneInput';
+import { TipoDocumento, TipoCliente } from '../../types';
 
 export const SignupCliente: React.FC = () => {
     const navigate = useNavigate();
@@ -12,13 +13,24 @@ export const SignupCliente: React.FC = () => {
     const searchParams = new URLSearchParams(location.search);
     const returnUrl = searchParams.get('returnUrl');
 
+    // Client type
+    const [tipoCliente, setTipoCliente] = useState<TipoCliente>(TipoCliente.PESSOA_FISICA);
+
+    // Representative/Client data
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [phone, setPhone] = useState('');
     const [countryCode, setCountryCode] = useState('+55');
-    const [cpf, setCpf] = useState('');
+    const [documentType, setDocumentType] = useState<TipoDocumento>(TipoDocumento.CPF);
+    const [documentNumber, setDocumentNumber] = useState('');
+
+    // Corporate data (only for PJ)
+    const [razaoSocial, setRazaoSocial] = useState('');
+    const [nomeFantasia, setNomeFantasia] = useState('');
+    const [cnpj, setCnpj] = useState('');
+
     const [organizationId, setOrganizationId] = useState('');
 
     const [isLoading, setIsLoading] = useState(false);
@@ -60,12 +72,17 @@ export const SignupCliente: React.FC = () => {
             const fullPhone = phone ? `${countryCode}${phone}` : '';
 
             await publicService.signupClient({
+                tipo_cliente: tipoCliente,
                 name,
                 username,
                 email,
                 password,
                 phone: fullPhone,
-                document: cpf,
+                documento_tipo: documentType,
+                documento: documentNumber,
+                razao_social: tipoCliente === TipoCliente.PESSOA_JURIDICA ? razaoSocial : null,
+                nome_fantasia: tipoCliente === TipoCliente.PESSOA_JURIDICA ? nomeFantasia : null,
+                cnpj: tipoCliente === TipoCliente.PESSOA_JURIDICA ? cnpj : null,
                 organization_id: organizationId || null
             });
 
@@ -109,11 +126,109 @@ export const SignupCliente: React.FC = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Tipo de Cliente */}
+                    <div className="mb-4">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                            Tipo de Cadastro <span className="text-red-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setTipoCliente(TipoCliente.PESSOA_FISICA)}
+                                className={`p-4 rounded-xl border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_FISICA
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                    }`}
+                            >
+                                <User className="mx-auto mb-2" size={24} />
+                                <div className="text-sm font-bold">Pessoa Física</div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setTipoCliente(TipoCliente.PESSOA_JURIDICA)}
+                                className={`p-4 rounded-xl border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_JURIDICA
+                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                    }`}
+                            >
+                                <Building2 className="mx-auto mb-2" size={24} />
+                                <div className="text-sm font-bold">Pessoa Jurídica</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Corporate Fields (only for PJ) */}
+                    {tipoCliente === TipoCliente.PESSOA_JURIDICA && (
+                        <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800 mb-4">
+                            <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                <Building2 size={16} />
+                                Dados da Empresa
+                            </h3>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Razão Social <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required={tipoCliente === TipoCliente.PESSOA_JURIDICA}
+                                    value={razaoSocial}
+                                    onChange={(e) => setRazaoSocial(e.target.value)}
+                                    placeholder="Nome empresarial completo"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    Nome Fantasia
+                                </label>
+                                <input
+                                    type="text"
+                                    value={nomeFantasia}
+                                    onChange={(e) => setNomeFantasia(e.target.value)}
+                                    placeholder="Nome comercial (opcional)"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    CNPJ <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    required={tipoCliente === TipoCliente.PESSOA_JURIDICA}
+                                    value={cnpj}
+                                    onChange={(e) => {
+                                        const formatted = e.target.value.replace(/\D/g, '')
+                                            .replace(/(\d{2})(\d)/, '$1.$2')
+                                            .replace(/(\d{3})(\d)/, '$1.$2')
+                                            .replace(/(\d{3})(\d)/, '$1/$2')
+                                            .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+                                            .slice(0, 18);
+                                        setCnpj(formatted);
+                                    }}
+                                    placeholder="00.000.000/0000-00"
+                                    disabled={isLoading}
+                                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                />
+                            </div>
+
+                            <hr className="border-blue-200 dark:border-blue-800" />
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                                <strong>Dados do Representante:</strong> Preencha abaixo as informações da pessoa responsável por esta conta.
+                            </p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Nome Completo */}
                         <div className="md:col-span-2">
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                Nome Completo <span className="text-red-500">*</span>
+                                {tipoCliente === TipoCliente.PESSOA_JURIDICA ? 'Nome do Representante' : 'Nome Completo'} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -175,12 +290,16 @@ export const SignupCliente: React.FC = () => {
                             />
                         </div>
 
-                        {/* CPF */}
+                        {/* Document */}
                         <div className="md:col-span-2">
-                            <CPFInput
-                                value={cpf}
-                                onChange={setCpf}
+                            <DocumentInput
+                                label={tipoCliente === TipoCliente.PESSOA_JURIDICA ? 'Documento do Representante' : 'Documento'}
+                                documentType={documentType}
+                                documentNumber={documentNumber}
+                                onTypeChange={setDocumentType}
+                                onNumberChange={setDocumentNumber}
                                 required
+                                disabled={isLoading}
                             />
                         </div>
 
@@ -213,9 +332,9 @@ export const SignupCliente: React.FC = () => {
                                             Força da senha:
                                         </span>
                                         <span className={`text-xs font-bold ${passwordStrength.score <= 2 ? 'text-red-600' :
-                                                passwordStrength.score === 3 ? 'text-yellow-600' :
-                                                    passwordStrength.score === 4 ? 'text-blue-600' :
-                                                        'text-green-600'
+                                            passwordStrength.score === 3 ? 'text-yellow-600' :
+                                                passwordStrength.score === 4 ? 'text-blue-600' :
+                                                    'text-green-600'
                                             }`}>
                                             {passwordStrength.label}
                                         </span>

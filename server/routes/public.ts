@@ -267,23 +267,22 @@ router.post("/client/login", async (req, res) => {
         } else {
             // Try to find user by username first
             const usernameResult = await pool.query(
-                'SELECT email, username FROM "user" WHERE LOWER(username) = LOWER($1) AND role = $2',
-                [identifier, 'client']
+                'SELECT email, username FROM "user" WHERE LOWER(username) = LOWER($1)',
+                [identifier]
             );
 
             if (usernameResult.rows.length > 0) {
                 email = usernameResult.rows[0].email;
                 username = usernameResult.rows[0].username;
             } else {
-                // If not found by username, search by CPF or phone in clients table
+                // If not found by username, search by CPF in clients table
                 const clientResult = await pool.query(
                     `SELECT c.email, u.username 
                      FROM clients c
                      JOIN "user" u ON c.user_id = u.id
-                     WHERE (c.documento_numero ILIKE $1 OR c.telefone ILIKE $1)
-                       AND u.role = $2
+                     WHERE c.documento ILIKE $1
                      LIMIT 1`,
-                    [`%${identifier}%`, 'client']
+                    [`%${identifier}%`]
                 );
 
                 if (clientResult.rows.length === 0) {
@@ -300,24 +299,70 @@ router.post("/client/login", async (req, res) => {
             return res.status(400).json({ error: "Usuário não possui email cadastrado. Entre em contato com o suporte." });
         }
 
+        console.log(`[CLIENT LOGIN] Attempting authentication for email: ${email}, username: ${username || 'N/A'}`);
+
+        // Debug: Check if account exists in database
+        const accountDebug = await pool.query(
+            `SELECT a.id, a."providerId", a."accountId", u.email as user_email, u.username
+             FROM account a
+             JOIN "user" u ON a."userId" = u.id
+             WHERE u.email = $1 OR u.username = $2`,
+            [email, username || '']
+        );
+
+        if (accountDebug.rows.length > 0) {
+            console.log('[CLIENT LOGIN] Found accounts:', accountDebug.rows.map(a => ({
+                provider: a.providerId,
+                accountId: a.accountId,
+                userEmail: a.user_email,
+                username: a.username
+            })));
+        } else {
+            console.log('[CLIENT LOGIN] No accounts found for this user in database');
+        }
+
         // Now authenticate using better-auth with the resolved email
+        // We use asResponse: true to get the full response with Set-Cookie headers
         const authResponse = await auth.api.signInEmail({
             body: {
                 email,
                 password
-            }
-        }) as any;
+            },
+            asResponse: true
+        });
 
-        if (authResponse.error) {
-            console.error('[CLIENT LOGIN] Auth error:', authResponse.error);
+        if (!authResponse.ok) {
+            const errorData = await authResponse.json();
+            console.error('[CLIENT LOGIN] Auth error:', errorData.error);
+
+            // Check if it's a credential not found error
+            if (errorData.error?.message?.includes('Credential account not found')) {
+                return res.status(401).json({
+                    error: "Este usuário não possui senha cadastrada. Use o login via WhatsApp ou redefina sua senha."
+                });
+            }
+
             return res.status(401).json({ error: "Credenciais incorretas" });
         }
 
+        // Copy Set-Cookie and other important headers to Express response
+        authResponse.headers.forEach((value, key) => {
+            if (key.toLowerCase() === 'set-cookie') {
+                res.append(key, value);
+            } else if (key.toLowerCase() === 'content-type') {
+                // Skip content-type as we will set it via res.json
+            } else {
+                res.setHeader(key, value);
+            }
+        });
+
+        const data = await authResponse.json();
         console.log(`[CLIENT LOGIN] Success! User: ${username || email}`);
+
         res.json({
             success: true,
-            user: authResponse.user,
-            session: authResponse.session
+            user: data.user,
+            session: data.session
         });
 
     } catch (error: any) {
@@ -329,7 +374,12 @@ router.post("/client/login", async (req, res) => {
 // POST /public/client/signup - Register a new client
 router.post("/client/signup", async (req, res) => {
     try {
-        const { name, username, email, password, phone, document, organization_id } = req.body;
+        const {
+            tipo_cliente, name, username, email, password, phone,
+            documento_tipo, documento,
+            razao_social, nome_fantasia, cnpj,
+            organization_id
+        } = req.body;
 
         // 1. Validate Required Fields
         if (!email || !password || !name || !username) {
@@ -368,15 +418,20 @@ router.post("/client/signup", async (req, res) => {
             return res.status(400).json({ error: "Email já está cadastrado" });
         }
 
-        // 6. Validate CPF if provided (basic format check)
-        if (document) {
-            const cleanDoc = document.replace(/\D/g, '');
-            if (cleanDoc.length !== 11 && cleanDoc.length !== 14) {
-                return res.status(400).json({ error: "CPF/CNPJ inválido" });
+        // 6. Validate Corporate Fields (if PJ)
+        if (tipo_cliente === 'PESSOA_JURIDICA') {
+            if (!razao_social || !cnpj) {
+                return res.status(400).json({ error: "Razão Social e CNPJ são obrigatórios para Pessoa Jurídica" });
+            }
+
+            // Validate CNPJ format
+            const cleanCNPJ = cnpj.replace(/\D/g, '');
+            if (cleanCNPJ.length !== 14) {
+                return res.status(400).json({ error: "CNPJ inválido" });
             }
         }
 
-        // 7. Create User in Better Auth (username will be set via UPDATE below)
+        // 7. Create User in Better Auth
         const authResponse = await auth.api.signUpEmail({
             body: {
                 email,
@@ -386,32 +441,47 @@ router.post("/client/signup", async (req, res) => {
         }) as any;
 
         if (!authResponse || !authResponse.user) {
-            return res.status(500).json({ error: "Falha ao criar usuário" });
+            return res.status(500).json({ error: "Falha ao criar conta de autenticação" });
         }
 
         const userId = authResponse.user.id;
 
-        // 8. Update user table with additional fields
+        // 8. Atomic Update of Custom Fields (Standardize accountId to username)
         await pool.query(
-            'UPDATE "user" SET role = $1, cpf = $2, phone = $3, username = $4 WHERE id = $5',
-            ['client', document || null, phone || null, username, userId]
+            `UPDATE "user" SET role = $1, documento_tipo = $2, documento = $3, phone = $4, username = $5 WHERE id = $6`,
+            ['client', documento_tipo || 'CPF', documento || null, phone || null, username, userId]
+        );
+
+        await pool.query(
+            `UPDATE account SET "accountId" = $1 WHERE "userId" = $2 AND "providerId" = 'credential'`,
+            [username, userId]
         );
 
         // 9. Create Client Profile
         await pool.query(
             `INSERT INTO clients (
-                nome, email, telefone, documento_numero, 
+                tipo_cliente, nome, email, telefone, 
+                documento_tipo, documento,
+                razao_social, nome_fantasia, cnpj,
                 organization_id, user_id,
-                data_cadastro
-            ) VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
+                data_cadastro, saldo_creditos
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP, 0)`,
             [
-                name, email, phone || null, document || null,
+                tipo_cliente || 'PESSOA_FISICA',
+                name,
+                email,
+                phone || null,
+                documento_tipo || 'CPF',
+                documento || null,
+                razao_social || null,
+                nome_fantasia || null,
+                cnpj || null,
                 organization_id || null,
                 userId
             ]
         );
 
-        console.log(`[CLIENT SIGNUP] Success! User: ${username} (${email})`);
+        console.log(`[CLIENT SIGNUP] Success: ${username} (${email})`);
         res.json({ success: true, user: authResponse.user, session: authResponse.session });
 
     } catch (error: any) {

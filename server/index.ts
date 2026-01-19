@@ -137,102 +137,121 @@ app.post("/api/users", authorize(['admin']), async (req, res) => {
     try {
         const { username, name, email, phone, cpf, birthDate, role, password, notes, isActive } = req.body;
 
-        // Validate required fields
-        if (!username || !name || !phone || !password) {
-            return res.status(400).json({ error: "Username, nome, telefone e senha são obrigatórios" });
+        // 1. Initial Validation
+        if (!username || !name || !password) {
+            return res.status(400).json({ error: "Username, nome e senha são obrigatórios" });
         }
 
-        // Check if username already exists
-        const usernameCheck = await pool.query('SELECT id FROM "user" WHERE username = $1', [username]);
-        if (usernameCheck.rows.length > 0) {
-            return res.status(400).json({ error: "Username já está em uso" });
+        // 2. Uniqueness Checks
+        const check = await pool.query(
+            'SELECT id FROM "user" WHERE LOWER(username) = LOWER($1) OR (email IS NOT NULL AND LOWER(email) = LOWER($2)) OR (phone IS NOT NULL AND phone = $3)',
+            [username, email || '', phone || '']
+        );
+
+        if (check.rows.length > 0) {
+            return res.status(400).json({ error: "Username, email ou telefone já estão em uso" });
         }
 
-        // Check if phone already exists
-        const phoneCheck = await pool.query('SELECT id FROM "user" WHERE phone = $1', [phone]);
-        if (phoneCheck.rows.length > 0) {
-            return res.status(400).json({ error: "Telefone já está em uso" });
-        }
-
-        // Check if CPF already exists (if provided)
-        if (cpf) {
-            const cpfCheck = await pool.query('SELECT id FROM "user" WHERE cpf = $1', [cpf]);
-            if (cpfCheck.rows.length > 0) {
-                return res.status(400).json({ error: "CPF já está em uso" });
+        // 3. Create User via Better Auth (Initial Insert)
+        const authResponse = await auth.api.signUpEmail({
+            body: {
+                email: email || `${username}@sgtl-internal.com`, // Robust fallback for email
+                password,
+                name
             }
+        }) as any;
+
+        if (!authResponse || !authResponse.user) {
+            return res.status(500).json({ error: "Falha ao criar usuário na base de autenticação" });
         }
 
-        // Hash password
-        const bcrypt = await import('bcrypt');
-        const crypto = await import('crypto');
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const userId = crypto.randomUUID();
+        const userId = authResponse.user.id;
 
-        // Insert user
+        // 4. Atomic Update of Custom Fields
         await pool.query(
-            `INSERT INTO "user" (id, username, name, email, phone, cpf, birth_date, role, notes, is_active, "emailVerified", "createdAt", "updatedAt")
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-            [userId, username, name, email || null, phone, cpf || null, birthDate || null, role || 'user', notes || null, isActive !== false, false]
+            `UPDATE "user" 
+             SET username = $1, phone = $2, cpf = $3, birth_date = $4, role = $5, notes = $6, is_active = $7, "updatedAt" = CURRENT_TIMESTAMP
+             WHERE id = $8`,
+            [username, phone || null, cpf || null, birthDate || null, role || 'user', notes || null, isActive !== false, userId]
         );
 
-        // Insert account (for password)
+        // 5. Standardize accountId to username
         await pool.query(
-            `INSERT INTO account (id, "accountId", "providerId", "userId", password, "createdAt", "updatedAt")
-             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-            [crypto.randomUUID(), email || username, 'credential', userId, hashedPassword]
+            `UPDATE account 
+             SET "accountId" = $1, "updatedAt" = CURRENT_TIMESTAMP
+             WHERE "userId" = $2 AND "providerId" = 'credential'`,
+            [username, userId]
         );
 
-        console.log(`✅ User created: ${username} (${name})`);
+        // 6. Create Client Profile if role is 'client'
+        if (role === 'client') {
+            const orgId = (req as any).session.session.activeOrganizationId;
+            console.log(`[ADMIN] Creating client profile for user ${username} in org ${orgId}`);
+            await pool.query(
+                `INSERT INTO clients (
+                    tipo_cliente, nome, email, telefone, 
+                    documento_tipo, documento,
+                    organization_id, user_id,
+                    data_cadastro, saldo_creditos
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, 0)
+                ON CONFLICT (user_id) DO NOTHING`,
+                [
+                    'PESSOA_FISICA',
+                    name,
+                    email || null,
+                    phone || null,
+                    'CPF',
+                    cpf || null,
+                    orgId,
+                    userId
+                ]
+            );
+        }
 
+        console.log(`[ADMIN] User created: ${username} (ID: ${userId})`);
         res.json({ success: true, userId });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error creating user:", error);
-        res.status(500).json({ error: "Erro ao criar usuário" });
+        res.status(500).json({ error: error.message || "Erro ao criar usuário" });
     }
 });
 
 app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
     const { id } = req.params;
     try {
-        const { name, email, phone, cpf, birthDate, image, role, notes, isActive } = req.body;
+        const { username, name, email, phone, cpf, birthDate, image, role, notes, isActive } = req.body;
 
-        // Validate required fields
         if (!name || !phone) {
             return res.status(400).json({ error: "Nome e telefone são obrigatórios" });
         }
 
-        // Check if email is already in use by another user (if provided)
-        if (email) {
-            const emailCheck = await pool.query('SELECT id FROM "user" WHERE email = $1 AND id != $2', [email, id]);
-            if (emailCheck.rows.length > 0) {
-                return res.status(400).json({ error: "Email já está em uso por outro usuário" });
-            }
-        }
-
-        // Check if phone is already in use by another user
-        const phoneCheck = await pool.query('SELECT id FROM "user" WHERE phone = $1 AND id != $2', [phone, id]);
-        if (phoneCheck.rows.length > 0) {
-            return res.status(400).json({ error: "Telefone já está em uso por outro usuário" });
-        }
-
-        // Check if CPF is already in use by another user (if provided)
-        if (cpf) {
-            const cpfCheck = await pool.query('SELECT id FROM "user" WHERE cpf = $1 AND id != $2', [cpf, id]);
-            if (cpfCheck.rows.length > 0) {
-                return res.status(400).json({ error: "CPF já está em uso por outro usuário" });
-            }
-        }
-
-        // Update user (including image/avatar)
-        await pool.query(
-            `UPDATE "user" 
-             SET name = $1, email = $2, phone = $3, cpf = $4, birth_date = $5, image = $6, role = $7, notes = $8, is_active = $9, "updatedAt" = CURRENT_TIMESTAMP
-             WHERE id = $10`,
-            [name, email || null, phone, cpf || null, birthDate || null, image || null, role, notes || null, isActive !== false, id]
+        // Uniqueness checks (excluding current user)
+        const check = await pool.query(
+            'SELECT id FROM "user" WHERE (LOWER(username) = LOWER($1) OR (email IS NOT NULL AND LOWER(email) = LOWER($2)) OR (phone IS NOT NULL AND phone = $3)) AND id != $4',
+            [username || '', email || '', phone || '', id]
         );
 
-        console.log(`✅ User updated: ${id}`);
+        if (check.rows.length > 0) {
+            return res.status(400).json({ error: "Username, email ou telefone já estão em uso por outro usuário" });
+        }
 
+        // Update user
+        await pool.query(
+            `UPDATE "user" 
+             SET username = $1, name = $2, email = $3, phone = $4, cpf = $5, birth_date = $6, image = $7, role = $8, notes = $9, is_active = $10, "updatedAt" = CURRENT_TIMESTAMP
+             WHERE id = $11`,
+            [username, name, email || null, phone, cpf || null, birthDate || null, image || null, role, notes || null, isActive !== false, id]
+        );
+
+        // Sync accountId if username changed
+        if (username) {
+            await pool.query(
+                `UPDATE account SET "accountId" = $1 WHERE "userId" = $2 AND "providerId" = 'credential'`,
+                [username, id]
+            );
+        }
+
+        console.log(`[ADMIN] User updated: ${id} (Username: ${username})`);
         res.json({ success: true });
     } catch (error) {
         console.error("Error updating user:", error);
@@ -245,32 +264,28 @@ app.post("/api/users/:id/reset-password", authorize(['admin']), async (req, res)
     try {
         const { newPassword } = req.body;
 
-        // Validate password
         if (!newPassword || newPassword.length < 8) {
             return res.status(400).json({ error: "A senha deve ter no mínimo 8 caracteres" });
         }
 
-        // Check if user exists
-        const userCheck = await pool.query('SELECT id, name FROM "user" WHERE id = $1', [id]);
+        const userCheck = await pool.query('SELECT username FROM "user" WHERE id = $1', [id]);
         if (userCheck.rows.length === 0) {
             return res.status(404).json({ error: "Usuário não encontrado" });
         }
 
-        // Hash new password
         const bcrypt = await import('bcrypt');
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Update password in account table
+        // Update password AND ensure accountId is standardized to username
         await pool.query(
             `UPDATE account 
-             SET password = $1, "updatedAt" = CURRENT_TIMESTAMP
-             WHERE "userId" = $2 AND "providerId" = 'credential'`,
-            [hashedPassword, id]
+             SET password = $1, "accountId" = $2, "updatedAt" = CURRENT_TIMESTAMP
+             WHERE "userId" = $3 AND "providerId" = 'credential'`,
+            [hashedPassword, userCheck.rows[0].username, id]
         );
 
-        console.log(`✅ Password reset for user: ${userCheck.rows[0].name} (${id})`);
-
-        res.json({ success: true, message: "Senha redefinida com sucesso" });
+        console.log(`[ADMIN] Password reset for user: ${userCheck.rows[0].username}`);
+        res.json({ success: true });
     } catch (error) {
         console.error("Error resetting password:", error);
         res.status(500).json({ error: "Erro ao redefinir senha" });
@@ -458,14 +473,13 @@ app.post("/api/users/:id/avatar", authorize(['admin']), upload.single('avatar'),
 // Change password
 app.post("/api/profile/change-password", async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers });
+        const session = await auth.api.getSession({ headers: req.headers as any });
         if (!session) {
             return res.status(401).json({ error: "Não autenticado" });
         }
 
         const { currentPassword, newPassword } = req.body;
 
-        // Validate passwords
         if (!currentPassword || !newPassword) {
             return res.status(400).json({ error: "Senhas são obrigatórias" });
         }
@@ -474,9 +488,8 @@ app.post("/api/profile/change-password", async (req, res) => {
             return res.status(400).json({ error: "A nova senha deve ter no mínimo 8 caracteres" });
         }
 
-        // Get current password hash
         const accountResult = await pool.query(
-            'SELECT password FROM account WHERE "userId" = $1 AND "providerId" = \'credential\'',
+            'SELECT password, "accountId" FROM account WHERE "userId" = $1 AND "providerId" = \'credential\'',
             [session.user.id]
         );
 
@@ -484,7 +497,6 @@ app.post("/api/profile/change-password", async (req, res) => {
             return res.status(404).json({ error: "Conta não encontrada" });
         }
 
-        // Verify current password
         const bcrypt = await import('bcrypt');
         const isValid = await bcrypt.compare(currentPassword, accountResult.rows[0].password);
 
@@ -492,17 +504,18 @@ app.post("/api/profile/change-password", async (req, res) => {
             return res.status(400).json({ error: "Senha atual incorreta" });
         }
 
-        // Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        // Update password
+        // Update password AND ensure accountId is current username
+        const userResult = await pool.query('SELECT username FROM "user" WHERE id = $1', [session.user.id]);
+        const username = userResult.rows[0]?.username || session.user.email;
+
         await pool.query(
-            'UPDATE account SET password = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE "userId" = $2 AND "providerId" = \'credential\'',
-            [hashedPassword, session.user.id]
+            'UPDATE account SET password = $1, "accountId" = $2, "updatedAt" = CURRENT_TIMESTAMP WHERE "userId" = $3 AND "providerId" = \'credential\'',
+            [hashedPassword, username, session.user.id]
         );
 
-        console.log(`✅ Password changed: ${session.user.id}`);
-
+        console.log(`[PROFILE] Password changed for user: ${username}`);
         res.json({ success: true });
     } catch (error) {
         console.error("Error changing password:", error);

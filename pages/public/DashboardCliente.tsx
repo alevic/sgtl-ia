@@ -70,7 +70,16 @@ export const DashboardCliente: React.FC = () => {
         );
     }
 
-    const { profile, reservations, parcels } = data;
+    if (!data) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4">
+                <RefreshCcw className="animate-spin text-blue-600 mb-4" size={32} />
+                <p className="text-slate-500 font-medium anim-pulse">Processando seus dados...</p>
+            </div>
+        );
+    }
+
+    const { profile = {}, reservations = [], parcels = [] } = data;
     const nextTrip = reservations[0];
     const latestParcel = parcels[0];
 

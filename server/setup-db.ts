@@ -29,7 +29,7 @@ export async function setupDb() {
                 "banReason" TEXT,
                 "banExpires" BIGINT,
                 cpf TEXT UNIQUE,
-                phone TEXT UNIQUE NOT NULL,
+                phone TEXT UNIQUE, -- Removed NOT NULL to allow Better Auth initial creation
                 notes TEXT,
                 is_active BOOLEAN DEFAULT true
             );
@@ -287,6 +287,109 @@ export async function setupDb() {
             console.log("✅ Username updated to 'alevic'");
         }
 
+        // ===== MIGRATION: Flexible Document Types =====
+        console.log("🔄 Migrating to flexible document types...");
+
+        // 1. Add documento_tipo to user table
+        const userDocTipoCheck = await pool.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'documento_tipo'
+        `);
+        if (userDocTipoCheck.rows.length === 0) {
+            console.log("  Adding documento_tipo to user table...");
+            await pool.query(`ALTER TABLE "user" ADD COLUMN documento_tipo VARCHAR(20) DEFAULT 'CPF'`);
+            console.log("  ✅ documento_tipo column added to user table");
+        }
+
+        // 2. Rename cpf to documento in user table
+        const userDocumentoCheck = await pool.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'documento'
+        `);
+        if (userDocumentoCheck.rows.length === 0) {
+            const userCpfCheck = await pool.query(`
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'user' AND column_name = 'cpf'
+            `);
+            if (userCpfCheck.rows.length > 0) {
+                console.log("  Renaming cpf to documento in user table...");
+                await pool.query(`ALTER TABLE "user" RENAME COLUMN cpf TO documento`);
+                console.log("  ✅ Renamed cpf to documento in user table");
+            }
+        }
+
+        // 3. Update existing user records with default documento_tipo
+        await pool.query(`
+            UPDATE "user" 
+            SET documento_tipo = 'CPF' 
+            WHERE documento IS NOT NULL AND documento_tipo IS NULL
+        `);
+
+        console.log("✅ Flexible document types migration for user table completed.");
+
+        // ===== MIGRATION: Set password for user 'alevic' =====
+        console.log("🔐 Checking password for user 'alevic'...");
+
+        const alevicUser = await pool.query(
+            'SELECT id, email, name, username FROM "user" WHERE username = $1',
+            ['alevic']
+        );
+
+        if (alevicUser.rows.length > 0) {
+            const user = alevicUser.rows[0];
+
+            // Check if credential account exists
+            const accountCheck = await pool.query(
+                'SELECT id FROM account WHERE "userId" = $1 AND "providerId" = $2',
+                [user.id, 'credential']
+            );
+
+            // Create proper password hash
+            const bcrypt = await import('bcrypt');
+            const password = 'Senha@123'; // Temporary password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            if (accountCheck.rows.length === 0) {
+                console.log(`  Creating password for user: ${user.name} (${user.email})`);
+
+                await pool.query(
+                    `INSERT INTO account (
+                        id, "accountId", "providerId", "userId", 
+                        password, "createdAt", "updatedAt"
+                    ) VALUES (
+                        gen_random_uuid()::text, 
+                        $1, 
+                        'credential', 
+                        $2, 
+                        $3, 
+                        CURRENT_TIMESTAMP, 
+                        CURRENT_TIMESTAMP
+                    )`,
+                    [user.username, user.id, hashedPassword] // Use username as accountId
+                );
+
+                console.log("  ✅ Password created successfully!");
+                console.log("  📝 Login: alevic / Senha@123");
+                console.log("  ⚠️  Change this password after first login!");
+            } else {
+                console.log(`  Updating password and accountId for user: ${user.name} (${user.email})`);
+
+                // Update existing account with proper password hash AND accountId
+                await pool.query(
+                    `UPDATE account 
+                     SET password = $1, "accountId" = $2, "updatedAt" = CURRENT_TIMESTAMP
+                     WHERE "userId" = $3 AND "providerId" = 'credential'`,
+                    [hashedPassword, user.username, user.id] // Use username as accountId
+                );
+
+                console.log("  ✅ Password hash and accountId updated successfully!");
+                console.log("  📝 Login: alevic / Senha@123");
+                console.log("  ⚠️  Change this password after first login!");
+            }
+        } else {
+            console.log("  ℹ️  User 'alevic' not found, skipping password setup");
+        }
+
         console.log("Migrations completed successfully.");
 
         await pool.query(`
@@ -481,6 +584,87 @@ export async function setupDb() {
             CREATE INDEX IF NOT EXISTS idx_clients_user ON clients(user_id);
         `);
 
+        // ===== MIGRATION: Flexible Document Types for Clients =====
+        console.log("🔄 Migrating clients table to flexible document types...");
+
+        // 1. Add tipo_cliente column
+        await pool.query(`
+            ALTER TABLE clients 
+            ADD COLUMN IF NOT EXISTS tipo_cliente VARCHAR(20) DEFAULT 'PESSOA_FISICA';
+        `);
+        console.log("  ✅ Added tipo_cliente column");
+
+        // 2. Add documento_tipo column
+        await pool.query(`
+            ALTER TABLE clients 
+            ADD COLUMN IF NOT EXISTS documento_tipo VARCHAR(20) DEFAULT 'CPF';
+        `);
+        console.log("  ✅ Added documento_tipo column");
+
+        // 3. Rename documento_numero to documento
+        const clientsDocumentoCheck = await pool.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'clients' AND column_name = 'documento'
+        `);
+        if (clientsDocumentoCheck.rows.length === 0) {
+            const clientsDocNumCheck = await pool.query(`
+                SELECT column_name FROM information_schema.columns 
+                WHERE table_name = 'clients' AND column_name = 'documento_numero'
+            `);
+            if (clientsDocNumCheck.rows.length > 0) {
+                console.log("  Renaming documento_numero to documento...");
+                await pool.query(`ALTER TABLE clients RENAME COLUMN documento_numero TO documento`);
+                console.log("  ✅ Renamed documento_numero to documento");
+            }
+        }
+
+        // 4. Add corporate fields
+        await pool.query(`
+            ALTER TABLE clients 
+            ADD COLUMN IF NOT EXISTS razao_social VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS nome_fantasia VARCHAR(255),
+            ADD COLUMN IF NOT EXISTS cnpj VARCHAR(18);
+        `);
+        console.log("  ✅ Added corporate fields (razao_social, nome_fantasia, cnpj)");
+
+        // 5. Create indexes
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_clients_tipo ON clients(tipo_cliente);
+                CREATE INDEX IF NOT EXISTS idx_clients_documento_tipo ON clients(documento_tipo, documento);
+        `);
+        console.log("  ✅ Created indexes for document types");
+
+        // ===== MIGRATION: Remove NOT NULL from user.phone and user.username =====
+        // This is necessary because Better Auth initial signUpEmail doesn't include these fields
+        console.log("🔓 Ensuring user table constraints allow Better Auth creation...");
+        await pool.query(`
+            ALTER TABLE "user" ALTER COLUMN phone DROP NOT NULL;
+            ALTER TABLE "user" ALTER COLUMN username DROP NOT NULL;
+        `);
+
+        // ===== MIGRATION: Standardize accountId to username for all credential accounts =====
+        console.log("🛠️ Standardizing accountId to username for all users...");
+        await pool.query(`
+            UPDATE account 
+            SET "accountId" = u.username 
+            FROM "user" u 
+            WHERE account."userId" = u.id 
+              AND account."providerId" = 'credential' 
+              AND u.username IS NOT NULL
+              AND account."accountId" != u.username;
+        `);
+        console.log("  ✅ accountId standardization complete");
+
+        // 6. Update existing records with default values
+        await pool.query(`
+            UPDATE clients 
+            SET documento_tipo = 'CPF', tipo_cliente = 'PESSOA_FISICA'
+            WHERE documento_tipo IS NULL OR tipo_cliente IS NULL;
+        `);
+        console.log("  ✅ Updated existing records with default values");
+
+        console.log("✅ Flexible document types migration for clients table completed.");
+
         // Create Client Interactions Table
         await pool.query(`
             CREATE TABLE IF NOT EXISTS client_interactions (
@@ -512,7 +696,7 @@ export async function setupDb() {
         await pool.query(`
             CREATE INDEX IF NOT EXISTS idx_clients_organization ON clients(organization_id);
             CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
-            CREATE INDEX IF NOT EXISTS idx_clients_documento ON clients(documento_numero);
+            CREATE INDEX IF NOT EXISTS idx_clients_documento ON clients(documento);
         `);
 
         // Create Companies Table
