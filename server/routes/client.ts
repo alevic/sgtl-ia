@@ -97,6 +97,77 @@ router.get("/reservations/:id", clientAuthorize(), async (req, res) => {
     }
 });
 
+// GET /api/client/profile - Get authenticated client's profile
+router.get("/profile", clientAuthorize(), async (req, res) => {
+    try {
+        const userId = (req as any).session.user.id;
+
+        // Fetch user data
+        const userResult = await pool.query(
+            'SELECT id, name, username, email, phone, cpf, birth_date, image FROM "user" WHERE id = $1',
+            [userId]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        // Fetch client data
+        const clientResult = await pool.query(
+            "SELECT saldo_creditos FROM clients WHERE user_id = $1",
+            [userId]
+        );
+
+        const profile = {
+            ...userResult.rows[0],
+            saldo_creditos: clientResult.rows[0]?.saldo_creditos || 0
+        };
+
+        res.json(profile);
+    } catch (error) {
+        console.error("Error fetching client profile:", error);
+        res.status(500).json({ error: "Failed to fetch profile" });
+    }
+});
+
+// PUT /api/client/profile - Update client profile
+router.put("/profile", clientAuthorize(), async (req, res) => {
+    try {
+        const userId = (req as any).session.user.id;
+        const { name, email, phone, cpf, birthDate, image } = req.body;
+
+        // Check email uniqueness (excluding current user)
+        if (email) {
+            const emailCheck = await pool.query(
+                'SELECT id FROM "user" WHERE LOWER(email) = LOWER($1) AND id != $2',
+                [email, userId]
+            );
+            if (emailCheck.rows.length > 0) {
+                return res.status(400).json({ error: "Email já está em uso" });
+            }
+        }
+
+        // Update user table
+        await pool.query(
+            'UPDATE "user" SET name = $1, email = $2, phone = $3, cpf = $4, birth_date = $5, image = $6 WHERE id = $7',
+            [name, email || null, phone || null, cpf || null, birthDate || null, image || null, userId]
+        );
+
+        // Update clients table
+        await pool.query(
+            "UPDATE clients SET nome = $1, email = $2, telefone = $3, documento_numero = $4 WHERE user_id = $5",
+            [name, email || null, phone || null, cpf || null, userId]
+        );
+
+        console.log(`[CLIENT PROFILE] Updated profile for user: ${userId}`);
+        res.json({ success: true, message: "Perfil atualizado com sucesso" });
+    } catch (error) {
+        console.error("Error updating client profile:", error);
+        res.status(500).json({ error: "Failed to update profile" });
+    }
+});
+
+
 // POST /api/client/checkout
 router.post("/checkout", clientAuthorize(), async (req, res) => {
     const client = await pool.connect();

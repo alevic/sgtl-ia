@@ -267,7 +267,10 @@ export const DashboardCliente: React.FC = () => {
 
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-6 py-3 flex justify-between items-center z-10 max-w-lg mx-auto shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-                <button className="flex flex-col items-center gap-1 text-blue-600">
+                <button
+                    onClick={() => navigate('/cliente/dashboard')}
+                    className="flex flex-col items-center gap-1 text-blue-600"
+                >
                     <LayoutDashboard size={24} />
                     <span className="text-[10px] font-bold">Início</span>
                 </button>
@@ -279,7 +282,10 @@ export const DashboardCliente: React.FC = () => {
                     <Wallet size={24} />
                     <span className="text-[10px] font-bold">Extrato</span>
                 </button>
-                <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-500 transition-colors">
+                <button
+                    onClick={() => navigate('/cliente/perfil')}
+                    className="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-500 transition-colors"
+                >
                     <User size={24} />
                     <span className="text-[10px] font-bold">Perfil</span>
                 </button>

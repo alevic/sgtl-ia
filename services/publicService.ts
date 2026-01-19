@@ -69,5 +69,47 @@ export const publicService = {
             throw new Error(error.error || 'Failed to sign up');
         }
         return response.json();
+    },
+
+    getClientProfile: async () => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/client/profile`, {
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch profile');
+        }
+        return response.json();
+    },
+
+    updateClientProfile: async (data: any) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/client/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to update profile');
+        }
+        return response.json();
+    },
+
+    changePassword: async (currentPassword: string, newPassword: string) => {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/client/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to change password');
+        }
+        return response.json();
     }
 };

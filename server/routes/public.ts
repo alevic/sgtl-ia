@@ -249,16 +249,134 @@ router.post("/parcels", async (req, res) => {
     }
 });
 
+// POST /public/client/login - Custom login endpoint that accepts username/CPF/phone
+router.post("/client/login", async (req, res) => {
+    try {
+        const { identifier, password } = req.body;
+
+        if (!identifier || !password) {
+            return res.status(400).json({ error: "Identificador e senha são obrigatórios" });
+        }
+
+        let email: string | null = null;
+        let username: string | null = null;
+
+        // If identifier contains @, it's an email
+        if (identifier.includes('@')) {
+            email = identifier;
+        } else {
+            // Try to find user by username first
+            const usernameResult = await pool.query(
+                'SELECT email, username FROM "user" WHERE LOWER(username) = LOWER($1) AND role = $2',
+                [identifier, 'client']
+            );
+
+            if (usernameResult.rows.length > 0) {
+                email = usernameResult.rows[0].email;
+                username = usernameResult.rows[0].username;
+            } else {
+                // If not found by username, search by CPF or phone in clients table
+                const clientResult = await pool.query(
+                    `SELECT c.email, u.username 
+                     FROM clients c
+                     JOIN "user" u ON c.user_id = u.id
+                     WHERE (c.documento_numero ILIKE $1 OR c.telefone ILIKE $1)
+                       AND u.role = $2
+                     LIMIT 1`,
+                    [`%${identifier}%`, 'client']
+                );
+
+                if (clientResult.rows.length === 0) {
+                    return res.status(404).json({ error: "Identificador não encontrado" });
+                }
+
+                email = clientResult.rows[0].email;
+                username = clientResult.rows[0].username;
+            }
+        }
+
+        // If email is null or empty, we can't authenticate
+        if (!email) {
+            return res.status(400).json({ error: "Usuário não possui email cadastrado. Entre em contato com o suporte." });
+        }
+
+        // Now authenticate using better-auth with the resolved email
+        const authResponse = await auth.api.signInEmail({
+            body: {
+                email,
+                password
+            }
+        }) as any;
+
+        if (authResponse.error) {
+            console.error('[CLIENT LOGIN] Auth error:', authResponse.error);
+            return res.status(401).json({ error: "Credenciais incorretas" });
+        }
+
+        console.log(`[CLIENT LOGIN] Success! User: ${username || email}`);
+        res.json({
+            success: true,
+            user: authResponse.user,
+            session: authResponse.session
+        });
+
+    } catch (error: any) {
+        console.error("Error in client login:", error);
+        res.status(500).json({ error: "Erro ao realizar login" });
+    }
+});
+
 // POST /public/client/signup - Register a new client
 router.post("/client/signup", async (req, res) => {
     try {
-        const { name, email, password, phone, document, organization_id } = req.body;
+        const { name, username, email, password, phone, document, organization_id } = req.body;
 
-        if (!email || !password || !name) {
-            return res.status(400).json({ error: "Missing required fields" });
+        // 1. Validate Required Fields
+        if (!email || !password || !name || !username) {
+            return res.status(400).json({ error: "Nome, username, email e senha são obrigatórios" });
         }
 
-        // 1. Create User in Better Auth
+        if (username.length < 3) {
+            return res.status(400).json({ error: "Username deve ter no mínimo 3 caracteres" });
+        }
+
+        // 2. Validate Username Format (alphanumeric + underscore only)
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            return res.status(400).json({ error: "Username deve conter apenas letras, números e underscore" });
+        }
+
+        // 3. Validate Password Strength
+        if (password.length < 8) {
+            return res.status(400).json({ error: "Senha deve ter no mínimo 8 caracteres" });
+        }
+
+        // 4. Check Username Uniqueness
+        const usernameCheck = await pool.query(
+            'SELECT id FROM "user" WHERE LOWER(username) = LOWER($1)',
+            [username]
+        );
+        if (usernameCheck.rows.length > 0) {
+            return res.status(400).json({ error: "Username já está em uso" });
+        }
+
+        // 5. Check Email Uniqueness
+        const emailCheck = await pool.query(
+            'SELECT id FROM "user" WHERE LOWER(email) = LOWER($1)',
+            [email]
+        );
+        if (emailCheck.rows.length > 0) {
+            return res.status(400).json({ error: "Email já está cadastrado" });
+        }
+
+        // 6. Validate CPF if provided (basic format check)
+        if (document) {
+            const cleanDoc = document.replace(/\D/g, '');
+            if (cleanDoc.length !== 11 && cleanDoc.length !== 14) {
+                return res.status(400).json({ error: "CPF/CNPJ inválido" });
+            }
+        }
+
+        // 7. Create User in Better Auth (username will be set via UPDATE below)
         const authResponse = await auth.api.signUpEmail({
             body: {
                 email,
@@ -268,18 +386,18 @@ router.post("/client/signup", async (req, res) => {
         }) as any;
 
         if (!authResponse || !authResponse.user) {
-            return res.status(500).json({ error: "Failed to create user" });
+            return res.status(500).json({ error: "Falha ao criar usuário" });
         }
 
         const userId = authResponse.user.id;
 
-        // Force role update and sync CPF/Phone to user table
+        // 8. Update user table with additional fields
         await pool.query(
-            'UPDATE "user" SET role = $1, cpf = $2, phone = $3 WHERE id = $4',
-            ['client', document || null, phone || null, userId]
+            'UPDATE "user" SET role = $1, cpf = $2, phone = $3, username = $4 WHERE id = $5',
+            ['client', document || null, phone || null, username, userId]
         );
 
-        // 2. Create Client Profile
+        // 9. Create Client Profile
         await pool.query(
             `INSERT INTO clients (
                 nome, email, telefone, documento_numero, 
@@ -293,11 +411,18 @@ router.post("/client/signup", async (req, res) => {
             ]
         );
 
+        console.log(`[CLIENT SIGNUP] Success! User: ${username} (${email})`);
         res.json({ success: true, user: authResponse.user, session: authResponse.session });
 
     } catch (error: any) {
         console.error("Error signing up client:", error);
-        res.status(500).json({ error: error.body?.message || error.message || "Failed to sign up" });
+
+        // Handle better-auth specific errors
+        if (error.body?.message) {
+            return res.status(400).json({ error: error.body.message });
+        }
+
+        res.status(500).json({ error: error.message || "Falha ao realizar cadastro" });
     }
 });
 
@@ -363,36 +488,39 @@ router.get("/tags", async (req, res) => {
     }
 });
 
-// GET /public/resolve-identifier - Find email by CPF or Phone
+// GET /public/resolve-identifier - Find email by CPF, Phone, or Username
 router.get("/resolve-identifier", async (req, res) => {
     try {
         const { identifier } = req.query;
         if (!identifier) return res.status(400).json({ error: "Identifier is required" });
 
-        const cleanIdentifier = (identifier as string).replace(/\D/g, '');
+        const searchTerm = identifier as string;
 
-        // Search by CPF or Phone (cleaning non-digits)
-        const result = await pool.query(
-            "SELECT email FROM clients WHERE REPLACE(documento_numero, '.', '') REPLACE(REPLACE(documento_numero, '-', ''), '/', '') = $1 OR REPLACE(telefone, ' ', '') REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', '') LIKE $2 LIMIT 1",
-            [cleanIdentifier, `%${cleanIdentifier}%`]
+        // First, try to find by username in user table
+        const usernameResult = await pool.query(
+            'SELECT email FROM "user" WHERE LOWER(username) = LOWER($1) AND role = $2 LIMIT 1',
+            [searchTerm, 'client']
         );
 
-        // More robust search if the above simple cleanup isn't enough for DB formatting
-        // Let's use a simpler check first:
-        const betterResult = await pool.query(
+        if (usernameResult.rows.length > 0) {
+            return res.json({ email: usernameResult.rows[0].email });
+        }
+
+        // If not found by username, search by CPF, phone, or email in clients table
+        const clientResult = await pool.query(
             `SELECT email FROM clients 
              WHERE documento_numero ILIKE $1 
                 OR telefone ILIKE $1 
                 OR email ILIKE $1 
              LIMIT 1`,
-            [`%${identifier}%`]
+            [`%${searchTerm}%`]
         );
 
-        if (betterResult.rows.length === 0) {
-            return res.status(404).json({ error: "Identifier not found" });
+        if (clientResult.rows.length === 0) {
+            return res.status(404).json({ error: "Identificador não encontrado" });
         }
 
-        res.json({ email: betterResult.rows[0].email });
+        res.json({ email: clientResult.rows[0].email });
     } catch (error) {
         console.error("Error resolving identifier:", error);
         res.status(500).json({ error: "Failed to resolve identifier" });

@@ -87,40 +87,35 @@ export const LoginCliente: React.FC = () => {
         setError('');
 
         if (!identifier.trim() || !password.trim()) {
-            setError('Por favor, informe suas credenciais (E-mail, CPF ou Telefone e senha).');
+            setError('Por favor, informe suas credenciais (Username, E-mail ou CPF e senha).');
             return;
         }
 
         setIsLoading(true);
         try {
-            let email = identifier;
-
-            // If identifier looks like a CPF or Phone (mostly digits), resolve it to Email first
-            const isDigitIdentifier = identifier.replace(/\D/g, '').length >= 10;
-            if (isDigitIdentifier && !identifier.includes('@')) {
-                try {
-                    const resolved = await publicService.resolveIdentifier(identifier);
-                    email = resolved.email;
-                } catch (err: any) {
-                    console.error('[AUTH] Erro ao resolver identificador:', err);
-                    setError('Não encontramos uma conta vinculada a este identificador.');
-                    setIsLoading(false);
-                    return;
-                }
-            }
-
-            console.log(`[AUTH] Tentando login com email: ${email}`);
-
-            const { error: authError } = await authClient.signIn.email({
-                email,
-                password,
+            // Use custom login endpoint that handles username/CPF/phone resolution
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/public/client/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    identifier,
+                    password
+                })
             });
 
-            if (authError) {
-                console.error('[AUTH ERROR] signIn.email:', authError);
-                setError(authError.message || 'E-mail ou senha incorretos.');
+            const data = await response.json();
+
+            if (!response.ok) {
+                console.error('[AUTH ERROR]', data.error);
+                setError(data.error || 'Erro ao realizar login');
+                setIsLoading(false);
                 return;
             }
+
+            console.log(`[AUTH] Login successful!`);
 
             const searchParams = new URLSearchParams(window.location.hash.split('?')[1] || window.location.search);
             const returnUrl = searchParams.get('returnUrl');
@@ -260,7 +255,7 @@ export const LoginCliente: React.FC = () => {
                     <form onSubmit={mode === 'WHATSAPP' ? handleWhatsAppSubmit : handlePasswordSubmit} className="space-y-6">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                                {mode === 'WHATSAPP' ? 'Seu Telefone (WhatsApp)' : 'E-mail, CPF ou Telefone'}
+                                {mode === 'WHATSAPP' ? 'Seu Telefone (WhatsApp)' : 'Username, E-mail ou CPF'}
                             </label>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -270,7 +265,7 @@ export const LoginCliente: React.FC = () => {
                                     type="text"
                                     value={identifier}
                                     onChange={(e) => setIdentifier(e.target.value)}
-                                    placeholder={mode === 'WHATSAPP' ? "(00) 00000-0000" : "E-mail, CPF ou Telefone"}
+                                    placeholder={mode === 'WHATSAPP' ? "(00) 00000-0000" : "Username, E-mail ou CPF"}
                                     disabled={isLoading}
                                     className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white text-lg"
                                 />

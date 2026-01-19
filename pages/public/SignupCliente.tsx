@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Bus, ArrowRight, RefreshCcw, User, Mail, Lock, Phone, CreditCard, ShieldCheck } from 'lucide-react';
+import { Bus, ArrowRight, RefreshCcw, User, Mail, Lock, ShieldCheck, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { publicService } from '../../services/publicService';
+import { UsernameInput } from '../../components/Form/UsernameInput';
+import { CPFInput } from '../../components/Form/CPFInput';
+import { PhoneInput } from '../../components/Form/PhoneInput';
 
 export const SignupCliente: React.FC = () => {
     const navigate = useNavigate();
@@ -9,28 +12,63 @@ export const SignupCliente: React.FC = () => {
     const searchParams = new URLSearchParams(location.search);
     const returnUrl = searchParams.get('returnUrl');
 
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-        phone: '',
-        document: '',
-        organization_id: '' // We should ideally get this from settings
-    });
+    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [phone, setPhone] = useState('');
+    const [countryCode, setCountryCode] = useState('+55');
+    const [cpf, setCpf] = useState('');
+    const [organizationId, setOrganizationId] = useState('');
+
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    // Password strength validation
+    const getPasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
+        if (!pwd) return { score: 0, label: '', color: '' };
+
+        let score = 0;
+        if (pwd.length >= 8) score++;
+        if (pwd.length >= 12) score++;
+        if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+        if (/\d/.test(pwd)) score++;
+        if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+
+        if (score <= 2) return { score, label: 'Fraca', color: 'bg-red-500' };
+        if (score === 3) return { score, label: 'Média', color: 'bg-yellow-500' };
+        if (score === 4) return { score, label: 'Boa', color: 'bg-blue-500' };
+        return { score, label: 'Forte', color: 'bg-green-500' };
     };
+
+    const passwordStrength = getPasswordStrength(password);
+    const isPasswordValid = password.length >= 8;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        // Validate password strength
+        if (!isPasswordValid) {
+            setError('A senha deve ter no mínimo 8 caracteres');
+            return;
+        }
+
         setIsLoading(true);
 
         try {
-            await publicService.signupClient(formData);
+            const fullPhone = phone ? `${countryCode}${phone}` : '';
+
+            await publicService.signupClient({
+                name,
+                username,
+                email,
+                password,
+                phone: fullPhone,
+                document: cpf,
+                organization_id: organizationId || null
+            });
+
             // After signup, better-auth usually handles the session. 
             // We can redirect the user back.
             if (returnUrl) {
@@ -48,7 +86,7 @@ export const SignupCliente: React.FC = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-800 p-4 font-sans">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-lg w-full border border-slate-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-2xl w-full border border-slate-200 dark:border-slate-700">
 
                 {/* Logo Section */}
                 <div className="text-center mb-8">
@@ -64,25 +102,28 @@ export const SignupCliente: React.FC = () => {
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 text-sm font-medium rounded-r-lg">
-                        {error}
+                    <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 text-sm font-medium rounded-r-lg flex items-start gap-2">
+                        <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+                        <span>{error}</span>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Nome Completo */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                Nome Completo <span className="text-red-500">*</span>
+                            </label>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                                     <User size={18} />
                                 </div>
                                 <input
                                     type="text"
-                                    name="name"
                                     required
-                                    value={formData.name}
-                                    onChange={handleChange}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                     placeholder="Como no documento"
                                     disabled={isLoading}
                                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
@@ -90,18 +131,32 @@ export const SignupCliente: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Username */}
+                        <div className="md:col-span-2">
+                            <UsernameInput
+                                value={username}
+                                onChange={setUsername}
+                                required
+                            />
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                Seu identificador único para login. Mínimo 3 caracteres, apenas letras, números e underscore.
+                            </p>
+                        </div>
+
+                        {/* Email */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">E-mail</label>
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                E-mail <span className="text-red-500">*</span>
+                            </label>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                                     <Mail size={18} />
                                 </div>
                                 <input
                                     type="email"
-                                    name="email"
                                     required
-                                    value={formData.email}
-                                    onChange={handleChange}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="exemplo@email.com"
                                     disabled={isLoading}
                                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
@@ -109,61 +164,102 @@ export const SignupCliente: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Telefone */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">WhatsApp / Telefone</label>
-                            <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <Phone size={18} />
-                                </div>
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    required
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    placeholder="(00) 00000-0000"
-                                    disabled={isLoading}
-                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
-                                />
-                            </div>
+                            <PhoneInput
+                                value={phone}
+                                onChange={setPhone}
+                                countryCode={countryCode}
+                                onCountryCodeChange={setCountryCode}
+                                required
+                            />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Documento (CPF/RG)</label>
-                            <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <CreditCard size={18} />
-                                </div>
-                                <input
-                                    type="text"
-                                    name="document"
-                                    required
-                                    value={formData.document}
-                                    onChange={handleChange}
-                                    placeholder="000.000.000-00"
-                                    disabled={isLoading}
-                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
-                                />
-                            </div>
+                        {/* CPF */}
+                        <div className="md:col-span-2">
+                            <CPFInput
+                                value={cpf}
+                                onChange={setCpf}
+                                required
+                            />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Senha</label>
+                        {/* Senha */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                Senha <span className="text-red-500">*</span>
+                            </label>
                             <div className="relative">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                                     <Lock size={18} />
                                 </div>
                                 <input
                                     type="password"
-                                    name="password"
                                     required
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    placeholder="••••••••"
+                                    minLength={8}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Mínimo 8 caracteres"
                                     disabled={isLoading}
                                     className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
+
+                            {/* Password Strength Indicator */}
+                            {password && (
+                                <div className="mt-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                                            Força da senha:
+                                        </span>
+                                        <span className={`text-xs font-bold ${passwordStrength.score <= 2 ? 'text-red-600' :
+                                                passwordStrength.score === 3 ? 'text-yellow-600' :
+                                                    passwordStrength.score === 4 ? 'text-blue-600' :
+                                                        'text-green-600'
+                                            }`}>
+                                            {passwordStrength.label}
+                                        </span>
+                                    </div>
+                                    <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full ${passwordStrength.color} transition-all duration-300`}
+                                            style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                                        />
+                                    </div>
+                                    <div className="mt-2 space-y-1">
+                                        <div className="flex items-center gap-2 text-xs">
+                                            {password.length >= 8 ? (
+                                                <CheckCircle2 size={14} className="text-green-600" />
+                                            ) : (
+                                                <AlertCircle size={14} className="text-slate-400" />
+                                            )}
+                                            <span className={password.length >= 8 ? 'text-green-600' : 'text-slate-500'}>
+                                                Mínimo 8 caracteres
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs">
+                                            {/[a-z]/.test(password) && /[A-Z]/.test(password) ? (
+                                                <CheckCircle2 size={14} className="text-green-600" />
+                                            ) : (
+                                                <AlertCircle size={14} className="text-slate-400" />
+                                            )}
+                                            <span className={/[a-z]/.test(password) && /[A-Z]/.test(password) ? 'text-green-600' : 'text-slate-500'}>
+                                                Letras maiúsculas e minúsculas
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs">
+                                            {/\d/.test(password) ? (
+                                                <CheckCircle2 size={14} className="text-green-600" />
+                                            ) : (
+                                                <AlertCircle size={14} className="text-slate-400" />
+                                            )}
+                                            <span className={/\d/.test(password) ? 'text-green-600' : 'text-slate-500'}>
+                                                Pelo menos um número
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -175,8 +271,8 @@ export const SignupCliente: React.FC = () => {
 
                     <button
                         type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                        disabled={isLoading || !isPasswordValid}
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                     >
                         {isLoading ? (
                             <RefreshCcw className="animate-spin" size={20} />
