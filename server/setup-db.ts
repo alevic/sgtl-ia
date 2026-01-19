@@ -17,8 +17,9 @@ export async function setupDb() {
         await pool.query(`
             CREATE TABLE IF NOT EXISTS "user" (
                 id TEXT PRIMARY KEY,
+                username TEXT UNIQUE,
                 name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
+                email TEXT,
                 "emailVerified" BOOLEAN NOT NULL DEFAULT false,
                 image TEXT,
                 "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -28,7 +29,9 @@ export async function setupDb() {
                 "banReason" TEXT,
                 "banExpires" BIGINT,
                 cpf TEXT UNIQUE,
-                phone TEXT UNIQUE
+                phone TEXT UNIQUE NOT NULL,
+                notes TEXT,
+                is_active BOOLEAN DEFAULT true
             );
 
             CREATE TABLE IF NOT EXISTS session (
@@ -104,6 +107,187 @@ export async function setupDb() {
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_member_user ON member("userId");`);
 
         console.log("Better Auth tables created successfully.");
+
+        // ===== MIGRATION: Add username column if it doesn't exist =====
+        console.log("Running migrations...");
+
+        // Check if username column exists
+        const usernameColumnCheck = await pool.query(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'username'
+        `);
+
+        if (usernameColumnCheck.rows.length === 0) {
+            console.log("Adding username column to user table...");
+
+            // Add username column (nullable initially)
+            await pool.query(`ALTER TABLE "user" ADD COLUMN username TEXT UNIQUE`);
+
+            // Generate usernames for existing users
+            const existingUsers = await pool.query(`SELECT id, name, email FROM "user" WHERE username IS NULL`);
+
+            for (const user of existingUsers.rows) {
+                // Generate username from email (before @) or name
+                let baseUsername = user.email ? user.email.split('@')[0] : user.name.toLowerCase().replace(/\s+/g, '.');
+                baseUsername = baseUsername
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9._]/g, '')
+                    .substring(0, 30);
+
+                // Ensure uniqueness
+                let username = baseUsername;
+                let counter = 2;
+                while (true) {
+                    const check = await pool.query('SELECT id FROM "user" WHERE username = $1', [username]);
+                    if (check.rows.length === 0) break;
+                    username = `${baseUsername}${counter}`;
+                    counter++;
+                }
+
+                await pool.query('UPDATE "user" SET username = $1 WHERE id = $2', [username, user.id]);
+                console.log(`  Generated username for ${user.email}: ${username}`);
+            }
+
+            console.log("✅ Username column added and populated.");
+        } else {
+            console.log("Username column already exists.");
+        }
+
+        // Make email optional if it's still required
+        const emailConstraintCheck = await pool.query(`
+            SELECT is_nullable 
+            FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'email'
+        `);
+
+        if (emailConstraintCheck.rows.length > 0 && emailConstraintCheck.rows[0].is_nullable === 'NO') {
+            console.log("Making email column optional...");
+            await pool.query(`ALTER TABLE "user" ALTER COLUMN email DROP NOT NULL`);
+            console.log("✅ Email column is now optional.");
+        }
+
+        // Ensure phone is required
+        const phoneConstraintCheck = await pool.query(`
+            SELECT is_nullable 
+            FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'phone'
+        `);
+
+        if (phoneConstraintCheck.rows.length > 0 && phoneConstraintCheck.rows[0].is_nullable === 'YES') {
+            console.log("Making phone column required...");
+            // First, add a default phone for users without one
+            await pool.query(`UPDATE "user" SET phone = '00000000000' WHERE phone IS NULL`);
+            await pool.query(`ALTER TABLE "user" ALTER COLUMN phone SET NOT NULL`);
+            console.log("✅ Phone column is now required.");
+        }
+
+        // Add birth_date column if it doesn't exist
+        const birthDateCheck = await pool.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'birth_date'
+        `);
+        if (birthDateCheck.rows.length === 0) {
+            console.log("Adding birth_date column to user table...");
+            await pool.query('ALTER TABLE "user" ADD COLUMN birth_date DATE');
+            console.log("✅ birth_date column added.");
+        }
+
+        // Add notes column if it doesn't exist
+        const notesCheck = await pool.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'notes'
+        `);
+        if (notesCheck.rows.length === 0) {
+            console.log("Adding notes column to user table...");
+            await pool.query('ALTER TABLE "user" ADD COLUMN notes TEXT');
+            console.log("✅ Notes column added.");
+        }
+
+        // Add is_active column if it doesn't exist
+        const isActiveCheck = await pool.query(`
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'user' AND column_name = 'is_active'
+        `);
+        if (isActiveCheck.rows.length === 0) {
+            console.log("Adding is_active column to user table...");
+            await pool.query('ALTER TABLE "user" ADD COLUMN is_active BOOLEAN DEFAULT true');
+            // Set all existing users as active
+            await pool.query('UPDATE "user" SET is_active = true WHERE is_active IS NULL');
+            console.log("✅ is_active column added.");
+        }
+
+        // Populate mock data for existing users without complete information
+        console.log("Checking for users needing mock data...");
+        const usersNeedingData = await pool.query(`
+            SELECT id, name, email, username, phone, cpf, birth_date 
+            FROM "user" 
+            WHERE username IS NULL OR phone IS NULL OR phone = '00000000000'
+        `);
+
+        if (usersNeedingData.rows.length > 0) {
+            console.log(`Found ${usersNeedingData.rows.length} users needing mock data. Populating...`);
+
+            for (let i = 0; i < usersNeedingData.rows.length; i++) {
+                const user = usersNeedingData.rows[i];
+
+                // Generate username if missing
+                let username = user.username;
+                if (!username) {
+                    const baseName = user.name ? user.name.toLowerCase().replace(/\s+/g, '.') : `user${i + 1}`;
+                    username = baseName.substring(0, 20);
+
+                    // Ensure uniqueness
+                    const existingUsername = await pool.query('SELECT id FROM "user" WHERE username = $1', [username]);
+                    if (existingUsername.rows.length > 0) {
+                        username = `${username}${i + 1}`;
+                    }
+                }
+
+                // Generate phone if missing or default
+                let phone = user.phone;
+                if (!phone || phone === '00000000000') {
+                    phone = `+5511${String(90000000 + i).padStart(8, '0')}`;
+                }
+
+                // Generate CPF if missing (mock data)
+                let cpf = user.cpf;
+                if (!cpf) {
+                    cpf = `${String(100000000 + i).padStart(9, '0')}${String(10 + i).padStart(2, '0')}`;
+                }
+
+                // Generate birth_date if missing (mock: 30 years ago)
+                let birthDate = user.birth_date;
+                if (!birthDate) {
+                    const year = new Date().getFullYear() - 30;
+                    birthDate = `${year}-01-${String(15 + i).padStart(2, '0')}`;
+                }
+
+                // Update user with mock data
+                await pool.query(`
+                    UPDATE "user" 
+                    SET username = $1, phone = $2, cpf = $3, birth_date = $4
+                    WHERE id = $5
+                `, [username, phone, cpf, birthDate, user.id]);
+
+                console.log(`  ✅ Updated user: ${user.name} (${username})`);
+            }
+
+            console.log("✅ Mock data populated for all users.");
+        }
+
+        // One-time fix: Update specific username from phone to proper username
+        const phoneUsernameCheck = await pool.query(`
+            SELECT id, username FROM "user" WHERE username = '5548996412525'
+        `);
+        if (phoneUsernameCheck.rows.length > 0) {
+            console.log("Updating username from phone number to 'alevic'...");
+            await pool.query(`UPDATE "user" SET username = 'alevic' WHERE username = '5548996412525'`);
+            console.log("✅ Username updated to 'alevic'");
+        }
+
+        console.log("Migrations completed successfully.");
 
         await pool.query(`
             CREATE TABLE IF NOT EXISTS transaction (

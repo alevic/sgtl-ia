@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
+import path from "path";
+import { fileURLToPath } from "url";
 import { auth, pool } from "./auth";
 import { authorize } from "./middleware";
 import { config } from "./config";
@@ -8,6 +10,9 @@ import {
     TipoTransacao, StatusTransacao, FormaPagamento,
     VeiculoStatus, AssentoStatus, DriverStatus
 } from "../types";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import crypto from "crypto";
 import clientsRouter from "./routes/clients";
 import maintenanceRouter from "./routes/maintenance";
@@ -17,6 +22,9 @@ import reservationsRouter from "./routes/reservations";
 import parcelsRouter from "./routes/parcels";
 import chartersRouter from "./routes/charters";
 import publicRouter from "./routes/public";
+import passwordRecoveryRouter from "./routes/passwordRecovery";
+import usernameRouter from "./routes/username";
+import usernameRecoveryRouter from "./routes/usernameRecovery";
 
 import { setupDb } from "./setup-db";
 
@@ -70,11 +78,36 @@ app.use("/api/auth/sign-in/email", async (req, res, next) => {
     next();
 });
 
+// ===== USERNAME AND RECOVERY ROUTES (MUST BE BEFORE BETTER AUTH) =====
+console.log("🔧 Registering username routes...");
+app.use("/api/auth", usernameRouter);
+console.log("✅ Username router registered");
+app.use("/api/auth", usernameRecoveryRouter);
+console.log("✅ Username recovery router registered");
+app.use("/api/auth", passwordRecoveryRouter);
+console.log("✅ Password recovery router registered");
+
+// Better Auth handler (catches all remaining /api/auth/* routes)
 app.all("/api/auth/*", toNodeHandler(auth));
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// TEMPORARY: Fix admin role (REMOVE AFTER USE)
+app.get("/api/fix-admin-role", async (req, res) => {
+    try {
+        await pool.query('UPDATE "user" SET role = $1 WHERE username = $2', ['admin', 'admin']);
+        const result = await pool.query('SELECT username, role FROM "user" WHERE username = $1', ['admin']);
+        res.json({ success: true, user: result.rows[0] });
+    } catch (error) {
+        console.error("Error fixing admin role:", error);
+        res.status(500).json({ error: "Failed to update role" });
+    }
+});
 
 app.get("/api/users", authorize(['admin']), async (req, res) => {
     try {
-        const result = await pool.query('SELECT id, name, email, role, "createdAt" FROM "user"');
+        const result = await pool.query('SELECT id, username, name, email, phone, cpf, role, "createdAt" FROM "user"');
         res.json(result.rows);
     } catch (error) {
         console.error("Error fetching users:", error);
@@ -85,14 +118,395 @@ app.get("/api/users", authorize(['admin']), async (req, res) => {
 app.get("/api/users/:id", authorize(['admin']), async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await pool.query('SELECT id, name, email, role, "createdAt" FROM "user" WHERE id = $1', [id]);
+        const result = await pool.query('SELECT id, username, name, email, phone, cpf, birth_date, image, role, notes, is_active as "isActive", "createdAt" FROM "user" WHERE id = $1', [id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "User not found" });
         }
-        res.json(result.rows[0]);
+
+        const user = result.rows[0];
+        console.log(`📅 GET /api/users/${id} - birth_date from DB:`, user.birth_date);
+
+        res.json(user);
     } catch (error) {
         console.error("Error fetching user:", error);
         res.status(500).json({ error: "Failed to fetch user" });
+    }
+});
+
+app.post("/api/users", authorize(['admin']), async (req, res) => {
+    try {
+        const { username, name, email, phone, cpf, birthDate, role, password, notes, isActive } = req.body;
+
+        // Validate required fields
+        if (!username || !name || !phone || !password) {
+            return res.status(400).json({ error: "Username, nome, telefone e senha são obrigatórios" });
+        }
+
+        // Check if username already exists
+        const usernameCheck = await pool.query('SELECT id FROM "user" WHERE username = $1', [username]);
+        if (usernameCheck.rows.length > 0) {
+            return res.status(400).json({ error: "Username já está em uso" });
+        }
+
+        // Check if phone already exists
+        const phoneCheck = await pool.query('SELECT id FROM "user" WHERE phone = $1', [phone]);
+        if (phoneCheck.rows.length > 0) {
+            return res.status(400).json({ error: "Telefone já está em uso" });
+        }
+
+        // Check if CPF already exists (if provided)
+        if (cpf) {
+            const cpfCheck = await pool.query('SELECT id FROM "user" WHERE cpf = $1', [cpf]);
+            if (cpfCheck.rows.length > 0) {
+                return res.status(400).json({ error: "CPF já está em uso" });
+            }
+        }
+
+        // Hash password
+        const bcrypt = await import('bcrypt');
+        const crypto = await import('crypto');
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userId = crypto.randomUUID();
+
+        // Insert user
+        await pool.query(
+            `INSERT INTO "user" (id, username, name, email, phone, cpf, birth_date, role, notes, is_active, "emailVerified", "createdAt", "updatedAt")
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+            [userId, username, name, email || null, phone, cpf || null, birthDate || null, role || 'user', notes || null, isActive !== false, false]
+        );
+
+        // Insert account (for password)
+        await pool.query(
+            `INSERT INTO account (id, "accountId", "providerId", "userId", password, "createdAt", "updatedAt")
+             VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+            [crypto.randomUUID(), email || username, 'credential', userId, hashedPassword]
+        );
+
+        console.log(`✅ User created: ${username} (${name})`);
+
+        res.json({ success: true, userId });
+    } catch (error) {
+        console.error("Error creating user:", error);
+        res.status(500).json({ error: "Erro ao criar usuário" });
+    }
+});
+
+app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { name, email, phone, cpf, birthDate, image, role, notes, isActive } = req.body;
+
+        // Validate required fields
+        if (!name || !phone) {
+            return res.status(400).json({ error: "Nome e telefone são obrigatórios" });
+        }
+
+        // Check if email is already in use by another user (if provided)
+        if (email) {
+            const emailCheck = await pool.query('SELECT id FROM "user" WHERE email = $1 AND id != $2', [email, id]);
+            if (emailCheck.rows.length > 0) {
+                return res.status(400).json({ error: "Email já está em uso por outro usuário" });
+            }
+        }
+
+        // Check if phone is already in use by another user
+        const phoneCheck = await pool.query('SELECT id FROM "user" WHERE phone = $1 AND id != $2', [phone, id]);
+        if (phoneCheck.rows.length > 0) {
+            return res.status(400).json({ error: "Telefone já está em uso por outro usuário" });
+        }
+
+        // Check if CPF is already in use by another user (if provided)
+        if (cpf) {
+            const cpfCheck = await pool.query('SELECT id FROM "user" WHERE cpf = $1 AND id != $2', [cpf, id]);
+            if (cpfCheck.rows.length > 0) {
+                return res.status(400).json({ error: "CPF já está em uso por outro usuário" });
+            }
+        }
+
+        // Update user (including image/avatar)
+        await pool.query(
+            `UPDATE "user" 
+             SET name = $1, email = $2, phone = $3, cpf = $4, birth_date = $5, image = $6, role = $7, notes = $8, is_active = $9, "updatedAt" = CURRENT_TIMESTAMP
+             WHERE id = $10`,
+            [name, email || null, phone, cpf || null, birthDate || null, image || null, role, notes || null, isActive !== false, id]
+        );
+
+        console.log(`✅ User updated: ${id}`);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ error: "Erro ao atualizar usuário" });
+    }
+});
+
+app.post("/api/users/:id/reset-password", authorize(['admin']), async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { newPassword } = req.body;
+
+        // Validate password
+        if (!newPassword || newPassword.length < 8) {
+            return res.status(400).json({ error: "A senha deve ter no mínimo 8 caracteres" });
+        }
+
+        // Check if user exists
+        const userCheck = await pool.query('SELECT id, name FROM "user" WHERE id = $1', [id]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+
+        // Hash new password
+        const bcrypt = await import('bcrypt');
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password in account table
+        await pool.query(
+            `UPDATE account 
+             SET password = $1, "updatedAt" = CURRENT_TIMESTAMP
+             WHERE "userId" = $2 AND "providerId" = 'credential'`,
+            [hashedPassword, id]
+        );
+
+        console.log(`✅ Password reset for user: ${userCheck.rows[0].name} (${id})`);
+
+        res.json({ success: true, message: "Senha redefinida com sucesso" });
+    } catch (error) {
+        console.error("Error resetting password:", error);
+        res.status(500).json({ error: "Erro ao redefinir senha" });
+    }
+});
+
+// Profile Management Endpoints
+import { upload, processAvatar } from './middleware/upload';
+
+// Get current user profile
+app.get("/api/profile", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers });
+        if (!session) {
+            return res.status(401).json({ error: "Não autenticado" });
+        }
+
+        const result = await pool.query(
+            'SELECT id, username, name, email, phone, cpf, birth_date, role, image FROM "user" WHERE id = $1',
+            [session.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+
+        const user = result.rows[0];
+        console.log(`📅 GET /api/profile - birth_date from DB:`, user.birth_date);
+
+        res.json(user);
+    } catch (error) {
+        console.error("Error fetching profile:", error);
+        res.status(500).json({ error: "Erro ao buscar perfil" });
+    }
+});
+
+// Update current user profile
+app.put("/api/profile", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers });
+        if (!session) {
+            return res.status(401).json({ error: "Não autenticado" });
+        }
+
+        const { name, email, phone, cpf, birthDate, image } = req.body;
+
+        // Validate required fields
+        if (!name || !phone) {
+            return res.status(400).json({ error: "Nome e telefone são obrigatórios" });
+        }
+
+        // Check if email is already in use by another user
+        if (email) {
+            const emailCheck = await pool.query('SELECT id FROM "user" WHERE email = $1 AND id != $2', [email, session.user.id]);
+            if (emailCheck.rows.length > 0) {
+                return res.status(400).json({ error: "Email já está em uso" });
+            }
+        }
+
+        // Check if phone is already in use by another user
+        const phoneCheck = await pool.query('SELECT id FROM "user" WHERE phone = $1 AND id != $2', [phone, session.user.id]);
+        if (phoneCheck.rows.length > 0) {
+            return res.status(400).json({ error: "Telefone já está em uso" });
+        }
+
+        // Check if CPF is already in use by another user
+        if (cpf) {
+            const cpfCheck = await pool.query('SELECT id FROM "user" WHERE cpf = $1 AND id != $2', [cpf, session.user.id]);
+            if (cpfCheck.rows.length > 0) {
+                return res.status(400).json({ error: "CPF já está em uso" });
+            }
+        }
+
+        // Update profile (including image if provided)
+        console.log(`📅 PUT /api/profile - birthDate to save:`, birthDate);
+        console.log(`🖼️ PUT /api/profile - image to save:`, image);
+
+        // Build dynamic query based on what fields are provided
+        const updateFields = [];
+        const updateValues = [];
+        let paramCounter = 1;
+
+        updateFields.push(`name = $${paramCounter++}`);
+        updateValues.push(name);
+
+        updateFields.push(`email = $${paramCounter++}`);
+        updateValues.push(email || null);
+
+        updateFields.push(`phone = $${paramCounter++}`);
+        updateValues.push(phone);
+
+        updateFields.push(`cpf = $${paramCounter++}`);
+        updateValues.push(cpf || null);
+
+        updateFields.push(`birth_date = $${paramCounter++}`);
+        updateValues.push(birthDate || null);
+
+        // Only update image if explicitly provided (including null to remove)
+        if (image !== undefined) {
+            updateFields.push(`image = $${paramCounter++}`);
+            updateValues.push(image);
+        }
+
+        updateFields.push(`"updatedAt" = CURRENT_TIMESTAMP`);
+        updateValues.push(session.user.id);
+
+        await pool.query(
+            `UPDATE "user" SET ${updateFields.join(', ')} WHERE id = $${paramCounter}`,
+            updateValues
+        );
+
+        console.log(`✅ Profile updated: ${session.user.id}`);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ error: "Erro ao atualizar perfil" });
+    }
+});
+
+// Upload avatar
+app.post("/api/profile/avatar", upload.single('avatar'), async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers });
+        if (!session) {
+            return res.status(401).json({ error: "Não autenticado" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: "Nenhuma imagem foi enviada" });
+        }
+
+        // Process and save avatar
+        const imageUrl = await processAvatar(req.file.buffer, session.user.id);
+        console.log(`🖼️ Avatar processed, imageUrl:`, imageUrl);
+
+        // Update user image in database
+        await pool.query(
+            'UPDATE "user" SET image = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2',
+            [imageUrl, session.user.id]
+        );
+
+        console.log(`✅ Avatar uploaded: ${session.user.id}`);
+
+        res.json({ success: true, imageUrl });
+    } catch (error) {
+        console.error("Error uploading avatar:", error);
+        res.status(500).json({ error: "Erro ao fazer upload da imagem" });
+    }
+});
+
+// Upload avatar for any user (admin)
+app.post("/api/users/:id/avatar", authorize(['admin']), upload.single('avatar'), async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!req.file) {
+            return res.status(400).json({ error: "Nenhuma imagem foi enviada" });
+        }
+
+        // Check if user exists
+        const userCheck = await pool.query('SELECT id FROM "user" WHERE id = $1', [id]);
+        if (userCheck.rows.length === 0) {
+            return res.status(404).json({ error: "Usuário não encontrado" });
+        }
+
+        // Process and save avatar
+        const imageUrl = await processAvatar(req.file.buffer, id);
+
+        // Update user image in database
+        await pool.query(
+            'UPDATE "user" SET image = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE id = $2',
+            [imageUrl, id]
+        );
+
+        console.log(`✅ Avatar uploaded for user: ${id}`);
+
+        res.json({ success: true, imageUrl });
+    } catch (error) {
+        console.error("Error uploading avatar:", error);
+        res.status(500).json({ error: "Erro ao fazer upload da imagem" });
+    }
+});
+
+// Change password
+app.post("/api/profile/change-password", async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers });
+        if (!session) {
+            return res.status(401).json({ error: "Não autenticado" });
+        }
+
+        const { currentPassword, newPassword } = req.body;
+
+        // Validate passwords
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: "Senhas são obrigatórias" });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: "A nova senha deve ter no mínimo 8 caracteres" });
+        }
+
+        // Get current password hash
+        const accountResult = await pool.query(
+            'SELECT password FROM account WHERE "userId" = $1 AND "providerId" = \'credential\'',
+            [session.user.id]
+        );
+
+        if (accountResult.rows.length === 0) {
+            return res.status(404).json({ error: "Conta não encontrada" });
+        }
+
+        // Verify current password
+        const bcrypt = await import('bcrypt');
+        const isValid = await bcrypt.compare(currentPassword, accountResult.rows[0].password);
+
+        if (!isValid) {
+            return res.status(400).json({ error: "Senha atual incorreta" });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await pool.query(
+            'UPDATE account SET password = $1, "updatedAt" = CURRENT_TIMESTAMP WHERE "userId" = $2 AND "providerId" = \'credential\'',
+            [hashedPassword, session.user.id]
+        );
+
+        console.log(`✅ Password changed: ${session.user.id}`);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error changing password:", error);
+        res.status(500).json({ error: "Erro ao alterar senha" });
     }
 });
 

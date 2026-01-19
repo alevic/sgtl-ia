@@ -105,7 +105,7 @@ export const Header: React.FC = () => {
               </div>
 
               <button
-                onClick={() => { setIsMenuOpen(false); navigate('/admin/perfil'); }}
+                onClick={() => { setIsMenuOpen(false); navigate(`/admin/usuarios/${user.id}/editar`); }}
                 className="w-full px-4 py-2 text-left text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
               >
                 <User size={16} /> Perfil

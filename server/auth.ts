@@ -14,8 +14,14 @@ export const auth = betterAuth({
         requireEmailVerification: false,
         async sendResetPassword(data, request) {
             console.log("========================================");
-            console.log("RESET PASSWORD LINK:", data.url);
+            console.log("🔑 RESET PASSWORD LINK:");
+            console.log("   User:", data.user.email);
+            console.log("   Link:", data.url);
             console.log("========================================");
+            console.log("⚠️  IMPORTANTE: Configure um serviço de email (SMTP, SendGrid, etc.) para enviar este link automaticamente.");
+            console.log("   Por enquanto, copie o link acima e envie manualmente para o usuário.");
+            // TODO: Implementar envio de email via WhatsApp ou SMTP
+            // await sendWhatsAppMessage(data.user.phone, `Link para redefinir sua senha: ${data.url}`);
         },
     },
     user: {

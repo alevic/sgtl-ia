@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Plus, Search, Trash2, Shield, Mail, Calendar, Edit } from 'lucide-react';
+import { User, Plus, Search, Trash2, Shield, Mail, Calendar, Edit, Key, X } from 'lucide-react';
 import { authClient } from '../lib/auth-client';
 import { UserRole } from '../types';
 
@@ -29,6 +29,9 @@ export const Usuarios: React.FC = () => {
     const [users, setUsers] = React.useState<any[]>([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [busca, setBusca] = useState('');
+    const [resetPasswordUser, setResetPasswordUser] = useState<any>(null);
+    const [newPassword, setNewPassword] = useState('');
+    const [isResetting, setIsResetting] = useState(false);
 
     const fetchUsers = async () => {
         try {
@@ -67,6 +70,39 @@ export const Usuarios: React.FC = () => {
         } catch (error) {
             console.error('Failed to delete user:', error);
             alert('Erro ao excluir usuário');
+        }
+    };
+
+    const handleResetPassword = async () => {
+        if (!newPassword || newPassword.length < 8) {
+            alert('A senha deve ter no mínimo 8 caracteres');
+            return;
+        }
+
+        setIsResetting(true);
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${resetPasswordUser.id}/reset-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({ newPassword }),
+            });
+
+            if (response.ok) {
+                alert(`Senha redefinida com sucesso para ${resetPasswordUser.name}`);
+                setResetPasswordUser(null);
+                setNewPassword('');
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Erro ao redefinir senha');
+            }
+        } catch (error) {
+            console.error('Failed to reset password:', error);
+            alert('Erro ao redefinir senha');
+        } finally {
+            setIsResetting(false);
         }
     };
 
@@ -149,11 +185,18 @@ export const Usuarios: React.FC = () => {
 
                             <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
                                 <button
-                                    onClick={() => navigate(`/admin/usuarios/${user.id}`)}
+                                    onClick={() => navigate(`/admin/usuarios/${user.id}/editar`)}
                                     className="flex-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                                 >
                                     <Edit size={16} />
                                     Editar
+                                </button>
+                                <button
+                                    onClick={() => setResetPasswordUser(user)}
+                                    className="px-3 py-2 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+                                    title="Redefinir Senha"
+                                >
+                                    <Key size={16} />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(user.id)}
@@ -167,6 +210,70 @@ export const Usuarios: React.FC = () => {
                     ))
                 )}
             </div>
+
+            {/* Modal de Redefinir Senha */}
+            {resetPasswordUser && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                                    <Key className="text-orange-600 dark:text-orange-400" size={20} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-800 dark:text-white">Redefinir Senha</h2>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">{resetPasswordUser.name}</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setResetPasswordUser(null);
+                                    setNewPassword('');
+                                }}
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                            >
+                                <X size={20} className="text-slate-500" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                    Nova Senha <span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
+                                    placeholder="Mínimo 8 caracteres"
+                                    minLength={8}
+                                />
+                                <p className="text-xs text-slate-500 mt-1">A senha deve ter no mínimo 8 caracteres</p>
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => {
+                                        setResetPasswordUser(null);
+                                        setNewPassword('');
+                                    }}
+                                    className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleResetPassword}
+                                    disabled={isResetting || !newPassword || newPassword.length < 8}
+                                    className="flex-1 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isResetting ? 'Redefinindo...' : 'Redefinir Senha'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

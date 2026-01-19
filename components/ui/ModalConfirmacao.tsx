@@ -1,16 +1,15 @@
 import React from 'react';
-import { CheckCircle } from 'lucide-react';
+import { X, AlertTriangle } from 'lucide-react';
 
 interface ModalConfirmacaoProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
     title: string;
-    message: React.ReactNode;
+    message: string;
     confirmText?: string;
     cancelText?: string;
-    variant?: 'success' | 'danger' | 'warning' | 'info';
-    icon?: React.ReactNode;
+    type?: 'danger' | 'warning' | 'info';
 }
 
 export const ModalConfirmacao: React.FC<ModalConfirmacaoProps> = ({
@@ -21,76 +20,72 @@ export const ModalConfirmacao: React.FC<ModalConfirmacaoProps> = ({
     message,
     confirmText = 'Confirmar',
     cancelText = 'Cancelar',
-    variant = 'success',
-    icon
+    type = 'warning'
 }) => {
     if (!isOpen) return null;
 
-    const getVariantStyles = () => {
-        switch (variant) {
+    const getTypeStyles = () => {
+        switch (type) {
             case 'danger':
                 return {
-                    bgIcon: 'bg-red-100 dark:bg-red-900/30',
-                    textIcon: 'text-red-600 dark:text-red-400',
-                    button: 'bg-red-600 hover:bg-red-500'
+                    icon: <AlertTriangle className="text-red-600" size={48} />,
+                    confirmButton: 'bg-red-600 hover:bg-red-700'
                 };
             case 'warning':
                 return {
-                    bgIcon: 'bg-yellow-100 dark:bg-yellow-900/30',
-                    textIcon: 'text-yellow-600 dark:text-yellow-400',
-                    button: 'bg-yellow-600 hover:bg-yellow-500'
+                    icon: <AlertTriangle className="text-orange-600" size={48} />,
+                    confirmButton: 'bg-orange-600 hover:bg-orange-700'
                 };
             case 'info':
                 return {
-                    bgIcon: 'bg-blue-100 dark:bg-blue-900/30',
-                    textIcon: 'text-blue-600 dark:text-blue-400',
-                    button: 'bg-blue-600 hover:bg-blue-500'
-                };
-            case 'success':
-            default:
-                return {
-                    bgIcon: 'bg-green-100 dark:bg-green-900/30',
-                    textIcon: 'text-green-600 dark:text-green-400',
-                    button: 'bg-green-600 hover:bg-green-500'
+                    icon: <AlertTriangle className="text-blue-600" size={48} />,
+                    confirmButton: 'bg-blue-600 hover:bg-blue-700'
                 };
         }
     };
 
-    const styles = getVariantStyles();
+    const styles = getTypeStyles();
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
-                <div className="flex flex-col items-center text-center mb-6">
-                    <div className={`w-16 h-16 ${styles.bgIcon} rounded-full flex items-center justify-center mb-4`}>
-                        {icon ? (
-                            <div className={styles.textIcon}>{icon}</div>
-                        ) : (
-                            <CheckCircle size={32} className={styles.textIcon} />
-                        )}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-200">
+                <div className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
+                            {styles.icon}
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+                                {title}
+                            </h3>
+                        </div>
+                        <button
+                            onClick={onClose}
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        >
+                            <X size={20} className="text-slate-500" />
+                        </button>
                     </div>
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
-                        {title}
-                    </h3>
-                    <div className="text-slate-600 dark:text-slate-300">
-                        {message}
-                    </div>
-                </div>
 
-                <div className="flex gap-3">
-                    <button
-                        onClick={onClose}
-                        className="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                    >
-                        {cancelText}
-                    </button>
-                    <button
-                        onClick={onConfirm}
-                        className={`flex-1 px-4 py-2 ${styles.button} text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2`}
-                    >
-                        <CheckCircle size={18} />
-                        {confirmText}
-                    </button>
+                    <p className="text-slate-600 dark:text-slate-300 mb-6">
+                        {message}
+                    </p>
+
+                    <div className="flex gap-3 justify-end">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-colors"
+                        >
+                            {cancelText}
+                        </button>
+                        <button
+                            onClick={() => {
+                                onConfirm();
+                                onClose();
+                            }}
+                            className={`px-4 py-2 text-white rounded-lg font-medium transition-colors ${styles.confirmButton}`}
+                        >
+                            {confirmText}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

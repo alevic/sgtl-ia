@@ -28,14 +28,23 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     const isAdminRoute = location.pathname.startsWith('/admin');
     const userRole = session.user.role || 'user';
 
+    console.log('🔒 ProtectedRoute Debug:', {
+        pathname: location.pathname,
+        isAdminRoute,
+        userRole,
+        sessionUser: session.user
+    });
+
     // For admin routes, only allow admin, operacional, and financeiro roles
     if (isAdminRoute) {
         const allowedAdminRoles = ['admin', 'operacional', 'financeiro'];
 
         if (!allowedAdminRoles.includes(userRole)) {
+            console.log('❌ Access DENIED - Redirecting to /cliente/dashboard');
             // Redirect public portal users to their dashboard
             return <Navigate to="/cliente/dashboard" replace />;
         }
+        console.log('✅ Access GRANTED to admin route');
     }
 
     // Check specific route permissions if allowedRoles is provided

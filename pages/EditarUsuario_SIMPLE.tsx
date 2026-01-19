@@ -1,14 +1,15 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { UserForm } from '../components/User/UserForm';
 
-export const NovoUsuario: React.FC = () => {
+export const EditarUsuario: React.FC = () => {
     const navigate = useNavigate();
+    const { id } = useParams<{ id: string }>();
 
     const handleSubmit = async (data: any) => {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
-            method: 'POST',
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/${id}`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -20,7 +21,7 @@ export const NovoUsuario: React.FC = () => {
             navigate('/admin/usuarios');
         } else {
             const errorData = await response.json();
-            throw new Error(errorData.error || 'Erro ao criar usuário');
+            throw new Error(errorData.error || 'Erro ao atualizar usuário');
         }
     };
 
@@ -34,21 +35,23 @@ export const NovoUsuario: React.FC = () => {
                     <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Novo Usuário</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Preencha os dados do novo usuário</p>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Editar Usuário</h1>
+                    <p className="text-slate-500 dark:text-slate-400">Atualize as informações do usuário</p>
                 </div>
             </div>
 
             <div className="max-w-4xl bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
                 <UserForm
-                    mode="create"
+                    mode="edit"
+                    userId={id!}
                     onSubmit={handleSubmit}
                     onCancel={() => navigate('/admin/usuarios')}
                     showAvatar={true}
-                    showPassword={true}
+                    showPassword={false}
                     showRole={true}
                     showNotes={true}
                     showIsActive={true}
+                    canEditUsername={false}
                 />
             </div>
         </div>

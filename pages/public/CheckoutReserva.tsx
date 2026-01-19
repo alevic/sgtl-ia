@@ -10,6 +10,22 @@ import { IViagem, TipoAssento } from '../../types';
 import { authClient } from '../../lib/auth-client';
 import { paymentService, IPaymentResponse } from '../../services/paymentService';
 
+// Interface for checkout response
+interface ICheckoutResponse {
+    success: boolean;
+    reservations: Array<{
+        id: string;
+        trip_id: string;
+        seat_id: string;
+        passenger_name: string;
+        passenger_document: string;
+        status: string;
+        ticket_code: string;
+        price: number;
+        [key: string]: any;
+    }>;
+}
+
 export const CheckoutReserva: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
@@ -224,11 +240,15 @@ export const CheckoutReserva: React.FC = () => {
                 body: resData
             });
 
-            if (!response || (response as any).error) {
+            // Check if response has error or is missing required properties
+            if (!response || (response as any).error || !(response as any).success || !(response as any).reservations) {
                 const errorDetail = (response as any).error;
                 const errorString = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
                 throw new Error(errorString || 'Erro ao processar as reservas.');
             }
+
+            // Type assertion: we've confirmed response has success and reservations properties
+            const checkoutResponse = response as unknown as ICheckoutResponse;
 
             // 2. Generate Payment via N8N/ASAAS
             // We pay the entryValue (which could be the full amount or just the signal)
@@ -255,7 +275,7 @@ export const CheckoutReserva: React.FC = () => {
                     amount: amountToPayNow,
                     quantity: 1
                 }],
-                externalReference: response.reservations[0].id
+                externalReference: checkoutResponse.reservations[0].id
             });
 
             if (payResponse.success) {

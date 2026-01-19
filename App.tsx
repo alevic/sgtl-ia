@@ -48,6 +48,7 @@ import { NovoUsuario } from './pages/NovoUsuario';
 import { EditarUsuario } from './pages/EditarUsuario';
 import { EsqueciSenha } from './pages/EsqueciSenha';
 import { RedefinirSenha } from './pages/RedefinirSenha';
+import { EsqueciUsername } from './pages/EsqueciUsername';
 import { Organizacoes } from './pages/Organizacoes';
 import { CadastrosAuxiliares } from './pages/CadastrosAuxiliares';
 import { ProtectedRoute } from './components/Auth/ProtectedRoute';
@@ -87,6 +88,7 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/esqueci-username" element={<EsqueciUsername />} />
           <Route path="/esqueci-senha" element={<EsqueciSenha />} />
           <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
@@ -159,7 +161,7 @@ const App: React.FC = () => {
                       <Routes>
                         <Route path="/" element={<Usuarios />} />
                         <Route path="novo" element={<NovoUsuario />} />
-                        <Route path=":id" element={<EditarUsuario />} />
+                        <Route path=":id/editar" element={<EditarUsuario />} />
                       </Routes>
                     </ProtectedRoute>
                   } />

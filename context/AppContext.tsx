@@ -8,7 +8,7 @@ interface AppContextType {
   currentContext: EmpresaContexto;
   switchContext: (context: EmpresaContexto) => void;
   currentEmpresa: IEmpresa;
-  user: { name: string; role: string; avatar: string; email: string };
+  user: { id: string; name: string; role: string; avatar: string; email: string };
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
   theme: Theme;
@@ -135,8 +135,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   }, [session]);
 
   const user = {
+    id: session?.user?.id || "",
     name: session?.user?.name || "Usuário",
-    role: "Administrador", // Role management can be added later
+    role: session?.user?.role || "user", // Use actual role from session
     avatar: session?.user?.image || "",
     email: session?.user?.email || ""
   };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, ArrowLeft, Loader2, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { User, ArrowLeft, Loader2, CheckCircle, Phone } from 'lucide-react';
 
 // Get API URL (same logic as other services)
 function getApiUrl(): string {
@@ -21,9 +21,8 @@ function getApiUrl(): string {
     return "http://localhost:4000";
 }
 
-export const EsqueciSenha: React.FC = () => {
-    const navigate = useNavigate();
-    const [email, setEmail] = useState('');
+export const EsqueciUsername: React.FC = () => {
+    const [identifier, setIdentifier] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState('');
@@ -35,12 +34,12 @@ export const EsqueciSenha: React.FC = () => {
 
         try {
             const apiUrl = getApiUrl();
-            const response = await fetch(`${apiUrl}/api/auth/request-password-reset`, {
+            const response = await fetch(`${apiUrl}/api/auth/recover-username`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ identifier: email }),
+                body: JSON.stringify({ identifier }),
             });
 
             const data = await response.json();
@@ -48,10 +47,10 @@ export const EsqueciSenha: React.FC = () => {
             if (response.ok) {
                 setIsSuccess(true);
             } else {
-                setError(data.error || 'Erro ao solicitar recuperação de senha');
+                setError(data.error || 'Erro ao recuperar username');
             }
         } catch (err) {
-            console.error('Error requesting password reset:', err);
+            console.error('Error recovering username:', err);
             setError('Erro ao conectar com o servidor');
         } finally {
             setIsLoading(false);
@@ -63,11 +62,11 @@ export const EsqueciSenha: React.FC = () => {
             <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
                 <div className="text-center mb-8">
                     <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                        <Mail className="text-blue-600 dark:text-blue-400" size={24} />
+                        <User className="text-blue-600 dark:text-blue-400" size={24} />
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Recuperar Senha</h1>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Recuperar Username</h1>
                     <p className="text-slate-500 dark:text-slate-400 mt-2">
-                        Digite seu email para receber o link de redefinição.
+                        Digite seu telefone, CPF ou email para receber seu username via WhatsApp.
                     </p>
                 </div>
 
@@ -75,11 +74,12 @@ export const EsqueciSenha: React.FC = () => {
                     <div className="text-center space-y-6">
                         <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl flex flex-col items-center gap-2">
                             <CheckCircle size={32} />
-                            <p className="font-medium">Código enviado via WhatsApp!</p>
+                            <p className="font-medium">Username enviado via WhatsApp!</p>
                         </div>
-                        <p className="text-sm text-slate-500">
-                            Verifique seu WhatsApp para o código de recuperação de senha.
-                        </p>
+                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                            <Phone size={16} className="text-blue-600 dark:text-blue-400" />
+                            <p>Verifique seu WhatsApp para ver seu username.</p>
+                        </div>
                         <Link
                             to="/login"
                             className="block w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors"
@@ -90,15 +90,17 @@ export const EsqueciSenha: React.FC = () => {
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username, Telefone, CPF ou Email</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                Telefone, CPF ou Email
+                            </label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <input
                                     type="text"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
                                     className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                    placeholder="seu.username, telefone, CPF ou email"
+                                    placeholder="(11) 99999-9999, CPF ou email"
                                     required
                                 />
                             </div>
@@ -115,7 +117,7 @@ export const EsqueciSenha: React.FC = () => {
                             disabled={isLoading}
                             className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Enviar Link'}
+                            {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Enviar Username'}
                         </button>
 
                         <div className="text-center">

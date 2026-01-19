@@ -44,7 +44,7 @@ export const Login: React.FC = () => {
 
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email, CPF ou Celular</label>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Username, Telefone, CPF ou Email</label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <input
@@ -52,7 +52,7 @@ export const Login: React.FC = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                    placeholder="seu@email.com, CPF ou Celular"
+                                    placeholder="seu.username, telefone, CPF ou email"
                                     required
                                 />
                             </div>
@@ -86,6 +86,21 @@ export const Login: React.FC = () => {
                         >
                             {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Entrar'}
                         </button>
+
+                        <div className="flex justify-between text-sm">
+                            <a
+                                href="/esqueci-username"
+                                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                            >
+                                Esqueceu seu username?
+                            </a>
+                            <a
+                                href="/esqueci-senha"
+                                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                            >
+                                Esqueceu sua senha?
+                            </a>
+                        </div>
                     </form>
                 </div>
 
