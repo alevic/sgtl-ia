@@ -12,13 +12,14 @@ import { reservationsService } from '../services/reservationsService';
 // Mock Data
 const MOCK_CLIENTE: ICliente = {
     id: '1',
+    tipo_cliente: 'PESSOA_FISICA' as any,
     nome: 'Maria Oliveira Santos',
     email: 'maria.santos@email.com',
     telefone: '(11) 98765-4321',
     saldo_creditos: 250,
     historico_viagens: 15,
     documento_tipo: TipoDocumento.CPF,
-    documento_numero: '123.456.789-00',
+    documento: '123.456.789-00',
     nacionalidade: 'Brasileira',
     data_cadastro: '2022-03-15',
     data_nascimento: '1985-06-20',
@@ -323,8 +324,8 @@ export const ClienteDetalhes: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número do Documento</label>
                                 <input
                                     type="text"
-                                    name="documento_numero"
-                                    value={editFormData.documento_numero || ''}
+                                    name="documento"
+                                    value={(editFormData as any).documento || (editFormData as any).documento_numero || ''}
                                     onChange={handleEditChange}
                                     className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                                 />
@@ -546,7 +547,7 @@ export const ClienteDetalhes: React.FC = () => {
                                         </div>
                                         <div>
                                             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Número</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.documento_numero || '-'}</p>
+                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.documento || (cliente as any).documento_numero || '-'}</p>
                                         </div>
                                         <div className="sm:col-span-2">
                                             <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Nacionalidade</p>

@@ -13,7 +13,7 @@ export const EditarCliente: React.FC = () => {
         email: '',
         telefone: '',
         documento_tipo: TipoDocumento.CPF,
-        documento_numero: '',
+        documento: '',
         nacionalidade: '',
         data_nascimento: '',
         endereco: '',
@@ -41,7 +41,7 @@ export const EditarCliente: React.FC = () => {
                     email: data.email || '',
                     telefone: data.telefone || '',
                     documento_tipo: data.documento_tipo || TipoDocumento.CPF,
-                    documento_numero: data.documento_numero || '',
+                    documento: data.documento || '',
                     nacionalidade: data.nacionalidade || '',
                     data_nascimento: data.data_nascimento ? new Date(data.data_nascimento).toISOString().split('T')[0] : '',
                     endereco: data.endereco || '',
@@ -230,8 +230,8 @@ export const EditarCliente: React.FC = () => {
                             </label>
                             <input
                                 type="text"
-                                name="documento_numero"
-                                value={formData.documento_numero}
+                                name="documento"
+                                value={formData.documento}
                                 onChange={handleChange}
                                 placeholder="000.000.000-00"
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"

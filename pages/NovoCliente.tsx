@@ -11,7 +11,7 @@ export const NovoCliente: React.FC = () => {
     const [email, setEmail] = useState('');
     const [telefone, setTelefone] = useState('');
     const [documentoTipo, setDocumentoTipo] = useState<TipoDocumento>(TipoDocumento.CPF);
-    const [documentoNumero, setDocumentoNumero] = useState('');
+    const [documento, setDocumento] = useState('');
     const [dataNascimento, setDataNascimento] = useState('');
     const [nacionalidade, setNacionalidade] = useState('Brasileira');
     const [endereco, setEndereco] = useState('');
@@ -31,7 +31,7 @@ export const NovoCliente: React.FC = () => {
                 email,
                 telefone,
                 documento_tipo: documentoTipo,
-                documento_numero: documentoNumero,
+                documento: documento,
                 data_nascimento: dataNascimento,
                 nacionalidade,
                 endereco,
@@ -181,8 +181,8 @@ export const NovoCliente: React.FC = () => {
                             </label>
                             <input
                                 type="text"
-                                value={documentoNumero}
-                                onChange={(e) => setDocumentoNumero(e.target.value)}
+                                value={documento}
+                                onChange={(e) => setDocumento(e.target.value)}
                                 placeholder={documentoTipo === TipoDocumento.CPF ? '123.456.789-00' : 'Número do documento'}
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />

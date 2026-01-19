@@ -163,7 +163,7 @@ export const CheckoutReserva: React.FC = () => {
                 const name = (index === 0 && (clientProfile?.nome || sessionData?.user?.name)) ? (clientProfile?.nome || sessionData.user.name) : '';
                 const email = (index === 0 && (clientProfile?.email || sessionData?.user?.email)) ? (clientProfile?.email || sessionData.user.email) : '';
                 const phone = (index === 0 && (clientProfile?.telefone || sessionData?.user?.phoneNumber)) ? (clientProfile?.telefone || sessionData.user.phoneNumber) : '';
-                const document = (index === 0 && clientProfile?.documento_numero) ? clientProfile.documento_numero : '';
+                const document = (index === 0 && (clientProfile?.documento || clientProfile?.documento_numero)) ? (clientProfile.documento || clientProfile.documento_numero) : '';
 
                 return {
                     seat_number: num,

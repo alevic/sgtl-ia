@@ -22,19 +22,23 @@ export const DashboardCliente: React.FC = () => {
             });
 
             if (response.status === 401) {
+                console.warn('[DASHBOARD] Unauthorized access, redirecting to login');
                 navigate('/cliente/login');
                 return;
             }
 
             if (!response.ok) {
-                throw new Error('Erro ao carregar dados do dashboard');
+                const errorData = await response.json().catch(() => ({}));
+                console.error('[DASHBOARD] Fetch error:', response.status, errorData);
+                throw new Error(errorData.error || `Erro ao carregar dados do dashboard (Status: ${response.status})`);
             }
 
             const result = await response.json();
+            console.log('[DASHBOARD] Data loaded successfully');
             setData(result);
         } catch (err: any) {
-            console.error(err);
-            setError(err.message);
+            console.error('[DASHBOARD] Catch block error:', err);
+            setError(err.message || 'Erro inesperado ao carregar o dashboard');
         } finally {
             setIsLoading(false);
         }

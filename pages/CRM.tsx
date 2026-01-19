@@ -54,7 +54,7 @@ export const CRM: React.FC = () => {
         const matchBusca = busca === '' ||
             c.nome.toLowerCase().includes(busca.toLowerCase()) ||
             c.email.toLowerCase().includes(busca.toLowerCase()) ||
-            c.documento_numero?.includes(busca) ||
+            (c.documento || (c as any).documento_numero || '').includes(busca) ||
             c.telefone?.includes(busca);
         return matchSegmento && matchBusca;
     });

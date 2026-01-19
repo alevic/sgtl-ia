@@ -579,7 +579,7 @@ router.get("/resolve-identifier", async (req, res) => {
         // If not found by username, search by CPF, phone, or email in clients table
         const clientResult = await pool.query(
             `SELECT email FROM clients 
-             WHERE documento_numero ILIKE $1 
+             WHERE documento ILIKE $1 
                 OR telefone ILIKE $1 
                 OR email ILIKE $1 
              LIMIT 1`,

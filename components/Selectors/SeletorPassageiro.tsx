@@ -20,7 +20,7 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
     const clientesFiltrados = clientes.filter(c =>
         c.nome.toLowerCase().includes(busca.toLowerCase()) ||
         c.email.toLowerCase().includes(busca.toLowerCase()) ||
-        c.documento_numero.includes(busca)
+        (c.documento || (c as any).documento_numero || '').includes(busca)
     );
 
     const handleSelecionarCliente = (cliente: ICliente) => {
@@ -93,7 +93,7 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className={`font-semibold ${isSelected ? 'text-blue-700 dark:text-blue-300' : 'text-slate-800 dark:text-white'}`}>{cliente.nome}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{cliente.documento_numero} • {cliente.email}</p>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{cliente.documento || (cliente as any).documento_numero} • {cliente.email}</p>
                                     </div>
                                 </div>
                             </button>

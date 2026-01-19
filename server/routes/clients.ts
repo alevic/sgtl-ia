@@ -75,7 +75,7 @@ router.get('/', authorize(['admin', 'operacional', 'vendas', 'financeiro']), asy
         ];
 
         if (search) {
-            sql += ` AND (c.nome ILIKE $6 OR c.email ILIKE $6 OR c.documento_numero ILIKE $6)`;
+            sql += ` AND (c.nome ILIKE $6 OR c.email ILIKE $6 OR c.documento ILIKE $6)`;
             params.push(`%${search}%`);
         }
 
@@ -145,7 +145,7 @@ router.get('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
 router.post('/', authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
     const orgId = (req as any).session.session.activeOrganizationId;
     const {
-        nome, email, telefone, documento_tipo, documento_numero,
+        nome, email, telefone, documento_tipo, documento,
         nacionalidade, data_nascimento, endereco, cidade, estado, pais,
         segmento, observacoes
     } = req.body;
@@ -153,13 +153,13 @@ router.post('/', authorize(['admin', 'operacional', 'vendas']), async (req, res)
     try {
         const result = await pool.query(
             `INSERT INTO clients (
-                nome, email, telefone, documento_tipo, documento_numero,
+                nome, email, telefone, documento_tipo, documento,
                 nacionalidade, data_nascimento, endereco, cidade, estado, pais,
                 segmento, observacoes
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             RETURNING *`,
             [
-                nome, email, telefone, documento_tipo, documento_numero,
+                nome, email, telefone, documento_tipo, documento,
                 nacionalidade, data_nascimento, endereco, cidade, estado, pais,
                 segmento, observacoes
             ]
@@ -177,7 +177,7 @@ router.put('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
     const { id } = req.params;
     const orgId = (req as any).session.session.activeOrganizationId;
     const {
-        nome, email, telefone, documento_tipo, documento_numero,
+        nome, email, telefone, documento_tipo, documento,
         nacionalidade, data_nascimento, endereco, cidade, estado, pais,
         segmento, observacoes, saldo_creditos
     } = req.body;
@@ -189,7 +189,7 @@ router.put('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
                 email = COALESCE($2, email),
                 telefone = COALESCE($3, telefone),
                 documento_tipo = COALESCE($4, documento_tipo),
-                documento_numero = COALESCE($5, documento_numero),
+                documento = COALESCE($5, documento),
                 nacionalidade = COALESCE($6, nacionalidade),
                 data_nascimento = COALESCE($7, data_nascimento),
                 endereco = COALESCE($8, endereco),
@@ -203,7 +203,7 @@ router.put('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
             WHERE id = $15
             RETURNING *`,
             [
-                nome, email, telefone, documento_tipo, documento_numero,
+                nome, email, telefone, documento_tipo, documento,
                 nacionalidade, data_nascimento, endereco, cidade, estado, pais,
                 segmento, observacoes, saldo_creditos, id
             ]

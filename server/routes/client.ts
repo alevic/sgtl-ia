@@ -18,7 +18,44 @@ router.get("/dashboard", clientAuthorize(), async (req, res) => {
         );
 
         if (clientResult.rows.length === 0) {
-            return res.status(404).json({ error: "Client profile not found" });
+            // Lazy Creation: If no client record exists, create one from user data
+            console.log(`[DASHBOARD] Lazy-creating client profile for userId: ${userId}`);
+
+            // Fetch basic user data
+            const userResult = await pool.query(
+                'SELECT name, email, phone, cpf FROM "user" WHERE id = $1',
+                [userId]
+            );
+
+            if (userResult.rows.length === 0) {
+                return res.status(404).json({ error: "User not found" });
+            }
+
+            const user = userResult.rows[0];
+            const orgId = (req as any).session.session.activeOrganizationId;
+
+            // Insert new client record
+            const newClientResult = await pool.query(
+                `INSERT INTO clients (
+                    tipo_cliente, nome, email, telefone, 
+                    documento_tipo, documento,
+                    organization_id, user_id,
+                    data_cadastro, saldo_creditos
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, 0)
+                RETURNING *`,
+                [
+                    'PESSOA_FISICA',
+                    user.name,
+                    user.email,
+                    user.phone || null,
+                    'CPF',
+                    user.cpf || '',
+                    orgId,
+                    userId
+                ]
+            );
+
+            clientResult.rows[0] = newClientResult.rows[0];
         }
 
         const clientProfile = clientResult.rows[0];
@@ -47,7 +84,7 @@ router.get("/dashboard", clientAuthorize(), async (req, res) => {
             `SELECT * FROM parcel_orders 
              WHERE sender_document = $1 OR recipient_document = $1
              ORDER BY created_at DESC LIMIT 5`,
-            [clientProfile.documento_numero]
+            [clientProfile.documento]
         );
 
         res.json({
@@ -155,7 +192,7 @@ router.put("/profile", clientAuthorize(), async (req, res) => {
 
         // Update clients table
         await pool.query(
-            "UPDATE clients SET nome = $1, email = $2, telefone = $3, documento_numero = $4 WHERE user_id = $5",
+            "UPDATE clients SET nome = $1, email = $2, telefone = $3, documento = $4 WHERE user_id = $5",
             [name, email || null, phone || null, cpf || null, userId]
         );
 
