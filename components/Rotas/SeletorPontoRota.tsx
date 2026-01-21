@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { IPontoRota } from '../../types';
 import { MapPin, Clock, CheckSquare, Plus, X } from 'lucide-react';
 import { locationService, IState, ICity, INeighborhood } from '../../services/locationService';
+import { TimePicker } from '../Form/TimePicker';
 
 interface SeletorPontoRotaProps {
     ponto: IPontoRota;
@@ -210,6 +211,23 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
         }
     };
 
+    // Helper to convert minutes to HH:MM
+    const minutesToHHMM = (minutes?: number) => {
+        if (!minutes) return '00:00';
+        const h = Math.floor(minutes / 60).toString().padStart(2, '0');
+        const m = (minutes % 60).toString().padStart(2, '0');
+        return `${h}:${m}`;
+    };
+
+    // Helper to convert HH:MM to minutes
+    const hhmmToMinutes = (hhmm: string) => {
+        const [h, m] = hhmm.split(':').map(Number);
+        if (!isNaN(h) && !isNaN(m)) {
+            return h * 60 + m;
+        }
+        return 0;
+    };
+
     return (
         <div className="space-y-4">
             {/* Tipo do Ponto */}
@@ -363,28 +381,18 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
                             />
                         </div>
-                        {/* Tempo do anterior (min) - Usando type="time" para HH:MM */}
+                        {/* Tempo do anterior (min) */}
                         <div>
                             <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
                                 <Clock size={14} />
                                 Tempo do anterior
                             </label>
-                            <input
-                                type="time"
-                                value={(() => {
-                                    if (!ponto.duracao_deslocamento_minutos) return '00:00';
-                                    const h = Math.floor(ponto.duracao_deslocamento_minutos / 60).toString().padStart(2, '0');
-                                    const m = (ponto.duracao_deslocamento_minutos % 60).toString().padStart(2, '0');
-                                    return `${h}:${m}`;
-                                })()}
-                                onChange={(e) => {
-                                    const [h, m] = e.target.value.split(':').map(Number);
-                                    if (!isNaN(h) && !isNaN(m)) {
-                                        handleChange('duracao_deslocamento_minutos', h * 60 + m);
-                                    }
-                                }}
+                            <TimePicker
+                                value={minutesToHHMM(ponto.duracao_deslocamento_minutos)}
+                                onChange={(val) => handleChange('duracao_deslocamento_minutos', hhmmToMinutes(val))}
                                 disabled={readonly}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                                showIcon={false}
+                                className="text-sm py-1.5"
                             />
                         </div>
                     </>
@@ -397,22 +405,12 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                             <Clock size={14} className="text-orange-500" />
                             Tempo de Parada
                         </label>
-                        <input
-                            type="time"
-                            value={(() => {
-                                if (!ponto.duracao_parada_minutos) return '00:00';
-                                const h = Math.floor(ponto.duracao_parada_minutos / 60).toString().padStart(2, '0');
-                                const m = (ponto.duracao_parada_minutos % 60).toString().padStart(2, '0');
-                                return `${h}:${m}`;
-                            })()}
-                            onChange={(e) => {
-                                const [h, m] = e.target.value.split(':').map(Number);
-                                if (!isNaN(h) && !isNaN(m)) {
-                                    handleChange('duracao_parada_minutos', h * 60 + m);
-                                }
-                            }}
+                        <TimePicker
+                            value={minutesToHHMM(ponto.duracao_parada_minutos)}
+                            onChange={(val) => handleChange('duracao_parada_minutos', hhmmToMinutes(val))}
                             disabled={readonly}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                            showIcon={false}
+                            className="text-sm py-1.5"
                         />
                     </div>
                 )}

@@ -13,6 +13,7 @@ import { routesService } from '../services/routesService';
 import { vehiclesService } from '../services/vehiclesService';
 import { driversService } from '../services/driversService';
 import { DatePicker } from '../components/Form/DatePicker';
+import { TimePicker } from '../components/Form/TimePicker';
 
 export const NovaViagem: React.FC = () => {
     const navigate = useNavigate();
@@ -416,11 +417,9 @@ export const NovaViagem: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Hora de Partida
                                 </label>
-                                <input
-                                    type="time"
+                                <TimePicker
                                     value={horaPartida}
-                                    onChange={(e) => setHoraPartida(e.target.value)}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
+                                    onChange={setHoraPartida}
                                 />
                             </div>
                             <div>
@@ -436,11 +435,9 @@ export const NovaViagem: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Hora de Chegada (Prevista)
                                 </label>
-                                <input
-                                    type="time"
+                                <TimePicker
                                     value={horaChegada}
-                                    onChange={(e) => setHoraChegada(e.target.value)}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
+                                    onChange={setHoraChegada}
                                 />
                             </div>
                         </div>
