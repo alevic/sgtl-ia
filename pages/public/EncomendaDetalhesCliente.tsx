@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDateFormatter } from '../../hooks/useDateFormatter';
 import {
     ArrowLeft,
     Package,
@@ -25,6 +26,7 @@ export const EncomendaDetalhesCliente: React.FC = () => {
     const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const { formatDate } = useDateFormatter();
 
     useEffect(() => {
         fetchParcelDetails();
@@ -137,7 +139,7 @@ export const EncomendaDetalhesCliente: React.FC = () => {
                                 <div className="w-6 h-6 rounded-full bg-blue-500 border-4 border-white dark:border-slate-800 shadow-sm z-10"></div>
                                 <div>
                                     <p className="text-sm font-bold text-slate-800 dark:text-white">Encomenda Registrada</p>
-                                    <p className="text-xs text-slate-500">{new Date(parcel.created_at || Date.now()).toLocaleDateString('pt-BR')}</p>
+                                    <p className="text-xs text-slate-500">{formatDate(parcel.created_at || new Date())}</p>
                                 </div>
                             </div>
 

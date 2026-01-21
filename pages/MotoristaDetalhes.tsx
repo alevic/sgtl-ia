@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IMotorista } from '../types';
 import { ArrowLeft, Edit, Trash2, User, FileText, Globe, Phone, MapPin, Calendar, Briefcase, AlertTriangle, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 export const MotoristaDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+
+    const { formatDate } = useDateFormatter();
     const [motorista, setMotorista] = useState<IMotorista | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -69,7 +72,7 @@ export const MotoristaDetalhes: React.FC = () => {
 
         if (diasRestantes < 0) return { texto: 'Vencido', cor: 'red' };
         if (diasRestantes < 30) return { texto: `${diasRestantes} dias`, cor: 'orange' };
-        return { texto: new Date(dataValidade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }), cor: 'green' };
+        return { texto: formatDate(dataValidade), cor: 'green' };
     };
 
     if (isLoading) {
@@ -147,7 +150,7 @@ export const MotoristaDetalhes: React.FC = () => {
                             <div>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Data de Admissão</p>
                                 <p className="font-medium text-slate-800 dark:text-white">
-                                    {new Date(motorista.data_contratacao).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                                    {formatDate(motorista.data_contratacao)}
                                 </p>
                             </div>
                         </div>

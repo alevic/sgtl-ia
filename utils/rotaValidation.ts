@@ -1,4 +1,4 @@
-import { IRota, IPontoRota, IViagem } from '../types';
+import { IRota, IPontoRota, IViagem, RouteType } from '../types';
 
 /**
  * Valida se uma rota está corretamente configurada
@@ -231,7 +231,7 @@ export function criarPontoRotaVazio(tipo: 'ORIGEM' | 'PARADA_INTERMEDIARIA' | 'D
 export function criarRotaVazia(tipo: 'IDA' | 'VOLTA'): IRota {
     return {
         id: `rota_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        tipo_rota: tipo,
+        tipo_rota: tipo === 'IDA' ? RouteType.OUTBOUND : RouteType.INBOUND,
         pontos: [
             criarPontoRotaVazio('ORIGEM', 0),
             criarPontoRotaVazio('DESTINO', 1)

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, ReservationStatusLabel, TipoInteracao, TipoInteracaoLabel } from '../types';
 import { useAppContext } from '../context/AppContext';
+import { DatePicker } from '../components/Form/DatePicker';
 import {
     ArrowLeft, User, Mail, Phone, MapPin, Calendar, DollarSign,
     FileText, MessageSquare, History, Star, Edit, Plus, Check, X
@@ -344,12 +345,10 @@ export const ClienteDetalhes: React.FC = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Data de Nascimento</label>
-                                <input
-                                    type="date"
-                                    name="data_nascimento"
+                                <DatePicker
                                     value={editFormData.data_nascimento ? new Date(editFormData.data_nascimento).toISOString().split('T')[0] : ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                    onChange={(val) => setEditFormData(prev => ({ ...prev, data_nascimento: val }))}
+                                    placeholder="DD/MM/AAAA"
                                 />
                             </div>
 

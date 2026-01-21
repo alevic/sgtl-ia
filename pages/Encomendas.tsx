@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IEncomenda, TipoEncomenda, Moeda, EncomendaStatus, EncomendaStatusLabel } from '../types';
 import { Package, Truck, Bus, MapPin, Calendar, TrendingUp, Check, Loader } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
@@ -46,6 +47,7 @@ const StatusBadge: React.FC<{ status: EncomendaStatus }> = ({ status }) => {
 
 export const Encomendas: React.FC = () => {
     const navigate = useNavigate();
+    const { formatDate } = useDateFormatter();
     const [encomendas, setEncomendas] = useState<IEncomenda[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroTipo, setFiltroTipo] = useState<'TODOS' | TipoEncomenda>('TODOS');
@@ -170,7 +172,7 @@ export const Encomendas: React.FC = () => {
                                     <div className="flex items-center gap-2">
                                         <Calendar size={16} className="text-blue-600" />
                                         <p className="font-semibold text-slate-800 dark:text-white">
-                                            {encomenda.previsao_entrega ? new Date(encomenda.previsao_entrega).toLocaleDateString('pt-BR') : '--'}
+                                            {encomenda.previsao_entrega ? formatDate(encomenda.previsao_entrega) : '--'}
                                         </p>
                                     </div>
                                 </div>

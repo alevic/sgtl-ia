@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { IReserva, ReservationStatus, ReservationStatusLabel } from '../types';
 import { reservationsService } from '../services/reservationsService';
@@ -40,6 +41,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 };
 
 export const Reservas: React.FC = () => {
+    const { formatDate, formatDateTime } = useDateFormatter();
     const [reservas, setReservas] = useState<IReserva[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<string[]>([ReservationStatus.PENDING, ReservationStatus.CONFIRMED]);
@@ -571,7 +573,7 @@ export const Reservas: React.FC = () => {
                                                     >
                                                         <div className="font-medium truncate">{v.title || v.route_name}</div>
                                                         <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                                                            {new Date(v.departure_date).toLocaleDateString()} - {v.departure_time?.substring(0, 5)}
+                                                            {formatDate(v.departure_date)} - {v.departure_time?.substring(0, 5)}
                                                         </div>
                                                     </button>
                                                 ))}
@@ -642,7 +644,7 @@ export const Reservas: React.FC = () => {
                                                     </span>
                                                     <span className="text-slate-400">•</span>
                                                     <span className="text-slate-500 dark:text-slate-400">
-                                                        Reservado em {new Date(reserva.created_at || reserva.data_reserva).toLocaleDateString('pt-BR')} às {new Date(reserva.created_at || reserva.data_reserva).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                        Reservado em {formatDateTime(reserva.created_at || reserva.data_reserva)}
                                                     </span>
                                                 </div>
 
@@ -659,7 +661,7 @@ export const Reservas: React.FC = () => {
                                                     <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
                                                         <Calendar size={16} className="text-slate-400" />
                                                         <span>
-                                                            Partida: {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : '--'}
+                                                            Partida: {reserva.departure_date ? formatDate(reserva.departure_date) : '--'}
                                                             {' '}às{' '}
                                                             {reserva.departure_time || '--'}
                                                         </span>

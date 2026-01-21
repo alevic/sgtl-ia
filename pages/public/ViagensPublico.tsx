@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { Link } from 'react-router-dom';
 import {
     Bus, MapPin, Calendar, Clock, Users, Search, Filter,
@@ -6,19 +7,10 @@ import {
 } from 'lucide-react';
 import { tripsService } from '../../services/tripsService';
 import { publicService } from '../../services/publicService';
-import { IViagem, ITag } from '../../types';
+import { IViagem, ITag, TripStatus } from '../../types';
+import { DatePicker } from '../../components/Form/DatePicker';
 
-// Helper to format date
-const formatDate = (date: string | Date) => {
-    if (!date) return '--';
-    const d = new Date(date);
-    return d.toLocaleDateString('pt-BR', {
-        weekday: 'short',
-        day: '2-digit',
-        month: 'short',
-        timeZone: 'UTC'
-    });
-};
+
 
 // Helper to format time
 const formatTime = (time: string) => {
@@ -35,6 +27,7 @@ export const ViagensPublico: React.FC = () => {
     const [filtroOrigem, setFiltroOrigem] = useState('');
     const [filtroDestino, setFiltroDestino] = useState('');
     const [settings, setSettings] = useState<any>(null);
+    const { formatDate } = useDateFormatter();
 
     useEffect(() => {
         fetchViagens();
@@ -51,7 +44,9 @@ export const ViagensPublico: React.FC = () => {
             // Filter only active and future trips
             const activeTrips = data.filter((v: IViagem) =>
                 v.active !== false &&
-                (v.status === 'AGENDADA' || v.status === 'SCHEDULED' || v.status === 'CONFIRMADA' || v.status === 'CONFIRMED')
+                (v.status === TripStatus.SCHEDULED || (v.status as string) === 'AGENDADA' ||
+                    (v.status as string) === 'CONFIRMADA' || (v.status as string) === 'CONFIRMED' ||
+                    (v.status as string) === 'SCHEDULED')
             );
             setViagens(activeTrips);
             setAllTags(tagsData);
@@ -216,12 +211,13 @@ export const ViagensPublico: React.FC = () => {
 
                         {/* Data */}
                         <div className="relative">
-                            <Calendar size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={filtroData}
-                                onChange={(e) => setFiltroData(e.target.value)}
-                                className="w-full pl-10 pr-4 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm shadow-sm border border-white/20 transition-all hover:bg-white"
+                                onChange={setFiltroData}
+                                placeholder="Data"
+                                showIcon={true}
+                                className="!pl-10 !py-4 !rounded-2xl !bg-white/95 !backdrop-blur-sm !text-slate-800 !shadow-sm !border-white/20 !h-auto focus:ring-4 focus:ring-white/20"
+                                containerClassName="h-full"
                             />
                         </div>
 
@@ -274,7 +270,7 @@ export const ViagensPublico: React.FC = () => {
                     {filtroData && (
                         <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm">
                             <Calendar size={12} />
-                            {new Date(filtroData + 'T00:00:00').toLocaleDateString('pt-BR')}
+                            {formatDate(filtroData + 'T00:00:00')}
                         </span>
                     )}
                     {busca && (

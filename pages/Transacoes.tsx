@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const Transacoes: React.FC = () => {
     const navigate = useNavigate();
@@ -297,20 +298,20 @@ export const Transacoes: React.FC = () => {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Data Início</label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={dataInicio}
-                                    onChange={e => setDataInicio(e.target.value)}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    onChange={setDataInicio}
+                                    showIcon={true}
+                                    placeholder="DD/MM/AAAA"
                                 />
                             </div>
                             <div>
                                 <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Data Fim</label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={dataFim}
-                                    onChange={e => setDataFim(e.target.value)}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    onChange={setDataFim}
+                                    showIcon={true}
+                                    placeholder="DD/MM/AAAA"
                                 />
                             </div>
                         </div>

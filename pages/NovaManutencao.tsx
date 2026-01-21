@@ -10,6 +10,7 @@ import {
     AlertTriangle,
     CheckCircle
 } from 'lucide-react';
+import { DatePicker } from '../components/Form/DatePicker';
 import {
     IManutencao,
     TipoManutencao,
@@ -566,37 +567,28 @@ export const NovaManutencao: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Data Agendada
                                 </label>
-                                <input
-                                    type="date"
-                                    name="data_agendada"
-                                    required
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                    onChange={handleInputChange}
-                                    value={formData.data_agendada}
+                                <DatePicker
+                                    value={formData.data_agendada || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, data_agendada: val }))}
+                                    required={true}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Data Início (Real)
                                 </label>
-                                <input
-                                    type="date"
-                                    name="data_inicio"
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                    onChange={handleInputChange}
+                                <DatePicker
                                     value={formData.data_inicio || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, data_inicio: val }))}
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Data Conclusão
                                 </label>
-                                <input
-                                    type="date"
-                                    name="data_conclusao"
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                                    onChange={handleInputChange}
+                                <DatePicker
                                     value={formData.data_conclusao || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, data_conclusao: val }))}
                                 />
                             </div>
                         </div>

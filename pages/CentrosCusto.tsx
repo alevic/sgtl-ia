@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const CentrosCusto: React.FC = () => {
     const navigate = useNavigate();
@@ -51,11 +52,11 @@ export const CentrosCusto: React.FC = () => {
 
     const kpis = useMemo(() => {
         const receitas = dadosFiltrados
-            .filter(t => t.tipo === TipoTransacao.RECEITA)
+            .filter(t => t.tipo === TipoTransacao.INCOME)
             .reduce((acc, t) => acc + Number(t.valor), 0);
 
         const despesas = dadosFiltrados
-            .filter(t => t.tipo === TipoTransacao.DESPESA)
+            .filter(t => t.tipo === TipoTransacao.EXPENSE)
             .reduce((acc, t) => acc + Number(t.valor), 0);
 
         const resultado = receitas - despesas;
@@ -68,7 +69,7 @@ export const CentrosCusto: React.FC = () => {
         const centros = Object.values(CentroCusto);
         return centros.map(centro => {
             const total = dadosFiltrados
-                .filter(t => t.tipo === TipoTransacao.DESPESA && t.centro_custo === centro)
+                .filter(t => t.tipo === TipoTransacao.EXPENSE && t.centro_custo === centro)
                 .reduce((acc, t) => acc + Number(t.valor), 0);
 
             const percentual = kpis.despesas > 0 ? (total / kpis.despesas) * 100 : 0;
@@ -81,7 +82,7 @@ export const CentrosCusto: React.FC = () => {
         const classificacoes = Object.values(ClassificacaoContabil);
         return classificacoes.map(classificacao => {
             const total = dadosFiltrados
-                .filter(t => t.tipo === TipoTransacao.DESPESA && t.classificacao_contabil === classificacao)
+                .filter(t => t.tipo === TipoTransacao.EXPENSE && t.classificacao_contabil === classificacao)
                 .reduce((acc, t) => acc + t.valor, 0);
 
             const percentual = kpis.despesas > 0 ? (total / kpis.despesas) * 100 : 0;
@@ -110,19 +111,17 @@ export const CentrosCusto: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <input
-                            type="date"
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 min-w-[300px]">
+                        <DatePicker
                             value={periodoInicio}
-                            onChange={e => setPeriodoInicio(e.target.value)}
-                            className="px-2 py-1 bg-transparent border-none focus:ring-0 text-sm"
+                            onChange={setPeriodoInicio}
+                            className="bg-transparent border-none focus:ring-0 text-sm py-1"
                         />
                         <span className="text-slate-400">-</span>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={periodoFim}
-                            onChange={e => setPeriodoFim(e.target.value)}
-                            className="px-2 py-1 bg-transparent border-none focus:ring-0 text-sm"
+                            onChange={setPeriodoFim}
+                            className="bg-transparent border-none focus:ring-0 text-sm py-1"
                         />
                     </div>
                     <button className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">

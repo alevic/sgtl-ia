@@ -9,6 +9,7 @@ import { clientsService } from '../services/clientsService';
 import { vehiclesService } from '../services/vehiclesService';
 import { driversService } from '../services/driversService';
 import { routesService } from '../services/routesService';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const NovoFretamento: React.FC = () => {
     const navigate = useNavigate();
@@ -52,8 +53,8 @@ export const NovoFretamento: React.FC = () => {
             ]);
 
             setClientes(clientesData as unknown as ClienteFretamento[]); // Casting for now as ICliente matches compatible fields
-            setVeiculos(veiculosData.filter(v => v.status === VeiculoStatus.ATIVO));
-            setMotoristas(motoristasData.filter(m => m.status === 'DISPONIVEL'));
+            setVeiculos(veiculosData.filter(v => v.status === VeiculoStatus.ACTIVE));
+            setMotoristas(motoristasData.filter(m => m.status === 'AVAILABLE'));
             setRotas(rotasData.filter(r => r.ativa));
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
@@ -594,11 +595,10 @@ export const NovoFretamento: React.FC = () => {
                                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
                                         Data
                                     </label>
-                                    <input
-                                        type="date"
+                                    <DatePicker
                                         value={dataInicio}
-                                        onChange={(e) => setDataInicio(e.target.value)}
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        onChange={setDataInicio}
+                                        placeholder="DD/MM/AAAA"
                                     />
                                 </div>
                                 <div>
@@ -624,12 +624,10 @@ export const NovoFretamento: React.FC = () => {
                                     <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">
                                         Data
                                     </label>
-                                    <input
-                                        type="date"
+                                    <DatePicker
                                         value={dataFim}
-                                        onChange={(e) => setDataFim(e.target.value)}
-                                        min={dataInicio}
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        onChange={setDataFim}
+                                        placeholder="DD/MM/AAAA"
                                     />
                                 </div>
                                 <div>

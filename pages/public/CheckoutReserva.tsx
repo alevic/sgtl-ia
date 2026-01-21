@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useDateFormatter } from '../../hooks/useDateFormatter';
 import {
     ArrowLeft, Bus, MapPin, Calendar, Clock, User,
     ShieldCheck, Loader, AlertTriangle, CheckCircle2,
@@ -56,6 +57,7 @@ export const CheckoutReserva: React.FC = () => {
     const [creditsToUse, setCreditsToUse] = useState(0);
     const [isPartialPayment, setIsPartialPayment] = useState(false);
     const [entryValue, setEntryValue] = useState(0);
+    const { formatDate } = useDateFormatter();
 
     useEffect(() => {
         checkAuthAndFetchData();
@@ -463,7 +465,7 @@ export const CheckoutReserva: React.FC = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-slate-800 dark:text-white">
-                                        {viagem?.departure_date ? new Date(viagem.departure_date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'UTC' }) : '--'}
+                                        {viagem?.departure_date ? formatDate(viagem.departure_date, 'EEE, dd MMM') : '--'}
                                     </p>
                                     <p className="text-xs text-slate-500">{viagem?.departure_time?.slice(0, 5)}h</p>
                                 </div>
@@ -754,7 +756,7 @@ export const CheckoutReserva: React.FC = () => {
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-slate-800 dark:text-white">
-                                            {viagem?.departure_date ? new Date(viagem.departure_date).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'UTC' }) : '--'}
+                                            {viagem?.departure_date ? formatDate(viagem.departure_date, 'EEE, dd MMM') : '--'}
                                         </p>
                                         <p className="text-xs text-slate-500">{viagem?.departure_time?.slice(0, 5)}h</p>
                                     </div>

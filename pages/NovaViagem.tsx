@@ -12,6 +12,7 @@ import { SeletorTags } from '../components/Selectors/SeletorTags';
 import { routesService } from '../services/routesService';
 import { vehiclesService } from '../services/vehiclesService';
 import { driversService } from '../services/driversService';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const NovaViagem: React.FC = () => {
     const navigate = useNavigate();
@@ -406,11 +407,9 @@ export const NovaViagem: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Data de Partida
                                 </label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={dataPartida}
-                                    onChange={(e) => setDataPartida(e.target.value)}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
+                                    onChange={setDataPartida}
                                 />
                             </div>
                             <div>
@@ -428,11 +427,9 @@ export const NovaViagem: React.FC = () => {
                                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                     Data de Chegada (Prevista)
                                 </label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={dataChegada}
-                                    onChange={(e) => setDataChegada(e.target.value)}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
+                                    onChange={setDataChegada}
                                 />
                             </div>
                             <div>

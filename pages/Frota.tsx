@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IVeiculo, VeiculoStatus, VeiculoStatusLabel } from '../types';
 import { useAppContext } from '../context/AppContext';
 import {
@@ -131,6 +132,7 @@ const StatusBadge: React.FC<{ status: VeiculoStatus }> = ({ status }) => {
 
 export const Frota: React.FC = () => {
     const { currentContext } = useAppContext();
+    const { formatDate } = useDateFormatter();
     const [veiculos, setVeiculos] = useState<(IVeiculo & { km_atual: number; ano: number; ultima_revisao: string; motorista_atual?: string })[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<'TODOS' | VeiculoStatus>('TODOS');
@@ -385,7 +387,7 @@ export const Frota: React.FC = () => {
                                         <div>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">Última Revisão</p>
                                             <p className="font-bold text-slate-800 dark:text-white">
-                                                {veiculo.ultima_revisao ? new Date(veiculo.ultima_revisao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'N/A'}
+                                                {veiculo.ultima_revisao ? formatDate(veiculo.ultima_revisao) : 'N/A'}
                                             </p>
                                         </div>
                                     </div>

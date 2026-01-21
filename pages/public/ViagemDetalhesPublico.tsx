@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useDateFormatter } from '../../hooks/useDateFormatter';
 import {
     ArrowLeft, Bus, MapPin, Calendar, Clock, Users,
     DollarSign, Loader, AlertCircle, Check, Briefcase, AlertTriangle,
@@ -23,18 +24,7 @@ const SEAT_ICONS: Record<string, React.ElementType> = {
     'BLOQUEADO': Lock,
 };
 
-// Helper to format date
-const formatDate = (date: string | Date) => {
-    if (!date) return '--';
-    const d = new Date(date);
-    return d.toLocaleDateString('pt-BR', {
-        weekday: 'long',
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-        timeZone: 'UTC'
-    });
-};
+
 
 // Helper to format time
 const formatTime = (time: string) => {
@@ -80,6 +70,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
     const [assentosSelecionados, setAssentosSelecionados] = useState<{ numero: string; tipo: TipoAssento; valor: number }[]>([]);
     const [precosAbertos, setPrecosAbertos] = useState(false);
     const [veiculoAberto, setVeiculoAberto] = useState(false);
+    const { formatDate, formatDateTime } = useDateFormatter();
 
     useEffect(() => {
         if (id) {

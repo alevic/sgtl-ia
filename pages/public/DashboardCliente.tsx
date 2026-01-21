@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { LayoutDashboard, Ticket, Package, User, LogOut, Wallet, RefreshCcw, MapPin, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useDateFormatter } from '../../hooks/useDateFormatter';
 import { authClient } from '../../lib/auth-client';
 
 export const DashboardCliente: React.FC = () => {
@@ -8,6 +9,7 @@ export const DashboardCliente: React.FC = () => {
     const [data, setData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const { formatDate } = useDateFormatter();
 
     useEffect(() => {
         fetchDashboardData();
@@ -193,7 +195,7 @@ export const DashboardCliente: React.FC = () => {
                                 </div>
                             </div>
                             <p className="text-sm font-bold text-blue-600">
-                                {new Date(nextTrip.departure_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                                {formatDate(nextTrip.departure_date, 'dd MMM')}
                                 {', '}
                                 {nextTrip.departure_time?.slice(0, 5)}h
                             </p>

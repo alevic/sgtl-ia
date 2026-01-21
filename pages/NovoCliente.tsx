@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TipoDocumento } from '../types';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const NovoCliente: React.FC = () => {
     const navigate = useNavigate();
@@ -128,11 +129,10 @@ export const NovoCliente: React.FC = () => {
                                 <Calendar size={14} className="text-purple-600" />
                                 Data de Nascimento
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={dataNascimento}
-                                onChange={(e) => setDataNascimento(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                onChange={setDataNascimento}
+                                placeholder="DD/MM/AAAA"
                             />
                         </div>
 

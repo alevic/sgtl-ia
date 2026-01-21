@@ -256,6 +256,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                     <UsernameInput
                         value={username}
                         onChange={setUsername}
+                        name={name}
                         disabled={!canEditUsername}
                         required={mode === 'create'}
                     />

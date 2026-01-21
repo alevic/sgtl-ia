@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { VeiculoStatus } from '../types';
 import { ArrowLeft, Save, Bus, Truck, FileText, Gauge, Calendar, Wrench, Plus, Trash2, Image, Upload, X } from 'lucide-react';
 import { IVeiculoFeature } from '../types';
+import { DatePicker } from '../components/Form/DatePicker';
 
 
 export const NovoVeiculo: React.FC = () => {
@@ -11,7 +12,7 @@ export const NovoVeiculo: React.FC = () => {
     const [placa, setPlaca] = useState('');
     const [modelo, setModelo] = useState('');
     const [tipo, setTipo] = useState<'ONIBUS' | 'CAMINHAO'>('ONIBUS');
-    const [status, setStatus] = useState<VeiculoStatus>(VeiculoStatus.ATIVO);
+    const [status, setStatus] = useState<VeiculoStatus>(VeiculoStatus.ACTIVE);
     const [ano, setAno] = useState('');
     const [kmAtual, setKmAtual] = useState('');
     const [proximaRevisaoKm, setProximaRevisaoKm] = useState('');
@@ -226,9 +227,9 @@ export const NovoVeiculo: React.FC = () => {
                                 onChange={(e) => setStatus(e.target.value as VeiculoStatus)}
                                 className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
-                                <option value={VeiculoStatus.ATIVO}>✅ Ativo</option>
-                                <option value={VeiculoStatus.MANUTENCAO}>🔧 Manutenção</option>
-                                <option value={VeiculoStatus.EM_VIAGEM}>🚀 Em Viagem</option>
+                                <option value={VeiculoStatus.ACTIVE}>✅ Ativo</option>
+                                <option value={VeiculoStatus.MAINTENANCE}>🔧 Manutenção</option>
+                                <option value={VeiculoStatus.IN_TRANSIT}>🚀 Em Viagem</option>
                             </select>
                         </div>
 
@@ -327,11 +328,10 @@ export const NovoVeiculo: React.FC = () => {
                                 <Calendar size={14} className="text-purple-600" />
                                 Data da Última Revisão
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={ultimaRevisao}
-                                onChange={(e) => setUltimaRevisao(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                onChange={setUltimaRevisao}
+                                placeholder="DD/MM/AAAA"
                             />
                         </div>
                     </div>

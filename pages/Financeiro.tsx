@@ -9,11 +9,13 @@ import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, Ca
 // Mock data - em produção viria do backend
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
 
 export const Financeiro: React.FC = () => {
     const navigate = useNavigate();
     const { currentContext } = useApp();
+    const { formatDate } = useDateFormatter();
     const [periodoSelecionado, setPeriodoSelecionado] = useState<'mes' | 'trimestre' | 'ano'>('mes');
     const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -360,7 +362,7 @@ export const Financeiro: React.FC = () => {
                                                 {transacao.descricao}
                                             </p>
                                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                {new Date(transacao.data_emissao).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                                                {formatDate(transacao.data_emissao)}
                                             </p>
                                         </div>
                                     </div>

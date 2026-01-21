@@ -255,7 +255,10 @@ export async function setupDb() {
                 // Generate CPF if missing (mock data)
                 let cpf = user.cpf;
                 if (!cpf) {
-                    cpf = `${String(100000000 + i).padStart(9, '0')}${String(10 + i).padStart(2, '0')}`;
+                    // Use a more unique seed combining timestamp and index to avoid collision
+                    // Format: XXXXXXXXXXX (11 digits)
+                    const uniqueSeed = Date.now().toString().slice(-8) + String(i).padStart(3, '0');
+                    cpf = uniqueSeed;
                 }
 
                 // Generate birth_date if missing (mock: 30 years ago)
@@ -265,14 +268,27 @@ export async function setupDb() {
                     birthDate = `${year}-01-${String(15 + i).padStart(2, '0')}`;
                 }
 
-                // Update user with mock data
-                await pool.query(`
-                    UPDATE "user" 
-                    SET username = $1, phone = $2, cpf = $3, birth_date = $4
-                    WHERE id = $5
-                `, [username, phone, cpf, birthDate, user.id]);
-
-                console.log(`  ✅ Updated user: ${user.name} (${username})`);
+                // Update user with mock data, catching potential duplicate errors safely
+                try {
+                    await pool.query(`
+                        UPDATE "user" 
+                        SET username = $1, phone = $2, cpf = $3, birth_date = $4
+                        WHERE id = $5
+                    `, [username, phone, cpf, birthDate, user.id]);
+                    console.log(`  ✅ Updated user: ${user.name} (${username})`);
+                } catch (err: any) {
+                    console.error(`  ⚠️ Failed to update user ${user.name} mock data: ${err.message}`);
+                    // If CPF collision, try one more time with random suffix
+                    if (err.code === '23505') { // unique_violation
+                        const randomCpf = Math.floor(Math.random() * 10000000000).toString().padStart(11, '0');
+                        await pool.query(`
+                            UPDATE "user" 
+                            SET username = $1, phone = $2, cpf = $3, birth_date = $4
+                            WHERE id = $5
+                        `, [username, phone, randomCpf, birthDate, user.id]);
+                        console.log(`  ✅ Updated user ${user.name} with retry CPF`);
+                    }
+                }
             }
 
             console.log("✅ Mock data populated for all users.");

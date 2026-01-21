@@ -1,4 +1,5 @@
 import React from 'react';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { EmpresaContexto } from '../types';
@@ -79,6 +80,7 @@ const QuickAction = ({ icon: Icon, label, onClick, color }: any) => (
 
 export const Dashboard: React.FC = () => {
   const { currentContext, user } = useApp();
+  const { formatDate } = useDateFormatter();
   const navigate = useNavigate();
   const isTurismo = currentContext === EmpresaContexto.TURISMO;
 
@@ -97,7 +99,7 @@ export const Dashboard: React.FC = () => {
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
             <Calendar size={16} />
-            {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {formatDate(new Date(), 'PPPP')}
           </p>
         </div>
         <div className="flex items-center gap-3">

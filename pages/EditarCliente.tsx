@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { TipoDocumento } from '../types';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar, MessageSquare } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const EditarCliente: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -173,12 +174,10 @@ export const EditarCliente: React.FC = () => {
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                 <span className="flex items-center gap-1"><Calendar size={14} /> Data de Nascimento</span>
                             </label>
-                            <input
-                                type="date"
-                                name="data_nascimento"
+                            <DatePicker
                                 value={formData.data_nascimento}
-                                onChange={handleChange}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                onChange={(val) => setFormData(prev => ({ ...prev, data_nascimento: val }))}
+                                placeholder="DD/MM/AAAA"
                             />
                         </div>
 

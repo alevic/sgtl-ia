@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IMotorista, DriverStatus, DriverStatusLabel } from '../types';
 import { User, Calendar, CheckCircle, XCircle, AlertCircle, FileText, Search, Filter } from 'lucide-react';
 import { DriverActions } from '../components/Motoristas/DriverActions';
@@ -31,6 +32,7 @@ const StatusBadge: React.FC<{ status: DriverStatus }> = ({ status }) => {
 
 export const Motoristas: React.FC = () => {
     const navigate = useNavigate();
+    const { formatDate } = useDateFormatter();
     const [motoristas, setMotoristas] = useState<IMotorista[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [busca, setBusca] = useState('');
@@ -75,7 +77,7 @@ export const Motoristas: React.FC = () => {
 
         if (diasRestantes < 0) return { texto: 'Vencido', cor: 'red' };
         if (diasRestantes < 30) return { texto: `${diasRestantes} dias`, cor: 'orange' };
-        return { texto: new Date(dataValidade).toLocaleDateString('pt-BR', { timeZone: 'UTC' }), cor: 'slate' };
+        return { texto: formatDate(dataValidade), cor: 'slate' };
     };
 
     return (

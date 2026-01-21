@@ -153,7 +153,7 @@ export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, n
                 <button
                     type="button"
                     onClick={generateSuggestions}
-                    disabled={!name}
+                    disabled={disabled || !name}
                     className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     title="Gerar sugestões"
                 >

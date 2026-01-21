@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoManutencao, IVeiculoFeature } from '../types';
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
@@ -21,7 +22,7 @@ const MOCK_VEICULO: IVeiculo & {
     placa: 'ABC-1234',
     modelo: 'Mercedes-Benz O500 Double Deck',
     tipo: 'ONIBUS',
-    status: VeiculoStatus.EM_VIAGEM,
+    status: VeiculoStatus.IN_TRANSIT,
     proxima_revisao_km: 95000,
     km_atual: 87500,
     ano: 2020,
@@ -259,6 +260,7 @@ export const VeiculoDetalhes: React.FC = () => {
 // Tab: Informações Gerais
 const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) => {
     const isOnibus = veiculo.tipo === 'ONIBUS';
+    const { formatDate } = useDateFormatter();
 
     return (
         <div className="space-y-6">
@@ -279,8 +281,8 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
                 <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Status</p>
                     <p className="font-bold text-slate-800 dark:text-white">
-                        {veiculo.status === VeiculoStatus.ATIVO ? 'Ativo' :
-                            veiculo.status === VeiculoStatus.EM_VIAGEM ? 'Em Viagem' : 'Manutenção'}
+                        {veiculo.status === VeiculoStatus.ACTIVE ? 'Ativo' :
+                            veiculo.status === VeiculoStatus.IN_TRANSIT ? 'Em Viagem' : 'Manutenção'}
                     </p>
                 </div>
             </div>
@@ -327,7 +329,7 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
                     <div>
                         <p className="text-xs text-slate-500 dark:text-slate-400">Última Revisão</p>
                         <p className="font-bold text-slate-800 dark:text-white">
-                            {veiculo.ultima_revisao ? new Date(veiculo.ultima_revisao).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : 'N/A'}
+                            {veiculo.ultima_revisao ? formatDate(veiculo.ultima_revisao) : 'N/A'}
                         </p>
                     </div>
                 </div>
@@ -378,6 +380,7 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
 // Tab: Manutenção
 const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) => {
     const navigate = useNavigate();
+    const { formatDate } = useDateFormatter();
     const [manutencoes, setManutencoes] = useState<IManutencao[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -406,10 +409,10 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
 
     const getStatusColor = (status: StatusManutencao) => {
         switch (status) {
-            case StatusManutencao.AGENDADA: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case StatusManutencao.EM_ANDAMENTO: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case StatusManutencao.CONCLUIDA: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case StatusManutencao.CANCELADA: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+            case StatusManutencao.SCHEDULED: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+            case StatusManutencao.IN_PROGRESS: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+            case StatusManutencao.COMPLETED: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+            case StatusManutencao.CANCELLED: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
             default: return 'bg-slate-100 text-slate-800';
         }
     };
@@ -472,7 +475,7 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                                 className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
                             >
                                 <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                    {new Date(manutencao.data_agendada).toLocaleDateString()}
+                                    {formatDate(manutencao.data_agendada)}
                                 </td>
                                 <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
                                     {manutencao.tipo}

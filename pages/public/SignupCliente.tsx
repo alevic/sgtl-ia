@@ -136,8 +136,8 @@ export const SignupCliente: React.FC = () => {
                                 type="button"
                                 onClick={() => setTipoCliente(TipoCliente.PESSOA_FISICA)}
                                 className={`p-4 rounded-xl border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_FISICA
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                        : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                    : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
                                     }`}
                             >
                                 <User className="mx-auto mb-2" size={24} />
@@ -147,8 +147,8 @@ export const SignupCliente: React.FC = () => {
                                 type="button"
                                 onClick={() => setTipoCliente(TipoCliente.PESSOA_JURIDICA)}
                                 className={`p-4 rounded-xl border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_JURIDICA
-                                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                        : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                    : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
                                     }`}
                             >
                                 <Building2 className="mx-auto mb-2" size={24} />
@@ -251,6 +251,7 @@ export const SignupCliente: React.FC = () => {
                             <UsernameInput
                                 value={username}
                                 onChange={setUsername}
+                                name={name}
                                 required
                             />
                             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">

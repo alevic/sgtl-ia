@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useDateFormatter } from '../../hooks/useDateFormatter';
 import {
     ArrowLeft,
     Calendar,
@@ -25,6 +26,7 @@ export const ReservaDetalhesCliente: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [showCancelModal, setShowCancelModal] = useState(false);
+    const { formatDate } = useDateFormatter();
 
     useEffect(() => {
         fetchReservaDetails();
@@ -218,7 +220,7 @@ export const ReservaDetalhesCliente: React.FC = () => {
                                     <span className="text-[10px] font-bold uppercase">Data</span>
                                 </div>
                                 <p className="text-sm font-bold dark:text-white">
-                                    {new Date(reservation.departure_date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    {formatDate(reservation.departure_date, 'dd MMM yyyy')}
                                 </p>
                             </div>
                             <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">

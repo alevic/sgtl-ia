@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { Link, useNavigate } from 'react-router-dom';
 import { IViagem, ITag, TripStatus, TripStatusLabel } from '../types';
 import { tripsService } from '../services/tripsService';
@@ -9,6 +10,7 @@ import {
     ChevronDown, Check, Ticket
 } from 'lucide-react';
 import { PassengerListModal } from '../components/PassengerListModal';
+import { DatePicker } from '../components/Form/DatePicker';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
@@ -194,6 +196,8 @@ export const Viagens: React.FC = () => {
         );
     }
 
+    const { formatDate: formatSystemDate } = useDateFormatter();
+
     const formatDate = (dateValue: string | Date | undefined) => {
         if (!dateValue) return 'Data não definida';
 
@@ -214,7 +218,8 @@ export const Viagens: React.FC = () => {
 
             const [year, month, day] = dateStr.split('-').map(Number);
             // Create date at noon to avoid timezone shifts
-            return new Date(year, month - 1, day, 12).toLocaleDateString();
+            const dateObj = new Date(year, month - 1, day, 12);
+            return formatSystemDate(dateObj);
         } catch (error) {
             return 'Erro Data';
         }
@@ -311,12 +316,12 @@ export const Viagens: React.FC = () => {
 
                     {/* Filtro Data Partida */}
                     <div className="flex items-center gap-2">
-                        <Calendar size={18} className="text-slate-500" />
-                        <input
-                            type="date"
+                        <DatePicker
                             value={filtroDataPartida}
-                            onChange={(e) => setFiltroDataPartida(e.target.value)}
-                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                            onChange={setFiltroDataPartida}
+                            placeholder="Data Partida"
+                            showIcon={true}
+                            containerClassName="min-w-[150px]"
                         />
                     </div>
 

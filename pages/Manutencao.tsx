@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import {
     Wrench,
     Plus,
@@ -18,6 +19,7 @@ import { MaintenanceActions } from '../components/Manutencao/MaintenanceActions'
 
 export const Manutencao: React.FC = () => {
     const navigate = useNavigate();
+    const { formatDate } = useDateFormatter();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<string>('TODOS');
     const [manutencoes, setManutencoes] = useState<IManutencao[]>([]);
@@ -249,7 +251,7 @@ export const Manutencao: React.FC = () => {
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                                                 <Calendar size={14} />
-                                                {new Date(manutencao.data_agendada).toLocaleDateString()}
+                                                {formatDate(manutencao.data_agendada)}
                                             </div>
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
                                                 {StatusManutencaoLabel[manutencao.status] || (manutencao.status as any).replace('_', ' ')}

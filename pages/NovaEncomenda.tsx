@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { Package, User, MapPin, Truck, Save, ArrowLeft, Loader } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
 import { tripsService } from '../services/tripsService';
@@ -7,6 +8,7 @@ import { IViagem, TripStatus } from '../types';
 
 export const NovaEncomenda: React.FC = () => {
     const navigate = useNavigate();
+    const { formatDate } = useDateFormatter();
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [trips, setTrips] = useState<IViagem[]>([]);
@@ -320,7 +322,7 @@ export const NovaEncomenda: React.FC = () => {
                             <option value="">Selecione uma viagem...</option>
                             {trips.map(trip => (
                                 <option key={trip.id} value={trip.id}>
-                                    {trip.route_name} - {new Date(trip.departure_date || '').toLocaleDateString('pt-BR')} {trip.departure_time}
+                                    {trip.route_name} - {formatDate(trip.departure_date || '')} {trip.departure_time}
                                 </option>
                             ))}
                         </select>

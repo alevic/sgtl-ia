@@ -12,6 +12,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart as RechartsPie, Pie, Cell, AreaChart, Area
 } from 'recharts';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const Relatorios: React.FC = () => {
     const navigate = useNavigate();
@@ -149,10 +150,20 @@ export const Relatorios: React.FC = () => {
                 </div>
 
                 {/* Date Picker Global */}
-                <div className="flex gap-2 bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <input type="date" value={periodoInicio} onChange={e => setPeriodoInicio(e.target.value)} className="bg-transparent border-none text-sm text-slate-600 dark:text-slate-300 focus:ring-0" />
+                <div className="flex gap-2 items-center bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <DatePicker
+                        value={periodoInicio}
+                        onChange={setPeriodoInicio}
+                        showIcon={false}
+                        className="!bg-transparent !border-none text-sm !p-1 !h-auto w-24"
+                    />
                     <span className="text-slate-400 self-center">-</span>
-                    <input type="date" value={periodoFim} onChange={e => setPeriodoFim(e.target.value)} className="bg-transparent border-none text-sm text-slate-600 dark:text-slate-300 focus:ring-0" />
+                    <DatePicker
+                        value={periodoFim}
+                        onChange={setPeriodoFim}
+                        showIcon={false}
+                        className="!bg-transparent !border-none text-sm !p-1 !h-auto w-24"
+                    />
                 </div>
             </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IFretamento, IClienteCorporativo, Moeda, FretamentoStatus, FretamentoStatusLabel } from '../types';
 import { Bus, Building2, Calendar, DollarSign, FileText, CheckCircle, Loader } from 'lucide-react';
 import { chartersService } from '../services/chartersService';
@@ -36,6 +37,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
 export const Fretamento: React.FC = () => {
     const navigate = useNavigate();
+    const { formatDate } = useDateFormatter();
     const [loading, setLoading] = useState(true);
     const [fretamentos, setFretamentos] = useState<IFretamento[]>([]);
     const [clientes, setClientes] = useState<any[]>([]);
@@ -143,7 +145,7 @@ export const Fretamento: React.FC = () => {
                                             <div className="flex items-center gap-2">
                                                 <Calendar size={16} className="text-blue-600" />
                                                 <p className="font-semibold text-slate-800 dark:text-white">
-                                                    {new Date(dataInicio).toLocaleDateString('pt-BR')}
+                                                    {formatDate(dataInicio)}
                                                 </p>
                                             </div>
                                         </div>
@@ -152,7 +154,7 @@ export const Fretamento: React.FC = () => {
                                             <div className="flex items-center gap-2">
                                                 <Calendar size={16} className="text-red-600" />
                                                 <p className="font-semibold text-slate-800 dark:text-white">
-                                                    {dataFim ? new Date(dataFim).toLocaleDateString('pt-BR') : '--'}
+                                                    {dataFim ? formatDate(dataFim) : '--'}
                                                 </p>
                                             </div>
                                         </div>

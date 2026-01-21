@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase } from 'lucide-react';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const EditarMotorista: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -283,11 +284,10 @@ export const EditarMotorista: React.FC = () => {
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                 Validade *
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={validadeCnh}
-                                onChange={(e) => setValidadeCnh(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                onChange={setValidadeCnh}
+                                placeholder="DD/MM/AAAA"
                             />
                         </div>
                     </div>
@@ -437,11 +437,10 @@ export const EditarMotorista: React.FC = () => {
                                 <Calendar size={14} className="text-blue-600" />
                                 Data de Admissão
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={dataAdmissao}
-                                onChange={(e) => setDataAdmissao(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                onChange={setDataAdmissao}
+                                placeholder="DD/MM/AAAA"
                             />
                         </div>
 
@@ -534,12 +533,11 @@ export const EditarMotorista: React.FC = () => {
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                 Validade do Passaporte
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={validadePassaporte}
-                                onChange={(e) => setValidadePassaporte(e.target.value)}
+                                onChange={setValidadePassaporte}
                                 disabled={!passaporte}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                placeholder="DD/MM/AAAA"
                             />
                         </div>
                     </div>

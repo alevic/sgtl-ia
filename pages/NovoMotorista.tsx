@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase } from 'lucide-react';
+import { DatePicker } from '../components/Form/DatePicker';
 
 export const NovoMotorista: React.FC = () => {
     const navigate = useNavigate();
@@ -234,11 +235,10 @@ export const NovoMotorista: React.FC = () => {
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                 Validade *
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={validadeCnh}
-                                onChange={(e) => setValidadeCnh(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                onChange={setValidadeCnh}
+                                required={true}
                             />
                         </div>
                     </div>
@@ -431,14 +431,11 @@ export const NovoMotorista: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
-                                <Calendar size={14} className="text-blue-600" />
                                 Data de Admissão
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={dataAdmissao}
-                                onChange={(e) => setDataAdmissao(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                onChange={setDataAdmissao}
                             />
                         </div>
 
@@ -531,12 +528,10 @@ export const NovoMotorista: React.FC = () => {
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                 Validade do Passaporte
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={validadePassaporte}
-                                onChange={(e) => setValidadePassaporte(e.target.value)}
+                                onChange={setValidadePassaporte}
                                 disabled={!passaporte}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             />
                         </div>
                     </div>
