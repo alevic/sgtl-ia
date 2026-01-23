@@ -378,7 +378,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                                 </div>
 
                                                 {/* Tooltip do Tipo */}
-                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                                <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-[12px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
                                                     {(isEmpty || seatStatuses[seat] === 'BLOQUEADO') ? 'BLOQUEADO' : getSeatType(seat).replace('_', ' ')}
                                                 </div>
                                             </div>

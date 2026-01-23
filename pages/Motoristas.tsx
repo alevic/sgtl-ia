@@ -1,32 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IMotorista, DriverStatus, DriverStatusLabel } from '../types';
-import { User, Calendar, CheckCircle, XCircle, AlertCircle, FileText, Search, Filter } from 'lucide-react';
+import {
+    User,
+    Calendar,
+    CheckCircle,
+    XCircle,
+    AlertCircle,
+    FileText,
+    Search,
+    Plus,
+    Inbox,
+    Loader2,
+    Clock,
+    UserCircle
+} from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../components/ui/table";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Card, CardContent } from "../components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { cn } from "../lib/utils";
 import { DriverActions } from '../components/Motoristas/DriverActions';
 
-
 const StatusBadge: React.FC<{ status: DriverStatus }> = ({ status }) => {
-    const configs: Record<string, { color: string; icon: any }> = {
-        [DriverStatus.AVAILABLE]: { color: 'green', icon: CheckCircle },
-        [DriverStatus.IN_TRANSIT]: { color: 'blue', icon: AlertCircle },
-        [DriverStatus.ON_LEAVE]: { color: 'orange', icon: Calendar },
-        [DriverStatus.AWAY]: { color: 'red', icon: XCircle },
-        // Legacy fallbacks
-        'DISPONIVEL': { color: 'green', icon: CheckCircle },
-        'EM_VIAGEM': { color: 'blue', icon: AlertCircle },
-        'FERIAS': { color: 'orange', icon: Calendar },
-        'AFASTADO': { color: 'red', icon: XCircle }
+    const configs: Record<string, { className: string; icon: any }> = {
+        [DriverStatus.AVAILABLE]: { className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", icon: CheckCircle },
+        [DriverStatus.IN_TRANSIT]: { className: "bg-blue-500/10 text-blue-600 border-blue-500/20", icon: Clock },
+        [DriverStatus.ON_LEAVE]: { className: "bg-amber-500/10 text-amber-600 border-amber-500/20", icon: Calendar },
+        [DriverStatus.AWAY]: { className: "bg-destructive/10 text-destructive border-destructive/20", icon: XCircle }
     };
 
     const config = configs[status] || configs[DriverStatus.AVAILABLE];
     const Icon = config.icon;
 
     return (
-        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
-            <Icon size={14} />
+        <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-lg", config.className)}>
+            <Icon size={12} strokeWidth={2.5} />
             {DriverStatusLabel[status] || (status as string)}
-        </span>
+        </Badge>
     );
 };
 
@@ -58,7 +79,7 @@ export const Motoristas: React.FC = () => {
         }
     };
 
-    React.useEffect(() => {
+    useEffect(() => {
         fetchMotoristas();
     }, []);
 
@@ -70,156 +91,197 @@ export const Motoristas: React.FC = () => {
         return matchStatus && matchBusca;
     });
 
-    const verificarValidade = (dataValidade: string) => {
+    const getValidadeStatus = (dataValidade: string) => {
         const hoje = new Date();
         const validade = new Date(dataValidade);
         const diasRestantes = Math.floor((validade.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
 
-        if (diasRestantes < 0) return { texto: 'Vencido', cor: 'red' };
-        if (diasRestantes < 30) return { texto: `${diasRestantes} dias`, cor: 'orange' };
-        return { texto: formatDate(dataValidade), cor: 'slate' };
+        if (diasRestantes < 0) return { label: 'Vencido', className: 'text-destructive' };
+        if (diasRestantes < 30) return { label: `Vencendo em ${diasRestantes}d`, className: 'text-amber-500' };
+        return { label: formatDate(dataValidade), className: 'text-muted-foreground' };
     };
 
+    // Estatísticas
+    const total = motoristas.length;
+    const disponiveis = motoristas.filter(m => m.status === DriverStatus.AVAILABLE).length;
+    const emViagem = motoristas.filter(m => m.status === DriverStatus.IN_TRANSIT).length;
+    const ferias = motoristas.filter(m => m.status === DriverStatus.ON_LEAVE).length;
+
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Motoristas</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Gestão de motoristas e documentação</p>
+        <div key="motoristas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <UserCircle className="text-primary w-6 h-6" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
+                            Gestão de <span className="text-primary">Motoristas</span>
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-1">Controle de profissionais e documentação</p>
                 </div>
-                <button
+                <Button
                     onClick={() => navigate('/admin/motoristas/novo')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    className="h-14 px-6 rounded-2xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                 >
-                    <User size={18} />
-                    Novo Motorista
-                </button>
+                    <Plus size={20} className="mr-2" strokeWidth={3} />
+                    NOVO MOTORISTA
+                </Button>
             </div>
 
-            {/* Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nome ou CNH..."
+            {/* Premium Stat Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                    { label: 'Total Registrados', value: total, icon: User, color: 'primary' },
+                    { label: 'Disponíveis', value: disponiveis, icon: CheckCircle, color: 'emerald' },
+                    { label: 'Em Viagem', value: emViagem, icon: Clock, color: 'blue' },
+                    { label: 'Em Férias/Licença', value: ferias, icon: Calendar, color: 'amber' }
+                ].map((stat, i) => (
+                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+                                    <p className="text-3xl font-semibold tracking-tighter">{stat.value}</p>
+                                </div>
+                                <div className={cn(
+                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                    stat.color === 'primary' ? "bg-primary/10 text-primary" :
+                                        stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
+                                            stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
+                                                "bg-amber-500/10 text-amber-600"
+                                )}>
+                                    <stat.icon size={20} strokeWidth={2.5} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Filters Module */}
+            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Busca */}
+                    <div className="space-y-1.5 flex flex-col">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Motorista</label>
+                        <div className="relative group flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors group-focus-within:text-primary" />
+                            <Input
+                                placeholder="Nome ou CNH..."
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="pl-11 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                             />
                         </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
-                        <button
-                            onClick={() => setFiltroStatus('TODOS')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroStatus === 'TODOS' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            <Filter size={16} />
-                            Todos
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus(DriverStatus.AVAILABLE)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.AVAILABLE ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Disponível
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus(DriverStatus.IN_TRANSIT)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.IN_TRANSIT ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Em Viagem
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus(DriverStatus.ON_LEAVE)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.ON_LEAVE ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Férias
-                        </button>
-                        <button
-                            onClick={() => setFiltroStatus(DriverStatus.AWAY)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroStatus === DriverStatus.AWAY ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Afastado
-                        </button>
+
+                    {/* Status Tabs */}
+                    <div className="space-y-1.5 flex flex-col">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 text-left block">Status Operacional</label>
+                        <Tabs value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)} className="w-full">
+                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
+                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                                <TabsTrigger value={DriverStatus.AVAILABLE} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm text-emerald-600 uppercase">Disponíveis</TabsTrigger>
+                                <TabsTrigger value={DriverStatus.IN_TRANSIT} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm text-blue-600 uppercase">Em Viagem</TabsTrigger>
+                                <TabsTrigger value={DriverStatus.ON_LEAVE} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm text-amber-600 uppercase">Férias</TabsTrigger>
+                                <TabsTrigger value={DriverStatus.AWAY} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm text-destructive uppercase">Afastados</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </div>
                 </div>
             </div>
 
-            {isLoading ? (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-                    <p className="text-slate-500 dark:text-slate-400">Carregando motoristas...</p>
-                </div>
-            ) : motoristasFiltrados.length === 0 ? (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-                    <User size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400">Nenhum motorista encontrado</p>
-                </div>
-            ) : (
-                <div className="grid gap-4">
-                    {motoristasFiltrados.map((motorista) => {
-                        const cnhValidade = verificarValidade(motorista.validade_cnh);
-                        const passaporteValidade = motorista.validade_passaporte
-                            ? verificarValidade(motorista.validade_passaporte)
-                            : null;
-
-                        return (
-                            <div
-                                key={motorista.id}
-                                className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all"
-                            >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                                            <User size={28} className="text-blue-600 dark:text-blue-400" />
+            {/* Drivers Table */}
+            <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-border/50">
+                            <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Motorista / Documento</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Status</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Validade CNH</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Passaporte</TableHead>
+                            <TableHead className="pr-8 h-14 text-[12px] font-semibold uppercase tracking-widest text-right">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-64 text-center">
+                                    <div className="flex flex-col items-center gap-3 animate-pulse">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                            <Loader2 className="animate-spin" />
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{motorista.nome}</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">CNH: {motorista.cnh} - Categoria {motorista.categoria_cnh}</p>
-                                        </div>
+                                        <p className="font-semibold text-sm tracking-widest text-muted-foreground uppercase">Carregando quadro...</p>
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <StatusBadge status={motorista.status} />
-                                        <DriverActions motorista={motorista} onUpdate={fetchMotoristas} />
+                                </TableCell>
+                            </TableRow>
+                        ) : motoristasFiltrados.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-64 text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Inbox className="w-12 h-14 text-muted-foreground/30" />
+                                        <p className="font-bold text-sm text-muted-foreground">Nenhum motorista encontrado</p>
                                     </div>
-                                </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            motoristasFiltrados.map((motorista) => {
+                                const cnhValidade = getValidadeStatus(motorista.validade_cnh);
+                                const passValidade = motorista.validade_passaporte ? getValidadeStatus(motorista.validade_passaporte) : null;
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                    <div className="flex items-center gap-3">
-                                        <FileText size={18} className="text-slate-400" />
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">Validade CNH</p>
-                                            <p className={`font-semibold text-${cnhValidade.cor}-700 dark:text-${cnhValidade.cor}-300`}>
-                                                {cnhValidade.texto}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {motorista.passaporte && passaporteValidade && (
-                                        <div className="flex items-center gap-3">
-                                            <FileText size={18} className="text-slate-400" />
-                                            <div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">Passaporte: {motorista.passaporte}</p>
-                                                <p className={`font-semibold text-${passaporteValidade.cor}-700 dark:text-${passaporteValidade.cor}-300`}>
-                                                    {passaporteValidade.texto}
-                                                </p>
+                                return (
+                                    <TableRow key={motorista.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                        <TableCell className="pl-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110">
+                                                    <User size={22} />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-semibold text-sm tracking-tight text-foreground">{motorista.nome}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[12px] font-semibold text-primary uppercase">Cat. {motorista.categoria_cnh}</span>
+                                                        <span className="text-[12px] font-bold text-muted-foreground/60 tracking-wider">CNH {motorista.cnh}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
-
-                                    {!motorista.passaporte && (
-                                        <div className="flex items-center gap-3">
-                                            <AlertCircle size={18} className="text-orange-500" />
-                                            <p className="text-sm text-orange-600 dark:text-orange-400">Sem passaporte cadastrado</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <StatusBadge status={motorista.status} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                                                    <Calendar className="w-3.5 h-3.5 text-primary" strokeWidth={3} />
+                                                    <span className={cnhValidade.className}>{cnhValidade.label}</span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {motorista.passaporte ? (
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                                                        <FileText className="w-3.5 h-3.5 text-primary" strokeWidth={3} />
+                                                        <span className={passValidade?.className}>{passValidade?.label}</span>
+                                                    </div>
+                                                    <span className="text-[12px] font-bold text-muted-foreground/50 tracking-widest">{motorista.passaporte}</span>
+                                                </div>
+                                            ) : (
+                                                <Badge variant="secondary" className="bg-amber-500/10 text-amber-600 border-none text-[9px] font-semibold uppercase">N/A</Badge>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="pr-8 text-right">
+                                            <DriverActions motorista={motorista} onUpdate={fetchMotoristas} />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+            </Card>
         </div>
     );
 };

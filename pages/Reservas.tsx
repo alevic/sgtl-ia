@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { IReserva, ReservationStatus, ReservationStatusLabel } from '../types';
@@ -11,32 +11,89 @@ import { TipoTransacao, StatusTransacao, FormaPagamento, CategoriaReceita, Categ
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
     Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle,
-    UserCheck, CheckCircle, ChevronDown, Check
+    UserCheck, CheckCircle, ChevronDown, Check, CreditCard, Banknote,
+    ArrowRightLeft, MapPin, Phone, Mail, FileText, LayoutGrid, Clock, ListFilter,
+    ShieldCheck, Inbox, Wallet, History, MoreHorizontal
 } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../components/ui/table";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../components/ui/tabs";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../components/ui/select";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "../components/ui/dialog";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "../components/ui/popover";
+
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/Textarea";
+import { cn } from "../lib/utils";
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
-        [ReservationStatus.PENDING]: { color: 'yellow', label: ReservationStatusLabel[ReservationStatus.PENDING] },
-        [ReservationStatus.CONFIRMED]: { color: 'green', label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
-        [ReservationStatus.CANCELLED]: { color: 'red', label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
-        [ReservationStatus.USED]: { color: 'blue', label: ReservationStatusLabel[ReservationStatus.USED] },
-        [ReservationStatus.CHECKED_IN]: { color: 'indigo', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] },
-        [ReservationStatus.NO_SHOW]: { color: 'gray', label: ReservationStatusLabel[ReservationStatus.NO_SHOW] },
-        [ReservationStatus.COMPLETED]: { color: 'blue', label: ReservationStatusLabel[ReservationStatus.COMPLETED] },
-        // Legacy fallbacks
-        'PENDENTE': { color: 'yellow', label: ReservationStatusLabel[ReservationStatus.PENDING] },
-        'CONFIRMADA': { color: 'green', label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
-        'CANCELADA': { color: 'red', label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
-        'UTILIZADA': { color: 'blue', label: ReservationStatusLabel[ReservationStatus.USED] },
-        'EMBARCADO': { color: 'indigo', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] }
+        [ReservationStatus.PENDING]: { color: 'bg-amber-500', text: 'text-amber-500', label: ReservationStatusLabel[ReservationStatus.PENDING] },
+        [ReservationStatus.CONFIRMED]: { color: 'bg-emerald-500', text: 'text-emerald-500', label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
+        [ReservationStatus.CANCELLED]: { color: 'bg-destructive', text: 'text-destructive', label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
+        [ReservationStatus.USED]: { color: 'bg-blue-500', text: 'text-blue-500', label: ReservationStatusLabel[ReservationStatus.USED] },
+        [ReservationStatus.CHECKED_IN]: { color: 'bg-indigo-500', text: 'text-indigo-500', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] },
+        [ReservationStatus.NO_SHOW]: { color: 'bg-slate-500', text: 'text-slate-500', label: ReservationStatusLabel[ReservationStatus.NO_SHOW] },
+        [ReservationStatus.COMPLETED]: { color: 'bg-blue-600', text: 'text-blue-600', label: ReservationStatusLabel[ReservationStatus.COMPLETED] },
+        'PENDENTE': { color: 'bg-amber-500', text: 'text-amber-500', label: ReservationStatusLabel[ReservationStatus.PENDING] },
+        'CONFIRMADA': { color: 'bg-emerald-500', text: 'text-emerald-500', label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
+        'CANCELADA': { color: 'bg-destructive', text: 'text-destructive', label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
+        'UTILIZADA': { color: 'bg-blue-500', text: 'text-blue-500', label: ReservationStatusLabel[ReservationStatus.USED] },
+        'EMBARCADO': { color: 'bg-indigo-500', text: 'text-indigo-500', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] }
     };
 
     const config = configs[status] || configs[ReservationStatus.PENDING];
 
     return (
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
+        <Badge variant="outline" className={cn(
+            "rounded-xl font-semibold text-[12px] px-3 py-1 uppercase tracking-tighter shadow-sm",
+            config.color.replace('bg-', 'bg-') + "/10",
+            config.text
+        )}>
             {config.label}
-        </span>
+        </Badge>
     );
 };
 
@@ -45,17 +102,13 @@ export const Reservas: React.FC = () => {
     const [reservas, setReservas] = useState<IReserva[]>([]);
     const [loading, setLoading] = useState(true);
     const [filtroStatus, setFiltroStatus] = useState<string[]>([ReservationStatus.PENDING, ReservationStatus.CONFIRMED]);
-    const [filtroVeiculo, setFiltroVeiculo] = useState<string>('');
-    const [filtroViagem, setFiltroViagem] = useState<string>('');
+    const [filtroVeiculo, setFiltroVeiculo] = useState<string>('TODOS');
+    const [filtroViagem, setFiltroViagem] = useState<string>('TODOS');
     const [veiculos, setVeiculos] = useState<IVeiculo[]>([]);
     const [viagens, setViagens] = useState<IViagem[]>([]);
-    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-    const [isTripDropdownOpen, setIsTripDropdownOpen] = useState(false);
-    const dropdownRef = React.useRef<HTMLDivElement>(null);
-    const tripDropdownRef = React.useRef<HTMLDivElement>(null);
     const [busca, setBusca] = useState('');
-    const [buscaViagem, setBuscaViagem] = useState('');
     const [searchParams] = useSearchParams();
+    const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
     // Action States
     const [editingReserva, setEditingReserva] = useState<IReserva | null>(null);
@@ -118,46 +171,12 @@ export const Reservas: React.FC = () => {
         fetchVeiculos();
         fetchViagens();
 
-        // Handle URL Filter
         const trip_id = searchParams.get('trip_id');
         if (trip_id) {
             setFiltroViagem(trip_id);
-            // Optionally clear other filters or set appropriate defaults
-            setFiltroStatus([]); // Show all statuses if specifically looking for a trip's reservations
+            setFiltroStatus([]);
         }
     }, [searchParams]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsStatusDropdownOpen(false);
-            }
-        };
-
-        if (isStatusDropdownOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isStatusDropdownOpen]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (tripDropdownRef.current && !tripDropdownRef.current.contains(event.target as Node)) {
-                setIsTripDropdownOpen(false);
-            }
-        };
-
-        if (isTripDropdownOpen) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isTripDropdownOpen]);
 
     const handleEditClick = (reserva: IReserva) => {
         setEditingReserva(reserva);
@@ -176,12 +195,10 @@ export const Reservas: React.FC = () => {
         try {
             setActionLoading(true);
             await reservationsService.update(editingReserva.id, editForm);
-            alert('Reserva atualizada com sucesso!');
             setEditingReserva(null);
             fetchReservas();
         } catch (error) {
             console.error('Erro ao atualizar reserva:', error);
-            alert('Erro ao atualizar reserva.');
         } finally {
             setActionLoading(false);
         }
@@ -190,7 +207,6 @@ export const Reservas: React.FC = () => {
     const handleCancelClick = (reserva: IReserva) => {
         setCancelingReserva(reserva);
         setCancelReason('');
-        // Default to REFUND if paid, NONE if not
         const amountPaid = Number(reserva.amount_paid || reserva.valor_pago || 0);
         setRefundAction(amountPaid > 0 ? 'REFUND' : 'NONE');
     };
@@ -201,7 +217,6 @@ export const Reservas: React.FC = () => {
             setActionLoading(true);
             const amountPaid = Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0);
 
-            // 1. Process Financial Action
             if (refundAction === 'REFUND' && amountPaid > 0) {
                 await transactionsService.create({
                     tipo: TipoTransacao.EXPENSE,
@@ -212,35 +227,29 @@ export const Reservas: React.FC = () => {
                     data_vencimento: new Date().toISOString(),
                     data_pagamento: new Date().toISOString(),
                     status: StatusTransacao.PAID,
-                    categoria_despesa: CategoriaDespesa.OUTROS, // Could be specialized category
+                    categoria_despesa: CategoriaDespesa.OUTROS,
                     reserva_id: cancelingReserva.id,
                     criado_por: 'Sistema',
                     observacoes: `Motivo cancelamento: ${cancelReason}`
                 });
             } else if (refundAction === 'CREDIT' && amountPaid > 0) {
-                // Determine Client ID - check common fields
                 let clientId = (cancelingReserva as any).client_id || cancelingReserva.cliente_id;
-
-                // Fallback: Try to find client by Document or Email if not linked
                 if (!clientId) {
                     const doc = (cancelingReserva as any).passenger_document || (cancelingReserva as any).passenger_cpf;
                     const email = (cancelingReserva as any).passenger_email;
-
                     if (doc || email) {
                         try {
-                            // Search by document first
                             if (doc) {
                                 const cleanDoc = doc.replace(/\D/g, '');
                                 const searchRes = await clientsService.getAll(doc);
                                 const match = searchRes.find((c: any) => {
-                                    const cDoc = (c.documento_numero || '').replace(/\D/g, '');
+                                    const cDoc = (c.documento || '').replace(/\D/g, '');
                                     const cCpf = (c.cpf || '').replace(/\D/g, '');
                                     const cCnpj = (c.cnpj || '').replace(/\D/g, '');
                                     return (cDoc && cDoc === cleanDoc) || (cCpf && cCpf === cleanDoc) || (cCnpj && cCnpj === cleanDoc);
                                 });
                                 if (match) clientId = match.id;
                             }
-                            // If not found, try email
                             if (!clientId && email) {
                                 const searchRes = await clientsService.getAll(email);
                                 const match = searchRes.find((c: any) => c.email && c.email.toLowerCase() === email.toLowerCase());
@@ -253,24 +262,18 @@ export const Reservas: React.FC = () => {
                 }
 
                 if (clientId) {
-                    // Fetch client to get current balance
                     try {
                         const clientData = await clientsService.getById(clientId);
                         const currentCredit = Number(clientData.saldo_creditos || 0);
                         await clientsService.update(clientId, {
                             saldo_creditos: currentCredit + amountPaid
                         });
-                        // Optional: Log this credit update somewhere if detailed history is needed
                     } catch (err) {
                         console.error('Erro ao buscar cliente para crédito:', err);
-                        alert('Aviso: Não foi possível localizar o cadastro do cliente para gerar o crédito automaticaente.');
                     }
-                } else {
-                    alert('Aviso: Cliente não identificado na reserva. O crédito não pode ser gerado automaticamente.');
                 }
             }
 
-            // 2. Update Reservation Status
             await reservationsService.update(cancelingReserva.id, {
                 status: ReservationStatus.CANCELLED,
                 observacoes: cancelingReserva.observacoes
@@ -278,22 +281,18 @@ export const Reservas: React.FC = () => {
                     : `[Cancelamento]: ${cancelReason}`
             });
 
-            alert('Reserva cancelada com sucesso!');
             setCancelingReserva(null);
             fetchReservas();
         } catch (error) {
             console.error('Erro ao cancelar reserva:', error);
-            alert('Erro ao cancelar reserva.');
         } finally {
             setActionLoading(false);
         }
     };
 
-
-
     const handlePaymentClick = (reserva: IReserva) => {
         setPaymentReserva(reserva);
-        setPaymentMethod(FormaPagamento.PIX); // Default
+        setPaymentMethod(FormaPagamento.PIX);
         const pending = Math.max(0, Number(reserva.valor_total || reserva.price || 0) - Number(reserva.amount_paid || reserva.valor_pago || 0));
         setAmountToPay(pending.toFixed(2));
     };
@@ -301,16 +300,10 @@ export const Reservas: React.FC = () => {
     const handleConfirmPayment = async () => {
         if (!paymentReserva || !amountToPay) return;
         const paidAmount = Number(amountToPay.replace(',', '.'));
-
-        if (isNaN(paidAmount) || paidAmount <= 0) {
-            alert('Por favor, insira um valor válido.');
-            return;
-        }
+        if (isNaN(paidAmount) || paidAmount <= 0) return;
 
         try {
             setActionLoading(true);
-
-            // 1. Create Financial Transaction (Revenue)
             await transactionsService.create({
                 tipo: TipoTransacao.INCOME,
                 descricao: `Pagamento Reserva ${paymentReserva.ticket_code || paymentReserva.codigo} - ${paymentReserva.passenger_name}`,
@@ -323,53 +316,40 @@ export const Reservas: React.FC = () => {
                 forma_pagamento: paymentMethod,
                 categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
                 reserva_id: paymentReserva.id,
-                criado_por: 'Sistema' // Should ideally be user ID
+                criado_por: 'Sistema'
             });
 
-            // 2. Update Reservation
             const currentTotalPaid = Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0) + paidAmount;
             const totalPrice = Number(paymentReserva.valor_total || paymentReserva.price || 0);
-
-            // Auto-confirm if paid >= total, otherwise just update amount
             const newStatus = (currentTotalPaid >= totalPrice && totalPrice > 0) ? ReservationStatus.CONFIRMED : paymentReserva.status;
 
-            // Updated payload to match backend expectations
             await reservationsService.update(paymentReserva.id, {
                 status: newStatus,
                 forma_pagamento: paymentMethod,
-                valor_pago: currentTotalPaid, // Legacy/Frontend field
-                amount_paid: currentTotalPaid // Backend field
+                valor_pago: currentTotalPaid,
+                amount_paid: currentTotalPaid
             });
 
-            alert('Pagamento registrado com sucesso!');
             setPaymentReserva(null);
             fetchReservas();
         } catch (error) {
             console.error('Erro ao registrar pagamento:', error);
-            alert('Erro ao registrar pagamento.');
         } finally {
             setActionLoading(false);
         }
     };
 
-    const handleTransferClick = (reserva: IReserva) => {
-        // Placeholder for transfer functionality
-        // In a real implementation, this would open a similar flow to NovaReserva but pre-filled
-        alert('Funcionalidade de transferência: Em breve você poderá alterar a viagem ou assento.');
+    const handleTransferClick = (id: string) => {
+        // Transfer logic
     };
 
     const handleStatusChange = async (reserva: IReserva, newStatus: string) => {
-        const label = ReservationStatusLabel[newStatus as ReservationStatus] || newStatus;
-        if (!confirm(`Confirma a alteração do status para ${label}?`)) return;
-
         try {
             setActionLoading(true);
             await reservationsService.update(reserva.id, { status: newStatus });
-            // alert('Status atualizado com sucesso!'); // Optional: reduce noise
             fetchReservas();
         } catch (error) {
             console.error('Erro ao atualizar status:', error);
-            alert('Erro ao atualizar status.');
         } finally {
             setActionLoading(false);
         }
@@ -394,8 +374,9 @@ export const Reservas: React.FC = () => {
 
     const reservasFiltradas = reservas.filter(r => {
         const matchStatus = filtroStatus.length === 0 || filtroStatus.includes(r.status);
-        const matchVeiculo = filtroVeiculo === '' || (r as any).vehicle_id === filtroVeiculo;
-        const matchViagem = filtroViagem === '' || (r as any).trip_id === filtroViagem;
+
+        const matchVeiculo = filtroVeiculo === 'TODOS' || (r as any).vehicle_id === filtroVeiculo;
+        const matchViagem = filtroViagem === 'TODOS' || (r as any).trip_id === filtroViagem;
         const passengerName = (r as any).passenger_name || '';
         const ticketCode = (r as any).ticket_code || r.codigo || '';
 
@@ -407,649 +388,637 @@ export const Reservas: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader className="animate-spin text-blue-600" size={32} />
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+                <div className="relative">
+                    <div className="w-12 h-14 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Ticket size={16} className="text-primary animate-pulse" />
+                    </div>
+                </div>
+                <p className="text-muted-foreground font-medium animate-pulse text-sm">Carregando reservas...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Gerenciamento de Reservas</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Gestão de reservas de passagens</p>
+        <div key="reservas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Module */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <Ticket size={24} className="text-primary" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
+                            Gestão de <span className="text-primary">Reservas</span>
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-1">
+                        Acompanhe passagens, pagamentos e embarques em tempo real.
+                    </p>
                 </div>
-                <Link
-                    to="/admin/reservas/nova"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                <Button
+                    onClick={() => navigate('/admin/reservas/nova')}
+                    className="h-14 px-6 rounded-2xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                 >
-                    <Plus size={18} />
-                    Nova Reserva
-                </Link>
+                    <Plus size={20} className="mr-2" strokeWidth={3} />
+                    NOVA RESERVA
+                </Button>
             </div>
 
-            {/* Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por código ou nome do passageiro..."
-                                value={busca}
-                                onChange={(e) => setBusca(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
+            {/* Quick Stats Overlay */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                    { label: 'Total Reservas', value: reservas.length, icon: Inbox, color: 'blue' },
+                    { label: 'Aguardando', value: reservas.filter(r => r.status === ReservationStatus.PENDING).length, icon: Clock, color: 'amber' },
+                    { label: 'Confirmadas', value: reservas.filter(r => r.status === ReservationStatus.CONFIRMED).length, icon: ShieldCheck, color: 'emerald' },
+                    { label: 'Valor Total', value: `R$ ${reservas.reduce((acc, r) => acc + (Number(r.valor_total || r.price || 0)), 0).toLocaleString()}`, icon: Wallet, color: 'indigo' },
+                ].map((stat, i) => (
+                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+                                    <p className="text-3xl font-semibold tracking-tighter text-foreground">{stat.value}</p>
+                                </div>
+                                <div className={cn(
+                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                    stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
+                                        stat.color === 'amber' ? "bg-amber-500/10 text-amber-600" :
+                                            stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
+                                                "bg-indigo-500/10 text-indigo-600"
+                                )}>
+                                    <stat.icon size={20} strokeWidth={2.5} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+
+            {/* Filters Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+                {/* Busca */}
+                <div className="space-y-1.5">
+                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Reserva</label>
+                    <div className="relative group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-primary transition-colors" size={18} />
+                        <Input
+                            placeholder="Código, passageiro ou doc..."
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                            className="h-14 pl-12 pr-4 bg-muted/40 border-border rounded-2xl focus-visible:ring-primary/20 font-bold"
+                        />
                     </div>
-                    <div className="flex gap-2 flex-wrap items-center">
-                        <div className="flex items-center gap-2 relative" ref={dropdownRef}>
-                            <Filter size={18} className="text-slate-500" />
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    className="flex items-center justify-between min-w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-left text-sm"
-                                    onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                                >
+                </div>
+
+                {/* Veículo */}
+                <div className="space-y-1.5">
+                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Veículo</label>
+                    <Select value={filtroVeiculo} onValueChange={(v) => setFiltroVeiculo(v)}>
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-2xl font-bold shadow-none focus:ring-primary/20">
+                            <div className="flex items-center">
+                                <Bus size={16} className="mr-2 text-muted-foreground" />
+                                <SelectValue placeholder="Todos os veículos" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-none shadow-2xl">
+                            <SelectItem value="TODOS" className="rounded-xl font-bold">Todos os Veículos</SelectItem>
+                            {veiculos.map(v => (
+                                <SelectItem key={v.id} value={v.id} className="rounded-xl font-bold">
+                                    {v.modelo} - {v.placa}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Viagem */}
+                <div className="space-y-1.5">
+                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Viagem / Rota</label>
+                    <Select value={filtroViagem} onValueChange={(v) => setFiltroViagem(v)}>
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-2xl font-bold shadow-none focus:ring-primary/20">
+                            <div className="flex items-center">
+                                <Calendar size={16} className="mr-2 text-muted-foreground" />
+                                <SelectValue placeholder="Todas as viagens" />
+                            </div>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-none shadow-2xl max-h-[300px]">
+                            <SelectItem value="TODOS" className="rounded-xl font-bold">Todas as Viagens</SelectItem>
+                            {viagens.map(v => (
+                                <SelectItem key={v.id} value={v.id} className="rounded-xl font-bold">
+                                    {formatDate(v.departure_date)} - {v.title || v.route_name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Status */}
+                <div className="space-y-1.5">
+                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status da Reserva</label>
+                    <Popover open={isStatusDropdownOpen} onOpenChange={setIsStatusDropdownOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="h-14 w-full bg-muted/40 border-border rounded-2xl font-bold justify-between hover:bg-muted/60"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Filter size={16} strokeWidth={2.5} />
                                     <span className="truncate">
                                         {filtroStatus.length === 0
-                                            ? 'Todos os status'
+                                            ? 'Todos os Status'
                                             : `${filtroStatus.length} selecionado(s)`}
                                     </span>
-                                    <ChevronDown size={14} className={`text-slate-400 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {isStatusDropdownOpen && (
-                                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
-                                        <div className="p-2 space-y-1">
-                                            <button
-                                                onClick={() => {
-                                                    setFiltroStatus([]);
-                                                    setIsStatusDropdownOpen(false);
-                                                }}
-                                                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.length === 0 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
-                                            >
-                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.length === 0 ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
-                                                    {filtroStatus.length === 0 && <Check size={12} className="text-white" />}
-                                                </div>
-                                                Todos os status
-                                            </button>
-                                            <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
-                                            {statusOptions.map((option) => (
-                                                <button
-                                                    key={option.value}
-                                                    onClick={() => toggleStatus(option.value)}
-                                                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.includes(option.value) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
-                                                >
-                                                    <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.includes(option.value) ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
-                                                        {filtroStatus.includes(option.value) && <Check size={12} className="text-white" />}
-                                                    </div>
-                                                    {option.label}
-                                                </button>
-                                            ))}
+                                </div>
+                                <ChevronDown size={16} className={cn("transition-transform", isStatusDropdownOpen && "rotate-180")} />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[240px] p-3 rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Selecionar Status</span>
+                                    {filtroStatus.length > 0 && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setFiltroStatus([])}
+                                            className="h-6 px-2 text-xs font-bold"
+                                        >
+                                            Limpar
+                                        </Button>
+                                    )}
+                                </div>
+                                {statusOptions.map((option) => (
+                                    <div
+                                        key={option.value}
+                                        className="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors"
+                                        onClick={() => toggleStatus(option.value)}
+                                    >
+                                        <div className={cn(
+                                            "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                                            filtroStatus.includes(option.value)
+                                                ? "bg-primary border-primary"
+                                                : "border-muted-foreground/30"
+                                        )}>
+                                            {filtroStatus.includes(option.value) && <Check size={10} className="text-white" strokeWidth={4} />}
                                         </div>
+                                        <span className={cn(
+                                            "text-xs font-bold transition-colors",
+                                            filtroStatus.includes(option.value) ? "text-foreground" : "text-muted-foreground"
+                                        )}>
+                                            {option.label}
+                                        </span>
                                     </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Filtro de Veículo */}
-                        <div className="flex items-center gap-2">
-                            <Bus size={18} className="text-slate-500" />
-                            <select
-                                value={filtroVeiculo}
-                                onChange={(e) => setFiltroVeiculo(e.target.value)}
-                                className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                            >
-                                <option value="">Todos os veículos</option>
-                                {veiculos.map(v => (
-                                    <option key={v.id} value={v.id}>
-                                        {v.modelo} - {v.placa}
-                                    </option>
                                 ))}
-                            </select>
-                        </div>
-
-                        {/* Filtro de Viagem (Searchable) */}
-                        <div className="flex items-center gap-2 relative" ref={tripDropdownRef}>
-                            <Calendar size={18} className="text-slate-500" />
-                            <div className="relative">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsTripDropdownOpen(!isTripDropdownOpen)}
-                                    className="flex items-center justify-between min-w-[250px] px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-left text-sm"
-                                >
-                                    <span className="truncate">
-                                        {filtroViagem
-                                            ? viagens.find(v => v.id === filtroViagem)?.title || viagens.find(v => v.id === filtroViagem)?.route_name || 'Viagem selecionada'
-                                            : 'Todas as viagens'}
-                                    </span>
-                                    <ChevronDown size={14} className={`text-slate-400 transition-transform ${isTripDropdownOpen ? 'rotate-180' : ''}`} />
-                                </button>
-
-                                {isTripDropdownOpen && (
-                                    <div className="absolute top-full left-0 mt-1 w-[300px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
-                                        <div className="p-2 border-b border-slate-100 dark:border-slate-700">
-                                            <div className="relative">
-                                                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="Pesquisar viagem..."
-                                                    value={buscaViagem}
-                                                    onChange={(e) => setBuscaViagem(e.target.value)}
-                                                    className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white rounded-md focus:ring-2 focus:ring-blue-500 outline-none"
-                                                    autoFocus
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="max-h-[250px] overflow-y-auto p-1">
-                                            <button
-                                                onClick={() => {
-                                                    setFiltroViagem('');
-                                                    setIsTripDropdownOpen(false);
-                                                    setBuscaViagem('');
-                                                }}
-                                                className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${!filtroViagem ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
-                                            >
-                                                Todas as viagens
-                                            </button>
-                                            <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
-                                            {viagens
-                                                .filter(v => {
-                                                    const title = (v.title || v.route_name || '').toLowerCase();
-                                                    return title.includes(buscaViagem.toLowerCase());
-                                                })
-                                                .map(v => (
-                                                    <button
-                                                        key={v.id}
-                                                        onClick={() => {
-                                                            setFiltroViagem(v.id);
-                                                            setIsTripDropdownOpen(false);
-                                                            setBuscaViagem('');
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${filtroViagem === v.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
-                                                    >
-                                                        <div className="font-medium truncate">{v.title || v.route_name}</div>
-                                                        <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                                                            {formatDate(v.departure_date)} - {v.departure_time?.substring(0, 5)}
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
-                        </div>
-                    </div>
+                        </PopoverContent>
+                    </Popover>
                 </div>
             </div>
 
-            {/* Lista de Reservas */}
-            <div className="grid gap-4">
-                {reservasFiltradas.length === 0 ? (
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-                        <Ticket size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                        <p className="text-slate-500 dark:text-slate-400">Nenhuma reserva encontrada</p>
+
+            {/* Table Module */}
+            {/* Reservations Table Container */}
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                <div className="p-8 border-b border-border/50 flex justify-between items-center bg-muted/20">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <Ticket className="w-5 h-5 text-primary" strokeWidth={2.5} />
+                        </div>
+                        <h2 className="text-xl font-semibold tracking-tight">Registro de Passageiros</h2>
                     </div>
-                ) : (
-                    reservasFiltradas.map((reserva: any) => {
-                        const isCancelled = reserva.status === ReservationStatus.CANCELLED;
+                </div>
 
-                        return (
-                            <div key={reserva.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden hover:shadow-md transition-all group">
-                                <div className="p-6">
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            {/* Header: Código, Status e Valor */}
-                                            <div className="flex flex-wrap items-center gap-3 mb-4">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                                                        <Ticket size={20} className="text-blue-600 dark:text-blue-400" />
-                                                    </div>
-                                                    <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                                                        {reserva.ticket_code || reserva.codigo}
-                                                    </h3>
-                                                </div>
-                                                <StatusBadge status={reserva.status} />
-
-                                                {/* Digital Pending Confirmation Badge */}
-                                                {reserva.status === ReservationStatus.PENDING && (reserva.payment_method === 'DIGITAL' || (reserva as any).forma_pagamento === 'DIGITAL') && (
-                                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
-                                                        Aguardando Confirmação (Digital)
-                                                    </span>
-                                                )}
-
-                                                <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-bold bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-md">
-                                                    <DollarSign size={14} />
-                                                    <span>R$ {Number(reserva.valor_total || reserva.price || 0).toFixed(2)}</span>
-                                                </div>
-                                                {/* Pending Amount Display */}
-                                                {(Number(reserva.valor_total || reserva.price || 0) - Number(reserva.amount_paid || reserva.valor_pago || 0)) > 0.01 && (
-                                                    <div className="flex items-center gap-1 text-red-600 dark:text-red-400 font-bold bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-md" title="Valor Pendente">
-                                                        <DollarSign size={14} />
-                                                        <span>Pendente: R$ {Math.max(0, Number(reserva.valor_total || reserva.price || 0) - Number(reserva.amount_paid || reserva.valor_pago || 0)).toFixed(2)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Informações detalhadas */}
-                                            <div className="space-y-2">
-                                                {/* Passageiro */}
-                                                <div className="flex items-center gap-2.5 text-sm">
-                                                    <User size={16} className="text-slate-400 shrink-0" />
-                                                    <span className="font-medium text-slate-700 dark:text-slate-300">
-                                                        {reserva.passenger_name}
-                                                    </span>
-                                                    <span className="text-slate-400">•</span>
-                                                    <span className="text-slate-500 dark:text-slate-400">
-                                                        Reservado em {formatDateTime(reserva.created_at || reserva.data_reserva)}
-                                                    </span>
-                                                </div>
-
-                                                {/* Viagem */}
-                                                <div className="flex items-center gap-2.5 text-sm">
-                                                    <Bus size={16} className="text-slate-400 shrink-0" />
-                                                    <span className="text-slate-600 dark:text-slate-400">
-                                                        {reserva.trip_title || reserva.route_name || 'Viagem sem título'}
-                                                    </span>
-                                                </div>
-
-                                                {/* Data e Assento */}
-                                                <div className="flex flex-wrap items-center gap-4 text-sm mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/50">
-                                                    <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                                                        <Calendar size={16} className="text-slate-400" />
-                                                        <span>
-                                                            Partida: {reserva.departure_date ? formatDate(reserva.departure_date) : '--'}
-                                                            {' '}às{' '}
-                                                            {reserva.departure_time || '--'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded text-slate-700 dark:text-slate-300 font-medium">
-                                                        <span className="text-xs">Assento</span>
-                                                        <span className="text-sm font-bold">{reserva.seat_number || 'N/A'}</span>
-                                                    </div>
-
-                                                    {(reserva.boarding_point || reserva.dropoff_point) && (
-                                                        <div className="flex flex-wrap gap-4 w-full mt-2 pt-2 border-t border-slate-50 dark:border-slate-700/30">
-                                                            {reserva.boarding_point && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
-                                                                    <span className="font-bold uppercase">Embarque:</span>
-                                                                    <span>{reserva.boarding_point}</span>
-                                                                </div>
-                                                            )}
-                                                            {reserva.dropoff_point && (
-                                                                <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
-                                                                    <span className="font-bold uppercase">Desembarque:</span>
-                                                                    <span>{reserva.dropoff_point}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-border/50">
+                            <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Código / Passageiro</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Viagem / Veículo</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-center">Status</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Investimento</TableHead>
+                            <TableHead className="pr-8 h-14 text-[12px] font-semibold uppercase tracking-widest text-right">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-64 text-center">
+                                    <div className="flex flex-col items-center gap-3 animate-pulse">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                         </div>
-
-                                        {/* Ações (Top-Right) */}
-                                        <div className="flex items-center gap-2 ml-4">
-                                            {/* Check-in Button */}
-                                            {/* Allow Check-in if CONFIRMED OR (PENDING and has paid something) */}
-                                            {((reserva.status === ReservationStatus.CONFIRMED) ||
-                                                (reserva.status === ReservationStatus.PENDING && Number(reserva.amount_paid || reserva.valor_pago || 0) > 0)) && (
-                                                    <button
-                                                        onClick={() => handleStatusChange(reserva, ReservationStatus.CHECKED_IN)}
-                                                        className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
-                                                        title="Realizar Check-in (Embarque)"
-                                                        disabled={actionLoading}
-                                                    >
-                                                        <UserCheck size={18} className="text-indigo-600 dark:text-indigo-400" />
-                                                    </button>
-                                                )}
-
-                                            {/* Finalize Button */}
-                                            {reserva.status === ReservationStatus.CHECKED_IN && (
-                                                <button
-                                                    onClick={() => handleStatusChange(reserva, ReservationStatus.USED)}
-                                                    className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/30 hover:bg-teal-200 dark:hover:bg-teal-900/50 transition-colors"
-                                                    title="Finalizar Viagem (Utilizada)"
-                                                    disabled={actionLoading}
-                                                >
-                                                    <CheckCircle size={18} className="text-teal-600 dark:text-teal-400" />
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleEditClick(reserva)}
-                                                className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                                title="Editar"
-                                            >
-                                                <Edit size={18} className="text-slate-600 dark:text-slate-400" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleTransferClick(reserva)}
-                                                className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                                                title="Transferir / Trocar Assento"
-                                                disabled={isCancelled}
-                                            >
-                                                <RefreshCw size={18} className={`text-orange-600 dark:text-orange-400 ${isCancelled ? 'opacity-50' : ''}`} />
-                                            </button>
-                                            {!isCancelled && (
-                                                <button
-                                                    onClick={() => handleCancelClick(reserva)}
-                                                    className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                                                    title="Cancelar"
-                                                >
-                                                    <XCircle size={18} className="text-red-600 dark:text-red-400" />
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={() => handlePaymentClick(reserva)}
-                                                className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors"
-                                                title="Realizar Pagamento"
-                                                disabled={isCancelled}
-                                            >
-                                                <DollarSign size={18} className={`text-green-600 dark:text-green-400 ${isCancelled ? 'opacity-50' : ''}`} />
-                                            </button>
-                                        </div>
+                                        <p className="font-semibold text-sm tracking-widest text-muted-foreground uppercase">Carregando registro...</p>
                                     </div>
-                                </div>
-                            </div>
-                        );
-                    })
-                )}
-            </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : reservasFiltradas.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-64 text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Inbox className="w-12 h-14 text-muted-foreground/30" />
+                                        <p className="font-bold text-sm text-muted-foreground">Nenhuma reserva encontrada</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            reservasFiltradas.map((reserva) => {
+                                const ticketCode = (reserva as any).ticket_code || reserva.codigo || 'S/N';
+                                const passengerName = (reserva as any).passenger_name || 'Passageiro não identificado';
+                                const tripName = (reserva as any).trip_name || 'Viagem não identificada';
+                                const vehicleName = (reserva as any).vehicle_name || 'Veículo não atribuído';
+                                const valorTotal = Number(reserva.valor_total || reserva.price || 0);
+                                const valorPago = Number((reserva as any).amount_paid || (reserva as any).valor_pago || 0);
+                                const pendente = Math.max(0, valorTotal - valorPago);
+
+                                return (
+                                    <TableRow key={reserva.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                        <TableCell className="pl-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+                                                    <User size={20} strokeWidth={2.5} />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-semibold text-sm tracking-tight text-foreground">{passengerName}</span>
+                                                    <span className="text-[12px] font-bold text-muted-foreground/60 tracking-wider">
+                                                        #{ticketCode}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
+                                                    <Bus size={14} className="text-primary" />
+                                                    {vehicleName}
+                                                </div>
+                                                <span className="text-[12px] font-medium text-muted-foreground">
+                                                    {tripName}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                            <StatusBadge status={reserva.status} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-semibold text-foreground">
+                                                    R$ {valorTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </span>
+                                                {pendente > 0 ? (
+                                                    <div className="flex items-center gap-1 text-[9px] font-semibold text-amber-600 uppercase tracking-widest mt-1">
+                                                        <Clock size={10} /> Faltam {pendente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-1 text-[9px] font-semibold text-emerald-600 uppercase tracking-widest mt-1">
+                                                        <CheckCircle size={10} /> Quitado
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="pr-8 text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors">
+                                                        <MoreHorizontal className="h-5 w-5" strokeWidth={2.5} />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl shadow-2xl border-none bg-card/95 backdrop-blur-md">
+                                                    <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground px-3 py-2">Operações</DropdownMenuLabel>
+                                                    <DropdownMenuItem onClick={() => handleEditClick(reserva)} className="rounded-xl px-3 py-2.5 font-bold focus:bg-primary focus:text-primary-foreground gap-3 transition-all">
+                                                        <Edit className="h-4 w-4" />
+                                                        Editar Cadastro
+                                                    </DropdownMenuItem>
+
+                                                    {pendente > 0 && (
+                                                        <DropdownMenuItem onClick={() => handlePaymentClick(reserva)} className="rounded-xl px-3 py-2.5 font-bold text-emerald-600 focus:bg-emerald-500 focus:text-white gap-3 transition-all">
+                                                            <DollarSign className="h-4 w-4" />
+                                                            Baixar Pagamento
+                                                        </DropdownMenuItem>
+                                                    )}
+
+                                                    <DropdownMenuSeparator className="bg-border/50 my-2" />
+
+                                                    <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground px-3 py-2">Fluxo Operacional</DropdownMenuLabel>
+                                                    {[ReservationStatus.CHECKED_IN, ReservationStatus.USED].map(st => (
+                                                        <DropdownMenuItem key={st} onClick={() => handleStatusChange(reserva, st)} className="rounded-xl px-3 py-2.5 font-bold gap-3 transition-all">
+                                                            <div className={cn("w-1.5 h-1.5 rounded-full",
+                                                                st === ReservationStatus.CHECKED_IN ? 'bg-indigo-500' : 'bg-emerald-500'
+                                                            )} />
+                                                            {ReservationStatusLabel[st]}
+                                                        </DropdownMenuItem>
+                                                    ))}
+
+                                                    <DropdownMenuSeparator className="bg-border/50 my-2" />
+
+                                                    {reserva.status !== ReservationStatus.CANCELLED && (
+                                                        <DropdownMenuItem onClick={() => handleCancelClick(reserva)} className="rounded-xl px-3 py-2.5 font-bold text-destructive focus:bg-destructive focus:text-destructive-foreground gap-3 transition-all">
+                                                            <XCircle className="h-4 w-4" />
+                                                            Cancelar Reserva
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+            </Card>
 
             {/* Edit Modal */}
-            {editingReserva && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full animate-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-700">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">Editar Reserva</h3>
-                            <button onClick={() => setEditingReserva(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                                <X size={24} />
-                            </button>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome do Passageiro</label>
-                                <input
-                                    type="text"
+            <Dialog open={!!editingReserva} onOpenChange={(open) => !open && setEditingReserva(null)}>
+                <DialogContent className="sm:max-w-[600px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-8 bg-primary/5 border-b border-primary/10">
+                        <DialogTitle className="text-2xl font-semibold flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-xl">
+                                <Edit size={22} className="text-primary" />
+                            </div>
+                            Editar Reserva
+                        </DialogTitle>
+                        <DialogDescription className="font-medium">
+                            Ajuste os dados do passageiro e pontos de embarque/desembarque.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="p-8 space-y-6">
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo</Label>
+                                <Input
                                     value={editForm.passenger_name}
                                     onChange={e => setEditForm({ ...editForm, passenger_name: e.target.value })}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Documento</label>
-                                <input
-                                    type="text"
+                            <div className="space-y-2">
+                                <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Documento / CPF</Label>
+                                <Input
                                     value={editForm.passenger_document}
                                     onChange={e => setEditForm({ ...editForm, passenger_document: e.target.value })}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                                <input
-                                    type="email"
+                            <div className="space-y-2">
+                                <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">E-mail</Label>
+                                <Input
                                     value={editForm.passenger_email}
                                     onChange={e => setEditForm({ ...editForm, passenger_email: e.target.value })}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
-                                <input
-                                    type="tel"
+                            <div className="space-y-2">
+                                <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone</Label>
+                                <Input
                                     value={editForm.passenger_phone}
                                     onChange={e => setEditForm({ ...editForm, passenger_phone: e.target.value })}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ponto de Embarque</label>
-                                    <select
-                                        value={editForm.boarding_point}
-                                        onChange={e => setEditForm({ ...editForm, boarding_point: e.target.value })}
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
-                                    >
-                                        <option value="">Selecione...</option>
-                                        {(() => {
-                                            const stops = (editingReserva as any)?.route_stops;
-                                            const stopsList = typeof stops === 'string' ? JSON.parse(stops) : (Array.isArray(stops) ? stops : []);
-                                            return stopsList.filter((s: any) => s.permite_embarque !== false).map((stop: any, idx: number) => (
-                                                <option key={idx} value={stop.nome}>{stop.nome}</option>
-                                            ));
-                                        })()}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ponto de Desembarque</label>
-                                    <select
-                                        value={editForm.dropoff_point}
-                                        onChange={e => setEditForm({ ...editForm, dropoff_point: e.target.value })}
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
-                                    >
-                                        <option value="">Selecione...</option>
-                                        {(() => {
-                                            const stops = (editingReserva as any)?.return_route_stops;
-                                            const stopsList = typeof stops === 'string' ? JSON.parse(stops) : (Array.isArray(stops) ? stops : []);
-                                            return stopsList.filter((s: any) => s.permite_desembarque !== false).map((stop: any, idx: number) => (
-                                                <option key={idx} value={stop.nome}>{stop.nome}</option>
-                                            ));
-                                        })()}
-                                    </select>
-                                </div>
-                            </div>
                         </div>
-                        <div className="flex justify-end gap-3 p-6 border-t border-slate-100 dark:border-slate-700">
-                            <button
-                                onClick={() => setEditingReserva(null)}
-                                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSaveEdit}
-                                disabled={actionLoading}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                            >
-                                {actionLoading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
-                                Salvar Alterações
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
-            {/* Cancel Confirmation Modal */}
-            {/* Cancel Confirmation Modal */}
-            {cancelingReserva && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full animate-in zoom-in-95 duration-200">
-                        <div className="p-6">
-                            <div className="text-center mb-6">
-                                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <AlertTriangle size={24} className="text-red-600 dark:text-red-400" />
+                        <div className="space-y-4 pt-4 border-t border-border/50">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Ponto de Embarque</Label>
+                                    {(() => {
+                                        const linkedViagem = viagens.find(v => v.id === (editingReserva?.viagem_id || (editingReserva as any)?.trip_id));
+                                        const stops = Array.isArray(linkedViagem?.route_stops) ? linkedViagem?.route_stops : [];
+                                        const boardingOptions = stops.filter((s: any) => s.permite_embarque || s.tipo === 'ORIGEM');
+
+                                        if (boardingOptions.length > 0) {
+                                            return (
+                                                <Select
+                                                    value={editForm.boarding_point}
+                                                    onValueChange={v => setEditForm({ ...editForm, boarding_point: v })}
+                                                >
+                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-2xl font-bold">
+                                                        <SelectValue placeholder="Selecione o ponto" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                                        {boardingOptions.map((s: any, idx: number) => (
+                                                            <SelectItem key={idx} value={s.nome} className="rounded-xl font-bold">
+                                                                {s.nome}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            );
+                                        }
+                                        return (
+                                            <Input
+                                                value={editForm.boarding_point}
+                                                onChange={e => setEditForm({ ...editForm, boarding_point: e.target.value })}
+                                                className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                                placeholder="Digite o ponto..."
+                                            />
+                                        );
+                                    })()}
                                 </div>
-                                <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Cancelar Reserva?</h3>
-                                <p className="text-slate-500 dark:text-slate-400">
-                                    Esta ação não pode ser desfeita.
-                                </p>
-                            </div>
+                                <div className="space-y-2">
+                                    <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Ponto de Desembarque</Label>
+                                    {(() => {
+                                        const linkedViagem = viagens.find(v => v.id === (editingReserva?.viagem_id || (editingReserva as any)?.trip_id));
+                                        const stops = Array.isArray(linkedViagem?.route_stops) ? linkedViagem?.route_stops : [];
+                                        const dropoffOptions = stops.filter((s: any) => s.permite_desembarque || s.tipo === 'DESTINO');
 
-                            <div className="space-y-4 mb-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                        Motivo do Cancelamento
-                                    </label>
-                                    <textarea
-                                        value={cancelReason}
-                                        onChange={(e) => setCancelReason(e.target.value)}
-                                        placeholder="Informe o motivo..."
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white resize-none h-24 focus:ring-2 focus:ring-red-500 outline-none"
-                                    />
+                                        if (dropoffOptions.length > 0) {
+                                            return (
+                                                <Select
+                                                    value={editForm.dropoff_point}
+                                                    onValueChange={v => setEditForm({ ...editForm, dropoff_point: v })}
+                                                >
+                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-2xl font-bold">
+                                                        <SelectValue placeholder="Selecione o ponto" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                                        {dropoffOptions.map((s: any, idx: number) => (
+                                                            <SelectItem key={idx} value={s.nome} className="rounded-xl font-bold">
+                                                                {s.nome}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            );
+                                        }
+                                        return (
+                                            <Input
+                                                value={editForm.dropoff_point}
+                                                onChange={e => setEditForm({ ...editForm, dropoff_point: e.target.value })}
+                                                className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                                placeholder="Digite o ponto..."
+                                            />
+                                        );
+                                    })()}
                                 </div>
-
-                                {Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0) > 0 && (
-                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
-                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3 block">
-                                            Valor Pago: R$ {Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0).toFixed(2)}
-                                        </p>
-                                        <div className="space-y-2">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="refundAction"
-                                                    value="NONE"
-                                                    checked={refundAction === 'NONE'}
-                                                    onChange={(e) => setRefundAction(e.target.value as any)}
-                                                    className="text-red-600 focus:ring-red-500"
-                                                />
-                                                <span className="text-sm text-slate-600 dark:text-slate-400">Nenhuma devolução (Multa/Retenção)</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="refundAction"
-                                                    value="REFUND"
-                                                    checked={refundAction === 'REFUND'}
-                                                    onChange={(e) => setRefundAction(e.target.value as any)}
-                                                    className="text-red-600 focus:ring-red-500"
-                                                />
-                                                <span className="text-sm text-slate-600 dark:text-slate-400">Devolver Dinheiro (Gerar Despesa)</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="radio"
-                                                    name="refundAction"
-                                                    value="CREDIT"
-                                                    checked={refundAction === 'CREDIT'}
-                                                    onChange={(e) => setRefundAction(e.target.value as any)}
-                                                    className="text-red-600 focus:ring-red-500"
-                                                />
-                                                <span className="text-sm text-slate-600 dark:text-slate-400">Gerar Crédito para Cliente</span>
-                                            </label>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex gap-3 justify-end">
-                                <button
-                                    onClick={() => setCancelingReserva(null)}
-                                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    onClick={handleConfirmCancel}
-                                    disabled={actionLoading}
-                                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-                                >
-                                    {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Confirmar Cancelamento'}
-                                </button>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                    <DialogFooter className="p-8 bg-muted/30 border-t border-border/50">
+                        <Button variant="ghost" onClick={() => setEditingReserva(null)} className="rounded-xl font-bold">Cancelar</Button>
+                        <Button
+                            onClick={handleSaveEdit}
+                            disabled={actionLoading}
+                            className="rounded-xl font-semibold px-8 bg-primary shadow-lg shadow-primary/20 gap-2"
+                        >
+                            {actionLoading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
+                            Salvar Alterações
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
+            {/* Cancel Modal */}
+            <Dialog open={!!cancelingReserva} onOpenChange={(open) => !open && setCancelingReserva(null)}>
+                <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+                    <DialogHeader className="p-8 bg-destructive/5 border-b border-destructive/10 text-center flex flex-col items-center">
+                        <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+                            <AlertTriangle size={32} className="text-destructive" />
+                        </div>
+                        <DialogTitle className="text-2xl font-semibold text-destructive">Cancelar Reserva?</DialogTitle>
+                        <DialogDescription className="font-bold text-destructive/60 mt-1">
+                            Esta ação é irreversível e afetará a disponibilidade de assentos.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="p-8 space-y-6">
+                        <div className="space-y-2">
+                            <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Motivo do Cancelamento</Label>
+                            <Textarea
+                                value={cancelReason}
+                                onChange={e => setCancelReason(e.target.value)}
+                                placeholder="Descreva brevemente o motivo..."
+                                className="min-h-[100px] bg-muted/40 border-none rounded-2xl font-semibold resize-none focus-visible:ring-destructive/20"
+                            />
+                        </div>
+
+                        {cancelingReserva && Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0) > 0 && (
+                            <div className="bg-muted/30 rounded-[1.5rem] p-6 border border-border/50 space-y-4 shadow-inner">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Valor Pago</span>
+                                    <span className="font-semibold text-lg">R$ {Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0).toFixed(2)}</span>
+                                </div>
+                                <div className="space-y-3">
+                                    {[
+                                        { id: 'NONE', label: 'Reter Valor (Multa)', icon: ShieldCheck, color: 'text-slate-500' },
+                                        { id: 'REFUND', label: 'Reembolsar Dinheiro', icon: Banknote, color: 'text-emerald-500' },
+                                        { id: 'CREDIT', label: 'Gerar Crédito Cliente', icon: CreditCard, color: 'text-blue-500' },
+                                    ].map((opt) => (
+                                        <label key={opt.id} className={cn(
+                                            "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer group",
+                                            refundAction === opt.id ? "border-primary bg-primary/5" : "border-transparent bg-background/50 hover:border-muted-foreground/20"
+                                        )}>
+                                            <div className="flex items-center gap-3">
+                                                <div className={cn("p-1.5 rounded-lg bg-background shadow-sm", opt.color)}>
+                                                    <opt.icon size={14} strokeWidth={3} />
+                                                </div>
+                                                <span className="text-xs font-bold">{opt.label}</span>
+                                            </div>
+                                            <input
+                                                type="radio"
+                                                name="refund"
+                                                checked={refundAction === opt.id}
+                                                onChange={() => setRefundAction(opt.id as any)}
+                                                className="w-4 h-4 accent-primary"
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter className="p-8 bg-muted/30 border-t border-border/50">
+                        <Button variant="ghost" onClick={() => setCancelingReserva(null)} className="rounded-xl font-bold">Voltar</Button>
+                        <Button
+                            variant="destructive"
+                            onClick={handleConfirmCancel}
+                            disabled={actionLoading}
+                            className="rounded-xl font-semibold px-8 shadow-lg shadow-destructive/20 gap-2"
+                        >
+                            {actionLoading ? <Loader size={18} className="animate-spin" /> : <XCircle size={18} />}
+                            Confirmar Cancelamento
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {/* Payment Modal */}
-            {paymentReserva && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-sm w-full animate-in zoom-in-95 duration-200 overflow-hidden">
-                        <div className="bg-green-600 p-4 text-center">
-                            <h3 className="text-lg font-bold text-white flex items-center justify-center gap-2">
-                                <DollarSign size={24} />
-                                Registrar Pagamento
-                            </h3>
+            <Dialog open={!!paymentReserva} onOpenChange={(open) => !open && setPaymentReserva(null)}>
+                <DialogContent className="sm:max-w-[450px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+                    <div className="p-8 bg-emerald-500 flex flex-col items-center text-white relative">
+                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                            <DollarSign size={120} />
                         </div>
-                        <div className="p-6 space-y-4">
-                            <div className="grid grid-cols-3 gap-2 text-center mb-6">
-                                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-lg">
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">Total</p>
-                                    <p className="font-semibold text-slate-700 dark:text-slate-300">R$ {Number(paymentReserva.valor_total || paymentReserva.price || 0).toFixed(2)}</p>
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 shadow-xl border border-white/30">
+                            <DollarSign size={32} strokeWidth={3} />
+                        </div>
+                        <h3 className="text-2xl font-semibold tracking-tight">Receber Pagamento</h3>
+                        <p className="font-bold opacity-80 mt-1">Registro financeiro de caixa</p>
+                    </div>
+
+                    <div className="p-8 space-y-6">
+                        {paymentReserva && (
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-muted/30 rounded-2xl border border-border/40 text-center">
+                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground/60">Total Reserva</p>
+                                    <p className="font-semibold text-lg">R$ {Number(paymentReserva.valor_total || paymentReserva.price || 0).toFixed(2)}</p>
                                 </div>
-                                <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                    <p className="text-xs text-green-600 dark:text-green-400">Já Pago</p>
-                                    <p className="font-semibold text-green-700 dark:text-green-300">
-                                        R$ {((paymentReserva.status === 'PENDING' && (paymentReserva.payment_method === 'DIGITAL' || (paymentReserva as any).forma_pagamento === 'DIGITAL'))
-                                            ? 0
-                                            : Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0)).toFixed(2)}
+                                <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/20 text-center">
+                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-emerald-600/60">Pendente</p>
+                                    <p className="font-semibold text-lg text-emerald-600">
+                                        R$ {(Number(paymentReserva.valor_total || paymentReserva.price || 0) - Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0)).toFixed(2)}
                                     </p>
                                 </div>
-                                <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 font-bold">Restante</p>
-                                    <p className="font-bold text-blue-700 dark:text-blue-300">
-                                        R$ {Number(Number(paymentReserva.valor_total || paymentReserva.price || 0) - ((paymentReserva.status === 'PENDING' && (paymentReserva.payment_method === 'DIGITAL' || (paymentReserva as any).forma_pagamento === 'DIGITAL'))
-                                            ? 0
-                                            : Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0))).toFixed(2)}
-                                    </p>
-                                </div>
+                            </div>
+                        )}
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Método de Pagamento</Label>
+                                <Select value={paymentMethod} onValueChange={(v: any) => setPaymentMethod(v)}>
+                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-2xl font-bold">
+                                        <CreditCard size={16} className="mr-2 text-muted-foreground" />
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                        <SelectItem value={FormaPagamento.PIX} className="rounded-xl font-bold">PIX</SelectItem>
+                                        <SelectItem value={FormaPagamento.CASH} className="rounded-xl font-bold">Dinheiro / Espécie</SelectItem>
+                                        <SelectItem value={FormaPagamento.CREDIT_CARD} className="rounded-xl font-bold">Cartão de Crédito</SelectItem>
+                                        <SelectItem value={FormaPagamento.DEBIT_CARD} className="rounded-xl font-bold">Cartão de Débito</SelectItem>
+                                        <SelectItem value={FormaPagamento.BOLETO} className="rounded-xl font-bold">Boleto Bancário</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </div>
 
-                            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-3 space-y-2 border border-slate-100 dark:border-slate-700">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-500 dark:text-slate-400">Passageiro:</span>
-                                    <span className="font-medium text-slate-800 dark:text-white truncate max-w-[150px]">{paymentReserva.passenger_name}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-slate-500 dark:text-slate-400">Código:</span>
-                                    <span className="font-mono text-slate-800 dark:text-white">{paymentReserva.ticket_code || paymentReserva.codigo}</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Forma de Pagamento</label>
-                                <select
-                                    value={paymentMethod}
-                                    onChange={e => setPaymentMethod(e.target.value as any)}
-                                    className="w-full text-sm p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
-                                >
-                                    <option value={FormaPagamento.PIX}>PIX</option>
-                                    <option value={FormaPagamento.CASH}>Dinheiro</option>
-                                    <option value={FormaPagamento.CREDIT_CARD}>Cartão de Crédito</option>
-                                    <option value={FormaPagamento.DEBIT_CARD}>Cartão de Débito</option>
-                                    <option value={FormaPagamento.BOLETO}>Boleto</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Valor do Pagamento</label>
+                            <div className="space-y-2">
+                                <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Valor a Receber</Label>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">R$</span>
-                                    <input
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 font-semibold text-emerald-600/40">R$</div>
+                                    <Input
                                         type="number"
                                         step="0.01"
                                         value={amountToPay}
-                                        onChange={(e) => setAmountToPay(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white font-bold focus:ring-2 focus:ring-green-500 outline-none"
+                                        onChange={e => setAmountToPay(e.target.value)}
+                                        className="h-16 pl-12 pr-4 bg-muted/40 border-none rounded-2xl font-semibold text-2xl text-emerald-600 focus-visible:ring-emerald-500/20"
                                     />
                                 </div>
                             </div>
                         </div>
-
-                        <div className="flex gap-3 justify-end p-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                            <button
-                                onClick={() => setPaymentReserva(null)}
-                                className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleConfirmPayment}
-                                disabled={actionLoading}
-                                className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-bold transition-colors flex items-center gap-2 shadow-lg shadow-green-600/20"
-                            >
-                                {actionLoading ? <Loader size={18} className="animate-spin" /> : 'Confirmar Pagamento'}
-                            </button>
-                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+
+                    <DialogFooter className="p-8 bg-muted/30 border-t border-border/50">
+                        <Button variant="ghost" onClick={() => setPaymentReserva(null)} className="rounded-xl font-bold">Cancelar</Button>
+                        <Button
+                            onClick={handleConfirmPayment}
+                            disabled={actionLoading}
+                            className="rounded-xl font-semibold px-8 bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 gap-2"
+                        >
+                            {actionLoading ? <Loader size={18} className="animate-spin" /> : <ShieldCheck size={18} strokeWidth={3} />}
+                            Confirmar Recebimento
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div >
     );
 };

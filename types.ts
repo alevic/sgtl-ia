@@ -549,7 +549,7 @@ export interface IReserva {
   status: ReservationStatus;
   valor_total: number;
   moeda: Moeda;
-  forma_pagamento?: 'DINHEIRO' | 'CARTAO' | 'PIX' | 'BOLETO';
+  forma_pagamento?: FormaPagamento | string;
   observacoes?: string;
   cliente_id?: string;
   assento_numero?: string;

@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
+// --- shadcn/ui COMPONENTS ---
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { cn } from '../../lib/utils';
+
 interface TimePickerProps {
     value: string; // HH:MM format
     onChange: (value: string) => void;
@@ -62,30 +67,38 @@ export const TimePicker: React.FC<TimePickerProps> = ({
     };
 
     return (
-        <div className={`space-y-1 ${containerClassName}`}>
+        <div className={cn("space-y-2", containerClassName)}>
             {label && (
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {label} {required && <span className="text-red-500">*</span>}
-                </label>
+                <Label className="flex items-center gap-1">
+                    {label} {required && <span className="text-destructive">*</span>}
+                </Label>
             )}
 
             <div className="relative">
                 {showIcon && (
-                    <div className={`absolute left-3 top-1/2 -translate-y-1/2 ${error ? 'text-red-400' : 'text-slate-400'}`}>
+                    <div className={cn(
+                        "absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors",
+                        error && "text-destructive"
+                    )}>
                         <Clock size={18} />
                     </div>
                 )}
-                <input
+                <Input
                     type="text"
                     inputMode="numeric"
                     value={displayValue}
                     onChange={handleChange}
                     placeholder={placeholder}
                     maxLength={5}
-                    className={`w-full ${showIcon ? 'pl-10' : 'px-4'} pr-4 py-2 bg-white dark:bg-slate-900 border ${error ? 'border-red-500 focus:ring-red-500' : 'border-slate-300 dark:border-slate-600 focus:ring-blue-500'} rounded-lg focus:ring-2 outline-none transition-all dark:text-white ${className}`}
+                    className={cn(
+                        'h-14',
+                        showIcon ? 'pl-10' : 'px-4',
+                        error ? 'border-destructive focus-visible:ring-destructive' : '',
+                        className
+                    )}
                 />
             </div>
-            {error && <p className="text-xs text-red-500 mt-1">Hora inválida (00:00 - 23:59)</p>}
+            {error && <p className="text-[0.8rem] font-medium text-destructive">Hora inválida (00:00 - 23:59)</p>}
         </div>
     );
 };

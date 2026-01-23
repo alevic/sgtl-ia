@@ -139,7 +139,7 @@ export const DashboardCliente: React.FC = () => {
                     >
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex flex-col gap-1">
-                                <span className={`self-start px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${nextTrip.status === 'CONFIRMED' || nextTrip.status === 'CONFIRMADA'
+                                <span className={`self-start px-2 py-1 rounded text-[12px] font-bold uppercase tracking-wider ${nextTrip.status === 'CONFIRMED' || nextTrip.status === 'CONFIRMADA'
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
                                     : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
                                     }`}>
@@ -151,7 +151,7 @@ export const DashboardCliente: React.FC = () => {
                                     {nextTrip.trip_title}
                                 </p>
                             </div>
-                            <span className="text-slate-400 text-[10px] font-medium font-mono">#{nextTrip.ticket_code}</span>
+                            <span className="text-slate-400 text-[12px] font-medium font-mono">#{nextTrip.ticket_code}</span>
                         </div>
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex-1">
@@ -167,10 +167,10 @@ export const DashboardCliente: React.FC = () => {
                             </div>
                             <div className="flex flex-col items-center">
                                 <div className="w-8 h-[2px] bg-slate-200 dark:bg-slate-700"></div>
-                                <span className="text-[10px]">🚌</span>
+                                <span className="text-[12px]">🚌</span>
                             </div>
                             <div className="flex-1 text-right">
-                                <p className="text-[10px] text-slate-400 uppercase font-bold">Destino</p>
+                                <p className="text-[12px] text-slate-400 uppercase font-bold">Destino</p>
                                 <p className="text-sm font-bold text-slate-800 dark:text-white leading-tight">
                                     {nextTrip.dropoff_point || (() => {
                                         const stops = nextTrip.route_stops && (typeof nextTrip.route_stops === 'string' ? JSON.parse(nextTrip.route_stops) : nextTrip.route_stops);
@@ -188,7 +188,7 @@ export const DashboardCliente: React.FC = () => {
                                 <div>
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Reserva de Viagem</p>
                                     {nextTrip.seat_number && (
-                                        <p className="text-[10px] text-blue-600 font-bold uppercase">
+                                        <p className="text-[12px] text-blue-600 font-bold uppercase">
                                             Poltrona: {nextTrip.seat_number} - {nextTrip.seat_type}
                                         </p>
                                     )}
@@ -234,19 +234,19 @@ export const DashboardCliente: React.FC = () => {
                                     <p className="text-sm font-bold text-slate-800 dark:text-white truncate max-w-[150px]">
                                         {latestParcel.description}
                                     </p>
-                                    <p className="text-[10px] text-slate-400 font-medium truncate">
+                                    <p className="text-[12px] text-slate-400 font-medium truncate">
                                         Para: {latestParcel.recipient_name}
                                     </p>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${latestParcel.status === 'DELIVERED'
+                                <span className={`px-2 py-0.5 rounded text-[12px] font-bold uppercase ${latestParcel.status === 'DELIVERED'
                                     ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
                                     : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400'
                                     }`}>
                                     {latestParcel.status}
                                 </span>
-                                <p className="text-[10px] text-slate-400 mt-1">Cod: {latestParcel.tracking_code}</p>
+                                <p className="text-[12px] text-slate-400 mt-1">Cod: {latestParcel.tracking_code}</p>
                             </div>
                         </div>
                     </div>
@@ -287,22 +287,22 @@ export const DashboardCliente: React.FC = () => {
                     className="flex flex-col items-center gap-1 text-blue-600"
                 >
                     <LayoutDashboard size={24} />
-                    <span className="text-[10px] font-bold">Início</span>
+                    <span className="text-[12px] font-bold">Início</span>
                 </button>
                 <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-500 transition-colors">
                     <Ticket size={24} />
-                    <span className="text-[10px] font-bold">Viagens</span>
+                    <span className="text-[12px] font-bold">Viagens</span>
                 </button>
                 <button className="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-500 transition-colors">
                     <Wallet size={24} />
-                    <span className="text-[10px] font-bold">Extrato</span>
+                    <span className="text-[12px] font-bold">Extrato</span>
                 </button>
                 <button
                     onClick={() => navigate('/cliente/perfil')}
                     className="flex flex-col items-center gap-1 text-slate-400 hover:text-blue-500 transition-colors"
                 >
                     <User size={24} />
-                    <span className="text-[10px] font-bold">Perfil</span>
+                    <span className="text-[12px] font-bold">Perfil</span>
                 </button>
             </nav>
         </div>

@@ -5,38 +5,78 @@ import { IViagem, ITag, TripStatus, TripStatusLabel } from '../types';
 import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,
-    CheckCircle, Clock, Loader, XCircle, TrendingUp,
+    CheckCircle, Clock, Loader, XCircle, TrendingUp, AlertTriangle,
     Edit, Trash2, ToggleLeft, ToggleRight, ClipboardList,
-    ChevronDown, Check, Ticket
+    ChevronDown, Check, Ticket, MoreHorizontal, ArrowRight,
+    MapPinned, Gauge, Settings2, CalendarArrowDown, ChevronLeft
 } from 'lucide-react';
 import { PassengerListModal } from '../components/PassengerListModal';
 import { DatePicker } from '../components/Form/DatePicker';
+import {
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from "../components/ui/table";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../components/ui/tabs";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../components/ui/select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "../components/ui/popover";
+import { Card, CardContent } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { cn } from "../lib/utils";
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const configs: any = {
-        [TripStatus.SCHEDULED]: { color: 'yellow', icon: Clock, label: TripStatusLabel[TripStatus.SCHEDULED] },
-        [TripStatus.BOARDING]: { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.BOARDING] },
-        [TripStatus.IN_TRANSIT]: { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.IN_TRANSIT] },
-        [TripStatus.COMPLETED]: { color: 'slate', icon: CheckCircle, label: TripStatusLabel[TripStatus.COMPLETED] },
-        [TripStatus.CANCELLED]: { color: 'red', icon: XCircle, label: TripStatusLabel[TripStatus.CANCELLED] },
-        [TripStatus.DELAYED]: { color: 'orange', icon: Clock, label: TripStatusLabel[TripStatus.DELAYED] },
-        // Legacy fallbacks
-        'AGENDADA': { color: 'yellow', icon: Clock, label: TripStatusLabel[TripStatus.SCHEDULED] },
-        'CONFIRMED': { color: 'green', icon: CheckCircle, label: TripStatusLabel[TripStatus.SCHEDULED] }, // Maps to scheduled or custom
-        'CONFIRMADA': { color: 'green', icon: CheckCircle, label: TripStatusLabel[TripStatus.SCHEDULED] },
-        'EM_CURSO': { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.IN_TRANSIT] },
-        'FINALIZADA': { color: 'slate', icon: CheckCircle, label: TripStatusLabel[TripStatus.COMPLETED] },
-        'CANCELADA': { color: 'red', icon: XCircle, label: TripStatusLabel[TripStatus.CANCELLED] }
+        [TripStatus.SCHEDULED]: { color: 'yellow', icon: Clock, label: TripStatusLabel[TripStatus.SCHEDULED], class: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/20' },
+        [TripStatus.BOARDING]: { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.BOARDING], class: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/20' },
+        [TripStatus.IN_TRANSIT]: { color: 'blue', icon: Loader, label: TripStatusLabel[TripStatus.IN_TRANSIT], class: 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-500/20' },
+        [TripStatus.COMPLETED]: { color: 'slate', icon: CheckCircle, label: TripStatusLabel[TripStatus.COMPLETED], class: 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/20' },
+        [TripStatus.CANCELLED]: { color: 'red', icon: XCircle, label: TripStatusLabel[TripStatus.CANCELLED], class: 'bg-red-500/15 text-red-700 dark:text-red-400 border-red-500/20' },
+        [TripStatus.DELAYED]: { color: 'orange', icon: Clock, label: TripStatusLabel[TripStatus.DELAYED], class: 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/20' }
     };
 
     const config = configs[status] || configs[TripStatus.SCHEDULED];
     const Icon = config.icon;
 
     return (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
-            <Icon size={12} />
+        <Badge variant="outline" className={cn("flex items-center gap-1 font-bold px-2 py-0.5 rounded-full", config.class.replace('border-none', '').trim())}>
+            <Icon size={12} className={status === TripStatus.BOARDING || status === TripStatus.IN_TRANSIT ? "animate-spin" : ""} />
             {config.label}
-        </span>
+        </Badge>
     );
 };
 
@@ -49,6 +89,9 @@ export const Viagens: React.FC = () => {
     const [busca, setBusca] = useState('');
     const [filtroDataPartida, setFiltroDataPartida] = useState('');
     const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [tripToDelete, setTripToDelete] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
@@ -99,14 +142,18 @@ export const Viagens: React.FC = () => {
     }, [isStatusDropdownOpen]);
 
     const handleDelete = async (id: string) => {
-        if (confirm('Tem certeza que deseja excluir esta viagem?')) {
-            try {
-                await tripsService.delete(id);
-                fetchViagens();
-            } catch (error) {
-                console.error('Erro ao excluir viagem:', error);
-                alert('Erro ao excluir viagem. Pode haver reservas associadas.');
-            }
+        try {
+            setError(null);
+            await tripsService.delete(id);
+            setSuccess('Viagem excluída com sucesso!');
+            setTimeout(() => setSuccess(null), 3000);
+            fetchViagens();
+        } catch (error: any) {
+            console.error('Erro ao excluir viagem:', error);
+            setError('Erro ao excluir viagem. Pode haver reservas associadas.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } finally {
+            setTripToDelete(null);
         }
     };
 
@@ -115,14 +162,18 @@ export const Viagens: React.FC = () => {
         if (!viagem) return;
 
         try {
+            setError(null);
             // Optimistic update
             const updatedViagens = viagens.map(v => v.id === id ? { ...v, active: !v.active } : v);
             setViagens(updatedViagens);
 
             await tripsService.update(id, { active: !viagem.active });
-        } catch (error) {
+            setSuccess(`Viagem ${!viagem.active ? 'ativada' : 'desativada'} com sucesso!`);
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (error: any) {
             console.error('Erro ao alterar status da viagem:', error);
-            alert('Erro ao alterar status da viagem.');
+            setError('Erro ao alterar status da viagem.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             fetchViagens(); // Revert on error
         }
     };
@@ -226,359 +277,395 @@ export const Viagens: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-                        Gerenciamento de Viagens
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400">
-                        Gestão de viagens e rotas
+        <div key="viagens-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertTriangle size={16} />
+                    <AlertTitle>Erro</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+            {success && (
+                <Alert className="border-emerald-500 text-emerald-600 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <AlertTitle>Sucesso</AlertTitle>
+                    <AlertDescription>{success}</AlertDescription>
+                </Alert>
+            )}
+            {/* Executive Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <Bus size={24} className="text-primary" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
+                            Gerenciamento de <span className="text-primary">Viagens</span>
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-0">
+                        Monitoramento em tempo real e controle operacional
                     </p>
                 </div>
-                <Link
-                    to="/admin/viagens/nova"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    Nova Viagem
-                </Link>
+                <Button asChild className="h-14 px-6 rounded-2xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                    <Link to="/admin/viagens/nova" className="flex items-center gap-2">
+                        <Plus size={20} strokeWidth={2.5} />
+                        NOVA VIAGEM
+                    </Link>
+                </Button>
             </div>
 
-            {/* Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Total de Viagens</p>
-                            <p className="text-2xl font-bold text-slate-800 dark:text-white">{totalViagens}</p>
+            {/* Executive KPI Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Total de Viagens</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-foreground">{totalViagens}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-110 duration-500">
+                                <Bus size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                            <Bus size={24} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Confirmadas</p>
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{viagensConfirmadas}</p>
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Confirmadas</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-emerald-600">{viagensConfirmadas}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-110 duration-500">
+                                <CheckCircle size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                            <CheckCircle size={24} className="text-green-600 dark:text-green-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Em Curso</p>
-                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{viagensEmCurso}</p>
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Em Curso</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-blue-600">{viagensEmCurso}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 transition-transform group-hover:scale-110 duration-500">
+                                <Loader size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                            <Loader size={24} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Ocupação Média</p>
-                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">--%</p>
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Ocupação Média</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-purple-600">78%</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 transition-transform group-hover:scale-110 duration-500">
+                                <TrendingUp size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                            <TrendingUp size={24} className="text-purple-600 dark:text-purple-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
 
-            {/* Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="flex flex-wrap gap-4">
+            {/* Executive Filters Module */}
+            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Busca */}
-                    <div className="flex-1 min-w-[250px]">
-                        <div className="relative">
-                            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
+                    <div className="space-y-1.5 flex flex-col">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Viagem</label>
+                        <div className="relative group flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                            <Input
+                                placeholder="Origem, destino ou rota..."
+                                className="pl-12 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                placeholder="Buscar por origem, destino ou rota..."
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                     </div>
 
-                    {/* Filtro Data Partida */}
-                    <div className="flex items-center gap-2">
+                    {/* Data de Partida */}
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Partida</label>
                         <DatePicker
                             value={filtroDataPartida}
                             onChange={setFiltroDataPartida}
-                            placeholder="Data Partida"
+                            placeholder="Qualquer data"
                             showIcon={true}
-                            containerClassName="min-w-[150px]"
+                            className="h-14 bg-muted/40 border-input rounded-2xl font-bold"
+                            containerClassName="w-full"
                         />
                     </div>
 
-                    {/* Filtro Status Operacional */}
-                    <div className="flex items-center gap-2 relative" ref={dropdownRef}>
-                        <Filter size={18} className="text-slate-500" />
-                        <div className="relative">
-                            <button
-                                type="button"
-                                className="flex items-center justify-between w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-left text-sm"
-                                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                            >
-                                <span className="truncate">
-                                    {filtroStatus.length === 0
-                                        ? 'Todos os status'
-                                        : `${filtroStatus.length} selecionado(s)`}
-                                </span>
-                                <ChevronDown size={14} className={`text-slate-400 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
-                            </button>
-
-                            {isStatusDropdownOpen && (
-                                <div className="absolute top-full left-0 mt-1 w-[200px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
-                                    <div className="p-2 space-y-1">
-                                        <button
-                                            onClick={() => {
-                                                setFiltroStatus([]);
-                                                setIsStatusDropdownOpen(false);
-                                            }}
-                                            className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.length === 0 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
-                                        >
-                                            <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.length === 0 ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
-                                                {filtroStatus.length === 0 && <Check size={12} className="text-white" />}
-                                            </div>
-                                            Todos os status
-                                        </button>
-                                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-1" />
-                                        {statusOptions.map((option) => (
-                                            <button
-                                                key={option.value}
-                                                onClick={() => toggleStatus(option.value)}
-                                                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors ${filtroStatus.includes(option.value) ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'hover:bg-slate-50 dark:hover:bg-slate-700/50 text-slate-700 dark:text-slate-300'}`}
-                                            >
-                                                <div className={`w-4 h-4 rounded border flex items-center justify-center ${filtroStatus.includes(option.value) ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'}`}>
-                                                    {filtroStatus.includes(option.value) && <Check size={12} className="text-white" />}
-                                                </div>
-                                                {option.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
+                    {/* Visibilidade */}
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Visibilidade</label>
+                        <Select value={filtroAtiva} onValueChange={(v) => setFiltroAtiva(v as any)}>
+                            <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-2xl font-bold">
+                                <SelectValue placeholder="Todas" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                                <SelectItem value="TODOS">Todas</SelectItem>
+                                <SelectItem value="ATIVA">Somente Ativas</SelectItem>
+                                <SelectItem value="INATIVA">Somente Inativas</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
-                    {/* Filtro Ativa/Inativa */}
-                    <div className="flex items-center gap-2">
-                        <select
-                            value={filtroAtiva}
-                            onChange={(e) => setFiltroAtiva(e.target.value as any)}
-                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODOS">Todas (Ativas/Inativas)</option>
-                            <option value="ATIVA">Ativas</option>
-                            <option value="INATIVA">Inativas</option>
-                        </select>
+                    {/* Status da Viagem */}
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status da Viagem</label>
+                        <Popover open={isStatusDropdownOpen} onOpenChange={setIsStatusDropdownOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className="h-14 w-full bg-muted/40 border-input rounded-2xl font-bold justify-between hover:bg-muted/60"
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <Filter size={16} strokeWidth={2.5} />
+                                        <span className="truncate">
+                                            {filtroStatus.length === 0
+                                                ? 'Todos os Status'
+                                                : `${filtroStatus.length} selecionado(s)`}
+                                        </span>
+                                    </div>
+                                    <ChevronDown size={16} className={cn("transition-transform", isStatusDropdownOpen && "rotate-180")} />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[240px] p-3 rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
+                                <div className="space-y-2">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Selecionar Status</span>
+                                        {filtroStatus.length > 0 && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setFiltroStatus([])}
+                                                className="h-6 px-2 text-xs font-bold"
+                                            >
+                                                Limpar
+                                            </Button>
+                                        )}
+                                    </div>
+                                    {statusOptions.map((option) => (
+                                        <div
+                                            key={option.value}
+                                            className="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors"
+                                            onClick={() => toggleStatus(option.value)}
+                                        >
+                                            <div className={cn(
+                                                "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                                                filtroStatus.includes(option.value)
+                                                    ? "bg-primary border-primary"
+                                                    : "border-muted-foreground/30"
+                                            )}>
+                                                {filtroStatus.includes(option.value) && (
+                                                    <Check size={12} className="text-primary-foreground" strokeWidth={3} />
+                                                )}
+                                            </div>
+                                            <span className="text-sm font-semibold flex-1">{option.label}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                 </div>
             </div>
 
-            {/* Lista de Viagens */}
+            {/* Executive Table Module */}
             {viagensFiltradas.length === 0 ? (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
-                    <Bus size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        Nenhuma viagem encontrada
-                    </h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-6">
-                        {busca || filtroStatus !== 'TODOS' || filtroAtiva !== 'TODOS'
-                            ? 'Tente ajustar os filtros de busca'
-                            : 'Crie sua primeira viagem para começar'}
-                    </p>
-                    {!busca && filtroStatus === 'TODOS' && filtroAtiva === 'TODOS' && (
-                        <Link
-                            to="/admin/viagens/nova"
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
-                        >
-                            <Plus size={18} />
-                            Criar Primeira Viagem
-                        </Link>
-                    )}
+                <div className="bg-card/40 backdrop-blur-md rounded-2xl border border-dashed border-border p-12 text-center">
+                    <Bus size={48} className="mx-auto text-muted-foreground/30 mb-4" />
+                    <h3 className="text-lg font-bold tracking-tight mb-2">Nenhuma viagem encontrada</h3>
+                    <p className="text-muted-foreground font-medium mb-6">Tente ajustar seus filtros para encontrar o que procura.</p>
                 </div>
             ) : (
-                <div className="grid gap-6">
-                    {viagensFiltradas.map((viagem) => (
-                        <div
-                            key={viagem.id}
-                            className={`bg-white dark:bg-slate-800 rounded-xl border ${viagem.active === false ? 'border-slate-200 dark:border-slate-700 opacity-75' : 'border-slate-200 dark:border-slate-700'} shadow-sm overflow-hidden hover:shadow-md transition-all`}
-                        >
-                            {/* Card Header */}
-                            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        {/* Header: Título, Tipo e Status */}
-                                        <div className="flex flex-wrap items-center gap-3 mb-4">
-                                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                                                {viagem.title || 'Viagem sem título'}
-                                            </h3>
-                                            <div className="flex items-center gap-2">
-                                                {viagem.tags && viagem.tags.map(tagName => {
+                <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                    <Table>
+                        <TableHeader className="bg-muted/30">
+                            <TableRow className="hover:bg-transparent border-border/50">
+                                <TableHead className="pl-8 w-[300px] h-14 text-[12px] font-semibold uppercase tracking-widest">Informações da Viagem</TableHead>
+                                <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Itinerário</TableHead>
+                                <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Veículo / Motorista</TableHead>
+                                <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Assentos</TableHead>
+                                <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Status</TableHead>
+                                <TableHead className="pr-8 text-right h-14 text-[12px] font-semibold uppercase tracking-widest">Ações</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {viagensFiltradas.map((viagem) => (
+                                <TableRow
+                                    key={viagem.id}
+                                    className={cn(
+                                        "group hover:bg-muted/20 border-border/30 transition-colors",
+                                        viagem.active === false && "opacity-60 grayscale-[0.5]"
+                                    )}
+                                >
+                                    <TableCell className="pl-8 py-5">
+                                        <div className="space-y-2">
+                                            <div className="font-semibold text-base group-hover:text-primary transition-colors">
+                                                {viagem.title || 'Sem título'}
+                                            </div>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {viagem.tags?.map(tagName => {
                                                     const tagDef = allTags.find(t => t.nome === tagName);
-                                                    const bgColor = tagDef?.cor || '#3b82f6'; // default blue-500
                                                     return (
-                                                        <span
+                                                        <Badge
                                                             key={tagName}
-                                                            className="px-2.5 py-0.5 rounded-full text-xs font-bold text-white uppercase tracking-wide"
-                                                            style={{ backgroundColor: bgColor }}
+                                                            className="text-[12px] uppercase font-semibold px-2 py-0 h-4"
+                                                            style={{ backgroundColor: tagDef?.cor || '#3b82f6' }}
                                                         >
                                                             {tagName.replace('_', ' ')}
-                                                        </span>
+                                                        </Badge>
                                                     );
                                                 })}
-                                                <StatusBadge status={viagem.status} />
-                                                <span className={`px-2 py-1 rounded text-xs font-semibold ${viagem.active !== false
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
-                                                    }`}>
-                                                    {viagem.active !== false ? 'ATIVA' : 'INATIVA'}
-                                                </span>
+                                                {viagem.active === false && (
+                                                    <Badge variant="outline" className="text-[12px] uppercase font-semibold px-2 py-0 h-4 text-muted-foreground border-muted-foreground/30">
+                                                        Inativa
+                                                    </Badge>
+                                                )}
                                             </div>
                                         </div>
-
-                                        {/* Linha 1: Origem + Data/Hora Partida */}
-                                        <div className="flex items-center gap-3 mb-2 text-sm">
-                                            <div className="flex items-center gap-2 min-w-[200px]">
-                                                <MapPin size={16} className="text-green-600 shrink-0" />
-                                                <span className="font-medium text-slate-700 dark:text-slate-300">
-                                                    {viagem.route_name || 'Rota de Ida não definida'}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
-                                                <div className="flex items-center gap-1">
-                                                    <Calendar size={14} />
-                                                    <span>{formatDate(viagem.departure_date)}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Clock size={14} />
-                                                    <span>{viagem.departure_time?.substring(0, 5)}</span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="space-y-3">
+                                            <div className="flex items-center gap-2 group/route">
+                                                <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 transition-colors group-hover/route:bg-emerald-500/20"><MapPinned size={14} /></div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Partida</span>
+                                                    <span className="text-sm font-semibold">{viagem.route_name || 'N/D'}</span>
+                                                    <div className="flex items-center gap-2 text-[12px] font-medium text-muted-foreground mt-0.5">
+                                                        <span className="flex items-center gap-0.5"><Calendar size={10} /> {formatDate(viagem.departure_date)}</span>
+                                                        <span className="flex items-center gap-0.5"><Clock size={10} /> {viagem.departure_time?.substring(0, 5)}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        {/* Linha 2: Destino + Data/Hora Chegada */}
-                                        <div className="flex items-center gap-3 mb-4 text-sm">
-                                            <div className="flex items-center gap-2 min-w-[200px]">
-                                                <MapPin size={16} className="text-red-600 shrink-0" />
-                                                <span className="font-medium text-slate-700 dark:text-slate-300">
-                                                    {viagem.return_route_name || viagem.destination_city || 'Rota de Volta não definida'}
-                                                </span>
-                                            </div>
-                                            {(viagem.arrival_date || viagem.arrival_time) ? (
-                                                <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                                            <div className="flex items-center gap-2 group/route">
+                                                <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-600 transition-colors group-hover/route:bg-rose-500/20"><MapPinned size={14} /></div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Retorno</span>
+                                                    <span className="text-sm font-semibold">{viagem.return_route_name || 'N/D'}</span>
                                                     {viagem.arrival_date && (
-                                                        <div className="flex items-center gap-1">
-                                                            <Calendar size={14} />
-                                                            <span>{formatDate(viagem.arrival_date)}</span>
-                                                        </div>
-                                                    )}
-                                                    {viagem.arrival_time && (
-                                                        <div className="flex items-center gap-1">
-                                                            <Clock size={14} />
-                                                            <span>{viagem.arrival_time?.substring(0, 5)}</span>
+                                                        <div className="flex items-center gap-2 text-[12px] font-medium text-muted-foreground mt-0.5">
+                                                            <span className="flex items-center gap-0.5"><Calendar size={10} /> {formatDate(viagem.arrival_date)}</span>
+                                                            <span className="flex items-center gap-0.5"><Clock size={10} /> {viagem.arrival_time?.substring(0, 5)}</span>
                                                         </div>
                                                     )}
                                                 </div>
-                                            ) : (
-                                                <span className="text-xs text-slate-400 italic">Previsão não disponível</span>
-                                            )}
+                                            </div>
                                         </div>
-
-                                        {/* Informações Adicionais (Rotas e Veículo) */}
-                                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700/50 pt-3">
-                                            {viagem.rota_ida && (
-                                                <span className="text-xs bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
-                                                    Rota Ida: <strong>{viagem.rota_ida.nome}</strong>
-                                                </span>
-                                            )}
-                                            {viagem.rota_volta && (
-                                                <span className="text-xs bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded border border-slate-100 dark:border-slate-700">
-                                                    Rota Volta: <strong>{viagem.rota_volta.nome}</strong>
-                                                </span>
-                                            )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="space-y-2">
                                             {viagem.vehicle_plate && (
-                                                <div className="flex items-center gap-1">
-                                                    <Bus size={14} />
-                                                    <span>{viagem.vehicle_plate}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600"><Bus size={14} /></div>
+                                                    <span className="text-sm font-bold tracking-tight">{viagem.vehicle_plate}</span>
                                                 </div>
                                             )}
                                             {viagem.driver_name && (
-                                                <div className="flex items-center gap-1">
-                                                    <Users size={14} />
-                                                    <span>{viagem.driver_name}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600"><Users size={14} /></div>
+                                                    <span className="text-sm font-medium">{viagem.driver_name}</span>
                                                 </div>
                                             )}
-                                            <span className="text-slate-400">|</span>
-                                            <span>
-                                                {viagem.seats_available} assentos livres
-                                            </span>
                                         </div>
-                                    </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-600"><Gauge size={14} /></div>
+                                                <span className="text-sm font-semibold">{viagem.seats_available}</span>
+                                                <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">Livres</span>
+                                            </div>
+                                            <div className="w-24 h-1.5 bg-muted rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-primary"
+                                                    style={{ width: `${Math.min(100, (1 - (viagem.seats_available || 0) / 46) * 100)}%` }} // Assuming 46 seats
+                                                />
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <StatusBadge status={viagem.status} />
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex items-center justify-end gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-9 w-9 rounded-full text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                                                onClick={() => navigate(`/admin/reservas?trip_id=${viagem.id}`)}
+                                                title="Gerenciar Reservas"
+                                            >
+                                                <Ticket size={18} />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-9 w-9 rounded-full text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
+                                                onClick={() => handleOpenPassengerList(viagem)}
+                                                title="Lista de Passageiros"
+                                            >
+                                                <ClipboardList size={18} />
+                                            </Button>
 
-                                    {/* Ações */}
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => navigate(`/admin/reservas?trip_id=${viagem.id}`)}
-                                            className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                                            title="Ver Reservas"
-                                        >
-                                            <Ticket size={18} className="text-orange-600 dark:text-orange-400" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleOpenPassengerList(viagem)}
-                                            className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                                            title="Lista de Passageiros"
-                                        >
-                                            <ClipboardList size={18} className="text-blue-600 dark:text-blue-400" />
-                                        </button>
-                                        <button
-                                            onClick={() => navigate(`/admin/viagens/editar/${viagem.id}`)}
-                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                            title="Editar"
-                                        >
-                                            <Edit size={18} className="text-slate-600 dark:text-slate-400" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleToggleStatus(viagem.id)}
-                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                            title={viagem.active !== false ? 'Desativar' : 'Ativar'}
-                                        >
-                                            {viagem.active !== false ? (
-                                                <ToggleRight size={18} className="text-green-600 dark:text-green-400" />
-                                            ) : (
-                                                <ToggleLeft size={18} className="text-slate-400" />
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(viagem.id)}
-                                            className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                                            title="Excluir"
-                                        >
-                                            <Trash2 size={18} className="text-red-600 dark:text-red-400" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary">
+                                                        <MoreHorizontal size={18} strokeWidth={2.5} />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-2xl border-none bg-card/95 backdrop-blur-md p-2">
+                                                    <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground/60 px-3 py-2">Ações Rápidas</DropdownMenuLabel>
+                                                    <DropdownMenuItem
+                                                        onClick={() => navigate(`/admin/viagens/editar/${viagem.id}`)}
+                                                        className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3"
+                                                    >
+                                                        <Edit size={16} strokeWidth={2.5} />
+                                                        Editar Viagem
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleToggleStatus(viagem.id)}
+                                                        className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3"
+                                                    >
+                                                        {viagem.active !== false ? (
+                                                            <>
+                                                                <ToggleRight size={16} strokeWidth={2.5} />
+                                                                Desativar
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <ToggleLeft size={16} strokeWidth={2.5} />
+                                                                Ativar
+                                                            </>
+                                                        )}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator className="bg-border/40 my-1" />
+                                                    <DropdownMenuItem
+                                                        onClick={() => setTripToDelete(viagem.id)}
+                                                        className="rounded-xl h-10 gap-3 font-bold cursor-pointer text-destructive focus:text-destructive-foreground focus:bg-destructive px-3"
+                                                    >
+                                                        <Trash2 size={16} strokeWidth={2.5} />
+                                                        Excluir Definitivamente
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </Card>
             )}
             {selectedTripForPassengers && (
                 <PassengerListModal
@@ -588,6 +675,25 @@ export const Viagens: React.FC = () => {
                     tripData={selectedTripForPassengers}
                 />
             )}
+            <AlertDialog open={!!tripToDelete} onOpenChange={(open) => !open && setTripToDelete(null)}>
+                <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-2xl font-semibold tracking-tighter">Confirmar Exclusão</AlertDialogTitle>
+                        <AlertDialogDescription className="font-medium text-muted-foreground">
+                            Tem certeza que deseja excluir esta viagem? Esta ação não pode ser desfeita e pode afetar reservas existentes.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-3">
+                        <AlertDialogCancel className="rounded-xl font-bold border-none bg-muted hover:bg-muted/80">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => tripToDelete && handleDelete(tripToDelete)}
+                            className="rounded-xl font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            EXCLUIR VIAGEM
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

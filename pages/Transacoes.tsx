@@ -10,6 +10,8 @@ import {
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
 import { DatePicker } from '../components/Form/DatePicker';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Info } from 'lucide-react';
 
 export const Transacoes: React.FC = () => {
     const navigate = useNavigate();
@@ -25,6 +27,7 @@ export const Transacoes: React.FC = () => {
     const [filtroClassificacao, setFiltroClassificacao] = useState<ClassificacaoContabil | 'TODAS'>('TODAS');
     const [dataInicio, setDataInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
+    const [info, setInfo] = useState<string | null>(null);
 
     const fetchTransacoes = async () => {
         setIsLoading(true);
@@ -148,11 +151,19 @@ export const Transacoes: React.FC = () => {
 
     const handleExport = () => {
         console.log('Exportando transações:', transacoesFiltradas);
-        alert('Função de exportação será implementada em breve!');
+        setInfo('Função de exportação será implementada em breve!');
+        setTimeout(() => setInfo(null), 3000);
     };
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            {info && (
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Informação</AlertTitle>
+                    <AlertDescription>{info}</AlertDescription>
+                </Alert>
+            )}
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

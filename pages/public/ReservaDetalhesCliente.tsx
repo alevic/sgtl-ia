@@ -61,7 +61,7 @@ export const ReservaDetalhesCliente: React.FC = () => {
 
     const handleCancel = async () => {
         // TODO: Implementar cancelamento real via API
-        alert('Funcionalidade de cancelamento será implementada em breve.');
+        setError('Funcionalidade de cancelamento será implementada em breve.');
         setShowCancelModal(false);
     };
 
@@ -184,7 +184,7 @@ export const ReservaDetalhesCliente: React.FC = () => {
                                 </div>
                                 <div className="flex-1 space-y-8">
                                     <div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Origem</p>
+                                        <p className="text-[12px] font-bold text-slate-400 uppercase">Origem</p>
                                         <p className="font-bold text-slate-800 dark:text-white leading-tight">
                                             {reservation.boarding_point || (() => {
                                                 const stops = reservation.route_stops && (typeof reservation.route_stops === 'string' ? JSON.parse(reservation.route_stops) : reservation.route_stops);
@@ -197,7 +197,7 @@ export const ReservaDetalhesCliente: React.FC = () => {
                                         <p className="text-xs text-slate-500">Local de Embarque</p>
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Destino</p>
+                                        <p className="text-[12px] font-bold text-slate-400 uppercase">Destino</p>
                                         <p className="font-bold text-slate-800 dark:text-white leading-tight">
                                             {reservation.dropoff_point || (() => {
                                                 const stops = reservation.route_stops && (typeof reservation.route_stops === 'string' ? JSON.parse(reservation.route_stops) : reservation.route_stops);
@@ -217,7 +217,7 @@ export const ReservaDetalhesCliente: React.FC = () => {
                             <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                                 <div className="flex items-center gap-2 text-slate-400 mb-1">
                                     <Calendar size={14} />
-                                    <span className="text-[10px] font-bold uppercase">Data</span>
+                                    <span className="text-[12px] font-bold uppercase">Data</span>
                                 </div>
                                 <p className="text-sm font-bold dark:text-white">
                                     {formatDate(reservation.departure_date, 'dd MMM yyyy')}
@@ -226,7 +226,7 @@ export const ReservaDetalhesCliente: React.FC = () => {
                             <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                                 <div className="flex items-center gap-2 text-slate-400 mb-1">
                                     <Clock size={14} />
-                                    <span className="text-[10px] font-bold uppercase">Horário</span>
+                                    <span className="text-[12px] font-bold uppercase">Horário</span>
                                 </div>
                                 <p className="text-sm font-bold dark:text-white">{reservation.departure_time?.slice(0, 5)}h</p>
                             </div>

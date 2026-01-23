@@ -46,10 +46,15 @@ const mapBackendToFrontend = (data: any): IRota => {
         pontos = [];
     }
 
+    // Standardize type to RouteType enum
+    let routeType = data.type || 'OUTBOUND';
+    if (routeType === 'IDA') routeType = 'OUTBOUND';
+    if (routeType === 'VOLTA') routeType = 'INBOUND';
+
     return {
         id: data.id,
         nome: data.name,
-        tipo_rota: data.type || 'IDA',
+        tipo_rota: routeType as any,
         pontos: pontos,
         distancia_total_km: data.distance_km,
         duracao_estimada_minutos: data.duration_minutes,

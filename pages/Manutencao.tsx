@@ -1,20 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import {
     Wrench,
     Plus,
     Search,
-    Filter,
     Calendar,
     AlertTriangle,
     CheckCircle,
     Clock,
-    FileText,
     DollarSign,
-    TrendingUp
+    TrendingUp,
+    Loader,
+    Inbox,
+    WrenchIcon
 } from 'lucide-react';
-import { IManutencao, TipoManutencao, StatusManutencao, Moeda, StatusManutencaoLabel, TipoManutencaoLabel } from '../types';
+import { IManutencao, TipoManutencao, StatusManutencao, StatusManutencaoLabel, TipoManutencaoLabel } from '../types';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../components/ui/table";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Card, CardContent } from "../components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { cn } from "../lib/utils";
 import { MaintenanceActions } from '../components/Manutencao/MaintenanceActions';
 
 export const Manutencao: React.FC = () => {
@@ -52,32 +67,104 @@ export const Manutencao: React.FC = () => {
         setManutencoes(prev => prev.filter(m => m.id !== id));
     };
 
-    const getStatusColor = (status: StatusManutencao) => {
-        switch (status) {
-            case StatusManutencao.SCHEDULED: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case StatusManutencao.IN_PROGRESS: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case StatusManutencao.COMPLETED: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case StatusManutencao.CANCELLED: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-            // Legacy fallbacks
-            case 'AGENDADA' as any: return 'bg-blue-100 text-blue-800';
-            case 'EM_ANDAMENTO' as any: return 'bg-yellow-100 text-yellow-800';
-            case 'CONCLUIDA' as any: return 'bg-green-100 text-green-800';
-            case 'CANCELADA' as any: return 'bg-red-100 text-red-800';
-            default: return 'bg-slate-100 text-slate-800';
-        }
+    const StatusBadge: React.FC<{ status: StatusManutencao }> = ({ status }) => {
+        const configs: Record<any, any> = {
+            [StatusManutencao.SCHEDULED]: {
+                label: StatusManutencaoLabel[StatusManutencao.SCHEDULED],
+                icon: Clock,
+                className: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+            },
+            [StatusManutencao.IN_PROGRESS]: {
+                label: StatusManutencaoLabel[StatusManutencao.IN_PROGRESS],
+                icon: Wrench,
+                className: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+            },
+            [StatusManutencao.COMPLETED]: {
+                label: StatusManutencaoLabel[StatusManutencao.COMPLETED],
+                icon: CheckCircle,
+                className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+            },
+            [StatusManutencao.CANCELLED]: {
+                label: StatusManutencaoLabel[StatusManutencao.CANCELLED],
+                icon: AlertTriangle,
+                className: "bg-destructive/10 text-destructive border-destructive/20",
+            },
+            'AGENDADA': {
+                label: 'Agendada',
+                icon: Clock,
+                className: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+            },
+            'EM_ANDAMENTO': {
+                label: 'Em Andamento',
+                icon: Wrench,
+                className: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+            },
+            'CONCLUIDA': {
+                label: 'Concluída',
+                icon: CheckCircle,
+                className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+            },
+            'CANCELADA': {
+                label: 'Cancelada',
+                icon: AlertTriangle,
+                className: "bg-destructive/10 text-destructive border-destructive/20",
+            }
+        };
+
+        const config = configs[status] || { label: status, className: "bg-muted text-muted-foreground", icon: Clock };
+        const Icon = config.icon;
+
+        return (
+            <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-lg", config.className.replace('border-', '').replace(/[\w-]+-500\/20/, '').trim())}>
+                <Icon size={12} strokeWidth={2.5} />
+                {config.label}
+            </Badge>
+        );
     };
 
-    const getTipoIcon = (tipo: TipoManutencao) => {
-        switch (tipo) {
-            case TipoManutencao.PREVENTIVE: return <Clock size={16} className="text-blue-500" />;
-            case TipoManutencao.CORRECTIVE: return <AlertTriangle size={16} className="text-red-500" />;
-            case TipoManutencao.PREDICTIVE: return <TrendingUp size={16} className="text-purple-500" />;
-            case TipoManutencao.INSPECTION: return <CheckCircle size={16} className="text-green-500" />;
-            // Legacy fallbacks
-            case 'PREVENTIVA' as any: return <Clock size={16} className="text-blue-500" />;
-            case 'CORRETIVA' as any: return <AlertTriangle size={16} className="text-red-500" />;
-            default: return <Wrench size={16} />;
-        }
+    const TypeBadge: React.FC<{ tipo: TipoManutencao }> = ({ tipo }) => {
+        const configs: Record<any, any> = {
+            [TipoManutencao.PREVENTIVE]: {
+                label: TipoManutencaoLabel[TipoManutencao.PREVENTIVE],
+                icon: Clock,
+                className: "bg-blue-500/10 text-blue-600",
+            },
+            [TipoManutencao.CORRECTIVE]: {
+                label: TipoManutencaoLabel[TipoManutencao.CORRECTIVE],
+                icon: AlertTriangle,
+                className: "bg-rose-500/10 text-rose-600",
+            },
+            [TipoManutencao.PREDICTIVE]: {
+                label: TipoManutencaoLabel[TipoManutencao.PREDICTIVE],
+                icon: TrendingUp,
+                className: "bg-violet-500/10 text-violet-600",
+            },
+            [TipoManutencao.INSPECTION]: {
+                label: TipoManutencaoLabel[TipoManutencao.INSPECTION],
+                icon: CheckCircle,
+                className: "bg-emerald-500/10 text-emerald-600",
+            },
+            'PREVENTIVA': {
+                label: 'Preventiva',
+                icon: Clock,
+                className: "bg-blue-500/10 text-blue-600",
+            },
+            'CORRETIVA': {
+                label: 'Corretiva',
+                icon: AlertTriangle,
+                className: "bg-rose-500/10 text-rose-600",
+            }
+        };
+
+        const config = configs[tipo] || { label: tipo, className: "bg-muted text-muted-foreground", icon: Wrench };
+        const Icon = config.icon;
+
+        return (
+            <div className={cn("flex items-center gap-1.5 font-bold text-[12px] tracking-tight", config.className.split(' ')[1])}>
+                <Icon size={12} strokeWidth={2.5} />
+                <span className="uppercase">{config.label}</span>
+            </div>
+        );
     };
 
     const filteredMaintenances = manutencoes.filter(m => {
@@ -109,175 +196,180 @@ export const Manutencao: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Gestão de Manutenção</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Controle preventivo e corretivo da frota</p>
+        <div key="manutencao-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Section */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <Wrench className="text-primary w-6 h-6" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
+                            Gestão de <span className="text-primary">Manutenção</span>
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-1">Controle preventivo e corretivo da frota</p>
                 </div>
-                <button
+                <Button
                     onClick={() => navigate('/admin/manutencao/nova')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                    className="h-14 px-6 rounded-2xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                 >
-                    <Plus size={20} />
-                    Nova Manutenção
-                </button>
+                    <Plus size={20} className="mr-2" strokeWidth={3} />
+                    NOVA MANUTENÇÃO
+                </Button>
             </div>
 
-            {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                            <Wrench className="text-blue-600 dark:text-blue-400" size={20} />
-                        </div>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Total</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{totalMaintenances}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manutenções registradas</p>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                            <Clock className="text-yellow-600 dark:text-yellow-400" size={20} />
-                        </div>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Em Andamento</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{inProgress}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Veículos na oficina</p>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <DollarSign className="text-green-600 dark:text-green-400" size={20} />
-                        </div>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Custo Total</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">R$ {totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Investimento em manutenção</p>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                            <Calendar className="text-purple-600 dark:text-purple-400" size={20} />
-                        </div>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded-full">Próximas</span>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{scheduledNext7Days}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Agendadas para 7 dias</p>
-                </div>
+            {/* Premium Stat Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                    { label: 'Total Registros', value: totalMaintenances, icon: Wrench, color: 'primary' },
+                    { label: 'Na Oficina', value: inProgress, icon: Clock, color: 'amber' },
+                    { label: 'Investimento Total', value: `R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'emerald' },
+                    { label: 'Agendadas (7d)', value: scheduledNext7Days, icon: Calendar, color: 'violet' }
+                ].map((stat, i) => (
+                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+                                    <p className={cn("font-semibold tracking-tighter truncate w-36 xl:w-full", typeof stat.value === 'string' ? "text-xl" : "text-3xl")}>
+                                        {stat.value}
+                                    </p>
+                                </div>
+                                <div className={cn(
+                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                    stat.color === 'primary' ? "bg-primary/10 text-primary" :
+                                        stat.color === 'amber' ? "bg-amber-500/10 text-amber-600" :
+                                            stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
+                                                "bg-violet-500/10 text-violet-600"
+                                )}>
+                                    <stat.icon size={20} strokeWidth={2.5} />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-col md:flex-row gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por veículo, descrição ou oficina..."
-                        className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="flex gap-2">
-                    <select
-                        className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={filterStatus}
-                        onChange={(e) => setFilterStatus(e.target.value)}
-                    >
-                        <option value="TODOS">Todos os Status</option>
-                        <option value={StatusManutencao.SCHEDULED}>Agendada</option>
-                        <option value={StatusManutencao.IN_PROGRESS}>Em Andamento</option>
-                        <option value={StatusManutencao.COMPLETED}>Concluída</option>
-                    </select>
-                    <button className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center gap-2">
-                        <Filter size={20} />
-                        Filtros
-                    </button>
+            {/* Filters Module */}
+            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Busca */}
+                    <div className="space-y-1.5 flex flex-col">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 text-left block">Buscar Manutenção</label>
+                        <div className="relative group flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                            <Input
+                                placeholder="Descrição, oficina ou placa..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="pl-12 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Status Tabs */}
+                    <div className="space-y-1.5 flex flex-col">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 text-left block">Status da Manutenção</label>
+                        <Tabs value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)} className="w-full">
+                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
+                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                                <TabsTrigger value={StatusManutencao.SCHEDULED} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Agendadas</TabsTrigger>
+                                <TabsTrigger value={StatusManutencao.IN_PROGRESS} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Em Andamento</TabsTrigger>
+                                <TabsTrigger value={StatusManutencao.COMPLETED} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Concluídas</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </div>
                 </div>
             </div>
 
-            {/* List */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-visible">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Veículo</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo / Descrição</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data / Status</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Custo Total</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            {/* Maintenances Table */}
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-border/50">
+                            <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Veículo</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Descrição / Tipo</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Data & Status</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Investimento</TableHead>
+                            <TableHead className="pr-8 h-14 text-[12px] font-semibold uppercase tracking-widest text-right">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {filteredMaintenances.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-slate-500 dark:text-slate-400">
-                                    Nenhuma manutenção encontrada.
-                                </td>
-                            </tr>
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-64 text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Inbox className="w-12 h-14 text-muted-foreground/30" />
+                                        <p className="font-bold text-sm text-muted-foreground">Nenhuma manutenção encontrada</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
                         ) : (
                             filteredMaintenances.map((manutencao) => (
-                                <tr key={manutencao.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors relative">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                                                <Wrench className="text-slate-500 dark:text-slate-400" size={20} />
+                                <TableRow key={manutencao.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                    <TableCell className="pl-8 py-5">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-14 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110">
+                                                <WrenchIcon size={22} />
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-slate-800 dark:text-white">
-                                                    {(manutencao as any).placa ? `${(manutencao as any).placa} - ${(manutencao as any).modelo}` : `Veículo #${manutencao.veiculo_id.substring(0, 8)}`}
-                                                </p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400">{manutencao.km_veiculo.toLocaleString()} km</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-start gap-2">
-                                            <div className="mt-1">{getTipoIcon(manutencao.tipo)}</div>
-                                            <div>
-                                                <p className="font-medium text-slate-800 dark:text-white">
-                                                    {TipoManutencaoLabel[manutencao.tipo] || (manutencao.tipo as any)}
-                                                </p>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1">{manutencao.descricao}</p>
+                                            <div className="flex flex-col">
+                                                <span className="font-semibold text-sm tracking-tight text-foreground">
+                                                    {(manutencao as any).placa || 'Sem Placa'}
+                                                </span>
+                                                <span className="text-[11px] font-bold text-muted-foreground/80">
+                                                    {(manutencao as any).modelo || `ID: ${manutencao.veiculo_id.substring(0, 8)}`}
+                                                </span>
+                                                <span className="text-[12px] font-semibold text-primary/60 uppercase">
+                                                    {manutencao.km_veiculo.toLocaleString()} KM
+                                                </span>
                                             </div>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                                                <Calendar size={14} />
-                                                {formatDate(manutencao.data_agendada)}
-                                            </div>
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
-                                                {StatusManutencaoLabel[manutencao.status] || (manutencao.status as any).replace('_', ' ')}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1 max-w-[200px]">
+                                            <TypeBadge tipo={manutencao.tipo} />
+                                            <span className="text-sm font-bold tracking-tight text-foreground truncate" title={manutencao.descricao}>
+                                                {manutencao.descricao}
+                                            </span>
+                                            <span className="text-[12px] font-bold text-muted-foreground italic">
+                                                {manutencao.oficina || 'Oficina não informada'}
                                             </span>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <p className="font-medium text-slate-800 dark:text-white">
-                                            {manutencao.moeda} {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                        </p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                                            Peças: {Number(manutencao.custo_pecas).toLocaleString()} | M.O.: {Number(manutencao.custo_mao_de_obra).toLocaleString()}
-                                        </p>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                                                <Calendar className="w-3.5 h-3.5 text-primary" strokeWidth={3} />
+                                                {formatDate(manutencao.data_agendada)}
+                                            </div>
+                                            <StatusBadge status={manutencao.status} />
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-semibold text-emerald-600 transition-colors group-hover:text-emerald-500">
+                                                R$ {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </span>
+                                            <div className="flex gap-2 text-[12px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
+                                                <span>P: {Number(manutencao.custo_pecas).toLocaleString()}</span>
+                                                <span>•</span>
+                                                <span>M: {Number(manutencao.custo_mao_de_obra).toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="pr-8 text-right">
                                         <MaintenanceActions
                                             manutencao={manutencao}
                                             onDelete={handleDeleteFromList}
                                         />
-                                    </td>
-                                </tr>
+                                    </TableCell>
+                                </TableRow>
                             ))
                         )}
-                    </tbody>
-                </table>
-            </div>
+                    </TableBody>
+                </Table>
+            </Card>
         </div>
     );
 };

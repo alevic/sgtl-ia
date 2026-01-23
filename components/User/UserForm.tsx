@@ -2,11 +2,25 @@
 // Includes: Avatar (base64), Name, Username, Email, Phone, CPF, Birth Date, Password, Role, Notes, Active status
 
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Loader2, Camera, Trash2, Lock, Shield } from 'lucide-react';
+import { User, Mail, Loader2, Camera, Trash2, Lock, Shield, AlertTriangle, CheckCircle2, Phone, CreditCard, Calendar, FileText } from 'lucide-react';
 import { PhoneInput } from '../Form/PhoneInput';
-import { CPFInput } from '../Form/CPFInput';
+import { DocumentInput } from '../Form/DocumentInput';
 import { DatePicker } from '../Form/DatePicker';
 import { UsernameInput } from '../Form/UsernameInput';
+import { TipoDocumento } from '../../types';
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { Button } from '../ui/button';
+import { Card } from '../ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 interface UserFormProps {
     // Mode
@@ -47,16 +61,19 @@ export const UserForm: React.FC<UserFormProps> = ({
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [countryCode, setCountryCode] = useState('+55');
-    const [cpf, setCpf] = useState('');
+    const [documentoTipo, setDocumentoTipo] = useState<TipoDocumento>(TipoDocumento.CPF);
+    const [documento, setDocumento] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('user');
+    const [role, setRole] = useState<string[]>(['user']);
     const [notes, setNotes] = useState('');
     const [isActive, setIsActive] = useState(true);
 
     const [isLoading, setIsLoading] = useState(mode !== 'create');
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [showDeleteAvatarConfirm, setShowDeleteAvatarConfirm] = useState(false);
 
     useEffect(() => {
         if (mode !== 'create' && userId) {
@@ -81,7 +98,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                 setUsername(user.username || '');
                 setEmail(user.email || '');
                 setAvatar(user.image || '');
-                setRole(user.role || 'user');
+                const roleString = user.role || 'user';
+                setRole(roleString.split(',').map((r: string) => r.trim()));
                 setNotes(user.notes || '');
                 setIsActive(user.isActive !== false);
 
@@ -90,7 +108,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                 const phoneWithoutCode = fullPhone.startsWith('+55') ? fullPhone.substring(3) : fullPhone;
                 setPhone(phoneWithoutCode);
 
-                setCpf(user.cpf || '');
+                setDocumento(user.documento || user.cpf || '');
+                setDocumentoTipo(user.documento_tipo || TipoDocumento.CPF);
 
                 // Convert birth_date from ISO to YYYY-MM-DD
                 if (user.birth_date) {
@@ -106,13 +125,16 @@ export const UserForm: React.FC<UserFormProps> = ({
     };
 
     const handleAvatarUpload = (file: File) => {
+        setError('');
         if (!file.type.startsWith('image/')) {
-            alert('Por favor, selecione apenas imagens');
+            setError('Por favor, selecione apenas imagens');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            alert('A imagem deve ter no máximo 2MB');
+            setError('A imagem deve ter no máximo 2MB');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 
@@ -124,15 +146,18 @@ export const UserForm: React.FC<UserFormProps> = ({
     };
 
     const handleRemoveAvatar = () => {
-        if (!confirm('Deseja remover a foto do perfil?')) {
-            return;
-        }
+        setShowDeleteAvatarConfirm(true);
+    };
+
+    const confirmRemoveAvatar = () => {
         setAvatar('');
+        setShowDeleteAvatarConfirm(false);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSuccess('');
         setIsSaving(true);
 
         try {
@@ -142,7 +167,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                 name,
                 email: email || null,
                 phone: fullPhone,
-                cpf: cpf || null,
+                documento: documento || null,
+                documento_tipo: documentoTipo,
                 birthDate: birthDate || null,
                 image: avatar || null,
             };
@@ -154,7 +180,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             }
 
             if (showRole) {
-                data.role = role;
+                data.role = role.join(',');
             }
 
             if (showNotes) {
@@ -169,6 +195,7 @@ export const UserForm: React.FC<UserFormProps> = ({
         } catch (err) {
             console.error('Save error:', err);
             setError(err instanceof Error ? err.message : 'Erro ao salvar');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setIsSaving(false);
         }
@@ -178,232 +205,315 @@ export const UserForm: React.FC<UserFormProps> = ({
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center p-8">
-                <Loader2 className="animate-spin text-blue-600" size={32} />
+            <div className="flex flex-col items-center justify-center p-20 space-y-4 animate-in fade-in duration-500">
+                <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                <p className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sincronizando Dados...</p>
             </div>
         );
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8 pb-20">
+            <AlertDialog open={showDeleteAvatarConfirm} onOpenChange={setShowDeleteAvatarConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Remover Foto?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Deseja remover a foto do perfil?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmRemoveAvatar} className="bg-red-600 hover:bg-red-700">
+                            Remover
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400">
-                    {error}
-                </div>
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Erro Operacional</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
             )}
 
-            {/* Avatar Section */}
-            {showAvatar && (
-                <div className="flex items-center gap-6 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <div className="relative group">
-                        <img
-                            src={avatarUrl}
-                            alt={name || username}
-                            className="w-24 h-24 rounded-full object-cover border-4 border-white dark:border-slate-800 shadow-lg"
-                        />
-                        <div className="absolute bottom-0 right-0 flex gap-1">
-                            <label className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg cursor-pointer group-hover:scale-110 transform">
-                                <Camera size={16} />
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
-                                    className="hidden"
-                                />
-                            </label>
-                            {avatar && (
-                                <button
-                                    type="button"
-                                    onClick={handleRemoveAvatar}
-                                    className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg group-hover:scale-110 transform"
-                                    title="Remover foto"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
+            {success && (
+                <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <AlertTitle>Sucesso</AlertTitle>
+                    <AlertDescription>{success}</AlertDescription>
+                </Alert>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Lateral: Foto e Status */}
+                <div className="lg:col-span-1 space-y-8">
+                    {showAvatar && (
+                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden p-8 text-center flex flex-col items-center">
+                            <div className="relative group mb-6">
+                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl relative">
+                                    <img
+                                        src={avatarUrl}
+                                        alt={name || username}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="absolute -bottom-2 -right-2 flex gap-2">
+                                    <label className="p-3 bg-primary text-primary-foreground rounded-2xl hover:scale-110 transition-transform shadow-lg cursor-pointer flex items-center justify-center">
+                                        <Camera size={18} strokeWidth={2.5} />
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => e.target.files?.[0] && handleAvatarUpload(e.target.files[0])}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                    {avatar && (
+                                        <button
+                                            type="button"
+                                            onClick={handleRemoveAvatar}
+                                            className="p-3 bg-destructive text-destructive-foreground rounded-2xl hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
+                                        >
+                                            <Trash2 size={18} strokeWidth={2.5} />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="font-black text-xs uppercase tracking-tight text-foreground">{name || 'NOME NÃO DEFINIDO'}</h3>
+                                <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">
+                                    {username ? `@${username}` : 'AGUARDANDO IDENTIFICADOR'}
+                                </p>
+                            </div>
+
+                            {showIsActive && (
+                                <div className="mt-8 pt-8 border-t border-border/50 w-full">
+                                    <label className="flex items-center justify-center gap-3 cursor-pointer group">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                checked={isActive}
+                                                onChange={(e) => setIsActive(e.target.checked)}
+                                                className="sr-only"
+                                            />
+                                            <div className={`w-12 h-6 rounded-full transition-colors duration-300 ${isActive ? 'bg-primary' : 'bg-muted'}`} />
+                                            <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isActive ? 'translate-x-6' : 'translate-x-0'}`} />
+                                        </div>
+                                        <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
+                                            {isActive ? 'Acesso Ativo' : 'Acesso Revogado'}
+                                        </span>
+                                    </label>
+                                </div>
                             )}
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-slate-800 dark:text-white">{name || username || 'Novo Usuário'}</h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {username ? `@${username}` : 'Defina um username'}
-                        </p>
-                    </div>
-                </div>
-            )}
+                        </Card>
+                    )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nome Completo */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        Nome Completo <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                            placeholder="Nome completo do usuário"
-                        />
-                    </div>
-                </div>
-
-                {/* Username */}
-                <div>
-                    <UsernameInput
-                        value={username}
-                        onChange={setUsername}
-                        name={name}
-                        disabled={!canEditUsername}
-                        required={mode === 'create'}
-                    />
-                    {!canEditUsername && (
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            O username não pode ser alterado
-                        </p>
+                    {showRole && (
+                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden p-8">
+                            <h4 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-6 flex items-center gap-2">
+                                <Shield size={14} className="text-primary" />
+                                Nível de Acesso
+                            </h4>
+                            <div className="space-y-3">
+                                {[
+                                    { id: 'admin', label: 'Administrador', desc: 'Controle total do ecossistema' },
+                                    { id: 'operacional', label: 'Operacional', desc: 'Gestão de viagens e reservas' },
+                                    { id: 'financeiro', label: 'Financeiro', desc: 'Controle de caixa e contas' },
+                                    { id: 'user', label: 'Usuário Padrão', desc: 'Acesso às rotinas básicas' },
+                                ].map((r) => {
+                                    const isSelected = role.includes(r.id);
+                                    return (
+                                        <button
+                                            key={r.id}
+                                            type="button"
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    // Don't allow deselecting 'user' if it's the only one, or deselecting if it's the last role
+                                                    if (role.length > 1) {
+                                                        setRole(role.filter(id => id !== r.id));
+                                                    }
+                                                } else {
+                                                    setRole([...role, r.id]);
+                                                }
+                                            }}
+                                            className={`w-full p-4 rounded-2xl border transition-all text-left group ${isSelected
+                                                ? 'border-primary bg-primary/5 shadow-lg shadow-primary/5'
+                                                : 'border-border/40 hover:border-primary/40'
+                                                }`}
+                                        >
+                                            <p className={`text-[12px] font-black uppercase tracking-widest ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>{r.label}</p>
+                                            <p className="text-[9px] font-bold text-muted-foreground/60 mt-1 uppercase leading-tight">{r.desc}</p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </Card>
                     )}
                 </div>
 
-                {/* Email */}
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        Email
-                    </label>
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                            placeholder="email@exemplo.com"
-                        />
-                    </div>
-                </div>
-
-                {/* Telefone */}
-                <div>
-                    <PhoneInput
-                        value={phone}
-                        onChange={setPhone}
-                        countryCode={countryCode}
-                        onCountryCodeChange={setCountryCode}
-                        required
-                    />
-                </div>
-
-                {/* CPF */}
-                <div>
-                    <CPFInput value={cpf} onChange={setCpf} />
-                </div>
-
-                {/* Data de Nascimento */}
-                <div>
-                    <DatePicker value={birthDate} onChange={setBirthDate} label="Data de Nascimento" />
-                </div>
-
-                {/* Password (only for create mode) */}
-                {showPassword && (
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Senha <span className="text-red-500">*</span>
-                        </label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required={mode === 'create'}
-                                minLength={6}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                                placeholder="Mínimo 6 caracteres"
-                            />
+                {/* Principal: Dados do Usuário */}
+                <div className="lg:col-span-2 space-y-8">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <User size={14} className="text-primary" />
+                                Identidade e Acesso
+                            </h3>
                         </div>
-                    </div>
-                )}
+                        <div className="p-8 space-y-8">
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo</label>
+                                <div className="relative group">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        required
+                                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        placeholder="Ex: Alexandre de Moraes"
+                                    />
+                                </div>
+                            </div>
 
-                {/* Role */}
-                {showRole && (
-                    <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            <Shield className="inline mr-1" size={16} />
-                            Função
-                        </label>
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Identificador / Username</label>
+                                    <div className="relative group">
+                                        <UsernameInput
+                                            value={username}
+                                            onChange={setUsername}
+                                            name={name}
+                                            disabled={!canEditUsername}
+                                            required={mode === 'create'}
+                                            showLabel={false}
+                                        />
+                                    </div>
+                                    {!canEditUsername && (
+                                        <p className="mt-1.5 ml-1 text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                                            <Lock size={10} /> Identificador inalterável conforme protocolo
+                                        </p>
+                                    )}
+                                </div>
+                                {showPassword && (
+                                    <div className="space-y-1.5">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Senha Corporativa</label>
+                                        <div className="relative group">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
+                                            <input
+                                                type="password"
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                required={mode === 'create'}
+                                                minLength={6}
+                                                className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                                placeholder="Defina uma senha segura"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">E-mail Corporativo</label>
+                                    <div className="relative group">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            placeholder="email@ecossistema.com"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone / WhatsApp</label>
+                                    <PhoneInput
+                                        value={phone}
+                                        onChange={setPhone}
+                                        countryCode={countryCode}
+                                        onCountryCodeChange={setCountryCode}
+                                        required
+                                        showLabel={false}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <DocumentInput
+                                        documentType={documentoTipo}
+                                        documentNumber={documento}
+                                        onTypeChange={setDocumentoTipo}
+                                        onNumberChange={setDocumento}
+                                        required={false}
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Nascimento</label>
+                                    <DatePicker value={birthDate} onChange={setBirthDate} />
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </Card>
+
+                    {showNotes && (
+                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                            <div className="p-8 border-b border-border/50 bg-muted/20">
+                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <FileText size={14} className="text-primary" />
+                                    Observações Operacionais
+                                </h3>
+                            </div>
+                            <div className="p-8">
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    rows={4}
+                                    className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                                    placeholder="Notas internas relevantes sobre o histórico do operador..."
+                                />
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Botões de Ação Standardized */}
+                    <div className="flex gap-4 pt-4">
+                        {onCancel && (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onCancel}
+                                className="flex-1 h-14 rounded-2xl border-border/40 font-black uppercase text-[12px] tracking-widest"
+                            >
+                                Cancelar Registro
+                            </Button>
+                        )}
+                        <Button
+                            type="submit"
+                            disabled={isSaving}
+                            className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 group"
                         >
-                            <option value="user">Usuário</option>
-                            <option value="admin">Administrador</option>
-                            <option value="operacional">Operacional</option>
-                            <option value="financeiro">Financeiro</option>
-                        </select>
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="animate-spin mr-2" size={18} />
+                                    Processando...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle2 className="mr-2 group-hover:scale-110 transition-transform" size={18} />
+                                    {mode === 'create' ? 'Finalizar Cadastro' : 'Sincronizar Alterações'}
+                                </>
+                            )}
+                        </Button>
                     </div>
-                )}
-            </div>
-
-            {/* Notes */}
-            {showNotes && (
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        Observações
-                    </label>
-                    <textarea
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        rows={3}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                        placeholder="Observações internas sobre o usuário..."
-                    />
                 </div>
-            )}
-
-            {/* Is Active */}
-            {showIsActive && (
-                <div className="flex items-center gap-3">
-                    <input
-                        type="checkbox"
-                        id="isActive"
-                        checked={isActive}
-                        onChange={(e) => setIsActive(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-slate-100 border-slate-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-slate-800 focus:ring-2 dark:bg-slate-700 dark:border-slate-600"
-                    />
-                    <label htmlFor="isActive" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                        Usuário Ativo
-                    </label>
-                </div>
-            )}
-
-            {/* Submit Buttons */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                {onCancel && (
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        className="px-6 py-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-semibold transition-colors"
-                    >
-                        Cancelar
-                    </button>
-                )}
-                <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    {isSaving ? (
-                        <>
-                            <Loader2 className="animate-spin" size={18} />
-                            Salvando...
-                        </>
-                    ) : (
-                        mode === 'create' ? 'Criar Usuário' : 'Salvar Alterações'
-                    )}
-                </button>
             </div>
         </form>
     );

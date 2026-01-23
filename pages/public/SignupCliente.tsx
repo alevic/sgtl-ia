@@ -128,7 +128,7 @@ export const SignupCliente: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Tipo de Cliente */}
                     <div className="mb-4">
-                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-2">
                             Tipo de Cadastro <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-2 gap-3">
@@ -166,7 +166,7 @@ export const SignupCliente: React.FC = () => {
                             </h3>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-1">
                                     Razão Social <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -176,12 +176,12 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setRazaoSocial(e.target.value)}
                                     placeholder="Nome empresarial completo"
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-1">
                                     Nome Fantasia
                                 </label>
                                 <input
@@ -190,12 +190,12 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setNomeFantasia(e.target.value)}
                                     placeholder="Nome comercial (opcional)"
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-1">
                                     CNPJ <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -213,12 +213,12 @@ export const SignupCliente: React.FC = () => {
                                     }}
                                     placeholder="00.000.000/0000-00"
                                     disabled={isLoading}
-                                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
                             <hr className="border-blue-200 dark:border-blue-800" />
-                            <p className="text-xs text-slate-600 dark:text-slate-400">
+                            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                                 <strong>Dados do Representante:</strong> Preencha abaixo as informações da pessoa responsável por esta conta.
                             </p>
                         </div>
@@ -227,7 +227,7 @@ export const SignupCliente: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Nome Completo */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-1">
                                 {tipoCliente === TipoCliente.PESSOA_JURIDICA ? 'Nome do Representante' : 'Nome Completo'} <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
@@ -241,7 +241,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Como no documento"
                                     disabled={isLoading}
-                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
                         </div>
@@ -254,14 +254,14 @@ export const SignupCliente: React.FC = () => {
                                 name={name}
                                 required
                             />
-                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                Seu identificador único para login. Mínimo 3 caracteres, apenas letras, números e underscore.
+                            <p className="mt-1 text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-1">
+                                Seu identificador único para login. Mínimo 3 caracteres.
                             </p>
                         </div>
 
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-1">
                                 E-mail <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
@@ -275,7 +275,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="exemplo@email.com"
                                     disabled={isLoading}
-                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
                         </div>
@@ -306,7 +306,7 @@ export const SignupCliente: React.FC = () => {
 
                         {/* Senha */}
                         <div className="md:col-span-2">
-                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-1">
                                 Senha <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
@@ -321,7 +321,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Mínimo 8 caracteres"
                                     disabled={isLoading}
-                                    className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
@@ -419,7 +419,7 @@ export const SignupCliente: React.FC = () => {
 
                 <div className="mt-6 flex items-center justify-center gap-2 text-slate-400">
                     <ShieldCheck size={16} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Seus dados estão protegidos</span>
+                    <span className="text-[12px] font-bold uppercase tracking-wider">Seus dados estão protegidos</span>
                 </div>
             </div>
         </div>

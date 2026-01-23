@@ -3,27 +3,63 @@ import { Link } from 'react-router-dom';
 import { ICliente } from '../types';
 import {
     Users, Search, Filter, UserPlus, Star, TrendingUp,
-    Phone, Mail, MapPin, Calendar, Award, Tag
+    Phone, Mail, MapPin, Calendar, Award, Tag, ChevronRight, MoreHorizontal
 } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
 import { ClientActions } from '../components/CRM/ClientActions';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../components/ui/tabs";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../components/ui/table";
+import { Separator } from "../components/ui/separator";
+import { cn } from "../lib/utils";
 
 const SegmentoBadge: React.FC<{ segmento: ICliente['segmento'] }> = ({ segmento }) => {
     const configs = {
-        VIP: { color: 'purple', icon: Star, label: 'VIP' },
-        REGULAR: { color: 'blue', icon: Users, label: 'Regular' },
-        NOVO: { color: 'green', icon: UserPlus, label: 'Novo' },
-        INATIVO: { color: 'slate', icon: Users, label: 'Inativo' }
+        VIP: { color: 'purple', icon: Star, label: 'VIP', class: 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-500/20' },
+        REGULAR: { color: 'blue', icon: Users, label: 'Regular', class: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/20' },
+        NOVO: { color: 'green', icon: UserPlus, label: 'Novo', class: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' },
+        INATIVO: { color: 'slate', icon: Users, label: 'Inativo', class: 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-500/20' }
     };
 
     const config = configs[segmento] || configs.REGULAR;
     const Icon = config.icon;
 
     return (
-        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold bg-${config.color}-100 dark:bg-${config.color}-900/30 text-${config.color}-700 dark:text-${config.color}-300`}>
+        <Badge variant="outline" className={cn("flex items-center gap-1 font-bold px-2 py-0.5 rounded-full", config.class.replace('border-', '').replace(/[\w-]+-500\/20/, '').trim())}>
             <Icon size={12} />
             {config.label}
-        </span>
+        </Badge>
     );
 };
 
@@ -54,7 +90,7 @@ export const CRM: React.FC = () => {
         const matchBusca = busca === '' ||
             c.nome.toLowerCase().includes(busca.toLowerCase()) ||
             c.email.toLowerCase().includes(busca.toLowerCase()) ||
-            (c.documento || (c as any).documento_numero || '').includes(busca) ||
+            (c.documento || '').includes(busca) ||
             c.telefone?.includes(busca);
         return matchSegmento && matchBusca;
     });
@@ -66,216 +102,238 @@ export const CRM: React.FC = () => {
     const valorTotal = clientes.reduce((sum, c) => sum + Number(c.valor_total_gasto || 0), 0);
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">CRM - Clientes</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Gestão de relacionamento com clientes</p>
+        <div key="crm-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Executive Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <Users size={24} className="text-primary" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
+                            CRM - <span className="text-primary">Clientes</span>
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-0">
+                        Gestão de relacionamento e fidelização
+                    </p>
                 </div>
-                <Link
-                    to="/admin/clientes/novo"
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <UserPlus size={18} />
-                    Novo Cliente
-                </Link>
+                <Button asChild className="h-14 px-6 rounded-2xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                    <Link to="/admin/clientes/novo">
+                        <UserPlus size={20} strokeWidth={2.5} />
+                        NOVO CLIENTE
+                    </Link>
+                </Button>
             </div>
 
-            {/* Estatísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Total de Clientes</p>
-                            <p className="text-2xl font-bold text-slate-800 dark:text-white">{totalClientes}</p>
+            {/* Executive KPI Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Total de Clientes</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-foreground">{totalClientes}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-110 duration-500">
+                                <Users size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                            <Users size={24} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Clientes VIP</p>
-                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{clientesVIP}</p>
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Clientes VIP</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-purple-600">{clientesVIP}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 transition-transform group-hover:scale-110 duration-500">
+                                <Star size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                            <Star size={24} className="text-purple-600 dark:text-purple-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Total de Viagens</p>
-                            <p className="text-2xl font-bold text-slate-800 dark:text-white">{totalViagens}</p>
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Total de Viagens</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-blue-600">{totalViagens}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 transition-transform group-hover:scale-110 duration-500">
+                                <TrendingUp size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                            <TrendingUp size={24} className="text-green-600 dark:text-green-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">Receita Total</p>
-                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                R$ {valorTotal.toLocaleString('pt-BR')}
-                            </p>
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Receita Total</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-emerald-600">
+                                    R$ {Math.round(valorTotal / 1000)}k
+                                </p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-110 duration-500">
+                                <Award size={20} strokeWidth={2.5} />
+                            </div>
                         </div>
-                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                            <Award size={24} className="text-green-600 dark:text-green-400" />
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
             </div>
 
-            {/* Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por nome, email, documento ou telefone..."
+
+            {/* Executive Filters Module */}
+            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Busca */}
+                    <div className="space-y-1.5 flex flex-col">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Cliente</label>
+                        <div className="relative group flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                            <Input
+                                placeholder="Nome, email, documento..."
+                                className="pl-12 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                     </div>
-                    <div className="flex gap-2 flex-wrap">
-                        <button
-                            onClick={() => setFiltroSegmento('TODOS')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroSegmento === 'TODOS' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+
+                    {/* Segmento Tabs */}
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Segmento do Cliente</label>
+                        <Tabs
+                            value={filtroSegmento}
+                            onValueChange={(v) => setFiltroSegmento(v as any)}
+                            className="w-full"
                         >
-                            <Filter size={16} />
-                            Todos
-                        </button>
-                        <button
-                            onClick={() => setFiltroSegmento('VIP')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroSegmento === 'VIP' ? 'bg-purple-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            VIP
-                        </button>
-                        <button
-                            onClick={() => setFiltroSegmento('REGULAR')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroSegmento === 'REGULAR' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Regular
-                        </button>
-                        <button
-                            onClick={() => setFiltroSegmento('NOVO')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroSegmento === 'NOVO' ? 'bg-green-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
-                        >
-                            Novos
-                        </button>
+                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
+                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                                <TabsTrigger value="VIP" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">VIP</TabsTrigger>
+                                <TabsTrigger value="REGULAR" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">REGULAR</TabsTrigger>
+                                <TabsTrigger value="NOVO" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">NOVOS</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </div>
                 </div>
             </div>
 
-            {/* Lista de Clientes */}
-            <div className="grid gap-4">
-                {isLoading ? (
-                    <div className="text-center p-12 text-slate-500">Carregando clientes...</div>
-                ) : clientesFiltrados.length === 0 ? (
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
-                        <Users size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                        <p className="text-slate-500 dark:text-slate-400">Nenhum cliente encontrado</p>
-                    </div>
-                ) : (
-                    clientesFiltrados.map((cliente) => (
-                        <Link
-                            key={cliente.id}
-                            to={`/admin/clientes/${cliente.id}`}
-                            className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all hover:border-blue-300 dark:hover:border-blue-700"
-                        >
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                                        {cliente.nome.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">{cliente.nome}</h3>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            Cliente desde {new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <SegmentoBadge segmento={cliente.segmento} />
-                                    <ClientActions cliente={cliente} onUpdate={fetchClientes} />
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                                <div className="flex items-center gap-2">
-                                    <Mail size={16} className="text-blue-600" />
-                                    <span className="text-sm text-slate-600 dark:text-slate-400 truncate">{cliente.email}</span>
-                                </div>
-                                {cliente.telefone && (
-                                    <div className="flex items-center gap-2">
-                                        <Phone size={16} className="text-green-600" />
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">{cliente.telefone}</span>
+            {/* Executive Table Module */}
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-border/50">
+                            <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Cliente</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Contato</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-center">Segmento</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-center">Viagens</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-right">Receita</TableHead>
+                            <TableHead className="pr-8 text-right h-14 text-[12px] font-semibold uppercase tracking-widest">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-96 text-center border-none">
+                                    <div className="flex flex-col items-center justify-center gap-4 py-20">
+                                        <div className="w-12 h-14 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                                        <p className="text-muted-foreground font-medium">Carregando clientes...</p>
                                     </div>
-                                )}
-                                {cliente.cidade && (
-                                    <div className="flex items-center gap-2">
-                                        <MapPin size={16} className="text-red-600" />
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">{cliente.cidade}, {cliente.estado}</span>
+                                </TableCell>
+                            </TableRow>
+                        ) : clientesFiltrados.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-96 text-center border-none">
+                                    <div className="flex flex-col items-center justify-center gap-4 py-20 grayscale opacity-40">
+                                        <div className="p-6 bg-muted/40 rounded-full">
+                                            <Users size={48} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-lg font-bold text-foreground">Nenhum cliente encontrado</p>
+                                            <p className="text-sm text-muted-foreground">Tente ajustar os filtros ou adicionar um novo cliente</p>
+                                        </div>
                                     </div>
-                                )}
-                                {cliente.ultima_viagem && (
-                                    <div className="flex items-center gap-2">
-                                        <Calendar size={16} className="text-purple-600" />
-                                        <span className="text-sm text-slate-600 dark:text-slate-400">
-                                            Última viagem: {new Date(cliente.ultima_viagem).toLocaleDateString('pt-BR')}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
-                                <div className="flex gap-4">
-                                    <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Viagens</p>
-                                        <p className="font-bold text-slate-800 dark:text-white">{cliente.historico_viagens || 0}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Créditos</p>
-                                        <p className="font-bold text-green-600 dark:text-green-400">{Number(cliente.saldo_creditos || 0).toFixed(2)}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">Total Gasto</p>
-                                        <p className="font-bold text-blue-600 dark:text-blue-400">
-                                            R$ {Number(cliente.valor_total_gasto || 0).toLocaleString('pt-BR')}
-                                        </p>
-                                    </div>
-                                </div>
-                                {cliente.tags && cliente.tags.length > 0 && (
-                                    <div className="flex gap-1 flex-wrap">
-                                        {cliente.tags.slice(0, 3).map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs"
-                                            >
-                                                <Tag size={10} />
-                                                {tag}
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            clientesFiltrados.map((cliente) => (
+                                <TableRow key={cliente.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                    <TableCell className="pl-8 py-5">
+                                        <div className="flex items-center gap-3">
+                                            <Avatar className="h-10 w-10 border-2 border-background shadow-sm ring-1 ring-primary/10">
+                                                <AvatarImage src={(cliente as any).avatar} />
+                                                <AvatarFallback className="bg-gradient-to-br from-primary/10 to-purple-600/10 text-primary text-sm font-semibold">
+                                                    {cliente.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <Link
+                                                    to={`/admin/clientes/${cliente.id}`}
+                                                    className="font-bold text-sm hover:text-primary transition-colors"
+                                                >
+                                                    {cliente.nome}
+                                                </Link>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {cliente.documento || 'Sem documento'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="py-5">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <Mail size={12} className="text-blue-600" />
+                                                <span className="font-medium truncate max-w-[200px]">{cliente.email}</span>
+                                            </div>
+                                            {cliente.telefone && (
+                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                    <Phone size={12} className="text-emerald-600" />
+                                                    <span>{cliente.telefone}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-center py-5">
+                                        <SegmentoBadge segmento={cliente.segmento} />
+                                    </TableCell>
+                                    <TableCell className="text-center py-5">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="text-lg font-semibold">{cliente.historico_viagens || 0}</span>
+                                            {cliente.ultima_viagem && (
+                                                <span className="text-[12px] text-muted-foreground">
+                                                    Última: {new Date(cliente.ultima_viagem).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right py-5">
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-sm font-semibold text-emerald-600">
+                                                R$ {Number(cliente.valor_total_gasto || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </Link>
-                    ))
-                )}
-            </div>
+                                            {cliente.saldo_creditos > 0 && (
+                                                <span className="text-[12px] text-muted-foreground">
+                                                    {cliente.saldo_creditos} créditos
+                                                </span>
+                                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="pr-8 text-right py-5">
+                                        <ClientActions cliente={cliente} onUpdate={fetchClientes} />
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </Card>
         </div>
     );
 };
-

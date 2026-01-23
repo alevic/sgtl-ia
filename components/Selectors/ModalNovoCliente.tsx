@@ -45,7 +45,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                 email,
                 telefone,
                 documento_tipo: documentoTipo,
-                documento_numero: documentoNumero,
+                documento: documentoNumero,
                 data_nascimento: dataNascimento,
                 nacionalidade,
                 endereco,

@@ -7,6 +7,7 @@ interface UsernameInputProps {
     name: string;
     required?: boolean;
     disabled?: boolean;
+    showLabel?: boolean;
 }
 
 // Get API URL
@@ -27,7 +28,7 @@ function getApiUrl(): string {
     return "http://localhost:4000";
 }
 
-export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, name, required = true, disabled = false }) => {
+export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, name, required = true, disabled = false, showLabel = true }) => {
     const [isChecking, setIsChecking] = useState(false);
     const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -124,9 +125,11 @@ export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, n
 
     return (
         <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Username {required && <span className="text-red-500">*</span>}
-            </label>
+            {showLabel && (
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Username {required && <span className="text-red-500">*</span>}
+                </label>
+            )}
 
             <div className="flex gap-2">
                 <div className="relative flex-1">
@@ -136,7 +139,7 @@ export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, n
                         value={value}
                         onChange={(e) => onChange(e.target.value.toLowerCase())}
                         disabled={disabled}
-                        className={`w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white disabled:opacity-50 disabled:cursor-not-allowed ${error || isAvailable === false
+                        className={`w-full pl-10 pr-10 h-14 bg-slate-50 dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white disabled:opacity-50 disabled:cursor-not-allowed ${error || isAvailable === false
                             ? 'border-red-300 dark:border-red-700'
                             : isAvailable === true
                                 ? 'border-green-300 dark:border-green-700'
@@ -154,7 +157,7 @@ export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, n
                     type="button"
                     onClick={generateSuggestions}
                     disabled={disabled || !name}
-                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-4 h-14 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     title="Gerar sugestões"
                 >
                     <RefreshCw size={18} />

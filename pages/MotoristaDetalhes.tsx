@@ -1,8 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IMotorista } from '../types';
-import { ArrowLeft, Edit, Trash2, User, FileText, Globe, Phone, MapPin, Calendar, Briefcase, AlertTriangle, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { IMotorista, DriverStatus } from '../types';
+import {
+    ArrowLeft, Edit, Trash2, User, FileText, Globe, Phone, MapPin,
+    Calendar, Briefcase, AlertTriangle, CheckCircle, XCircle, AlertCircle,
+    ShieldCheck, History, Clock, Star, CheckCircle2, Loader2,
+    Mail, CreditCard, Award, MapPinned, Info, ChevronRight, Hash
+} from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { cn } from '../lib/utils';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 export const MotoristaDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -12,6 +33,8 @@ export const MotoristaDetalhes: React.FC = () => {
     const [motorista, setMotorista] = useState<IMotorista | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+    const [activeTab, setActiveTab] = useState('perfil');
 
     useEffect(() => {
         const fetchMotorista = async () => {
@@ -40,10 +63,12 @@ export const MotoristaDetalhes: React.FC = () => {
     }, [id]);
 
     const handleDelete = async () => {
-        if (!id || !window.confirm('Tem certeza que deseja excluir este motorista? Esta ação não pode ser desfeita.')) {
-            return;
-        }
+        if (!id) return;
+        setShowDeleteDialog(true);
+    };
 
+    const confirmDelete = async () => {
+        setShowDeleteDialog(false);
         setIsDeleting(true);
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/fleet/drivers/${id}`, {
@@ -77,16 +102,28 @@ export const MotoristaDetalhes: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <p className="text-slate-500 dark:text-slate-400">Carregando motorista...</p>
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+                <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                <p className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">
+                    Autenticando e carregando perfil...
+                </p>
             </div>
         );
     }
 
     if (!motorista) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <p className="text-slate-500 dark:text-slate-400">Motorista não encontrado</p>
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
+                <div className="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center text-rose-500">
+                    <User size={40} />
+                </div>
+                <div className="text-center">
+                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Motorista não localizado</h3>
+                    <p className="text-muted-foreground font-medium mt-1">O registro solicitado não existe em nossa base de dados.</p>
+                </div>
+                <Button onClick={() => navigate('/admin/motoristas')} variant="outline" className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                    Voltar para Listagem
+                </Button>
             </div>
         );
     }
@@ -95,188 +132,404 @@ export const MotoristaDetalhes: React.FC = () => {
     const passaporteValidade = motorista.validade_passaporte ? verificarValidade(motorista.validade_passaporte) : null;
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/motoristas')}
-                    className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{motorista.nome}</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Detalhes do motorista</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={handleDelete}
-                        disabled={isDeleting}
-                        className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <Trash2 size={18} />
-                        {isDeleting ? 'Excluindo...' : 'Excluir'}
-                    </button>
-                    <Link
-                        to={`/admin/motoristas/${id}/editar`}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                    >
-                        <Edit size={18} />
-                        Editar
-                    </Link>
-                </div>
-            </div>
+        <div className="max-w-7xl mx-auto space-y-10 pb-20 animate-in fade-in duration-700">
+            {/* Action Dialog */}
+            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-xl font-black uppercase tracking-tight">Confirmar Exclusão</AlertDialogTitle>
+                        <AlertDialogDescription className="text-base font-medium text-muted-foreground py-4 border-y border-border/50 my-4">
+                            Você está prestes a remover <span className="text-foreground font-bold">{motorista.nome}</span> permanentemente.
+                            Esta operação não pode ser revertida. Deseja prosseguir?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="gap-3">
+                        <AlertDialogCancel className="h-12 px-6 rounded-xl font-black uppercase text-[11px] tracking-widest border-border hover:bg-muted transition-all">
+                            Manter Registro
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="h-12 px-8 rounded-xl font-black uppercase text-[11px] tracking-widest bg-rose-600 text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/20"
+                        >
+                            Confirmar Remoção
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Coluna Esquerda */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Dados Pessoais */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <User size={20} className="text-blue-600" />
-                            Dados Pessoais
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Status</p>
-                                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold 
-                                    ${motorista.status === 'DISPONIVEL' ? 'bg-green-100 text-green-700' :
-                                        motorista.status === 'EM_VIAGEM' ? 'bg-blue-100 text-blue-700' :
-                                            motorista.status === 'FERIAS' ? 'bg-orange-100 text-orange-700' :
-                                                'bg-red-100 text-red-700'}`}>
+            {/* Premium Header Container */}
+            <div className="flex flex-col gap-10">
+                {/* Top Nav & Actions */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="flex items-center gap-6 group">
+                        <button
+                            onClick={() => navigate('/admin/motoristas')}
+                            className="w-14 h-14 rounded-2xl bg-card border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group"
+                        >
+                            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                        </button>
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <Badge className={cn(
+                                    "px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border-none",
+                                    motorista.status === DriverStatus.AVAILABLE ? 'bg-emerald-500/10 text-emerald-600' :
+                                        motorista.status === DriverStatus.IN_TRANSIT ? 'bg-blue-500/10 text-blue-600' :
+                                            motorista.status === DriverStatus.ON_LEAVE ? 'bg-amber-500/10 text-amber-600' :
+                                                'bg-rose-500/10 text-rose-600'
+                                )}>
                                     {motorista.status}
-                                </span>
+                                </Badge>
+                                <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">ID: {motorista.id?.slice(0, 8)}</span>
                             </div>
-                            <div>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Data de Admissão</p>
-                                <p className="font-medium text-slate-800 dark:text-white">
-                                    {formatDate(motorista.data_contratacao)}
-                                </p>
-                            </div>
+                            <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">{motorista.nome}</h1>
                         </div>
                     </div>
 
-                    {/* Documentação */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <FileText size={20} className="text-blue-600" />
-                            Documentação
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-semibold text-slate-700 dark:text-slate-300">CNH</h4>
-                                    <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-xs font-bold text-slate-700 dark:text-slate-300">
-                                        Cat. {motorista.categoria_cnh}
-                                    </span>
+                    <div className="flex items-center gap-4 w-full md:w-auto">
+                        <Button
+                            variant="outline"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="flex-1 md:flex-none h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] border-border/50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all duration-300"
+                        >
+                            <Trash2 size={18} className="mr-2" />
+                            {isDeleting ? 'Processando...' : 'Excluir'}
+                        </Button>
+                        <Link to={`/admin/motoristas/${id}/editar`} className="flex-1 md:flex-none">
+                            <Button className="w-full h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] bg-primary text-primary-foreground shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300">
+                                <Edit size={18} className="mr-2" />
+                                Editar Cadastro
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Hero Stats Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
+                        <div className="relative z-10 flex flex-col gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <CreditCard size={24} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Categoria CNH</p>
+                                <p className="text-3xl font-black text-foreground tracking-tighter uppercase">{motorista.categoria_cnh || '--'}</p>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
+                        <div className="relative z-10 flex flex-col gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Calendar size={24} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Contratado em</p>
+                                <p className="text-2xl font-black text-foreground tracking-tighter uppercase">{formatDate(motorista.data_contratacao)}</p>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
+                        <div className="relative z-10 flex flex-col gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Globe size={24} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Rota Internacional</p>
+                                <p className="text-3xl font-black text-foreground tracking-tighter uppercase">{motorista.disponivel_internacional ? 'APTO' : 'INAPTO'}</p>
+                            </div>
+                        </div>
+                    </Card>
+
+                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
+                        <div className="relative z-10 flex flex-col gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Award size={24} />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Total de Viagens</p>
+                                <p className="text-3xl font-black text-foreground tracking-tighter uppercase">{motorista.viagens_internacionais || '0'}</p>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </div>
+
+            <Tabs defaultValue="perfil" value={activeTab} onValueChange={setActiveTab} className="w-full space-y-10">
+                <Card className="p-2 bg-card/60 backdrop-blur-xl border border-border/50 rounded-[2.5rem] shadow-2xl shadow-primary/5">
+                    <TabsList className="w-full h-20 bg-transparent flex gap-2 p-2">
+                        <TabsTrigger
+                            value="perfil"
+                            className="flex-1 h-full rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
+                        >
+                            <User size={18} className="mr-2" />
+                            Perfil do Operador
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="documentacao"
+                            className="flex-1 h-full rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
+                        >
+                            <ShieldCheck size={18} className="mr-2" />
+                            Certificações & Docs
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="logs"
+                            className="flex-1 h-full rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
+                        >
+                            <History size={18} className="mr-2" />
+                            Histórico de Operação
+                        </TabsTrigger>
+                    </TabsList>
+                </Card>
+
+                <Card className="bg-card border border-border/50 rounded-[3rem] shadow-2xl shadow-primary/5 min-h-[500px] overflow-hidden">
+                    <div className="p-8">
+                        <TabsContent value="perfil" className="m-0 focus-visible:outline-none">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in duration-700">
+                                <div className="space-y-10 focus-visible:outline-none">
+                                    <div className="space-y-6">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <User size={16} className="text-primary" /> Identificação & Status
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail Corporativo</p>
+                                                <p className="text-base font-bold text-foreground">{motorista.email || '-'}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telefone de Contato</p>
+                                                <p className="text-base font-bold text-foreground">{motorista.telefone || '-'}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data de Admissão</p>
+                                                <p className="text-base font-bold text-foreground">
+                                                    {motorista.data_contratacao ? formatDate(motorista.data_contratacao) : '-'}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Capacitação Operacional</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Badge className="bg-purple-500/10 text-purple-600 border-none font-black uppercase text-[10px] tracking-widest px-3">
+                                                        CAT. {motorista.categoria_cnh || 'N/A'}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <MapPinned size={16} className="text-primary" /> Endereço Residencial
+                                        </h3>
+                                        <div className="space-y-6 bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Logradouro / Complemento</p>
+                                                <p className="text-base font-bold text-foreground">{motorista.endereco || '-'}</p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cidade / UF</p>
+                                                    <p className="text-sm font-bold text-foreground">
+                                                        {motorista.cidade || '-'}{motorista.estado ? ` - ${motorista.estado}` : ''}
+                                                    </p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">País de Origem</p>
+                                                    <p className="text-sm font-bold text-foreground">{motorista.pais || '-'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-2xl font-mono text-slate-800 dark:text-white mb-2">{motorista.cnh}</p>
-                                <div className="flex items-center gap-2">
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">Validade:</p>
-                                    <span className={`text-sm font-semibold text-${cnhValidade.cor}-600`}>
-                                        {cnhValidade.texto}
-                                    </span>
+
+                                <div className="space-y-10">
+                                    <div className="space-y-6">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <Award size={16} className="text-primary" /> Qualificações & Competências
+                                        </h3>
+                                        <div className="space-y-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
+                                            <div className="flex items-center justify-between p-4 bg-background/50 rounded-2xl border border-border/50">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                                                        <Globe size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Operação Internacional</p>
+                                                        <p className="text-sm font-black text-foreground">{motorista.disponivel_internacional ? 'HABILITADO' : 'NÃO HABILITADO'}</p>
+                                                    </div>
+                                                </div>
+                                                {motorista.disponivel_internacional ? (
+                                                    <CheckCircle2 size={20} className="text-emerald-500" />
+                                                ) : (
+                                                    <XCircle size={20} className="text-muted-foreground/30" />
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-3 p-4 bg-background/50 rounded-2xl border border-border/50">
+                                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                                    <Briefcase size={18} />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Roteiros Realizados</p>
+                                                    <p className="text-sm font-black text-foreground">{motorista.viagens_internacionais || 0} Viagens Internacionais</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <Info size={16} className="text-primary" /> Observações Internas
+                                        </h3>
+                                        <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
+                                            "{motorista.observacoes || 'Nenhuma observação ou restrição registrada para este perfil.'}"
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                        </TabsContent>
 
-                            {motorista.passaporte ? (
-                                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h4 className="font-semibold text-slate-700 dark:text-slate-300">Passaporte</h4>
-                                        <Globe size={16} className="text-blue-500" />
-                                    </div>
-                                    <p className="text-2xl font-mono text-slate-800 dark:text-white mb-2">{motorista.passaporte}</p>
-                                    {passaporteValidade && (
-                                        <div className="flex items-center gap-2">
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">Validade:</p>
-                                            <span className={`text-sm font-semibold text-${passaporteValidade.cor}-600`}>
-                                                {passaporteValidade.texto}
-                                            </span>
+                        <TabsContent value="documentacao" className="m-0 focus-visible:outline-none">
+                            <div className="space-y-10 animate-in fade-in duration-700">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* CNH Card */}
+                                    <div className="group relative overflow-hidden bg-card border border-border rounded-[3rem] p-10 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500">
+                                        <div className="absolute top-0 right-0 p-8 text-primary/5 group-hover:text-primary/10 transition-colors">
+                                            <CreditCard size={120} />
                                         </div>
-                                    )}
+                                        <div className="relative z-10 space-y-8">
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                                        <ShieldCheck size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-lg font-black text-foreground tracking-tight uppercase">CNH Profissional</h4>
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Carteira Nacional de Habilitação</p>
+                                                    </div>
+                                                </div>
+                                                <Badge className="h-8 px-4 rounded-xl bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest">
+                                                    CATEGORIA {motorista.categoria_cnh}
+                                                </Badge>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Número do Registro</p>
+                                                <p className="text-3xl font-black text-foreground tracking-widest font-mono">{motorista.cnh}</p>
+                                            </div>
+
+                                            <div className="flex items-center justify-between pt-8 border-t border-border/50">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Expiração do Documento</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={cn(
+                                                            "w-2 h-2 rounded-full",
+                                                            cnhValidade.cor === 'red' ? 'bg-rose-500 animate-pulse' :
+                                                                cnhValidade.cor === 'orange' ? 'bg-amber-500' : 'bg-emerald-500'
+                                                        )} />
+                                                        <p className={cn(
+                                                            "text-base font-black",
+                                                            cnhValidade.cor === 'red' ? 'text-rose-600' :
+                                                                cnhValidade.cor === 'orange' ? 'text-amber-600' : 'text-emerald-600'
+                                                        )}>
+                                                            {cnhValidade.texto}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <ChevronRight className="text-muted-foreground/20 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Passaporte Card */}
+                                    <div className={cn(
+                                        "group relative overflow-hidden border rounded-[3rem] p-10 transition-all duration-500",
+                                        motorista.passaporte
+                                            ? "bg-card border-border hover:shadow-2xl hover:shadow-primary/5"
+                                            : "bg-muted/5 border-dashed border-border/50 opacity-60"
+                                    )}>
+                                        <div className="absolute top-0 right-0 p-8 text-primary/5 group-hover:text-primary/10 transition-colors text-right">
+                                            <Globe size={120} />
+                                        </div>
+                                        <div className="relative z-10 space-y-8">
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn(
+                                                        "w-12 h-12 rounded-2xl flex items-center justify-center",
+                                                        motorista.passaporte ? "bg-blue-500/10 text-blue-600" : "bg-muted text-muted-foreground"
+                                                    )}>
+                                                        <Globe size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-lg font-black text-foreground tracking-tight uppercase">Passaporte</h4>
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Documentação Internacional</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Número do Documento</p>
+                                                <p className="text-3xl font-black text-foreground tracking-widest font-mono">
+                                                    {motorista.passaporte || 'NÃO REGISTRADO'}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex items-center justify-between pt-8 border-t border-border/50">
+                                                {passaporteValidade ? (
+                                                    <div className="space-y-1">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Validade do Visto/Registro</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={cn(
+                                                                "w-2 h-2 rounded-full",
+                                                                passaporteValidade.cor === 'red' ? 'bg-rose-500 animate-pulse' :
+                                                                    passaporteValidade.cor === 'orange' ? 'bg-amber-500' : 'bg-emerald-500'
+                                                            )} />
+                                                            <p className={cn(
+                                                                "text-base font-black",
+                                                                passaporteValidade.cor === 'red' ? 'text-rose-600' :
+                                                                    passaporteValidade.cor === 'orange' ? 'text-amber-600' : 'text-emerald-600'
+                                                            )}>
+                                                                {passaporteValidade.texto}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-2 text-muted-foreground py-2">
+                                                        <AlertCircle size={16} />
+                                                        <span className="text-[11px] font-bold uppercase tracking-widest">Sem validade registrada</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 border-dashed">
-                                    <p className="text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                                        <AlertCircle size={18} />
-                                        Sem passaporte cadastrado
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="logs" className="m-0 focus-visible:outline-none">
+                            <div className="flex flex-col items-center justify-center py-32 space-y-6 animate-in fade-in duration-700">
+                                <div className="w-24 h-24 bg-primary/5 rounded-full flex items-center justify-center text-primary/20">
+                                    <History size={48} />
+                                </div>
+                                <div className="text-center space-y-2">
+                                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Registro de Operações</h3>
+                                    <p className="text-muted-foreground text-sm max-w-sm mx-auto font-medium">
+                                        O histórico detalhado de viagens e checkpoints para este motorista está sendo processado e estará disponível em breve.
                                     </p>
                                 </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Observações */}
-                    {motorista.observacoes && (
-                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                            <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Observações</h3>
-                            <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{motorista.observacoes}</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Coluna Direita */}
-                <div className="space-y-6">
-                    {/* Contatos */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <Phone size={20} className="text-green-600" />
-                            Contatos
-                        </h3>
-                        <div className="space-y-4">
-                            {motorista.telefone && (
-                                <div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">Telefone</p>
-                                    <p className="text-slate-800 dark:text-white">{motorista.telefone}</p>
-                                </div>
-                            )}
-                            {motorista.email && (
-                                <div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold mb-1">Email</p>
-                                    <p className="text-slate-800 dark:text-white">{motorista.email}</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Endereço */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <MapPin size={20} className="text-red-600" />
-                            Endereço
-                        </h3>
-                        <div className="space-y-2 text-slate-600 dark:text-slate-300">
-                            {motorista.endereco && <p>{motorista.endereco}</p>}
-                            {(motorista.cidade || motorista.estado) && (
-                                <p>{motorista.cidade}{motorista.cidade && motorista.estado ? ' - ' : ''}{motorista.estado}</p>
-                            )}
-                            {motorista.pais && <p>{motorista.pais}</p>}
-                        </div>
-                    </div>
-
-                    {/* Qualificações */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <Briefcase size={20} className="text-purple-600" />
-                            Qualificações
-                        </h3>
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-slate-600 dark:text-slate-300">Viagens Internacionais</span>
-                                <span className={`px-2 py-1 rounded text-xs font-bold ${motorista.disponivel_internacional ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                    {motorista.disponivel_internacional ? 'SIM' : 'NÃO'}
-                                </span>
+                                <Badge variant="outline" className="px-6 py-2 border-primary/20 bg-primary/5 text-primary rounded-full text-[10px] font-black uppercase tracking-[0.3e] animate-pulse">
+                                    Módulo em Desenvolvimento
+                                </Badge>
                             </div>
-                            {motorista.viagens_internacionais !== undefined && (
-                                <div className="flex items-center justify-between">
-                                    <span className="text-slate-600 dark:text-slate-300">Total de Viagens</span>
-                                    <span className="font-bold text-slate-800 dark:text-white">{motorista.viagens_internacionais}</span>
-                                </div>
-                            )}
-                        </div>
+                        </TabsContent>
                     </div>
-                </div>
-            </div>
-        </div>
+                </Card>
+            </Tabs>
+        </div >
     );
 };

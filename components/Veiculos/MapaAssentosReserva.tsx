@@ -182,7 +182,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                                     const preco = getPrecoAssento(assento.tipo);
 
                                     let buttonClasses = "relative w-12 h-12 rounded-xl transition-all duration-300 border-2 flex flex-col items-center justify-center gap-0.5 group/seat ";
-                                    let textClasses = "text-[10px] font-bold ";
+                                    let textClasses = "text-[12px] font-bold ";
                                     let iconClasses = "w-3.5 h-3.5 ";
 
                                     if (status === 'selecionado') {
@@ -239,7 +239,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
             <div className="pt-6 border-t border-slate-100 dark:border-slate-700 space-y-6">
                 {/* Grupo Status */}
                 <div>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-3 text-center">
+                    <p className="text-[12px] font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-3 text-center">
                         Legenda
                     </p>
                     <div className="flex flex-wrap justify-center gap-x-6 gap-y-3">
@@ -247,19 +247,19 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                             <div className="w-3.5 h-3.5 rounded bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 relative">
                                 <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white dark:border-slate-800"></div>
                             </div>
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Livre</span>
+                            <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Livre</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3.5 h-3.5 rounded bg-blue-600 border-2 border-blue-500"></div>
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Selecionado</span>
+                            <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Selecionado</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3.5 h-3.5 rounded bg-red-100 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800"></div>
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Ocupado</span>
+                            <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Ocupado</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-3.5 h-3.5 rounded bg-slate-100 dark:bg-slate-900/50 border-2 border-slate-200 dark:border-slate-800"></div>
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Bloqueado</span>
+                            <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">Bloqueado</span>
                         </div>
                     </div>
                 </div>
@@ -272,7 +272,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                         return (
                             <div key={tipo} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/30 rounded-lg border border-slate-100 dark:border-slate-800">
                                 <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-                                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tight">
+                                <span className="text-[12px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tight">
                                     {style.label}
                                 </span>
                             </div>

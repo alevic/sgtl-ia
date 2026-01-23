@@ -5,8 +5,25 @@ import { useAppContext } from '../context/AppContext';
 import { DatePicker } from '../components/Form/DatePicker';
 import {
     ArrowLeft, User, Mail, Phone, MapPin, Calendar, DollarSign,
-    FileText, MessageSquare, History, Star, Edit, Plus, Check, X
+    FileText, MessageSquare, History, Star, Edit, Plus, Check, X,
+    TrendingUp, Award, CreditCard, ShieldCheck, Clock
 } from 'lucide-react';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "../components/ui/card";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../components/ui/tabs";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+import { cn } from "../lib/utils";
 import { clientsService } from '../services/clientsService';
 import { reservationsService } from '../services/reservationsService';
 
@@ -237,597 +254,519 @@ export const ClienteDetalhes: React.FC = () => {
         return <div className="p-8 text-center">Cliente não encontrado</div>;
     }
 
+    const tabs = [
+        { id: 'perfil', label: 'Informações', icon: User },
+        { id: 'historico', label: 'Histórico', icon: History },
+        { id: 'interacoes', label: 'Interações', icon: MessageSquare },
+        { id: 'notas', label: 'Notas', icon: FileText }
+    ];
+
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Cabeçalho */}
-            <div className="flex items-center gap-4">
-                <Link
-                    to="/admin/clientes"
-                    className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </Link>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{cliente.nome}</h1>
-                    <p className="text-slate-500 dark:text-slate-400">
-                        Cliente desde {new Date(cliente.data_cadastro).toLocaleDateString('pt-BR')}
+        <div className="space-y-10 animate-in fade-in duration-700 pb-10 px-8">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <Link
+                        to="/admin/clientes"
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Gestão de Clientes</span>
+                    </Link>
+                    <div className="flex items-center gap-5">
+                        <Avatar className="h-20 w-20 rounded-[2rem] border-4 border-background shadow-2xl">
+                            <AvatarImage src="" />
+                            <AvatarFallback className="bg-primary/10 text-primary text-2xl font-black">
+                                {cliente.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">
+                                    {cliente.nome}
+                                </h1>
+                                {cliente.segmento === 'VIP' && (
+                                    <Badge className="bg-amber-500/10 text-amber-600 border-none rounded-full px-3 py-1 font-bold flex items-center gap-1.5 uppercase text-[10px] tracking-widest">
+                                        <Award size={12} fill="currentColor" />
+                                        Cliente VIP
+                                    </Badge>
+                                )}
+                            </div>
+                            <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">
+                                ID #{cliente.id} • Membro desde {new Date(cliente.data_cadastro).getFullYear()}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="outline"
+                        onClick={handleEditClick}
+                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
+                    >
+                        <Edit size={16} className="mr-2" />
+                        Editar Cadastro
+                    </Button>
+                    <Button
+                        variant="secondary"
+                        onClick={() => setActiveTab('interacoes')}
+                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
+                    >
+                        <MessageSquare size={16} className="mr-2" />
+                        Registrar Contato
+                    </Button>
+                </div>
+            </div>
+
+            {/* Stats Hero - Premium Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-primary/5 p-6 rounded-3xl border border-primary/20 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <TrendingUp size={64} />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-3">Volume de Viagens</p>
+                    <div className="flex items-baseline gap-2">
+                        <p className="text-4xl font-black tracking-tighter text-foreground">{cliente.historico_viagens || 0}</p>
+                        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded uppercase tracking-tighter">+12%</span>
+                    </div>
+                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Viagens realizadas</p>
+                </div>
+
+                <div className="bg-indigo-500/5 p-6 rounded-3xl border border-indigo-500/20 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <CreditCard size={64} />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500/60 mb-3">Saldo Disponível</p>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-black text-indigo-500">R$</span>
+                        <p className="text-4xl font-black tracking-tighter text-foreground">{(cliente.saldo_creditos || 0).toLocaleString('pt-BR')}</p>
+                    </div>
+                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Créditos em conta</p>
+                </div>
+
+                <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/20 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <DollarSign size={64} />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/60 mb-3">Investimento Total</p>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-black text-emerald-600">R$</span>
+                        <p className="text-4xl font-black tracking-tighter text-foreground">{(cliente.valor_total_gasto || 0).toLocaleString('pt-BR')}</p>
+                    </div>
+                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Total faturado</p>
+                </div>
+
+                <div className="bg-slate-500/5 p-6 rounded-3xl border border-slate-500/10 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
+                        <Clock size={64} />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3">Atividade Recente</p>
+                    <p className="text-xl font-black tracking-tight text-foreground uppercase mt-2">
+                        {cliente.ultima_viagem ? new Date(cliente.ultima_viagem).toLocaleDateString('pt-BR') : 'Sem registro'}
                     </p>
-                </div>
-                <Link
-                    to={`/admin/clientes/${id}/editar`}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Edit size={18} />
-                    Editar
-                </Link>
-            </div>
-
-            {/* Edit Modal */}
-            {showEditModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-xl">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white">Editar Cliente</h2>
-                            <button onClick={() => setShowEditModal(false)} className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="col-span-2">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
-                                <input
-                                    type="text"
-                                    name="nome"
-                                    value={editFormData.nome || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={editFormData.email || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
-                                <input
-                                    type="text"
-                                    name="telefone"
-                                    value={editFormData.telefone || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo de Documento</label>
-                                <select
-                                    name="documento_tipo"
-                                    value={editFormData.documento_tipo || TipoDocumento.CPF}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                >
-                                    <option value={TipoDocumento.CPF}>CPF</option>
-                                    <option value={TipoDocumento.RG}>RG</option>
-                                    <option value={TipoDocumento.PASSAPORTE}>Passaporte</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Número do Documento</label>
-                                <input
-                                    type="text"
-                                    name="documento"
-                                    value={(editFormData as any).documento || (editFormData as any).documento_numero || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nacionalidade</label>
-                                <input
-                                    type="text"
-                                    name="nacionalidade"
-                                    value={editFormData.nacionalidade || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Data de Nascimento</label>
-                                <DatePicker
-                                    value={editFormData.data_nascimento ? new Date(editFormData.data_nascimento).toISOString().split('T')[0] : ''}
-                                    onChange={(val) => setEditFormData(prev => ({ ...prev, data_nascimento: val }))}
-                                    placeholder="DD/MM/AAAA"
-                                />
-                            </div>
-
-                            <div className="col-span-2">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Endereço</label>
-                                <input
-                                    type="text"
-                                    name="endereco"
-                                    value={editFormData.endereco || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cidade</label>
-                                <input
-                                    type="text"
-                                    name="cidade"
-                                    value={editFormData.cidade || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Estado</label>
-                                <input
-                                    type="text"
-                                    name="estado"
-                                    value={editFormData.estado || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">País</label>
-                                <input
-                                    type="text"
-                                    name="pais"
-                                    value={editFormData.pais || ''}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Segmento</label>
-                                <select
-                                    name="segmento"
-                                    value={editFormData.segmento || 'REGULAR'}
-                                    onChange={handleEditChange}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                >
-                                    <option value="REGULAR">Regular</option>
-                                    <option value="VIP">VIP</option>
-                                    <option value="NOVO">Novo</option>
-                                    <option value="INATIVO">Inativo</option>
-                                </select>
-                            </div>
-
-                            <div className="col-span-2">
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Observações</label>
-                                <textarea
-                                    name="observacoes"
-                                    value={editFormData.observacoes || ''}
-                                    onChange={handleEditChange}
-                                    rows={3}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3 mt-6">
-                            <button
-                                onClick={() => setShowEditModal(false)}
-                                className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleSaveEdit}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold shadow-lg shadow-blue-500/30 transition-all"
-                            >
-                                Salvar Alterações
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Card Principal - Stats Hero */}
-            <div className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-white/10 rounded-lg p-4 text-center">
-                        <p className="text-sm opacity-80">Total de Viagens</p>
-                        <p className="text-3xl font-bold">{cliente.historico_viagens || 0}</p>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-4 text-center">
-                        <p className="text-sm opacity-80">Créditos</p>
-                        <p className="text-3xl font-bold">{cliente.saldo_creditos || 0}</p>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-4 text-center">
-                        <p className="text-sm opacity-80">Total Gasto</p>
-                        <p className="text-2xl font-bold">R$ {Number(cliente.valor_total_gasto || 0).toLocaleString('pt-BR')}</p>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-4 text-center">
-                        <p className="text-sm opacity-80">Última Viagem</p>
-                        <p className="text-lg font-bold">
-                            {cliente.ultima_viagem ? new Date(cliente.ultima_viagem).toLocaleDateString('pt-BR') : 'N/A'}
-                        </p>
-                    </div>
+                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Última movimentação</p>
                 </div>
             </div>
 
-            {/* Tabs */}
-            < div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm" >
-                <div className="border-b border-slate-200 dark:border-slate-700">
-                    <div className="flex gap-2 p-2">
-                        <button
-                            onClick={() => setActiveTab('perfil')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'perfil' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                        >
-                            Perfil
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('historico')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'historico' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                        >
-                            Histórico
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('interacoes')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'interacoes' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                        >
-                            Interações
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('notas')}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${activeTab === 'notas' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
-                        >
-                            Notas
-                        </button>
+            {/* Main Tabs UI */}
+            <Tabs defaultValue="perfil" value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+                <Card className="bg-card/50 border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2rem]">
+                    <div className="px-6 pt-6">
+                        <TabsList className="bg-muted/30 p-1.5 rounded-2xl h-16 flex w-full md:w-fit border border-border/50">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                return (
+                                    <TabsTrigger
+                                        key={tab.id}
+                                        value={tab.id}
+                                        className="flex-1 md:px-8 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Icon size={16} />
+                                        <span className="hidden sm:inline">{tab.label}</span>
+                                    </TabsTrigger>
+                                );
+                            })}
+                        </TabsList>
                     </div>
-                </div>
 
-                <div className="p-6">
-                    {/* Tab: Perfil */}
-                    {activeTab === 'perfil' && (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {/* Coluna Esquerda - Info Pessoal e Documentação */}
-                            <div className="space-y-6">
-                                {/* Informações Pessoais */}
-                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                                        <User size={18} className="text-blue-500" />
-                                        Informações Pessoais
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Email</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.email || '-'}</p>
+                    <div className="p-8">
+                        <TabsContent value="perfil" className="m-0 focus-visible:outline-none">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in duration-700">
+                                <div className="space-y-10 focus-visible:outline-none">
+                                    <div className="space-y-6">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <User size={16} className="text-primary" /> Informações do Titular
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço de E-mail</p>
+                                                <p className="text-base font-bold text-foreground">{cliente.email || '-'}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telefone de Contato</p>
+                                                <p className="text-base font-bold text-foreground">{cliente.telefone || '-'}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data de Nascimento</p>
+                                                <p className="text-base font-bold text-foreground">
+                                                    {cliente.data_nascimento ? new Date(cliente.data_nascimento).toLocaleDateString('pt-BR') : '-'}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nivel de Fidelidade</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <Badge className="bg-purple-500/10 text-purple-600 border-none font-black uppercase text-[10px] tracking-widest px-3">
+                                                        {cliente.segmento || 'REGULAR'}
+                                                    </Badge>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Telefone</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.telefone || '-'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Data de Nascimento</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">
-                                                {cliente.data_nascimento ? new Date(cliente.data_nascimento).toLocaleDateString('pt-BR') : '-'}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Segmento</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5 flex items-center gap-1">
-                                                <Star size={14} className="text-purple-500" />
-                                                {cliente.segmento || 'Não definido'}
-                                            </p>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <ShieldCheck size={16} className="text-primary" /> Documentação Legal
+                                        </h3>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tipo de Identidade</p>
+                                                <p className="text-base font-bold text-foreground">{cliente.documento_tipo || '-'}</p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Número do Registro</p>
+                                                <p className="text-base font-bold text-foreground">{cliente.documento || '-'}</p>
+                                            </div>
+                                            <div className="sm:col-span-2 space-y-1 pt-2 border-t border-border/30">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nacionalidade Declarada</p>
+                                                <p className="text-base font-bold text-foreground">{cliente.nacionalidade || '-'}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Documentação */}
-                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                                        <FileText size={18} className="text-orange-500" />
-                                        Documentação
-                                    </h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tipo de Documento</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.documento_tipo || '-'}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Número</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.documento || (cliente as any).documento_numero || '-'}</p>
-                                        </div>
-                                        <div className="sm:col-span-2">
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Nacionalidade</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.nacionalidade || '-'}</p>
+                                <div className="space-y-10">
+                                    <div className="space-y-6">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <MapPin size={16} className="text-primary" /> Localização Residencial
+                                        </h3>
+                                        <div className="space-y-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Logradouro / Complemento</p>
+                                                <p className="text-base font-bold text-foreground">{cliente.endereco || '-'}</p>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-6">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cidade</p>
+                                                    <p className="text-sm font-bold text-foreground">{cliente.cidade || '-'}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</p>
+                                                    <p className="text-sm font-bold text-foreground">{cliente.estado || '-'}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">País</p>
+                                                    <p className="text-sm font-bold text-foreground">{cliente.pais || '-'}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                            <MessageSquare size={16} className="text-primary" /> Notas Internas
+                                        </h3>
+                                        <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
+                                            "{cliente.observacoes || 'Nenhuma observação registrada para este perfil.'}"
+                                        </div>
+                                    </div>
+
+                                    {cliente.tags && cliente.tags.length > 0 && (
+                                        <div className="space-y-4">
+                                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">Classificação do Perfil</h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {cliente.tags.map((tag, index) => (
+                                                    <Badge key={index} className="px-4 py-1.5 bg-primary/10 text-primary border-none rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                        {tag}
+                                                    </Badge>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+                        </TabsContent>
 
-                            {/* Coluna Direita - Endereço e Observações */}
-                            <div className="space-y-6">
-                                {/* Endereço */}
-                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                                        <MapPin size={18} className="text-red-500" />
-                                        Endereço
-                                    </h3>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Logradouro</p>
-                                            <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.endereco || '-'}</p>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-4">
-                                            <div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Cidade</p>
-                                                <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.cidade || '-'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Estado</p>
-                                                <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.estado || '-'}</p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">País</p>
-                                                <p className="font-medium text-slate-800 dark:text-white mt-0.5">{cliente.pais || '-'}</p>
-                                            </div>
-                                        </div>
+                        <TabsContent value="historico" className="m-0 focus-visible:outline-none">
+                            <div className="space-y-8 animate-in fade-in duration-700">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Registro de Viagens</h3>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Histórico completo de reservas confirmadas</p>
                                     </div>
                                 </div>
+                                <div className="grid grid-cols-1 gap-4">
+                                    {reservas.length === 0 ? (
+                                        <div className="text-center py-20 bg-muted/5 rounded-[2rem] border border-dashed border-border/50">
+                                            <History size={48} className="mx-auto text-muted-foreground/30 mb-6" />
+                                            <p className="text-muted-foreground font-medium">Este cliente ainda não realizou viagens.</p>
+                                        </div>
+                                    ) : (
+                                        reservas.map((reserva) => (
+                                            <div
+                                                key={reserva.id}
+                                                className="group bg-card p-6 rounded-[2rem] border border-border/50 hover:border-primary/50 transition-all hover:shadow-xl hover:shadow-primary/5 relative overflow-hidden"
+                                            >
+                                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                                    <div className="flex items-center gap-5">
+                                                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary font-black">
+                                                            {reserva.assento_numero || '--'}
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <p className="text-sm font-black text-foreground uppercase tracking-tight">{reserva.codigo}</p>
+                                                                <Badge className={cn(
+                                                                    "text-[9px] font-black uppercase tracking-tighter border-none px-2",
+                                                                    reserva.status === 'CONFIRMED' ? 'bg-emerald-500/10 text-emerald-600' :
+                                                                        reserva.status === 'CANCELLED' ? 'bg-rose-500/10 text-rose-600' : 'bg-blue-500/10 text-blue-600'
+                                                                )}>
+                                                                    {ReservationStatusLabel[reserva.status as any] || reserva.status}
+                                                                </Badge>
+                                                            </div>
+                                                            <p className="text-base font-bold text-foreground line-clamp-1">
+                                                                {reserva.trip_title || 'Viagem Executiva'}
+                                                            </p>
+                                                            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">
+                                                                {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : ''} • {reserva.departure_time?.substring(0, 5)}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right w-full md:w-auto mt-2 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-border/30">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Valor do Ticket</p>
+                                                        <p className="text-2xl font-black text-foreground tracking-tighter">
+                                                            {reserva.moeda} {(reserva.valor_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </TabsContent>
 
-                                {/* Observações */}
-                                <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
-                                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                                        <MessageSquare size={18} className="text-blue-500" />
-                                        Observações
-                                    </h3>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">
-                                        {cliente.observacoes || 'Nenhuma observação registrada.'}
-                                    </p>
+                        <TabsContent value="interacoes" className="m-0 focus-visible:outline-none">
+                            <div className="space-y-8 animate-in fade-in duration-700">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Linha do Tempo</h3>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Rastreamento de pontos de contato e suporte</p>
+                                    </div>
+                                    <Button
+                                        onClick={() => setShowInteractionModal(true)}
+                                        className="h-12 rounded-xl px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                                    >
+                                        <Plus size={18} className="mr-2" />
+                                        Registrar Contato
+                                    </Button>
                                 </div>
 
-                                {/* Tags */}
-                                {cliente.tags && cliente.tags.length > 0 && (
-                                    <div className="bg-slate-50 dark:bg-slate-700/30 rounded-xl p-5">
-                                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Tags</h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {cliente.tags.map((tag, index) => (
-                                                <span key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
-                                                    {tag}
-                                                </span>
-                                            ))}
+                                {showInteractionModal && (
+                                    <div className="bg-card p-8 rounded-[2rem] border-2 border-primary/20 shadow-xl animate-in slide-in-from-top-4 duration-300">
+                                        <h4 className="text-sm font-black text-foreground uppercase tracking-widest mb-6">Nova Ocorrência</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Canal de Comunicação</label>
+                                                <select
+                                                    value={newInteraction.tipo}
+                                                    onChange={(e) => setNewInteraction({ ...newInteraction, tipo: e.target.value as TipoInteracao })}
+                                                    className="w-full h-14 px-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none"
+                                                >
+                                                    <option value={TipoInteracao.PHONE}>Telefone</option>
+                                                    <option value={TipoInteracao.EMAIL}>E-mail</option>
+                                                    <option value={TipoInteracao.WHATSAPP}>WhatsApp</option>
+                                                    <option value={TipoInteracao.IN_PERSON}>Atendimento Presencial</option>
+                                                    <option value={TipoInteracao.SYSTEM}>Log de Sistema</option>
+                                                </select>
+                                            </div>
+                                            <div className="md:col-span-2 space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Resumo da Conversa</label>
+                                                <input
+                                                    type="text"
+                                                    value={newInteraction.descricao}
+                                                    onChange={(e) => setNewInteraction({ ...newInteraction, descricao: e.target.value })}
+                                                    className="w-full h-14 px-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                                    placeholder="Descreva brevemente o motivo do contato..."
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/30">
+                                            <Button variant="ghost" onClick={() => setShowInteractionModal(false)} className="h-12 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                                                Descartar
+                                            </Button>
+                                            <Button onClick={handleAddInteraction} className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                                                Confirmar Registro
+                                            </Button>
                                         </div>
                                     </div>
                                 )}
-                            </div>
-                        </div>
-                    )}
 
-                    {/* Tab: Histórico */}
-                    {activeTab === 'historico' && (
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-bold text-slate-700 dark:text-slate-200">Histórico de Reservas</h3>
-                            </div>
-                            {reservas.map((reserva) => (
-                                <div
-                                    key={reserva.id}
-                                    className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <p className="font-bold text-slate-800 dark:text-white">{reserva.codigo}</p>
-                                                <span className="text-xs px-2 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded">
-                                                    Assento {reserva.assento_numero || 'N/A'}
-                                                </span>
+                                <div className="space-y-4">
+                                    {interacoes.map((interacao) => (
+                                        <div
+                                            key={interacao.id}
+                                            className="group relative pl-8 pb-8 border-l-2 border-border last:pb-0"
+                                        >
+                                            <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-background border-2 border-primary group-hover:bg-primary transition-colors" />
+                                            <div className="bg-card p-6 rounded-[2rem] border border-border/50 hover:border-primary/30 transition-all shadow-sm">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2.5 bg-muted/30 rounded-xl text-muted-foreground group-hover:text-primary transition-colors">
+                                                            {getTipoIcon(interacao.tipo)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-black text-foreground uppercase tracking-tight">
+                                                                {TipoInteracaoLabel[interacao.tipo] || interacao.tipo}
+                                                            </p>
+                                                            <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                                <Clock size={10} /> {new Date(interacao.data_hora).toLocaleString('pt-BR')}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {interacao.usuario_responsavel && (
+                                                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-border/50 px-3 opacity-60">
+                                                            Operador: {interacao.usuario_responsavel}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                    {interacao.descricao}
+                                                </p>
                                             </div>
-                                            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                {reserva.trip_title || 'Viagem'}
-                                            </p>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                {reserva.departure_date ? new Date(reserva.departure_date).toLocaleDateString('pt-BR') : ''} {reserva.departure_time?.substring(0, 5)}
-                                            </p>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-green-600 dark:text-green-400">
-                                                {reserva.moeda} {(reserva.valor_total || 0).toFixed(2)}
-                                            </p>
-                                            <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${reserva.status === 'CONFIRMED' || reserva.status === 'USED' || reserva.status === 'COMPLETED'
-                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                : reserva.status === 'CANCELLED'
-                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                                                }`}>
-                                                {ReservationStatusLabel[reserva.status as any] || reserva.status}
-                                            </span>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Tab: Interações */}
-                    {activeTab === 'interacoes' && (
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-bold text-slate-700 dark:text-slate-200">Histórico de Interações</h3>
-                                <button
-                                    onClick={() => setShowInteractionModal(true)}
-                                    className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
-                                >
-                                    <Plus size={16} />
-                                    Nova Interação
-                                </button>
                             </div>
+                        </TabsContent>
 
-                            {showInteractionModal && (
-                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-4 shadow-sm">
-                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-3">Nova Interação</h4>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo</label>
-                                            <select
-                                                value={newInteraction.tipo}
-                                                onChange={(e) => setNewInteraction({ ...newInteraction, tipo: e.target.value as TipoInteracao })}
-                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                            >
-                                                <option value={TipoInteracao.PHONE}>Telefone</option>
-                                                <option value={TipoInteracao.EMAIL}>Email</option>
-                                                <option value={TipoInteracao.WHATSAPP}>WhatsApp</option>
-                                                <option value={TipoInteracao.IN_PERSON}>Presencial</option>
-                                                <option value={TipoInteracao.SYSTEM}>Sistema</option>
-                                            </select>
+                        <TabsContent value="notas" className="m-0 focus-visible:outline-none">
+                            <div className="space-y-8 animate-in fade-in duration-700">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div>
+                                        <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Base de Conhecimento</h3>
+                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Observações estratégicas e diretrizes de atendimento</p>
+                                    </div>
+                                    <Button
+                                        onClick={() => setShowNoteModal(true)}
+                                        className="h-12 rounded-xl px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                                    >
+                                        <Plus size={18} className="mr-2" />
+                                        Criar Nota
+                                    </Button>
+                                </div>
+
+                                {showNoteModal && (
+                                    <div className="bg-card p-8 rounded-[2rem] border-2 border-primary/20 shadow-xl animate-in slide-in-from-top-4 duration-300">
+                                        <h4 className="text-sm font-black text-foreground uppercase tracking-widest mb-6">Redigir Nova Nota</h4>
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Assunto / Titulo</label>
+                                                <input
+                                                    type="text"
+                                                    value={newNote.titulo}
+                                                    onChange={(e) => setNewNote({ ...newNote, titulo: e.target.value })}
+                                                    className="w-full h-14 px-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                                    placeholder="Ponto focal da observação..."
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Conteúdo Detalhado</label>
+                                                <textarea
+                                                    value={newNote.conteudo}
+                                                    onChange={(e) => setNewNote({ ...newNote, conteudo: e.target.value })}
+                                                    className="w-full p-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none min-h-[120px]"
+                                                    placeholder="Descreva os detalhes importantes..."
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-3 bg-muted/20 p-4 rounded-2xl border border-border/50 w-fit">
+                                                <input
+                                                    type="checkbox"
+                                                    id="importante"
+                                                    checked={newNote.importante}
+                                                    onChange={(e) => setNewNote({ ...newNote, importante: e.target.checked })}
+                                                    className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
+                                                />
+                                                <label htmlFor="importante" className="text-xs font-black uppercase tracking-widest text-foreground cursor-pointer flex items-center gap-2">
+                                                    <Star size={14} className={newNote.importante ? "text-amber-500 fill-amber-500" : "text-muted-foreground"} />
+                                                    Marcar como Prioritária
+                                                </label>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
-                                            <textarea
-                                                value={newInteraction.descricao}
-                                                onChange={(e) => setNewInteraction({ ...newInteraction, descricao: e.target.value })}
-                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                                rows={3}
-                                                placeholder="Descreva a interação..."
-                                            />
-                                        </div>
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                onClick={() => setShowInteractionModal(false)}
-                                                className="px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
-                                            >
+                                        <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/30">
+                                            <Button variant="ghost" onClick={() => setShowNoteModal(false)} className="h-12 font-black uppercase text-[11px] tracking-widest rounded-xl">
                                                 Cancelar
-                                            </button>
-                                            <button
-                                                onClick={handleAddInteraction}
-                                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
-                                            >
-                                                Salvar
-                                            </button>
+                                            </Button>
+                                            <Button onClick={handleAddNote} className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                                                Salvar Nota
+                                            </Button>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                            {interacoes.map((interacao) => (
-                                <div
-                                    key={interacao.id}
-                                    className="border-l-4 border-blue-500 bg-slate-50 dark:bg-slate-700/50 p-4 rounded-r-lg"
-                                >
-                                    <div className="flex items-center gap-2 mb-2">
-                                        {getTipoIcon(interacao.tipo)}
-                                        <span className="font-semibold text-slate-800 dark:text-white">{TipoInteracaoLabel[interacao.tipo] || interacao.tipo}</span>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                                            {new Date(interacao.data_hora).toLocaleString('pt-BR')}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400">{interacao.descricao}</p>
-                                    {interacao.usuario_responsavel && (
-                                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
-                                            Por: {interacao.usuario_responsavel}
-                                        </p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                                )}
 
-                    {/* Tab: Notas */}
-                    {activeTab === 'notas' && (
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-bold text-slate-700 dark:text-slate-200">Notas do Cliente</h3>
-                                <button
-                                    onClick={() => setShowNoteModal(true)}
-                                    className="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2"
-                                >
-                                    <Plus size={16} />
-                                    Nova Nota
-                                </button>
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    {notas.map((nota) => (
+                                        <div
+                                            key={nota.id}
+                                            className={cn(
+                                                "group p-8 rounded-[2rem] border transition-all hover:shadow-xl relative",
+                                                nota.importante
+                                                    ? "bg-amber-500/5 border-amber-500/30 shadow-lg shadow-amber-500/5"
+                                                    : "bg-card border-border/50 hover:border-primary/30"
+                                            )}
+                                        >
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={cn(
+                                                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                                                        nota.importante ? "bg-amber-500/20 text-amber-600" : "bg-muted/30 text-muted-foreground group-hover:text-primary"
+                                                    )}>
+                                                        <FileText size={20} />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="text-base font-black text-foreground uppercase tracking-tight">{nota.titulo}</h4>
+                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                                            {new Date(nota.data_criacao).toLocaleDateString('pt-BR')}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                {nota.importante && (
+                                                    <Star size={16} className="text-amber-500 fill-amber-500" />
+                                                )}
+                                            </div>
+                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                                                {nota.conteudo}
+                                            </p>
+                                            <div className="flex items-center justify-between pt-6 border-t border-border/30">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-black uppercase">
+                                                        {nota.criado_por?.[0]}
+                                                    </div>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                                                        {nota.criado_por}
+                                                    </span>
+                                                </div>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Edit size={14} />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-
-                            {showNoteModal && (
-                                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4 mb-4 shadow-sm">
-                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-3">Nova Nota</h4>
-                                    <div className="space-y-3">
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Título</label>
-                                            <input
-                                                type="text"
-                                                value={newNote.titulo}
-                                                onChange={(e) => setNewNote({ ...newNote, titulo: e.target.value })}
-                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                                placeholder="Título da nota"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Conteúdo</label>
-                                            <textarea
-                                                value={newNote.conteudo}
-                                                onChange={(e) => setNewNote({ ...newNote, conteudo: e.target.value })}
-                                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                                rows={3}
-                                                placeholder="Conteúdo da nota..."
-                                            />
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <input
-                                                type="checkbox"
-                                                id="importante"
-                                                checked={newNote.importante}
-                                                onChange={(e) => setNewNote({ ...newNote, importante: e.target.checked })}
-                                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            <label htmlFor="importante" className="text-sm text-slate-700 dark:text-slate-300">Marcar como importante</label>
-                                        </div>
-                                        <div className="flex justify-end gap-2">
-                                            <button
-                                                onClick={() => setShowNoteModal(false)}
-                                                className="px-3 py-1.5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
-                                            >
-                                                Cancelar
-                                            </button>
-                                            <button
-                                                onClick={handleAddNote}
-                                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-500"
-                                            >
-                                                Salvar
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                            {notas.map((nota) => (
-                                <div
-                                    key={nota.id}
-                                    className={`border rounded-lg p-4 ${nota.importante ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'}`}
-                                >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h4 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                            {nota.importante && <Star size={16} className="text-orange-600" />}
-                                            {nota.titulo}
-                                        </h4>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                                            {new Date(nota.data_criacao).toLocaleDateString('pt-BR')}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{nota.conteudo}</p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-500">Por: {nota.criado_por}</p>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div >
-        </div >
+                        </TabsContent>
+                    </div>
+                </Card>
+            </Tabs>
+        </div>
     );
 };

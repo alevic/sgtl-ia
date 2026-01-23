@@ -25,32 +25,38 @@ export const NovoUsuario: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/usuarios')}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Novo Usuário</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Preencha os dados do novo usuário</p>
+        <div key="novo-usuario-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin/usuarios')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Painel Administrativo</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">
+                            NOVO <span className="text-primary italic">OPERADOR</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Credenciamento de novos usuários e definição de protocolos de acesso
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <div className="max-w-4xl bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
-                <UserForm
-                    mode="create"
-                    onSubmit={handleSubmit}
-                    onCancel={() => navigate('/admin/usuarios')}
-                    showAvatar={true}
-                    showPassword={true}
-                    showRole={true}
-                    showNotes={true}
-                    showIsActive={true}
-                />
-            </div>
+            <UserForm
+                mode="create"
+                onSubmit={handleSubmit}
+                onCancel={() => navigate('/admin/usuarios')}
+                showAvatar={true}
+                showPassword={true}
+                showRole={true}
+                showNotes={true}
+                showIsActive={true}
+            />
         </div>
     );
 };

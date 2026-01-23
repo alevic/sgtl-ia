@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TipoDocumento } from '../types';
-import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar } from 'lucide-react';
+import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar, Globe, Briefcase, Loader } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
+import { locationService, IState, ICity } from '../services/locationService';
 import { DatePicker } from '../components/Form/DatePicker';
+import { PhoneInput } from '../components/Form/PhoneInput';
+import { DocumentInput } from '../components/Form/DocumentInput';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { AlertCircle } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent } from '../components/ui/card';
+import { cn } from '../lib/utils';
 
 export const NovoCliente: React.FC = () => {
     const navigate = useNavigate();
@@ -11,18 +19,110 @@ export const NovoCliente: React.FC = () => {
     const [nome, setNome] = useState('');
     const [email, setEmail] = useState('');
     const [telefone, setTelefone] = useState('');
+    const [countryCode, setCountryCode] = useState('+55');
     const [documentoTipo, setDocumentoTipo] = useState<TipoDocumento>(TipoDocumento.CPF);
     const [documento, setDocumento] = useState('');
     const [dataNascimento, setDataNascimento] = useState('');
     const [nacionalidade, setNacionalidade] = useState('Brasileira');
     const [endereco, setEndereco] = useState('');
+    const [cep, setCep] = useState('');
     const [cidade, setCidade] = useState('');
     const [estado, setEstado] = useState('');
     const [pais, setPais] = useState('Brasil');
     const [segmento, setSegmento] = useState<'VIP' | 'REGULAR' | 'NOVO' | 'INATIVO'>('NOVO');
     const [observacoes, setObservacoes] = useState('');
 
+    const [states, setStates] = useState<IState[]>([]);
+    const [cities, setCities] = useState<ICity[]>([]);
+    const [selectedStateId, setSelectedStateId] = useState<number | ''>('');
+    const [selectedCityId, setSelectedCityId] = useState<number | ''>('');
+    const [isSearchingCep, setIsSearchingCep] = useState(false);
+
     const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    // Carregar estados ao montar
+    React.useEffect(() => {
+        locationService.getStates().then(setStates).catch(console.error);
+    }, []);
+
+    // Carregar cidades quando o estado mudar
+    React.useEffect(() => {
+        if (selectedStateId) {
+            locationService.getCities(Number(selectedStateId)).then(setCities).catch(console.error);
+            // Se mudou o estado manualmente, limpa a cidade selecionada
+            if (!isSearchingCep) {
+                setSelectedCityId('');
+                setCidade('');
+            }
+        } else {
+            setCities([]);
+            setSelectedCityId('');
+            setCidade('');
+        }
+    }, [selectedStateId]);
+
+    const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawCep = e.target.value.replace(/\D/g, '');
+        setCep(rawCep);
+
+        if (rawCep.length === 8) {
+            setIsSearchingCep(true);
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${rawCep}/json/`);
+                const data = await response.json();
+
+                if (!data.erro) {
+                    if (data.logradouro) setEndereco(data.logradouro);
+
+                    // Tentar encontrar o estado pelo UF
+                    if (data.uf) {
+                        const state = states.find(s => s.uf === data.uf);
+                        if (state) {
+                            setSelectedStateId(state.id);
+                            setEstado(state.uf);
+
+                            // Buscar cidades do estado para tentar selecionar a cidade
+                            const fetchedCities = await locationService.getCities(state.id);
+                            setCities(fetchedCities);
+
+                            if (data.localidade) {
+                                const city = fetchedCities.find(c =>
+                                    c.name.toLowerCase() === data.localidade.toLowerCase()
+                                );
+                                if (city) {
+                                    setSelectedCityId(city.id);
+                                    setCidade(city.name);
+                                } else {
+                                    // Se não achou na base, deixamos em branco para o usuário selecionar/criar
+                                    setSelectedCityId('');
+                                    setCidade(data.localidade); // Guardamos o nome mas sem ID do seletor
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Erro ao buscar CEP:", err);
+            } finally {
+                setIsSearchingCep(false);
+            }
+        }
+    };
+
+    const handleStateSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const id = e.target.value;
+        setSelectedStateId(id === '' ? '' : Number(id));
+        const state = states.find(s => s.id === Number(id));
+        setEstado(state ? state.uf : '');
+    };
+
+    const handleCitySelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const id = e.target.value;
+        setSelectedCityId(id === '' ? '' : Number(id));
+        const city = cities.find(c => c.id === Number(id));
+        setCidade(city ? city.name : '');
+    };
 
     const handleSalvar = async () => {
         setIsSaving(true);
@@ -30,7 +130,7 @@ export const NovoCliente: React.FC = () => {
             await clientsService.create({
                 nome,
                 email,
-                telefone,
+                telefone: telefone ? `${countryCode}${telefone}` : '',
                 documento_tipo: documentoTipo,
                 documento: documento,
                 data_nascimento: dataNascimento,
@@ -46,251 +146,289 @@ export const NovoCliente: React.FC = () => {
             navigate('/admin/clientes');
         } catch (error) {
             console.error('Error creating client:', error);
-            alert('Erro ao salvar cliente. Verifique os dados e tente novamente.');
+            setError('Erro ao salvar cliente. Verifique os dados e tente novamente.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setIsSaving(false);
         }
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/clientes')}
-                    className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Novo Cliente</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Cadastre um novo cliente no sistema</p>
+        <div key="novo-cliente-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin/clientes')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Painel de Clientes</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">
+                            NOVO <span className="text-primary italic">CLIENTE</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Cadastre um novo perfil de passageiro ou parceiro comercial
+                        </p>
+                    </div>
                 </div>
-                <button
-                    onClick={handleSalvar}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Save size={18} />
-                    Salvar Cliente
-                </button>
+
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/admin/clientes')}
+                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleSalvar}
+                        disabled={isSaving}
+                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        {isSaving ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        {isSaving ? 'Processando...' : 'Salvar Registro'}
+                    </Button>
+                </div>
             </div>
 
-            <div className="max-w-4xl mx-auto space-y-6">
-                {/* Dados Pessoais */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <User size={20} className="text-blue-600" />
-                        Dados Pessoais
-                    </h3>
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro no Cadastro</AlertTitle>
+                    <AlertDescription className="text-xs font-medium">
+                        {error}
+                    </AlertDescription>
+                </Alert>
+            )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Nome Completo *
-                            </label>
-                            <input
-                                type="text"
-                                value={nome}
-                                onChange={(e) => setNome(e.target.value)}
-                                placeholder="Ex: João da Silva"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Coluna Principal */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Dados Pessoais */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <User size={14} className="text-primary" />
+                                Credenciais e Identificação
+                            </h3>
                         </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
-                                <Mail size={14} className="text-blue-600" />
-                                Email *
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="email@exemplo.com"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
-                                <Phone size={14} className="text-green-600" />
-                                Telefone
-                            </label>
-                            <input
-                                type="tel"
-                                value={telefone}
-                                onChange={(e) => setTelefone(e.target.value)}
-                                placeholder="(11) 98765-4321"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
-                                <Calendar size={14} className="text-purple-600" />
-                                Data de Nascimento
-                            </label>
-                            <DatePicker
-                                value={dataNascimento}
-                                onChange={setDataNascimento}
-                                placeholder="DD/MM/AAAA"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Nacionalidade
-                            </label>
-                            <input
-                                type="text"
-                                value={nacionalidade}
-                                onChange={(e) => setNacionalidade(e.target.value)}
-                                placeholder="Brasileira"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Documentação */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <FileText size={20} className="text-blue-600" />
-                        Documentação
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Tipo de Documento *
-                            </label>
-                            <select
-                                value={documentoTipo}
-                                onChange={(e) => setDocumentoTipo(e.target.value as TipoDocumento)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value={TipoDocumento.CPF}>CPF</option>
-                                <option value={TipoDocumento.RG}>RG</option>
-                                <option value={TipoDocumento.PASSAPORTE}>Passaporte</option>
-                                <option value={TipoDocumento.CNH}>CNH</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Número do Documento *
-                            </label>
-                            <input
-                                type="text"
-                                value={documento}
-                                onChange={(e) => setDocumento(e.target.value)}
-                                placeholder={documentoTipo === TipoDocumento.CPF ? '123.456.789-00' : 'Número do documento'}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Endereço */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <MapPin size={20} className="text-red-600" />
-                        Endereço
-                    </h3>
-
-                    <div className="grid grid-cols-1 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Endereço Completo
-                            </label>
-                            <input
-                                type="text"
-                                value={endereco}
-                                onChange={(e) => setEndereco(e.target.value)}
-                                placeholder="Rua, número, complemento"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Cidade
-                                </label>
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo *</label>
                                 <input
                                     type="text"
-                                    value={cidade}
-                                    onChange={(e) => setCidade(e.target.value)}
-                                    placeholder="São Paulo"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    value={nome}
+                                    onChange={(e) => setNome(e.target.value)}
+                                    placeholder="Ex: João da Silva"
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Estado
-                                </label>
-                                <input
-                                    type="text"
-                                    value={estado}
-                                    onChange={(e) => setEstado(e.target.value)}
-                                    placeholder="SP"
-                                    maxLength={2}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Email *</label>
+                                    <div className="relative group">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="email@exemplo.com"
+                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone / WhatsApp</label>
+                                    <PhoneInput
+                                        value={telefone}
+                                        onChange={setTelefone}
+                                        countryCode={countryCode}
+                                        onCountryCodeChange={setCountryCode}
+                                        required
+                                        showLabel={false}
+                                    />
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    País
-                                </label>
-                                <input
-                                    type="text"
-                                    value={pais}
-                                    onChange={(e) => setPais(e.target.value)}
-                                    placeholder="Brasil"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Nascimento</label>
+                                    <DatePicker value={dataNascimento} onChange={setDataNascimento} />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nacionalidade</label>
+                                    <div className="relative group">
+                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                                        <input
+                                            type="text"
+                                            value={nacionalidade}
+                                            onChange={(e) => setNacionalidade(e.target.value)}
+                                            placeholder="Brasileira"
+                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </Card>
+
+                    {/* Endereço */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <MapPin size={14} className="text-primary" />
+                                Base de Localização
+                            </h3>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                <div className="md:col-span-1 space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">CEP</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={cep}
+                                            onChange={handleCepChange}
+                                            placeholder="00000-000"
+                                            maxLength={8}
+                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        />
+                                        {isSearchingCep && (
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                <Loader className="w-4 h-4 animate-spin text-primary" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="md:col-span-3 space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Endereço Completo</label>
+                                    <input
+                                        type="text"
+                                        value={endereco}
+                                        onChange={(e) => setEndereco(e.target.value)}
+                                        placeholder="Rua, número, complemento"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Estado (UF) *</label>
+                                    <select
+                                        value={selectedStateId}
+                                        onChange={handleStateSelect}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {states.map(s => (
+                                            <option key={s.id} value={s.id}>{s.name} ({s.uf})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Cidade *</label>
+                                    <select
+                                        value={selectedCityId}
+                                        onChange={handleCitySelect}
+                                        disabled={!selectedStateId}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer disabled:opacity-50"
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {cities.map(c => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">País</label>
+                                    <input
+                                        type="text"
+                                        value={pais}
+                                        onChange={(e) => setPais(e.target.value)}
+                                        placeholder="Brasil"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
                 </div>
 
-                {/* Classificação */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">
-                        Classificação
-                    </h3>
-
-                    <div className="grid grid-cols-1 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Segmento
-                            </label>
-                            <select
-                                value={segmento}
-                                onChange={(e) => setSegmento(e.target.value as typeof segmento)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="NOVO">Novo</option>
-                                <option value="REGULAR">Regular</option>
-                                <option value="VIP">VIP</option>
-                                <option value="INATIVO">Inativo</option>
-                            </select>
+                {/* Coluna Lateral */}
+                <div className="space-y-8">
+                    {/* Documentação */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <FileText size={14} className="text-primary" />
+                                Protocolos Oficiais
+                            </h3>
                         </div>
+                        <div className="p-8">
+                            <DocumentInput
+                                documentType={documentoTipo}
+                                documentNumber={documento}
+                                onTypeChange={setDocumentoTipo}
+                                onNumberChange={setDocumento}
+                                required
+                            />
+                        </div>
+                    </Card>
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Observações
-                            </label>
+                    {/* Classificação */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Briefcase size={14} className="text-primary" />
+                                Nível Comercial
+                            </h3>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Segmento</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {['NOVO', 'REGULAR', 'VIP', 'INATIVO'].map((seg) => (
+                                        <button
+                                            key={seg}
+                                            onClick={() => setSegmento(seg as any)}
+                                            className={cn(
+                                                "py-3 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                                segmento === seg
+                                                    ? "border-primary bg-primary shadow-lg shadow-primary/20 text-primary-foreground"
+                                                    : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/50"
+                                            )}
+                                        >
+                                            {seg}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Observações */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <FileText size={14} className="text-primary" />
+                                Histórico e Memória
+                            </h3>
+                        </div>
+                        <div className="p-6">
                             <textarea
                                 value={observacoes}
                                 onChange={(e) => setObservacoes(e.target.value)}
-                                placeholder="Informações adicionais sobre o cliente..."
-                                rows={4}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                rows={6}
+                                placeholder="Informações relevantes sobre o relacionamento..."
+                                className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
                             />
                         </div>
-                    </div>
+                    </Card>
                 </div>
             </div>
         </div>

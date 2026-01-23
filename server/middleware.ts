@@ -14,9 +14,10 @@ export const authorize = (allowedRoles: string[] = []) => {
                 return res.status(401).json({ error: "Unauthorized: No active organization" });
             }
 
-            const userRole = (session.user as any).role || 'user'; // Default to 'user' if undefined
+            const userRoleString = (session.user as any).role || 'user'; // Default to 'user' if undefined
+            const userRoles = userRoleString.split(',').map((r: string) => r.trim());
 
-            if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+            if (allowedRoles.length > 0 && !allowedRoles.some(role => userRoles.includes(role))) {
                 return res.status(403).json({ error: "Forbidden: Insufficient permissions" });
             }
 

@@ -102,45 +102,49 @@ export const DocumentInput: React.FC<DocumentInputProps> = ({
     };
 
     return (
-        <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Tipo de {label} {required && <span className="text-red-500">*</span>}
-            </label>
+        <div className="space-y-4">
+            <div className="space-y-1.5">
+                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
+                    Tipo de {label} {required && <span className="text-red-500">*</span>}
+                </label>
 
-            <select
-                value={documentType}
-                onChange={(e) => onTypeChange(e.target.value as TipoDocumento)}
-                disabled={disabled}
-                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-            >
-                <option value={TipoDocumento.CPF}>CPF</option>
-                <option value={TipoDocumento.RG}>RG</option>
-                <option value={TipoDocumento.CNH}>CNH</option>
-                <option value={TipoDocumento.PASSAPORTE}>Passaporte</option>
-                <option value={TipoDocumento.RNE}>RNE</option>
-                <option value={TipoDocumento.CNPJ}>CNPJ</option>
-                <option value={TipoDocumento.OUTRO}>Outro</option>
-            </select>
-
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mt-3">
-                Número do {label} {required && <span className="text-red-500">*</span>}
-            </label>
-
-            <div className="relative">
-                <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                    type="text"
-                    value={documentNumber}
-                    onChange={handleNumberChange}
-                    placeholder={getPlaceholder()}
-                    required={required}
+                <select
+                    value={documentType}
+                    onChange={(e) => onTypeChange(e.target.value as TipoDocumento)}
                     disabled={disabled}
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
-                />
+                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-black uppercase text-[12px] tracking-widest appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:text-white"
+                >
+                    <option value={TipoDocumento.CPF}>CPF</option>
+                    <option value={TipoDocumento.RG}>RG</option>
+                    <option value={TipoDocumento.CNH}>CNH</option>
+                    <option value={TipoDocumento.PASSAPORTE}>Passaporte</option>
+                    <option value={TipoDocumento.RNE}>RNE</option>
+                    <option value={TipoDocumento.CNPJ}>CNPJ</option>
+                    <option value={TipoDocumento.OUTRO}>Outro</option>
+                </select>
+            </div>
+
+            <div className="space-y-1.5">
+                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
+                    Número do {label} {required && <span className="text-red-500">*</span>}
+                </label>
+
+                <div className="relative group">
+                    <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                    <input
+                        type="text"
+                        value={documentNumber}
+                        onChange={handleNumberChange}
+                        placeholder={getPlaceholder()}
+                        required={required}
+                        disabled={disabled}
+                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none dark:text-white"
+                    />
+                </div>
             </div>
 
             {/* Helper text */}
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest ml-1">
                 {documentType === TipoDocumento.CPF && 'Apenas números, formatação automática'}
                 {documentType === TipoDocumento.CNPJ && 'Apenas números, formatação automática'}
                 {documentType === TipoDocumento.RG && 'Formato varia por estado'}

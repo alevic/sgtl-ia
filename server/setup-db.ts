@@ -687,6 +687,7 @@ export async function setupDb() {
             CREATE TABLE IF NOT EXISTS client_interactions (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 cliente_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+                organization_id TEXT,
                 tipo VARCHAR(20) NOT NULL,
                 descricao TEXT NOT NULL,
                 data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -700,6 +701,7 @@ export async function setupDb() {
             CREATE TABLE IF NOT EXISTS client_notes (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 cliente_id UUID REFERENCES clients(id) ON DELETE CASCADE,
+                organization_id TEXT,
                 titulo VARCHAR(255) NOT NULL,
                 conteudo TEXT NOT NULL,
                 data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -714,6 +716,14 @@ export async function setupDb() {
             CREATE INDEX IF NOT EXISTS idx_clients_organization ON clients(organization_id);
             CREATE INDEX IF NOT EXISTS idx_clients_email ON clients(email);
             CREATE INDEX IF NOT EXISTS idx_clients_documento ON clients(documento);
+
+            -- Migration: Add organization_id to client tables if missing
+            ALTER TABLE client_interactions ADD COLUMN IF NOT EXISTS organization_id TEXT;
+            ALTER TABLE client_notes ADD COLUMN IF NOT EXISTS organization_id TEXT;
+            
+            -- Ensure indexes exist
+            CREATE INDEX IF NOT EXISTS idx_client_interactions_org ON client_interactions(organization_id);
+            CREATE INDEX IF NOT EXISTS idx_client_notes_org ON client_notes(organization_id);
         `);
 
         // Create Companies Table
@@ -1252,7 +1262,7 @@ export async function setupDb() {
 
             -- Route Type Status
             ALTER TABLE routes ADD CONSTRAINT routes_type_check
-            CHECK (type IN ('OUTBOUND', 'INBOUND'));
+            CHECK (type IN ('OUTBOUND', 'INBOUND', 'IDA', 'VOLTA'));
         `);
 
         console.log("System parameters table created and seeded successfully.");

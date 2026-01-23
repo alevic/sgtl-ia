@@ -4,9 +4,47 @@ import { IRota, RouteType, RouteTypeLabel } from '../types';
 import { VisualizadorRota } from '../components/Rotas/VisualizadorRota';
 import { routesService } from '../services/routesService';
 import {
-    Plus, Search, Route as RouteIcon, Filter, Edit, Copy, ToggleLeft, ToggleRight, Trash2, Loader
+    Plus, Search, Route as RouteIcon, Filter, Edit, Copy,
+    ToggleLeft, ToggleRight, Trash2, Loader, MapPin,
+    ChevronRight, MoreHorizontal, MousePointer2, Settings2,
+    ArrowRightLeft, MapPinned, Gauge, ChevronLeft
 } from 'lucide-react';
 import { prepararPayloadRota } from '../utils/rotaValidation';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../components/ui/table";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../components/ui/tabs";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../components/ui/select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../components/ui/dropdown-menu";
+import { Card, CardContent } from "../components/ui/card";
+import { Separator } from "../components/ui/separator";
+import { cn } from "../lib/utils";
 
 export const Rotas: React.FC = () => {
     const navigate = useNavigate();
@@ -14,7 +52,7 @@ export const Rotas: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [busca, setBusca] = useState('');
     const [filtroTipo, setFiltroTipo] = useState<'TODOS' | RouteType>('TODOS');
-    const [filtroStatus, setFiltroStatus] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
+    const [statusTab, setStatusTab] = useState<'TODOS' | 'ATIVA' | 'INATIVA'>('TODOS');
 
     const fetchRotas = async () => {
         try {
@@ -23,7 +61,6 @@ export const Rotas: React.FC = () => {
             setRotas(data);
         } catch (error) {
             console.error('Erro ao carregar rotas:', error);
-            alert('Falha ao carregar rotas.');
         } finally {
             setLoading(false);
         }
@@ -39,20 +76,15 @@ export const Rotas: React.FC = () => {
             rota.pontos.some(p => p.nome?.toLowerCase().includes(busca.toLowerCase()));
 
         const matchTipo = filtroTipo === 'TODOS' || rota.tipo_rota === filtroTipo;
-        const matchStatus = filtroStatus === 'TODOS' ||
-            (filtroStatus === 'ATIVA' && rota.ativa) ||
-            (filtroStatus === 'INATIVA' && !rota.ativa);
+        const matchStatus = statusTab === 'TODOS' ||
+            (statusTab === 'ATIVA' && rota.ativa) ||
+            (statusTab === 'INATIVA' && !rota.ativa);
 
         return matchBusca && matchTipo && matchStatus;
     });
 
-    const handleNovaRota = () => {
-        navigate('/admin/rotas/nova');
-    };
-
-    const handleEditarRota = (id: string) => {
-        navigate(`/admin/rotas/${id}`);
-    };
+    const handleNovaRota = () => navigate('/admin/rotas/nova');
+    const handleEditarRota = (id: string) => navigate(`/admin/rotas/${id}`);
 
     const handleDuplicarRota = async (id: string) => {
         const rotaOriginal = rotas.find(r => r.id === id);
@@ -61,13 +93,11 @@ export const Rotas: React.FC = () => {
         if (confirm(`Deseja duplicar a rota "${rotaOriginal.nome}"?`)) {
             try {
                 const payload = prepararPayloadRota(rotaOriginal, `${rotaOriginal.nome} (Cópia)`);
-                payload.active = false; // Start inactive
-
+                payload.active = false;
                 await routesService.create(payload);
                 fetchRotas();
             } catch (error) {
                 console.error('Erro ao duplicar rota:', error);
-                alert('Erro ao duplicar rota.');
             }
         }
     };
@@ -78,210 +108,310 @@ export const Rotas: React.FC = () => {
 
         try {
             await routesService.update(id, { ativa: !rota.ativa });
-            // Atualiza localmente para feedback rápido
             setRotas(rotas.map(r => r.id === id ? { ...r, ativa: !r.ativa } : r));
         } catch (error) {
             console.error('Erro ao alterar status:', error);
-            alert('Erro ao alterar status.');
         }
     };
 
     const handleExcluirRota = async (id: string) => {
-        if (confirm('Tem certeza que deseja excluir esta rota? Esta ação não pode ser desfeita.')) {
+        if (confirm('Tem certeza que deseja excluir esta rota?')) {
             try {
                 await routesService.delete(id);
                 setRotas(rotas.filter(r => r.id !== id));
             } catch (error) {
                 console.error('Erro ao excluir rota:', error);
-                alert('Erro ao excluir rota. Verifique se não há viagens vinculadas.');
             }
         }
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader className="animate-spin text-blue-600" size={32} />
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+                <div className="relative">
+                    <div className="w-12 h-14 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <RouteIcon size={16} className="text-primary animate-pulse" />
+                    </div>
+                </div>
+                <p className="text-muted-foreground font-medium animate-pulse text-sm">Carregando rotas...</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-                        Gerenciamento de Rotas
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400">
-                        Configure rotas reutilizáveis para suas viagens
+        <div key="rotas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Executive Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <MapPinned size={24} className="text-primary" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
+                            Gerenciamento de <span className="text-primary">Rotas</span>
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-0">
+                        Configuração de itinerários e pontos de parada
                     </p>
                 </div>
-                <button
-                    onClick={handleNovaRota}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    Nova Rota
-                </button>
+                <Button onClick={handleNovaRota} className="h-14 px-6 rounded-2xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                    <Plus size={20} strokeWidth={2.5} />
+                    NOVA ROTA
+                </Button>
             </div>
 
-            {/* Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="flex flex-wrap gap-4">
+
+            {/* Executive KPI Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Total de Rotas</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-foreground">{rotas.length}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-110 duration-500">
+                                <RouteIcon size={20} strokeWidth={2.5} />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Rotas Ativas</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-emerald-600">{rotas.filter(r => r.ativa).length}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-110 duration-500">
+                                <MapPin size={20} strokeWidth={2.5} />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Rotas de Ida</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-blue-600">{rotas.filter(r => r.tipo_rota === RouteType.OUTBOUND).length}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 transition-transform group-hover:scale-110 duration-500">
+                                <MapPinned size={20} strokeWidth={2.5} />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <CardContent className="p-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Rotas de Volta</p>
+                                <p className="text-3xl font-semibold tracking-tighter text-orange-600">{rotas.filter(r => r.tipo_rota === RouteType.INBOUND).length}</p>
+                            </div>
+                            <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-600 transition-transform group-hover:scale-110 duration-500">
+                                <Gauge size={20} strokeWidth={2.5} />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Executive Filters Module */}
+            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Busca */}
-                    <div className="flex-1 min-w-[250px]">
-                        <div className="relative">
-                            <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
+                    <div className="space-y-1.5 flex flex-col">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Rota</label>
+                        <div className="relative group flex-1">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                            <Input
+                                placeholder="Nome ou ponto de parada..."
+                                className="pl-12 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                placeholder="Buscar por nome ou cidade..."
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
                     </div>
 
-                    {/* Filtro Tipo */}
-                    <div className="flex items-center gap-2">
-                        <Filter size={18} className="text-slate-500" />
-                        <select
-                            value={filtroTipo}
-                            onChange={(e) => setFiltroTipo(e.target.value as any)}
-                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODOS">Todos os tipos</option>
-                            <option value={RouteType.OUTBOUND}>Ida</option>
-                            <option value={RouteType.INBOUND}>Volta</option>
-                        </select>
+                    {/* Tipo de Rota */}
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Tipo de Rota</label>
+                        <Select value={filtroTipo} onValueChange={(v) => setFiltroTipo(v as any)}>
+                            <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-2xl font-bold">
+                                <SelectValue placeholder="Tipo de Rota" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                                <SelectItem value="TODOS">Todos os Tipos</SelectItem>
+                                <SelectItem value={RouteType.OUTBOUND}>Ida (Outbound)</SelectItem>
+                                <SelectItem value={RouteType.INBOUND}>Volta (Inbound)</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
-                    {/* Filtro Status */}
-                    <div>
-                        <select
-                            value={filtroStatus}
-                            onChange={(e) => setFiltroStatus(e.target.value as any)}
-                            className="px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODOS">Todos os status</option>
-                            <option value="ATIVA">Ativas</option>
-                            <option value="INATIVA">Inativas</option>
-                        </select>
+                    {/* Status Tabs */}
+                    <div className="space-y-1.5">
+                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Visibilidade</label>
+                        <Tabs value={statusTab} onValueChange={(v: any) => setStatusTab(v)} className="w-full">
+                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
+                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl px-4 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODAS</TabsTrigger>
+                                <TabsTrigger value="ATIVA" className="flex-1 rounded-xl px-4 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVAS</TabsTrigger>
+                                <TabsTrigger value="INATIVA" className="flex-1 rounded-xl px-4 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">INATIVAS</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
                     </div>
                 </div>
             </div>
 
-            {/* Lista de Rotas */}
-            {rotasFiltradas.length === 0 ? (
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-12 text-center">
-                    <RouteIcon size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                    <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        Nenhuma rota encontrada
-                    </h3>
-                    <p className="text-slate-500 dark:text-slate-400 mb-6">
-                        {busca || filtroTipo !== 'TODOS' || filtroStatus !== 'TODOS'
-                            ? 'Tente ajustar os filtros de busca'
-                            : 'Crie sua primeira rota para começar'}
-                    </p>
-                    {!busca && filtroTipo === 'TODOS' && filtroStatus === 'TODOS' && (
-                        <button
-                            onClick={handleNovaRota}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
-                        >
-                            <Plus size={18} />
-                            Criar Primeira Rota
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="grid gap-6">
-                    {rotasFiltradas.map((rota) => (
-                        <div
-                            key={rota.id}
-                            className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-                        >
-                            {/* Card Header */}
-                            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200">
-                                                {rota.nome || 'Rota sem nome'}
-                                            </h3>
-                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${rota.tipo_rota === RouteType.OUTBOUND || (rota.tipo_rota as any) === 'IDA'
-                                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                                : 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
-                                                }`}>
-                                                {RouteTypeLabel[rota.tipo_rota] || (rota.tipo_rota as string)}
-                                            </span>
-                                            <span className={`px-2 py-1 rounded text-xs font-semibold ${rota.ativa
-                                                ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
-                                                }`}>
-                                                {rota.ativa ? 'Ativa' : 'Inativa'}
-                                            </span>
+            {/* Executive Table Module */}
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-border/50">
+                            <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Identificação</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Trajeto</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Tipo</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-center">Distância</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-center">Status</TableHead>
+                            <TableHead className="pr-8 text-right h-14 text-[12px] font-semibold uppercase tracking-widest">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {rotasFiltradas.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-96 text-center border-none">
+                                    <div className="flex flex-col items-center justify-center gap-4 py-20 grayscale opacity-40">
+                                        <div className="p-6 bg-muted/40 rounded-full">
+                                            <RouteIcon size={48} />
                                         </div>
-
-                                        {/* Informações resumidas */}
-                                        <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                                            <span>{rota.pontos.length} pontos</span>
-                                            {rota.pontos.length > 2 && (
-                                                <span>• {rota.pontos.length - 2} parada(s)</span>
-                                            )}
-                                            {rota.distancia_total_km && (
-                                                <span>• {rota.distancia_total_km} km</span>
-                                            )}
+                                        <div className="space-y-1">
+                                            <p className="text-xl font-semibold">Nenhuma rota encontrada</p>
+                                            <p className="text-sm font-medium">Tente ajustar seus filtros ou criar uma nova rota.</p>
                                         </div>
                                     </div>
-
-                                    {/* Ações */}
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => handleEditarRota(rota.id)}
-                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                            title="Editar"
-                                        >
-                                            <Edit size={18} className="text-slate-600 dark:text-slate-400" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDuplicarRota(rota.id)}
-                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                            title="Duplicar"
-                                        >
-                                            <Copy size={18} className="text-slate-600 dark:text-slate-400" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleToggleStatus(rota.id)}
-                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-                                            title={rota.ativa ? 'Desativar' : 'Ativar'}
-                                        >
-                                            {rota.ativa ? (
-                                                <ToggleRight size={18} className="text-green-600 dark:text-green-400" />
-                                            ) : (
-                                                <ToggleLeft size={18} className="text-slate-400" />
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => handleExcluirRota(rota.id)}
-                                            className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-                                            title="Excluir"
-                                        >
-                                            <Trash2 size={18} className="text-red-600 dark:text-red-400" />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Visualização da Rota */}
-                            <div className="p-6 bg-slate-50 dark:bg-slate-900/50">
-                                <VisualizadorRota rota={rota} compact />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            rotasFiltradas.map((rota) => (
+                                <TableRow key={rota.id} className="group hover:bg-muted/20 border-border/30 transition-colors h-24">
+                                    <TableCell className="pl-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className={cn(
+                                                "w-12 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg",
+                                                rota.ativa ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+                                            )}>
+                                                <RouteIcon size={20} strokeWidth={2.5} />
+                                            </div>
+                                            <div>
+                                                <p className="font-semibold text-foreground text-base leading-none mb-1 group-hover:text-primary transition-colors">
+                                                    {rota.nome || 'Rota sem nome'}
+                                                </p>
+                                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                                                    ID: {rota.id.substring(0, 8)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex flex-col gap-1">
+                                            <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+                                                <span>{rota.pontos[0]?.nome || 'Início'}</span>
+                                                <ArrowRightLeft size={12} className="text-muted-foreground/40" />
+                                                <span>{rota.pontos[rota.pontos.length - 1]?.nome || 'Fim'}</span>
+                                            </div>
+                                            <p className="text-[12px] font-semibold text-muted-foreground/60 uppercase tracking-widest">
+                                                {rota.pontos.length} Pontos de Parada
+                                            </p>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className={cn(
+                                            "rounded-xl font-semibold text-[12px] px-3 py-1 uppercase tracking-tighter shadow-sm",
+                                            rota.tipo_rota === RouteType.OUTBOUND || (rota.tipo_rota as any) === 'IDA'
+                                                ? 'bg-blue-500/10 text-blue-600'
+                                                : 'bg-orange-500/10 text-orange-600'
+                                        )}>
+                                            {RouteTypeLabel[rota.tipo_rota] || (rota.tipo_rota as string)}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-center font-semibold text-foreground">
+                                        {rota.distancia_total_km ? `${rota.distancia_total_km} km` : '---'}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        <Badge className={cn(
+                                            "rounded-full font-semibold text-[12px] uppercase px-3 py-1 shadow-lg",
+                                            rota.ativa
+                                                ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+                                                : 'bg-muted-foreground/20 text-muted-foreground shadow-none'
+                                        )}>
+                                            {rota.ativa ? 'Ativa' : 'Inativa'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="pr-8 text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            {/* Visualizer Popover could go here, for now expanded menu */}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted/80 h-9 w-9">
+                                                        <MoreHorizontal size={18} />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-2xl p-2 mt-2">
+                                                    <DropdownMenuLabel className="px-3 py-2 text-[12px] font-semibold uppercase tracking-widest text-muted-foreground/40">Gerenciar Rota</DropdownMenuLabel>
+                                                    <DropdownMenuItem onClick={() => handleEditarRota(rota.id)} className="rounded-xl gap-3 font-bold h-11 cursor-pointer">
+                                                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
+                                                            <Edit size={16} />
+                                                        </div>
+                                                        Editar Rota
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleDuplicarRota(rota.id)} className="rounded-xl gap-3 font-bold h-11 cursor-pointer">
+                                                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                                            <Copy size={16} />
+                                                        </div>
+                                                        Duplicar Rota
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleToggleStatus(rota.id)} className="rounded-xl gap-3 font-bold h-11 cursor-pointer">
+                                                        <div className={cn(
+                                                            "p-2 rounded-lg",
+                                                            rota.ativa ? "bg-orange-500/10 text-orange-600" : "bg-emerald-500/10 text-emerald-600"
+                                                        )}>
+                                                            {rota.ativa ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                                                        </div>
+                                                        {rota.ativa ? "Desativar Rota" : "Ativar Rota"}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator className="my-2 bg-muted/50" />
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleExcluirRota(rota.id)}
+                                                        className="rounded-xl gap-3 font-bold h-11 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                                    >
+                                                        <div className="p-2 rounded-lg bg-destructive/10">
+                                                            <Trash2 size={16} />
+                                                        </div>
+                                                        Excluir Rota
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => handleEditarRota(rota.id)}
+                                                className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all group/btn h-9 w-9"
+                                            >
+                                                <ChevronRight size={18} className="transition-transform group-hover/btn:translate-x-0.5" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </Card>
+        </div >
     );
 };

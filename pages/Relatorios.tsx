@@ -6,13 +6,29 @@ import {
     ArrowLeft, Download, TrendingUp, TrendingDown, DollarSign, Calendar,
     FileText, PieChart, BarChart as BarChartIcon, Activity, Users, Truck,
     Package, MapPin, AlertTriangle, CheckCircle, Clock, LayoutDashboard,
-    List
+    List, Search, ChevronLeft, Bus, MoreHorizontal
 } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart as RechartsPie, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import { DatePicker } from '../components/Form/DatePicker';
+import { cn } from '../lib/utils';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+import { Badge } from '../components/ui/badge';
+import { Separator } from '../components/ui/separator';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "../components/ui/dialog";
 
 export const Relatorios: React.FC = () => {
     const navigate = useNavigate();
@@ -134,531 +150,546 @@ export const Relatorios: React.FC = () => {
     const themeColor = currentContext === EmpresaContexto.TURISMO ? 'blue' : 'orange';
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button onClick={() => navigate('/admin/dashboard')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Relatórios e Análises</h1>
-                        <p className="text-slate-500 dark:text-slate-400">
-                            Visão completa: {currentContext === EmpresaContexto.TURISMO ? 'Turismo B2C' : 'Logística Express'}
-                        </p>
+        <div key="relatorios-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Module */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <BarChartIcon size={24} className="text-primary" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-black tracking-tighter text-foreground">
+                            Relatórios & <span className="text-primary">Análises</span>
+                        </h1>
                     </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-14">
+                        Visão estratégica: {currentContext === EmpresaContexto.TURISMO ? 'Turismo B2C' : 'Logística Express'}
+                    </p>
                 </div>
 
-                {/* Date Picker Global */}
-                <div className="flex gap-2 items-center bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                <div className="flex gap-2 items-center bg-card/50 backdrop-blur-sm p-1.5 rounded-2xl border border-border/40 shadow-xl shadow-muted/10 h-14">
                     <DatePicker
                         value={periodoInicio}
                         onChange={setPeriodoInicio}
                         showIcon={false}
-                        className="!bg-transparent !border-none text-sm !p-1 !h-auto w-24"
+                        className="!bg-transparent !border-none text-xs font-black !p-2 !h-auto w-24 uppercase tracking-tighter"
                     />
-                    <span className="text-slate-400 self-center">-</span>
+                    <Separator orientation="vertical" className="h-4 bg-border/50" />
                     <DatePicker
                         value={periodoFim}
                         onChange={setPeriodoFim}
                         showIcon={false}
-                        className="!bg-transparent !border-none text-sm !p-1 !h-auto w-24"
+                        className="!bg-transparent !border-none text-xs font-black !p-2 !h-auto w-24 uppercase tracking-tighter"
                     />
                 </div>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-t-xl px-2">
-                <button
-                    onClick={() => setActiveTab('gerencial')}
-                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'gerencial'
-                        ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
-                >
-                    <LayoutDashboard size={18} />
-                    Gerencial
-                </button>
-                <button
-                    onClick={() => setActiveTab('operacional')}
-                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'operacional'
-                        ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
-                >
-                    <List size={18} />
-                    Operacional
-                </button>
-                <button
-                    onClick={() => setActiveTab('financeiro')}
-                    className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeTab === 'financeiro'
-                        ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'}`}
-                >
-                    <DollarSign size={18} />
-                    Financeiro
-                </button>
-            </div>
+            {/* Standardized Tabs */}
+            <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
+                <TabsList className="bg-muted/40 p-1.5 rounded-[1.5rem] border border-border/50 h-14 w-full md:w-fit gap-2">
+                    <TabsTrigger value="gerencial" className="rounded-xl px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
+                        <LayoutDashboard size={16} strokeWidth={2.5} />
+                        GERENCIAL
+                    </TabsTrigger>
+                    <TabsTrigger value="operacional" className="rounded-xl px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
+                        <List size={16} strokeWidth={2.5} />
+                        OPERACIONAL
+                    </TabsTrigger>
+                    <TabsTrigger value="financeiro" className="rounded-xl px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
+                        <DollarSign size={16} strokeWidth={2.5} />
+                        FINANCEIRO
+                    </TabsTrigger>
+                </TabsList>
 
-            {/* Content */}
-            <div className="space-y-6">
-
-                {/* --- TAB GERENCIAL --- */}
-                {activeTab === 'gerencial' && (
-                    <div className="space-y-6">
-                        {/* KPIs Principais */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Receita Total</p>
-                                <p className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(analiseFinanceira.receitas)}</p>
-                                <div className="flex items-center gap-1 text-xs text-green-500 mt-1">
-                                    <TrendingUp size={12} /> +12.5% vs mês anterior
-                                </div>
-                            </div>
-                            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Lucro Líquido</p>
-                                <p className={`text-2xl font-bold ${analiseFinanceira.lucroLiquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {formatCurrency(analiseFinanceira.lucroLiquido)}
-                                </p>
-                                <p className="text-xs text-slate-400 mt-1">Margem: {formatPercentage(analiseFinanceira.margemLucro)}</p>
-                            </div>
-                            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                    {currentContext === EmpresaContexto.TURISMO ? 'Taxa de Ocupação' : 'Entregas no Prazo'}
-                                </p>
-                                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                    {currentContext === EmpresaContexto.TURISMO ? '78.5%' : '92.3%'}
-                                </p>
-                                <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full mt-2">
-                                    <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: currentContext === EmpresaContexto.TURISMO ? '78.5%' : '92.3%' }}></div>
-                                </div>
-                            </div>
-                            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <p className="text-sm text-slate-500 dark:text-slate-400">Frota Ativa</p>
-                                <p className="text-2xl font-bold text-slate-800 dark:text-white">8/10</p>
-                                <p className="text-xs text-orange-500 mt-1">2 em manutenção</p>
-                            </div>
-                        </div>
-
-                        {/* Gráficos Contextuais */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Gráfico 1 */}
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-white">
-                                    {currentContext === EmpresaContexto.TURISMO ? 'Evolução da Ocupação' : 'Volume Transportado (kg)'}
-                                </h3>
-                                <div className="h-64">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        {currentContext === EmpresaContexto.TURISMO ? (
-                                            <LineChart data={dadosOcupacaoTurismo}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                                <XAxis dataKey="nome" stroke="#94a3b8" />
-                                                <YAxis stroke="#94a3b8" />
-                                                <RechartsTooltip />
-                                                <Line type="monotone" dataKey="ocupacao" stroke="#2563eb" strokeWidth={2} />
-                                            </LineChart>
-                                        ) : (
-                                            <AreaChart data={dadosVolumeExpress}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                                <XAxis dataKey="nome" stroke="#94a3b8" />
-                                                <YAxis stroke="#94a3b8" />
-                                                <RechartsTooltip />
-                                                <Area type="monotone" dataKey="volume" stroke="#f97316" fill="#f97316" fillOpacity={0.3} />
-                                            </AreaChart>
-                                        )}
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-
-                            {/* Gráfico 2 */}
-                            <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                                <h3 className="text-lg font-semibold mb-4 text-slate-800 dark:text-white">
-                                    {currentContext === EmpresaContexto.TURISMO ? 'Destinos Mais Populares' : 'Status de Entregas'}
-                                </h3>
-                                <div className="h-64">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        {currentContext === EmpresaContexto.TURISMO ? (
-                                            <BarChart data={dadosDestinosTurismo} layout="vertical">
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                                <XAxis type="number" stroke="#94a3b8" />
-                                                <YAxis dataKey="nome" type="category" width={100} stroke="#94a3b8" />
-                                                <RechartsTooltip />
-                                                <Bar dataKey="viagens" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                                            </BarChart>
-                                        ) : (
-                                            <RechartsPieChart width={400} height={400}>
-                                                <Pie
-                                                    data={dadosEntregasExpress}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    innerRadius={60}
-                                                    outerRadius={80}
-                                                    fill="#8884d8"
-                                                    paddingAngle={5}
-                                                    dataKey="value"
-                                                >
-                                                    {dadosEntregasExpress.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <RechartsTooltip />
-                                                <Legend />
-                                            </RechartsPieChart>
-                                        )}
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* --- TAB OPERACIONAL --- */}
-                {activeTab === 'operacional' && (
-                    <div className="space-y-6">
-                        {/* Filtros e Ações */}
-                        <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
-                            <div className="flex gap-4 w-full md:w-auto">
-                                <div className="relative flex-1 md:w-64">
-                                    <input
-                                        type="text"
-                                        placeholder="Buscar por rota, motorista ou ID..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    />
-                                    <List size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                </div>
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                                >
-                                    <option value="todos">Todos os Status</option>
-                                    <option value="ativo">Em Andamento</option>
-                                    <option value="pendente">Pendente</option>
-                                    <option value="concluido">Concluído</option>
-                                </select>
-                            </div>
-                            <button className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors w-full md:w-auto justify-center">
-                                <FileText size={18} />
-                                <span>Exportar Manifesto</span>
-                            </button>
-                        </div>
-
-                        {/* Tabela Principal */}
-                        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                            <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                                <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
-                                    {currentContext === EmpresaContexto.TURISMO ? 'Manifesto de Viagens' : 'Controle de Rotas'}
-                                </h3>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-sm text-left">
-                                    <thead className="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 font-medium">
-                                        <tr>
-                                            <th className="px-6 py-4">ID</th>
-                                            <th className="px-6 py-4">Rota</th>
-                                            <th className="px-6 py-4">{currentContext === EmpresaContexto.TURISMO ? 'Passageiros' : 'Entregas'}</th>
-                                            <th className="px-6 py-4">Motorista</th>
-                                            <th className="px-6 py-4">Status</th>
-                                            <th className="px-6 py-4">Ações</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                        {currentContext === EmpresaContexto.TURISMO ? (
-                                            filteredManifestos.map((item) => (
-                                                <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                                                    <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">{item.id}</td>
-                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.rota}</td>
-                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.passageiros}</td>
-                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.motorista}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'Em Trânsito' ? 'bg-blue-100 text-blue-700' :
-                                                            item.status === 'Agendado' ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-700'
-                                                            }`}>
-                                                            {item.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <button
-                                                            onClick={() => setSelectedItem(item)}
-                                                            className="text-blue-600 hover:text-blue-800 font-medium"
-                                                        >
-                                                            Detalhes
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        ) : (
-                                            filteredEntregas.map((item) => (
-                                                <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30">
-                                                    <td className="px-6 py-4 font-medium text-slate-800 dark:text-white">{item.id}</td>
-                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.rota}</td>
-                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
-                                                        {item.entregas} <span className="text-slate-400 text-xs">({item.pendentes} pend.)</span>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-slate-600 dark:text-slate-300">{item.motorista}</td>
-                                                    <td className="px-6 py-4">
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${item.status === 'Em Rota' ? 'bg-blue-100 text-blue-700' :
-                                                            item.status === 'Concluído' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                                                            }`}>
-                                                            {item.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-4">
-                                                        <button
-                                                            onClick={() => setSelectedItem(item)}
-                                                            className="text-blue-600 hover:text-blue-800 font-medium"
-                                                        >
-                                                            Rastrear
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Visualizações Secundárias (Context-Aware) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {currentContext === EmpresaContexto.TURISMO ? (
-                                <>
-                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                            <Users size={20} />
-                                            Escala de Motoristas
-                                        </h3>
-                                        <div className="space-y-4">
-                                            {[
-                                                { nome: 'João Silva', status: 'Em Viagem', destino: 'Rio de Janeiro', retorno: '26/11' },
-                                                { nome: 'Carlos Souza', status: 'Folga', destino: '-', retorno: '27/11' },
-                                                { nome: 'Ana Lima', status: 'Aguardando', destino: 'Curitiba', retorno: '26/11' },
-                                            ].map((mot, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/30 rounded-lg">
-                                                    <div>
-                                                        <p className="font-medium text-slate-800 dark:text-white">{mot.nome}</p>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400">Retorno: {mot.retorno}</p>
+                <div className="mt-8">
+                    <TabsContent value="gerencial" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Executive KPI Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            {[
+                                { label: 'Receita Total', value: formatCurrency(analiseFinanceira.receitas), icon: DollarSign, color: 'emerald', trend: '+12.5% vs mês anterior' },
+                                { label: 'Lucro Líquido', value: formatCurrency(analiseFinanceira.lucroLiquido), icon: Activity, color: analiseFinanceira.lucroLiquido >= 0 ? 'blue' : 'rose', trend: `Margem: ${formatPercentage(analiseFinanceira.margemLucro)}` },
+                                { label: currentContext === EmpresaContexto.TURISMO ? 'Taxa de Ocupação' : 'Entregas no Prazo', value: currentContext === EmpresaContexto.TURISMO ? '78.5%' : '92.3%', icon: TrendingUp, color: 'indigo', progress: currentContext === EmpresaContexto.TURISMO ? 78.5 : 92.3 },
+                                { label: 'Frota Ativa', value: '8/10', icon: Bus, color: 'amber', trend: '2 em manutenção' }
+                            ].map((stat, i) => (
+                                <Card key={i} className="border-none shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                                    <CardContent className="p-6">
+                                        <div className="flex justify-between items-start">
+                                            <div className="space-y-1">
+                                                <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+                                                <p className="text-2xl font-black tracking-tighter text-foreground">{stat.value}</p>
+                                                {stat.trend && (
+                                                    <p className={cn("text-[12px] font-bold", stat.trend.includes('-') ? "text-rose-500" : "text-emerald-500")}>
+                                                        {stat.trend}
+                                                    </p>
+                                                )}
+                                                {stat.progress && (
+                                                    <div className="w-24 bg-muted rounded-full h-1 mt-2">
+                                                        <div className="bg-primary h-1 rounded-full transition-all" style={{ width: `${stat.progress}%` }} />
                                                     </div>
-                                                    <div className="text-right">
-                                                        <span className={`text-xs font-semibold px-2 py-1 rounded-full ${mot.status === 'Em Viagem' ? 'bg-blue-100 text-blue-700' :
-                                                            mot.status === 'Folga' ? 'bg-slate-200 text-slate-600' : 'bg-amber-100 text-amber-700'
-                                                            }`}>
-                                                            {mot.status}
-                                                        </span>
-                                                        <p className="text-xs text-slate-500 mt-1">{mot.destino}</p>
+                                                )}
+                                            </div>
+                                            <div className={cn(
+                                                "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                                stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
+                                                    stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
+                                                        stat.color === 'indigo' ? "bg-indigo-500/10 text-indigo-600" :
+                                                            stat.color === 'rose' ? "bg-rose-500/10 text-rose-600" :
+                                                                "bg-amber-500/10 text-amber-600"
+                                            )}>
+                                                <stat.icon size={20} strokeWidth={2.5} />
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+
+                        {/* Executive Charts Grid */}
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                                <CardHeader className="p-8 pb-4">
+                                    <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                            <TrendingUp size={18} className="text-primary" />
+                                        </div>
+                                        {currentContext === EmpresaContexto.TURISMO ? 'Evolução da Ocupação' : 'Volume Transportado (kg)'}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-8 pt-0">
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            {currentContext === EmpresaContexto.TURISMO ? (
+                                                <LineChart data={dadosOcupacaoTurismo}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                                                    <XAxis dataKey="nome" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} dy={10} />
+                                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                                                    <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
+                                                    <Line type="monotone" dataKey="ocupacao" stroke="hsl(var(--primary))" strokeWidth={4} dot={{ r: 4, strokeWidth: 2, fill: 'white' }} activeDot={{ r: 6, strokeWidth: 0 }} />
+                                                </LineChart>
+                                            ) : (
+                                                <AreaChart data={dadosVolumeExpress}>
+                                                    <defs>
+                                                        <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                                                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--muted))" />
+                                                    <XAxis dataKey="nome" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} dy={10} />
+                                                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                                                    <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
+                                                    <Area type="monotone" dataKey="volume" stroke="hsl(var(--primary))" strokeWidth={4} fillOpacity={1} fill="url(#colorVolume)" />
+                                                </AreaChart>
+                                            )}
+                                        </ResponsiveContainer>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                                <CardHeader className="p-8 pb-4">
+                                    <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                            <PieChart size={18} className="text-primary" />
+                                        </div>
+                                        {currentContext === EmpresaContexto.TURISMO ? 'Destinos Mais Populares' : 'Status de Entregas'}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-8 pt-0">
+                                    <div className="h-[300px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            {currentContext === EmpresaContexto.TURISMO ? (
+                                                <BarChart data={dadosDestinosTurismo} layout="vertical" margin={{ left: 40 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--muted))" />
+                                                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                                                    <YAxis dataKey="nome" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                                                    <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }} />
+                                                    <Bar dataKey="viagens" fill="hsl(var(--primary))" radius={[0, 10, 10, 0]} barSize={20} />
+                                                </BarChart>
+                                            ) : (
+                                                <RechartsPieChart>
+                                                    <Pie
+                                                        data={dadosEntregasExpress}
+                                                        cx="50%"
+                                                        cy="50%"
+                                                        innerRadius={80}
+                                                        outerRadius={100}
+                                                        paddingAngle={8}
+                                                        dataKey="value"
+                                                    >
+                                                        {dadosEntregasExpress.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                                                        ))}
+                                                    </Pie>
+                                                    <RechartsTooltip contentStyle={{ borderRadius: '1rem', border: 'none' }} />
+                                                    <Legend wrapperStyle={{ paddingTop: '20px', fontWeight: 'bold', fontSize: '10px' }} />
+                                                </RechartsPieChart>
+                                            )}
+                                        </ResponsiveContainer>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="operacional" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Executive Filters Module */}
+                        <div className="flex flex-col xl:flex-row gap-6 items-end xl:items-center justify-between bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+                            <div className="relative w-full xl:w-96 group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                                <Input
+                                    placeholder="Buscar por rota, motorista ou ID..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pl-12 h-14 bg-muted/40 border-none rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-4 w-full md:w-auto">
+                                <Tabs value={statusFilter} onValueChange={setStatusFilter} className="bg-muted/40 p-1 rounded-2xl border border-border/50">
+                                    <TabsList className="bg-transparent h-10 gap-1">
+                                        <TabsTrigger value="todos" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                                        <TabsTrigger value="ativo" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">EM ANDAMENTO</TabsTrigger>
+                                        <TabsTrigger value="pendente" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">PENDENTE</TabsTrigger>
+                                        <TabsTrigger value="concluido" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">CONCLUÍDO</TabsTrigger>
+                                    </TabsList>
+                                </Tabs>
+                                <Button className="h-14 px-6 rounded-2xl font-black gap-2 shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white">
+                                    <FileText size={18} strokeWidth={2.5} />
+                                    MANIFESTO
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Executive Table Module */}
+                        <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                            <Table>
+                                <TableHeader className="bg-muted/30">
+                                    <TableRow className="hover:bg-transparent border-border/50">
+                                        <TableHead className="pl-8 h-14 text-[12px] font-black uppercase tracking-widest">Identificador</TableHead>
+                                        <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Rota / Itinerário</TableHead>
+                                        <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">{currentContext === EmpresaContexto.TURISMO ? 'Passageiros' : 'Entregas'}</TableHead>
+                                        <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Condutor</TableHead>
+                                        <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Status</TableHead>
+                                        <TableHead className="pr-8 h-14 text-[12px] font-black uppercase tracking-widest text-right">Ações</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {currentContext === EmpresaContexto.TURISMO ? (
+                                        filteredManifestos.map((item) => (
+                                            <TableRow key={item.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                                <TableCell className="pl-8 py-5">
+                                                    <span className="font-black text-sm text-foreground">#{item.id}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="font-bold text-sm text-foreground">{item.rota}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
+                                                        <Users size={14} className="text-primary" />
+                                                        {item.passageiros}
                                                     </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="font-medium text-sm text-muted-foreground">{item.motorista}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className={cn(
+                                                        "gap-1.5 font-bold px-2 py-0.5 rounded-lg border-none",
+                                                        item.status === 'Em Trânsito' ? 'bg-blue-500/10 text-blue-600' :
+                                                            item.status === 'Agendado' ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/10 text-emerald-600'
+                                                    )}>
+                                                        <div className={cn("w-1.5 h-1.5 rounded-full",
+                                                            item.status === 'Em Trânsito' ? 'bg-blue-500' :
+                                                                item.status === 'Agendado' ? 'bg-muted-foreground' : 'bg-emerald-500'
+                                                        )} />
+                                                        {item.status.toUpperCase()}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="pr-8 text-right">
+                                                    <Button variant="ghost" onClick={() => setSelectedItem(item)} className="h-9 px-4 rounded-xl font-bold text-xs hover:bg-primary/10 hover:text-primary">
+                                                        DETALHES
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        filteredEntregas.map((item) => (
+                                            <TableRow key={item.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                                <TableCell className="pl-8 py-5">
+                                                    <span className="font-black text-sm text-foreground">#{item.id}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="font-bold text-sm text-foreground">{item.rota}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
+                                                            <Package size={14} className="text-primary" />
+                                                            {item.entregas}
+                                                        </div>
+                                                        <span className="text-[12px] font-bold text-muted-foreground/60 uppercase">{item.pendentes} Pendentes</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="font-medium text-sm text-muted-foreground">{item.motorista}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="outline" className={cn(
+                                                        "gap-1.5 font-bold px-2 py-0.5 rounded-lg border-none",
+                                                        item.status === 'Em Rota' ? 'bg-blue-500/10 text-blue-600' :
+                                                            item.status === 'Concluído' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
+                                                    )}>
+                                                        <div className={cn("w-1.5 h-1.5 rounded-full",
+                                                            item.status === 'Em Rota' ? 'bg-blue-500' :
+                                                                item.status === 'Concluído' ? 'bg-emerald-500' : 'bg-amber-500'
+                                                        )} />
+                                                        {item.status.toUpperCase()}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="pr-8 text-right">
+                                                    <Button variant="ghost" onClick={() => setSelectedItem(item)} className="h-9 px-4 rounded-xl font-bold text-xs hover:bg-primary/10 hover:text-primary">
+                                                        RASTREAR
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </Card>
+
+                        {/* Executive Secondary Views */}
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                                <CardHeader className="p-8 pb-4">
+                                    <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                            <Users size={18} className="text-primary" />
+                                        </div>
+                                        Escala de Motoristas
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-8 pt-0 space-y-4">
+                                    {[
+                                        { nome: 'João Silva', status: 'Em Viagem', destino: 'Rio de Janeiro', retorno: '26/11' },
+                                        { nome: 'Carlos Souza', status: 'Folga', destino: '-', retorno: '27/11' },
+                                        { nome: 'Ana Lima', status: 'Aguardando', destino: 'Curitiba', retorno: '26/11' },
+                                    ].map((mot, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted/20 rounded-[1.5rem] border border-border/30">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
+                                                    {mot.nome.split(' ').map(n => n[0]).join('')}
+                                                </div>
+                                                <div>
+                                                    <p className="font-black text-sm text-foreground">{mot.nome}</p>
+                                                    <p className="text-[12px] font-bold text-muted-foreground uppercase">{mot.destino}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <Badge className={cn(
+                                                    "rounded-lg font-black text-[9px] uppercase tracking-tighter",
+                                                    mot.status === 'Em Viagem' ? 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20' :
+                                                        mot.status === 'Folga' ? 'bg-muted text-muted-foreground hover:bg-muted/80' : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
+                                                )}>
+                                                    {mot.status}
+                                                </Badge>
+                                                <p className="text-[12px] font-medium text-muted-foreground/60 mt-1">VOLTA {mot.retorno}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                                <CardHeader className="p-8 pb-4">
+                                    <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
+                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                            <AlertTriangle size={18} className="text-primary" />
+                                        </div>
+                                        Alertas de Manutenção
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-8 pt-0 space-y-4">
+                                    <div className="flex items-start gap-4 p-5 bg-rose-500/5 rounded-[1.5rem] border border-rose-500/10 group hover:bg-rose-500/10 transition-colors">
+                                        <div className="p-2.5 bg-rose-500/10 rounded-xl text-rose-600 group-hover:scale-110 transition-transform">
+                                            <AlertTriangle size={20} strokeWidth={2.5} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-black text-foreground">Ônibus 104 - Freios</p>
+                                            <p className="text-[11px] font-bold text-rose-500/80 uppercase tracking-widest mt-0.5">VENCIDO HÁ 2 DIAS</p>
+                                            <p className="text-xs font-medium text-muted-foreground/70 mt-2">Revisão crítica necessária imediatamente.</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-4 p-5 bg-amber-500/5 rounded-[1.5rem] border border-amber-500/10 group hover:bg-amber-500/10 transition-colors">
+                                        <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 group-hover:scale-110 transition-transform">
+                                            <Clock size={20} strokeWidth={2.5} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-black text-foreground">Ônibus 108 - Troca de Óleo</p>
+                                            <p className="text-[11px] font-bold text-amber-600/80 uppercase tracking-widest mt-0.5">AGENDADO: 28/11</p>
+                                            <p className="text-xs font-medium text-muted-foreground/70 mt-2">Preventiva programada na oficina central.</p>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="financeiro" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* Executive DRE Card */}
+                        <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                            <CardHeader className="p-8 pb-4 border-b border-border/40">
+                                <div className="flex justify-between items-center">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
+                                            <div className="p-2 bg-primary/10 rounded-xl">
+                                                <FileText size={18} className="text-primary" />
+                                            </div>
+                                            Demonstrativo de Resultados (DRE)
+                                        </CardTitle>
+                                        <CardDescription className="text-[12px] font-bold uppercase tracking-widest text-muted-foreground ml-11">Visão contábil do período selecionado</CardDescription>
+                                    </div>
+                                    <Button variant="outline" className="h-10 rounded-xl font-bold text-xs gap-2 border-border/50 bg-background/50">
+                                        <Download size={14} strokeWidth={2.5} />
+                                        EXPORTAR PDF
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-8">
+                                <div className="space-y-6">
+                                    {/* Receitas Section */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center p-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                                            <div className="flex items-center gap-3">
+                                                <TrendingUp className="text-emerald-500" size={18} strokeWidth={2.5} />
+                                                <span className="font-black text-sm uppercase tracking-tight text-foreground">Receita Bruta Total</span>
+                                            </div>
+                                            <span className="font-black text-lg text-emerald-600 tracking-tighter">{formatCurrency(analiseFinanceira.receitas)}</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
+                                            {Object.entries(analiseFinanceira.receitasPorCategoria).map(([cat, val]) => (
+                                                <div key={cat} className="flex justify-between items-center p-3 hover:bg-muted/30 rounded-xl transition-colors">
+                                                    <span className="text-sm font-bold text-muted-foreground">{cat}</span>
+                                                    <span className="text-sm font-black text-foreground">{formatCurrency(val as number)}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                            <AlertTriangle size={20} />
-                                            Alertas de Manutenção
-                                        </h3>
-                                        <div className="space-y-3">
-                                            <div className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
-                                                <AlertTriangle size={18} className="text-red-600 mt-0.5" />
-                                                <div>
-                                                    <p className="text-sm font-medium text-red-800 dark:text-red-300">Ônibus 104 - Freios</p>
-                                                    <p className="text-xs text-red-600 dark:text-red-400">Revisão crítica necessária (Vencido há 2 dias)</p>
-                                                </div>
+
+                                    <Separator className="bg-border/40" />
+
+                                    {/* Despesas Section */}
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center p-5 bg-rose-500/5 rounded-2xl border border-rose-500/10">
+                                            <div className="flex items-center gap-3">
+                                                <TrendingDown className="text-rose-500" size={18} strokeWidth={2.5} />
+                                                <span className="font-black text-sm uppercase tracking-tight text-foreground">Despesas Operacionais</span>
                                             </div>
-                                            <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30">
-                                                <Clock size={18} className="text-amber-600 mt-0.5" />
-                                                <div>
-                                                    <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Ônibus 108 - Troca de Óleo</p>
-                                                    <p className="text-xs text-amber-600 dark:text-amber-400">Agendado para 28/11</p>
+                                            <span className="font-black text-lg text-rose-600 tracking-tighter">({formatCurrency(analiseFinanceira.despesas)})</span>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 pl-4">
+                                            {Object.entries(analiseFinanceira.despesasPorCategoria).map(([cat, val]) => (
+                                                <div key={cat} className="flex justify-between items-center p-3 hover:bg-muted/30 rounded-xl transition-colors">
+                                                    <span className="text-sm font-bold text-muted-foreground">{cat}</span>
+                                                    <span className="text-sm font-black text-rose-500/80">({formatCurrency(val as number)})</span>
                                                 </div>
-                                            </div>
+                                            ))}
                                         </div>
                                     </div>
-                                </>
-                            ) : (
-                                <>
-                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                            <Truck size={20} />
-                                            Status da Frota
-                                        </h3>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
-                                                <p className="text-2xl font-bold text-green-600 dark:text-green-400">12</p>
-                                                <p className="text-sm text-green-700 dark:text-green-300">Disponíveis</p>
-                                            </div>
-                                            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
-                                                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">8</p>
-                                                <p className="text-sm text-blue-700 dark:text-blue-300">Em Rota</p>
-                                            </div>
-                                            <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-center">
-                                                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">3</p>
-                                                <p className="text-sm text-amber-700 dark:text-amber-300">Manutenção</p>
-                                            </div>
-                                            <div className="p-4 bg-slate-50 dark:bg-slate-700/30 rounded-lg text-center">
-                                                <p className="text-2xl font-bold text-slate-600 dark:text-slate-400">23</p>
-                                                <p className="text-sm text-slate-700 dark:text-slate-300">Total</p>
-                                            </div>
+
+                                    <div className="mt-12 p-8 bg-primary rounded-[2rem] shadow-2xl shadow-primary/20 flex flex-col md:flex-row justify-between items-center gap-6">
+                                        <div className="space-y-1">
+                                            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-primary-foreground/60">Resultado Líquido do Exercício</span>
+                                            <h3 className="text-3xl font-black text-primary-foreground tracking-tighter">Performance Operacional</h3>
+                                        </div>
+                                        <div className="flex flex-col items-center md:items-end">
+                                            <span className={cn(
+                                                "text-4xl font-black tracking-tighter px-6 py-2 rounded-2xl bg-white/20 backdrop-blur-md text-white",
+                                                analiseFinanceira.lucroLiquido < 0 && "bg-rose-500/40"
+                                            )}>
+                                                {formatCurrency(analiseFinanceira.lucroLiquido)}
+                                            </span>
+                                            <p className="text-[12px] font-black text-primary-foreground/80 uppercase tracking-widest mt-2">Margem de Lucro: {formatPercentage(analiseFinanceira.margemLucro)}</p>
                                         </div>
                                     </div>
-                                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                                        <h3 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                            <Package size={20} />
-                                            Entregas Críticas
-                                        </h3>
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-900/30">
-                                                <div className="flex items-center gap-3">
-                                                    <AlertTriangle size={18} className="text-red-600" />
-                                                    <div>
-                                                        <p className="text-sm font-medium text-red-800 dark:text-red-300">#E9821 - Atrasado</p>
-                                                        <p className="text-xs text-red-600 dark:text-red-400">Rota Norte - Cliente Ausente</p>
-                                                    </div>
-                                                </div>
-                                                <button className="text-xs bg-white dark:bg-slate-800 px-2 py-1 rounded border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400">
-                                                    Resolver
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-100 dark:border-amber-900/30">
-                                                <div className="flex items-center gap-3">
-                                                    <Clock size={18} className="text-amber-600" />
-                                                    <div>
-                                                        <p className="text-sm font-medium text-amber-800 dark:text-amber-300">#E9844 - Prioridade</p>
-                                                        <p className="text-xs text-amber-600 dark:text-amber-400">Entrega agendada até 14h</p>
-                                                    </div>
-                                                </div>
-                                                <button className="text-xs bg-white dark:bg-slate-800 px-2 py-1 rounded border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400">
-                                                    Ver
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* --- TAB FINANCEIRO --- */}
-                {activeTab === 'financeiro' && (
-                    <div className="space-y-6">
-                        {/* DRE Simplificado */}
-                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <FileText size={20} /> DRE - Demonstrativo de Resultados
-                                </h2>
-                                <button className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                                    <Download size={16} /> Exportar PDF
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                    <span className="font-medium text-slate-700 dark:text-slate-300">Receita Bruta</span>
-                                    <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(analiseFinanceira.receitas)}</span>
                                 </div>
-                                <div className="pl-4 space-y-2">
-                                    {Object.entries(analiseFinanceira.receitasPorCategoria).map(([cat, val]) => (
-                                        <div key={cat} className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-                                            <span>{cat}</span>
-                                            <span>{formatCurrency(val as number)}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="flex justify-between items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg mt-4">
-                                    <span className="font-medium text-slate-700 dark:text-slate-300">Despesas Operacionais</span>
-                                    <span className="font-bold text-red-600 dark:text-red-400">({formatCurrency(analiseFinanceira.despesas)})</span>
-                                </div>
-                                <div className="pl-4 space-y-2">
-                                    {Object.entries(analiseFinanceira.despesasPorCategoria).map(([cat, val]) => (
-                                        <div key={cat} className="flex justify-between text-sm text-slate-600 dark:text-slate-400">
-                                            <span>{cat}</span>
-                                            <span>({formatCurrency(val as number)})</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="flex justify-between items-center p-4 bg-slate-100 dark:bg-slate-700 rounded-lg mt-6 border-t-2 border-slate-300 dark:border-slate-600">
-                                    <span className="font-bold text-lg text-slate-800 dark:text-white">Resultado Líquido</span>
-                                    <span className={`font-bold text-xl ${analiseFinanceira.lucroLiquido >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        {formatCurrency(analiseFinanceira.lucroLiquido)}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-            {/* Modal de Detalhes */}
-            {selectedItem && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-lg w-full p-6 animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center mb-4 border-b border-slate-100 dark:border-slate-700 pb-4">
-                            <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-                                Detalhes: {selectedItem.id}
-                            </h3>
-                            <button
-                                onClick={() => setSelectedItem(null)}
-                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                            >
-                                <span className="sr-only">Fechar</span>
-                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">Rota</p>
-                                    <p className="font-medium text-slate-800 dark:text-white">{selectedItem.rota}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">Motorista</p>
-                                    <p className="font-medium text-slate-800 dark:text-white">{selectedItem.motorista}</p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
-                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold mt-1 ${selectedItem.status.includes('Concluído') || selectedItem.status.includes('Agendado') ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                                        }`}>
-                                        {selectedItem.status}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        {currentContext === EmpresaContexto.TURISMO ? 'Passageiros' : 'Entregas'}
-                                    </p>
-                                    <p className="font-medium text-slate-800 dark:text-white">
-                                        {currentContext === EmpresaContexto.TURISMO ? selectedItem.passageiros : selectedItem.entregas}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                                <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Informações Adicionais</p>
-                                <p className="text-sm text-slate-600 dark:text-slate-400">
-                                    {currentContext === EmpresaContexto.TURISMO
-                                        ? 'Lista de passageiros e assentos disponível no manifesto completo.'
-                                        : 'Rastreamento em tempo real ativado. Previsão de entrega atualizada.'}
-                                </p>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                    onClick={() => setSelectedItem(null)}
-                                    className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                                >
-                                    Fechar
-                                </button>
-                                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                                    Ver Completo
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
                 </div>
-            )}
+            </Tabs>
+
+            {/* Modal de Detalhes Premium */}
+            <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
+                <DialogContent className="max-w-xl border-none shadow-2xl rounded-[2.5rem] bg-card/95 backdrop-blur-xl animate-in zoom-in-95 duration-300">
+                    {selectedItem && (
+                        <>
+                            <DialogHeader className="p-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                                        <FileText size={24} strokeWidth={2.5} />
+                                    </div>
+                                    <div>
+                                        <DialogTitle className="text-2xl font-black tracking-tighter">Detalhes do Registro</DialogTitle>
+                                        <DialogDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-0.5">Identificador: #{selectedItem.id}</DialogDescription>
+                                    </div>
+                                </div>
+                            </DialogHeader>
+
+                            <div className="p-6 space-y-6">
+                                <div className="grid grid-cols-2 gap-8">
+                                    <div className="space-y-1.5">
+                                        <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/60">Rota / Itinerário</p>
+                                        <p className="font-bold text-base text-foreground">{selectedItem.rota}</p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/60">Responsável</p>
+                                        <p className="font-bold text-base text-foreground">{selectedItem.motorista}</p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/60">Status Atual</p>
+                                        <Badge className={cn(
+                                            "rounded-lg font-black text-[12px] uppercase",
+                                            selectedItem.status.includes('Concluído') || selectedItem.status.includes('Sucesso') ?
+                                                "bg-emerald-500/10 text-emerald-600 border-none" : "bg-blue-500/10 text-blue-600 border-none"
+                                        )}>
+                                            {selectedItem.status}
+                                        </Badge>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/60">
+                                            {currentContext === EmpresaContexto.TURISMO ? 'Ocupação' : 'Carga'}
+                                        </p>
+                                        <p className="font-bold text-base text-foreground">
+                                            {currentContext === EmpresaContexto.TURISMO ? `${selectedItem.passageiros} Passageiros` : `${selectedItem.entregas} Volumes`}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="p-5 bg-muted/30 rounded-[1.5rem] border border-border/40 space-y-2">
+                                    <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">Notas do Sistema</p>
+                                    <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+                                        {currentContext === EmpresaContexto.TURISMO
+                                            ? 'Manifesto completo com lista de passageiros e assentos disponível para visualização detalhada.'
+                                            : 'Rastreamento logístico ativo. Todas as etapas de entrega foram registradas eletronicamente.'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <DialogFooter className="p-6 pt-0 gap-3">
+                                <Button variant="ghost" onClick={() => setSelectedItem(null)} className="rounded-xl font-bold px-6">
+                                    FECHAR
+                                </Button>
+                                <Button className="rounded-xl font-black px-6 bg-primary shadow-lg shadow-primary/20">
+                                    VER RELATÓRIO COMPLETO
+                                </Button>
+                            </DialogFooter>
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

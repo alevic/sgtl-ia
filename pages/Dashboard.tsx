@@ -5,14 +5,29 @@ import { useApp } from '../context/AppContext';
 import { EmpresaContexto } from '../types';
 import { GeminiInsights } from '../components/Gemini/GeminiInsights';
 import {
-  TrendingUp, Users, Bus, Package, ArrowUpRight, ArrowDownRight,
-  Clock, Calendar, ChevronRight, Plus, Activity, AlertCircle,
-  MapPin, Truck, Wallet
+  Users, Bus, Package, ArrowUpRight, ArrowDownRight,
+  Clock, Calendar, Plus, Activity, AlertCircle,
+  Truck, Wallet
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ComposedChart, Line, Bar, Cell
+  ComposedChart, Line, Bar
 } from 'recharts';
+
+// --- shadcn/ui COMPONENTS ---
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Badge } from '../components/ui/badge';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { Separator } from '../components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
+import { cn } from '../lib/utils';
 
 // --- MOCK DATA ---
 const DATA_TURISMO = [
@@ -42,41 +57,81 @@ const RECENT_ACTIVITY = [
   { id: 4, type: 'success', title: 'Entrega Realizada', desc: 'Pacote #9921 entregue no prazo', time: '2h atrás', icon: Package },
 ];
 
-// --- COMPONENTS ---
+// --- REFACTORED COMPONENTS ---
 
-const StatCard = ({ title, value, trend, trendValue, icon: Icon, color, isPositive }: any) => (
-  <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all duration-300 group">
-    <div className="flex justify-between items-start mb-4">
-      <div className={`p-3 rounded-xl bg-${color}-50 dark:bg-${color}-900/20 text-${color}-600 dark:text-${color}-400 group-hover:scale-110 transition-transform`}>
+interface StatCardProps {
+  title: string;
+  value: string;
+  trend: string;
+  trendValue: string;
+  icon: React.ElementType;
+  color: 'emerald' | 'blue' | 'purple' | 'orange';
+  isPositive: boolean;
+}
+
+const StatCard = ({ title, value, trend, trendValue, icon: Icon, color, isPositive }: StatCardProps) => {
+  const colorClasses: Record<string, string> = {
+    emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
+    blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+    purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400',
+    orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400',
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-all duration-300 bg-card/60 backdrop-blur-sm shadow-sm group overflow-hidden">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <div className={cn("p-3 rounded-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm", colorClasses[color])}>
+            <Icon size={22} />
+          </div>
+          <Badge variant={isPositive ? "default" : "destructive"} className={cn(
+            "flex items-center gap-1 font-bold px-2 py-0.5 rounded-full border-none",
+            isPositive ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-destructive/15 text-destructive"
+          )}>
+            {isPositive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+            {trendValue}
+          </Badge>
+        </div>
+        <div className="space-y-1">
+          <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <h3 className="text-2xl font-bold tracking-tight">{value}</h3>
+          </div>
+          <p className="text-[12px] text-muted-foreground/80 font-medium">{trend}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+interface QuickActionProps {
+  icon: React.ElementType;
+  label: string;
+  onClick: () => void;
+  color: 'blue' | 'purple' | 'orange' | 'emerald';
+}
+
+const QuickAction = ({ icon: Icon, label, onClick, color }: QuickActionProps) => {
+  const colorClasses: Record<string, string> = {
+    blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
+    purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400',
+    orange: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400',
+    emerald: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
+  };
+
+  return (
+    <Button
+      variant="outline"
+      onClick={onClick}
+      className="flex flex-col items-center justify-center h-auto p-4 bg-card hover:bg-accent border-border shadow-sm group w-full gap-3"
+    >
+      <div className={cn("p-3 rounded-full group-hover:scale-110 transition-transform", colorClasses[color])}>
         <Icon size={24} />
       </div>
-      <div className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${isPositive
-        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-        : 'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-        }`}>
-        {isPositive ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-        {trendValue}
-      </div>
-    </div>
-    <div>
-      <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{title}</p>
-      <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{value}</h3>
-      <p className="text-xs text-slate-400 mt-1">{trend}</p>
-    </div>
-  </div>
-);
-
-const QuickAction = ({ icon: Icon, label, onClick, color }: any) => (
-  <button
-    onClick={onClick}
-    className="flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800 transition-all group w-full"
-  >
-    <div className={`p-3 rounded-full bg-${color}-50 dark:bg-${color}-900/20 text-${color}-600 dark:text-${color}-400 mb-3 group-hover:scale-110 transition-transform`}>
-      <Icon size={24} />
-    </div>
-    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
-  </button>
-);
+      <span className="text-sm font-medium">{label}</span>
+    </Button>
+  );
+};
 
 export const Dashboard: React.FC = () => {
   const { currentContext, user } = useApp();
@@ -89,27 +144,44 @@ export const Dashboard: React.FC = () => {
     : "Entregas semanais: 910. Taxa de pontualidade: 98.2%. Pico de carga na Sexta-feira. 1 Rota com atrasos recorrentes.";
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+    <div key="dashboard-main" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-white tracking-tight">
-            Olá, <span className="text-blue-600 dark:text-blue-400">{user.name.split(' ')[0]}</span> 👋
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-            <Calendar size={16} />
-            {formatDate(new Date(), 'PPPP')}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-
-          <div className="h-10 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300 shadow-sm">
-            <div className={`w-2 h-2 rounded-full ${isTurismo ? 'bg-blue-500' : 'bg-orange-500'}`}></div>
-            {isTurismo ? 'Turismo B2C' : 'Logística Express'}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="flex items-center gap-5">
+          <Avatar className="h-16 w-16 border-4 border-background shadow-lg ring-1 ring-primary/10 transition-transform hover:scale-105">
+            <AvatarFallback className="bg-primary/5 text-primary text-2xl font-black">
+              {user.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <h1 className="text-4xl font-extrabold tracking-tight">
+              Olá, <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">{user.name.split(' ')[0]}</span> 👋
+            </h1>
+            <div className="flex items-center gap-3">
+              <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-none font-medium text-[12px] uppercase tracking-widest">
+                Admin Panel
+              </Badge>
+              <Separator orientation="vertical" className="h-3 shadow-none" />
+              <p className="text-muted-foreground font-medium flex items-center gap-2 text-sm italic">
+                <Clock size={14} className="text-primary/70" />
+                {formatDate(new Date(), 'PPPP')}
+              </p>
+            </div>
           </div>
         </div>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className={cn(
+            "h-14 px-5 flex items-center gap-3 text-sm font-bold bg-card/40 backdrop-blur-md shadow-sm border-primary/10 rounded-xl",
+            isTurismo ? 'text-blue-600 border-blue-100' : 'text-orange-600 border-orange-100'
+          )}>
+            <div className={cn("w-2.5 h-2.5 rounded-full animate-pulse", isTurismo ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]')}></div>
+            {isTurismo ? 'Operação Turística' : 'Logística Express'}
+          </Badge>
+        </div>
       </div>
+
+      <Separator className="bg-gradient-to-r from-transparent via-border to-transparent shadow-none" />
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -157,68 +229,72 @@ export const Dashboard: React.FC = () => {
         {/* Left Column: Charts */}
         <div className="xl:col-span-2 space-y-8">
           {/* Main Chart Card */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
+          <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-6">
               <div>
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                  {isTurismo ? 'Desempenho Semanal' : 'Volume de Operações'}
-                </h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <CardTitle>{isTurismo ? 'Desempenho Semanal' : 'Volume de Operações'}</CardTitle>
+                <CardDescription>
                   {isTurismo ? 'Receita vs Ocupação' : 'Entregas vs Eficiência'}
-                </p>
+                </CardDescription>
               </div>
-              <select className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm px-3 py-1.5 outline-none focus:ring-2 focus:ring-blue-500">
-                <option>Esta Semana</option>
-                <option>Mês Atual</option>
-                <option>Últimos 30 dias</option>
-              </select>
-            </div>
-
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                {isTurismo ? (
-                  <AreaChart data={DATA_TURISMO}>
-                    <defs>
-                      <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="colorOcupacao" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                      itemStyle={{ fontSize: '12px', fontWeight: 600 }}
-                    />
-                    <Area type="monotone" yAxisId="left" dataKey="receita" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorReceita)" name="Receita (R$)" />
-                    <Area type="monotone" yAxisId="right" dataKey="ocupacao" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorOcupacao)" name="Ocupação (%)" />
-                  </AreaChart>
-                ) : (
-                  <ComposedChart data={DATA_EXPRESS}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} domain={[0, 100]} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
-                    />
-                    <Bar yAxisId="left" dataKey="volume" fill="#f97316" radius={[6, 6, 0, 0]} barSize={40} name="Volume" />
-                    <Line type="monotone" yAxisId="right" dataKey="eficiencia" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} name="Eficiência (%)" />
-                  </ComposedChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-          </div>
+              <Select defaultValue="week">
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Esta Semana</SelectItem>
+                  <SelectItem value="month">Mês Atual</SelectItem>
+                  <SelectItem value="30days">Últimos 30 dias</SelectItem>
+                </SelectContent>
+              </Select>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  {isTurismo ? (
+                    <AreaChart data={DATA_TURISMO}>
+                      <defs>
+                        <linearGradient id="colorReceita" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorOcupacao" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" vertical={false} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} dy={10} />
+                      <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                      <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                        itemStyle={{ fontSize: '12px', fontWeight: 600 }}
+                      />
+                      <Area type="monotone" yAxisId="left" dataKey="receita" stroke="hsl(var(--primary))" strokeWidth={3} fillOpacity={1} fill="url(#colorReceita)" name="Receita (R$)" />
+                      <Area type="monotone" yAxisId="right" dataKey="ocupacao" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorOcupacao)" name="Ocupação (%)" />
+                    </AreaChart>
+                  ) : (
+                    <ComposedChart data={DATA_EXPRESS}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} dy={10} />
+                      <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                      <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} domain={[0, 100]} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderRadius: 'var(--radius)', border: '1px solid hsl(var(--border))' }}
+                      />
+                      <Bar yAxisId="left" dataKey="volume" fill="#f97316" radius={[6, 6, 0, 0]} barSize={40} name="Volume" />
+                      <Line type="monotone" yAxisId="right" dataKey="eficiencia" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} name="Eficiência (%)" />
+                    </ComposedChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Quick Actions */}
           <div>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Ações Rápidas</h3>
+            <h3 className="text-lg font-bold mb-4">Ações Rápidas</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <QuickAction icon={Plus} label="Nova Viagem" color="blue" onClick={() => navigate('/admin/viagens/nova')} />
               <QuickAction icon={Users} label="Cadastrar Cliente" color="purple" onClick={() => navigate('/admin/clientes/novo')} />
@@ -233,45 +309,49 @@ export const Dashboard: React.FC = () => {
           <GeminiInsights context={currentContext} dataSummary={summaryData} />
 
           {/* Activity Feed */}
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                <Activity size={20} className="text-blue-500" />
-                Atividade Recente
-              </h3>
-              <button
+          <Card className="shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-6">
+              <div className="flex items-center gap-2">
+                <Activity size={20} className="text-primary" />
+                <CardTitle className="text-lg">Atividade Recente</CardTitle>
+              </div>
+              <Button
+                variant="link"
                 onClick={() => navigate('/admin/atividades')}
-                className="text-xs font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                className="h-auto p-0 text-xs font-medium"
               >
                 Ver tudo
-              </button>
-            </div>
-            <div className="space-y-6">
-              {RECENT_ACTIVITY.map((item) => (
-                <div key={item.id} className="flex gap-4 relative">
-                  {/* Timeline Line */}
-                  <div className="absolute left-[19px] top-8 bottom-[-24px] w-0.5 bg-slate-100 dark:bg-slate-700 last:hidden"></div>
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {RECENT_ACTIVITY.map((item, index) => (
+                  <div key={item.id} className="flex gap-4 relative">
+                    {/* Timeline Line */}
+                    {index !== RECENT_ACTIVITY.length - 1 && (
+                      <div className="absolute left-[19px] top-10 bottom-[-24px] w-px bg-border"></div>
+                    )}
 
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10 ${item.type === 'success' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                    item.type === 'warning' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                      'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                    }`}>
-                    <item.icon size={18} />
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center shrink-0 z-10",
+                      item.type === 'success' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                        item.type === 'warning' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
+                          'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                    )}>
+                      <item.icon size={18} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-semibold truncate">{item.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{item.desc}</p>
+                      <span className="text-[12px] font-medium text-muted-foreground mt-1 flex items-center gap-1">
+                        <Clock size={10} /> {item.time}
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-800 dark:text-white">{item.title}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{item.desc}</p>
-                    <span className="text-[10px] font-medium text-slate-400 mt-1 block flex items-center gap-1">
-                      <Clock size={10} /> {item.time}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-
-
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

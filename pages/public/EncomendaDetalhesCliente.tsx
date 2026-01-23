@@ -171,14 +171,14 @@ export const EncomendaDetalhesCliente: React.FC = () => {
                         <div className="space-y-1">
                             <div className="flex items-center gap-1.5 text-slate-400">
                                 <User size={14} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Remetente</span>
+                                <span className="text-[12px] font-bold uppercase tracking-wider">Remetente</span>
                             </div>
                             <p className="text-sm font-bold dark:text-white">{parcel.sender_name}</p>
                         </div>
                         <div className="space-y-1">
                             <div className="flex items-center gap-1.5 text-slate-400">
                                 <MapPin size={14} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Origem</span>
+                                <span className="text-[12px] font-bold uppercase tracking-wider">Origem</span>
                             </div>
                             <p className="text-sm font-bold dark:text-white">{parcel.origin_city}, {parcel.origin_state}</p>
                         </div>
@@ -186,14 +186,14 @@ export const EncomendaDetalhesCliente: React.FC = () => {
                         <div className="space-y-1">
                             <div className="flex items-center gap-1.5 text-slate-400">
                                 <User size={14} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Destinatário</span>
+                                <span className="text-[12px] font-bold uppercase tracking-wider">Destinatário</span>
                             </div>
                             <p className="text-sm font-bold dark:text-white">{parcel.recipient_name}</p>
                         </div>
                         <div className="space-y-1">
                             <div className="flex items-center gap-1.5 text-slate-400">
                                 <MapPin size={14} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Destino</span>
+                                <span className="text-[12px] font-bold uppercase tracking-wider">Destino</span>
                             </div>
                             <p className="text-sm font-bold dark:text-white">{parcel.destination_city}, {parcel.destination_state}</p>
                         </div>

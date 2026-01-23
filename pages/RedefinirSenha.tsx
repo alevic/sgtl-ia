@@ -41,7 +41,7 @@ export const RedefinirSenha: React.FC = () => {
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
             <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
                 <div className="text-center mb-8">
-                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-12 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
                         <Lock className="text-blue-600 dark:text-blue-400" size={24} />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Redefinir Senha</h1>

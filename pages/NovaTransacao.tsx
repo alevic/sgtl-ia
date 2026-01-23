@@ -8,6 +8,11 @@ import {
 import { getSugestaoClassificacao } from '../utils/classificacaoContabil';
 import { authClient } from '../lib/auth-client';
 import { DatePicker } from '../components/Form/DatePicker';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { cn } from "../lib/utils";
+import { AlertCircle, CheckCircle2, Loader } from 'lucide-react';
 
 export const NovaTransacao: React.FC = () => {
     const navigate = useNavigate();
@@ -33,6 +38,8 @@ export const NovaTransacao: React.FC = () => {
     const [classificacaoContabil, setClassificacaoContabil] = useState<ClassificacaoContabil>(ClassificacaoContabil.CUSTO_VARIAVEL);
 
     const [maintenanceId, setMaintenanceId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
     // Auto-sugerir classificação quando categoria de despesa mudar
     useEffect(() => {
@@ -137,345 +144,361 @@ export const NovaTransacao: React.FC = () => {
             const data = await response.json();
 
             console.log('Transação salva:', data);
-            alert(id ? 'Transação atualizada com sucesso!' : 'Transação registrada com sucesso!');
-            navigate('/admin/financeiro');
-        } catch (err) {
+            setSuccess(id ? 'Transação atualizada com sucesso!' : 'Transação registrada com sucesso!');
+            setTimeout(() => navigate('/admin/financeiro'), 2000);
+        } catch (err: any) {
             console.error("Erro inesperado:", err);
-            alert('Erro ao salvar transação. Tente novamente.');
+            setError(err.message || 'Erro ao salvar transação. Tente novamente.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center gap-3">
-                <button
-                    onClick={() => navigate('/admin/financeiro')}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-                        {id ? 'Editar Transação' : 'Nova Transação'}
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400">
-                        {id ? 'Atualizar dados da transação' : 'Registrar receita ou despesa manualmente'}
-                    </p>
+        <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin/financeiro')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Fluxo Financeiro</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">
+                            {id ? 'EDITAR' : 'NOVA'} <span className="text-primary italic">TRANSAÇÃO</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            {id ? 'Ajuste de registro financeiro existente' : 'Lançamento manual de entrada ou saída de caixa'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/admin/financeiro')}
+                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                    >
+                        Cancelar
+                    </Button>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Tipo de Transação */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Tipo de Transação</h2>
-                    <div className="flex gap-4">
-                        <button
-                            type="button"
-                            onClick={() => setTipo(TipoTransacao.INCOME)}
-                            className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA'
-                                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                : 'border-slate-200 dark:border-slate-700 hover:border-green-300'
-                                }`}
-                        >
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                                <DollarSign size={24} className={tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA' ? 'text-green-600' : 'text-slate-400'} />
-                            </div>
-                            <p className={`font-semibold ${tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA' ? 'text-green-700 dark:text-green-400' : 'text-slate-600 dark:text-slate-400'}`}>
-                                Receita
-                            </p>
-                        </button>
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro no Lançamento</AlertTitle>
+                    <AlertDescription className="text-xs font-medium">
+                        {error}
+                    </AlertDescription>
+                </Alert>
+            )}
 
-                        <button
-                            type="button"
-                            onClick={() => setTipo(TipoTransacao.EXPENSE)}
-                            className={`flex-1 p-4 rounded-lg border-2 transition-all ${tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA'
-                                ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                : 'border-slate-200 dark:border-slate-700 hover:border-red-300'
-                                }`}
-                        >
-                            <div className="flex items-center justify-center gap-2 mb-2">
-                                <DollarSign size={24} className={tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA' ? 'text-red-600' : 'text-slate-400'} />
-                            </div>
-                            <p className={`font-semibold ${tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA' ? 'text-red-700 dark:text-red-400' : 'text-slate-600 dark:text-slate-400'}`}>
-                                Despesa
-                            </p>
-                        </button>
-                    </div>
-                </div>
+            {success && (
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Documento Salvo</AlertTitle>
+                    <AlertDescription className="text-xs font-medium text-emerald-600/80">
+                        {success}
+                    </AlertDescription>
+                </Alert>
+            )}
 
-                {/* Informações Básicas */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Informações Básicas</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Descrição */}
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Descrição <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={descricao}
-                                onChange={e => setDescricao(e.target.value)}
-                                placeholder="Ex: Pagamento de fornecedor, Venda de passagem..."
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div className="lg:col-span-8 space-y-8">
+                    {/* Informações Básicas */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <FileText size={14} className="text-primary" />
+                                Natureza do Lançamento
+                            </h3>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setTipo(TipoTransacao.INCOME)}
+                                    className={cn(
+                                        "px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-widest transition-all",
+                                        tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA'
+                                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                    )}
+                                >
+                                    Receita
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTipo(TipoTransacao.EXPENSE)}
+                                    className={cn(
+                                        "px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-widest transition-all",
+                                        tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA'
+                                            ? "bg-red-500 text-white shadow-lg shadow-red-500/30"
+                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                    )}
+                                >
+                                    Despesa
+                                </button>
+                            </div>
                         </div>
-
-                        {/* Valor */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Valor <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <CardContent className="p-8 space-y-8">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Descrição do Documento *</label>
                                 <input
-                                    type="number"
+                                    type="text"
                                     required
-                                    step="0.01"
-                                    min="0"
-                                    value={valor}
-                                    onChange={e => setValor(e.target.value)}
-                                    placeholder="0.00"
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    value={descricao}
+                                    onChange={e => setDescricao(e.target.value)}
+                                    placeholder="Ex: Liquidação de Fatura, Manutenção Preventiva..."
+                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
                                 />
                             </div>
-                        </div>
 
-                        {/* Moeda */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Moeda
-                            </label>
-                            <select
-                                value={moeda}
-                                onChange={e => setMoeda(e.target.value as Moeda)}
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value={Moeda.BRL}>BRL - Real</option>
-                                <option value={Moeda.USD}>USD - Dólar</option>
-                                <option value={Moeda.EUR}>EUR - Euro</option>
-                                <option value={Moeda.PYG}>PYG - Guarani</option>
-                                <option value={Moeda.ARS}>ARS - Peso Argentino</option>
-                            </select>
-                        </div>
-
-                        {/* Categoria */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Categoria <span className="text-red-500">*</span>
-                            </label>
-                            {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') ? (
-                                <select
-                                    required
-                                    value={categoriaReceita}
-                                    onChange={e => setCategoriaReceita(e.target.value as CategoriaReceita)}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value={CategoriaReceita.VENDA_PASSAGEM}>Venda de Passagem</option>
-                                    <option value={CategoriaReceita.FRETAMENTO}>Fretamento</option>
-                                    <option value={CategoriaReceita.ENCOMENDA}>Encomenda</option>
-                                    <option value={CategoriaReceita.OUTROS}>Outros</option>
-                                </select>
-                            ) : (
-                                <select
-                                    required
-                                    value={categoriaDespesa}
-                                    onChange={e => setCategoriaDespesa(e.target.value as CategoriaDespesa)}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value={CategoriaDespesa.COMBUSTIVEL}>Combustível</option>
-                                    <option value={CategoriaDespesa.MANUTENCAO}>Manutenção</option>
-                                    <option value={CategoriaDespesa.PECAS}>Peças</option>
-                                    <option value={CategoriaDespesa.SALARIOS}>Salários</option>
-                                    <option value={CategoriaDespesa.FOLHA_PAGAMENTO}>Folha de Pagamento</option>
-                                    <option value={CategoriaDespesa.IMPOSTOS}>Impostos</option>
-                                    <option value={CategoriaDespesa.PEDAGIO}>Pedágio</option>
-                                    <option value={CategoriaDespesa.SEGURO}>Seguro</option>
-                                    <option value={CategoriaDespesa.ALUGUEL}>Aluguel</option>
-                                    <option value={CategoriaDespesa.OUTROS}>Outros</option>
-                                </select>
-                            )}
-                        </div>
-
-                        {/* Número do Documento */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Número do Documento
-                            </label>
-                            <input
-                                type="text"
-                                value={numeroDocumento}
-                                onChange={e => setNumeroDocumento(e.target.value)}
-                                placeholder="Ex: NF-12345, OS-987"
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Centros de Custo */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Centros de Custo</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Centro de Custo */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Centro de Custo <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                required
-                                value={centroCusto}
-                                onChange={e => setCentroCusto(e.target.value as CentroCusto)}
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value={CentroCusto.ESTOQUE}>Estoque - Equipamentos e Produtos</option>
-                                <option value={CentroCusto.VENDAS}>Vendas - Serviços Prestados</option>
-                                <option value={CentroCusto.ADMINISTRATIVO}>Administrativo - RH, Financeiro, Marketing</option>
-                            </select>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                ✨ Sugestão automática baseada na categoria
-                            </p>
-                        </div>
-
-                        {/* Classificação Contábil (apenas para despesas) */}
-                        {(tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') && (
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                    Classificação Contábil <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    required
-                                    value={classificacaoContabil}
-                                    onChange={e => setClassificacaoContabil(e.target.value as ClassificacaoContabil)}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Fixo</option>
-                                    <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Variável</option>
-                                    <option value={ClassificacaoContabil.DESPESA_FIXA}>Despesa Fixa</option>
-                                    <option value={ClassificacaoContabil.DESPESA_VARIAVEL}>Despesa Variável</option>
-                                </select>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                    ✨ Sugestão automática baseada na categoria
-                                </p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Valor Nominal *</label>
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground">R$</span>
+                                        <input
+                                            type="number"
+                                            required
+                                            step="0.01"
+                                            min="0"
+                                            value={valor}
+                                            onChange={e => setValor(e.target.value)}
+                                            placeholder="0,00"
+                                            className="w-full h-14 pl-10 pr-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black text-lg outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Divisa / Moeda</label>
+                                    <select
+                                        value={moeda}
+                                        onChange={e => setMoeda(e.target.value as Moeda)}
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                    >
+                                        <option value={Moeda.BRL}>BRL - Real</option>
+                                        <option value={Moeda.USD}>USD - Dólar</option>
+                                        <option value={Moeda.EUR}>EUR - Euro</option>
+                                        <option value={Moeda.PYG}>PYG - Guarani</option>
+                                        <option value={Moeda.ARS}>ARS - Peso Argentino</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria de Fluxo *</label>
+                                    {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') ? (
+                                        <select
+                                            required
+                                            value={categoriaReceita}
+                                            onChange={e => setCategoriaReceita(e.target.value as CategoriaReceita)}
+                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        >
+                                            <option value={CategoriaReceita.VENDA_PASSAGEM}>Venda de Passagem</option>
+                                            <option value={CategoriaReceita.FRETAMENTO}>Fretamento</option>
+                                            <option value={CategoriaReceita.ENCOMENDA}>Encomenda</option>
+                                            <option value={CategoriaReceita.OUTROS}>Outros Recebíveis</option>
+                                        </select>
+                                    ) : (
+                                        <select
+                                            required
+                                            value={categoriaDespesa}
+                                            onChange={e => setCategoriaDespesa(e.target.value as CategoriaDespesa)}
+                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        >
+                                            <option value={CategoriaDespesa.COMBUSTIVEL}>Combustível</option>
+                                            <option value={CategoriaDespesa.MANUTENCAO}>Manutenção</option>
+                                            <option value={CategoriaDespesa.PECAS}>Peças e Acessórios</option>
+                                            <option value={CategoriaDespesa.SALARIOS}>Salários e Pró-labore</option>
+                                            <option value={CategoriaDespesa.FOLHA_PAGAMENTO}>Encargos Sociais</option>
+                                            <option value={CategoriaDespesa.IMPOSTOS}>Impostos e Taxas</option>
+                                            <option value={CategoriaDespesa.PEDAGIO}>Pedágio e Viagem</option>
+                                            <option value={CategoriaDespesa.SEGURO}>Seguro Veicular/Resp.</option>
+                                            <option value={CategoriaDespesa.ALUGUEL}>Aluguel e Infra</option>
+                                            <option value={CategoriaDespesa.OUTROS}>Outros Gastos</option>
+                                        </select>
+                                    )}
+                                </div>
                             </div>
-                        )}
 
-                        {/* Info helper */}
-                        <div className="md:col-span-2">
-                            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                                <p className="text-sm text-blue-800 dark:text-blue-300">
-                                    <strong>Dica:</strong> {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA')
-                                        ? 'Receitas de serviços são VENDAS. Venda de ativos (ex: ônibus) são ESTOQUE.'
-                                        : 'Custos relacionam-se à produção/vendas. Despesas são administrativas.'}
-                                </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Identificador de Documento</label>
+                                    <div className="relative">
+                                        <Tag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            value={numeroDocumento}
+                                            onChange={e => setNumeroDocumento(e.target.value)}
+                                            placeholder="Ex: NF-123.456"
+                                            className="w-full h-14 pl-12 pr-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Forma de Liquidação</label>
+                                    <select
+                                        value={formaPagamento}
+                                        onChange={e => setFormaPagamento(e.target.value as FormaPagamento)}
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                    >
+                                        <option value={FormaPagamento.CASH}>Dinheiro Vivo</option>
+                                        <option value={FormaPagamento.PIX}>PIX Instantâneo</option>
+                                        <option value={FormaPagamento.CREDIT_CARD}>Cartão de Crédito</option>
+                                        <option value={FormaPagamento.DEBIT_CARD}>Cartão de Débito</option>
+                                        <option value={FormaPagamento.BOLETO}>Boleto Bancário</option>
+                                        <option value={FormaPagamento.BANK_TRANSFER}>TED / DOC / PIX</option>
+                                        <option value={FormaPagamento.CHECK}>Cheque Nominal</option>
+                                    </select>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        </CardContent>
+                    </Card>
 
-                {/* Datas e Status */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Datas e Status</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {/* Data de Emissão */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Data de Emissão <span className="text-red-500">*</span>
-                            </label>
-                            <DatePicker
-                                value={dataEmissao}
-                                onChange={setDataEmissao}
-                                required={true}
+                    {/* Centros de Custo */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Tag size={14} className="text-primary" />
+                                Classificação Contábil
+                            </h3>
+                        </div>
+                        <CardContent className="p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Centro de Custo Responsável *</label>
+                                    <select
+                                        required
+                                        value={centroCusto}
+                                        onChange={e => setCentroCusto(e.target.value as CentroCusto)}
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                    >
+                                        <option value={CentroCusto.ESTOQUE}>Estoque - Ativos e Equipamentos</option>
+                                        <option value={CentroCusto.VENDAS}>Comercial - Serviços e Vendas</option>
+                                        <option value={CentroCusto.ADMINISTRATIVO}>Administrativo - Gestão e RH</option>
+                                    </select>
+                                </div>
+
+                                {(tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') && (
+                                    <div className="space-y-2">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Natureza Contábil *</label>
+                                        <select
+                                            required
+                                            value={classificacaoContabil}
+                                            onChange={e => setClassificacaoContabil(e.target.value as ClassificacaoContabil)}
+                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        >
+                                            <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Estrutural Fixo</option>
+                                            <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Operacional Variável</option>
+                                            <option value={ClassificacaoContabil.DESPESA_FIXA}>Despesa Administrativa Fixa</option>
+                                            <option value={ClassificacaoContabil.DESPESA_VARIAVEL}>Despesa Administrativa Variável</option>
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
+                                <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500 mt-1">
+                                    <AlertCircle size={16} />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[12px] font-black uppercase tracking-widest text-blue-500">Inteligência de Faturamento</p>
+                                    <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                                        {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA')
+                                            ? 'Receitas provenientes de serviços são alocadas em COMERCIAL. Alienação de bens em ESTOQUE.'
+                                            : 'Custos estão diretamente ligados à operação. Despesas suportam a estrutura organizacional.'}
+                                    </p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Observações */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <FileText size={14} className="text-primary" />
+                                Memória de Cálculo / Notas
+                            </h3>
+                        </div>
+                        <CardContent className="p-8">
+                            <textarea
+                                value={observacoes}
+                                onChange={e => setObservacoes(e.target.value)}
+                                rows={4}
+                                placeholder="Notas detalhadas sobre a transação financeira..."
+                                className="w-full p-6 rounded-[2rem] bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none resize-none"
                             />
-                        </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
-                        {/* Data de Vencimento */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Data de Vencimento <span className="text-red-500">*</span>
-                            </label>
-                            <DatePicker
-                                value={dataVencimento}
-                                onChange={setDataVencimento}
-                                required={true}
-                            />
+                <div className="lg:col-span-4 space-y-8">
+                    {/* Datas e Status */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden sticky top-8">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Calendar size={14} className="text-primary" />
+                                Temporalidade e Status
+                            </h3>
                         </div>
+                        <CardContent className="p-8 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Emissão *</label>
+                                <DatePicker
+                                    value={dataEmissao}
+                                    onChange={setDataEmissao}
+                                    required={true}
+                                />
+                            </div>
 
-                        {/* Status */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Status <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                required
-                                value={status}
-                                onChange={e => setStatus(e.target.value as StatusTransacao)}
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value={StatusTransacao.PENDING}>Pendente</option>
-                                <option value={StatusTransacao.PAID}>Paga</option>
-                                <option value={StatusTransacao.PARTIALLY_PAID}>Parcialmente Paga</option>
-                                <option value={StatusTransacao.CANCELLED}>Cancelada</option>
-                                {/* Legacy */}
-                                <option value="PENDENTE">Pendente (Legacy)</option>
-                                <option value="PAGA">Paga (Legacy)</option>
-                                <option value="PARCIALMENTE_PAGA">Parcialmente Paga (Legacy)</option>
-                                <option value="CANCELADA">Cancelada (Legacy)</option>
-                            </select>
-                        </div>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Vencimento Efetivo *</label>
+                                <DatePicker
+                                    value={dataVencimento}
+                                    onChange={setDataVencimento}
+                                    required={true}
+                                />
+                            </div>
 
-                        {/* Forma de Pagamento */}
-                        <div className="md:col-span-3">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Forma de Pagamento
-                            </label>
-                            <select
-                                value={formaPagamento}
-                                onChange={e => setFormaPagamento(e.target.value as FormaPagamento)}
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value={FormaPagamento.CASH}>Dinheiro</option>
-                                <option value={FormaPagamento.PIX}>PIX</option>
-                                <option value={FormaPagamento.CREDIT_CARD}>Cartão de Crédito</option>
-                                <option value={FormaPagamento.DEBIT_CARD}>Cartão de Débito</option>
-                                <option value={FormaPagamento.BOLETO}>Boleto</option>
-                                <option value={FormaPagamento.BANK_TRANSFER}>Transferência</option>
-                                <option value={FormaPagamento.CHECK}>Cheque</option>
-                            </select>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Situação do Título *</label>
+                                <select
+                                    required
+                                    value={status}
+                                    onChange={e => setStatus(e.target.value as StatusTransacao)}
+                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                >
+                                    <option value={StatusTransacao.PENDING}>AGUARDANDO PAGAMENTO</option>
+                                    <option value={StatusTransacao.PAID}>LIQUIDADO / PAGO</option>
+                                    <option value={StatusTransacao.PARTIALLY_PAID}>LIQUIDAÇÃO PARCIAL</option>
+                                    <option value={StatusTransacao.CANCELLED}>TÍTULO CANCELADO</option>
+                                </select>
+                            </div>
+
+                            <div className="pt-4">
+                                <Button
+                                    type="submit"
+                                    className="w-full h-16 rounded-[2rem] bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    <Save size={18} className="mr-2" />
+                                    Confirmar Lançamento
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Ficha de Transparência */}
+                    <div className="p-8 rounded-[2.5rem] bg-muted/30 border border-border/40 space-y-4">
+                        <div className="flex items-center gap-3 text-primary">
+                            <CheckCircle2 size={18} />
+                            <h4 className="text-[12px] font-black uppercase tracking-widest">Compliance Financeiro</h4>
                         </div>
+                        <p className="text-[12px] font-bold text-muted-foreground leading-relaxed uppercase tracking-tighter">
+                            Este registro será auditado pela controladoria. Documentos fiscais anexos devem ser mantidos por 5 anos conforme legislação vigente.
+                        </p>
                     </div>
-                </div>
-
-                {/* Observações */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4">Observações</h2>
-                    <textarea
-                        value={observacoes}
-                        onChange={e => setObservacoes(e.target.value)}
-                        rows={4}
-                        placeholder="Informações adicionais sobre a transação..."
-                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                {/* Ações */}
-                <div className="flex gap-3 justify-end">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/admin/financeiro')}
-                        className="px-6 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="submit"
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                    >
-                        <Save size={18} />
-                        Salvar Transação
-                    </button>
                 </div>
             </form>
         </div>

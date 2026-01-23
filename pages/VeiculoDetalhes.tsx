@@ -5,9 +5,42 @@ import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoM
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,
-    Bus, Truck, Gauge, Calendar, Edit, CheckCircle, Plus, AlertTriangle
+    Bus, Truck, Gauge, Calendar, Edit, CheckCircle, Plus, AlertTriangle, Users, Clock, Loader2
 } from 'lucide-react';
-import { ModalConfirmacao } from '../components/ui/ModalConfirmacao';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "../components/ui/card";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../components/ui/tabs";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../components/ui/table";
+import { cn } from "../lib/utils";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 
 // Mock data - em produção virá do backend
 const MOCK_VEICULO: IVeiculo & {
@@ -47,6 +80,8 @@ export const VeiculoDetalhes: React.FC = () => {
     // Warning Modal State
     const [warningModalOpen, setWarningModalOpen] = useState(false);
     const [warningMessages, setWarningMessages] = useState<string[]>([]);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchVehicle = async () => {
         if (!id) return;
@@ -112,15 +147,17 @@ export const VeiculoDetalhes: React.FC = () => {
                 setWarningMessages(warnings);
                 setWarningModalOpen(true);
             } else {
-                alert('Mapa de assentos salvo com sucesso!');
+                setSuccess('Mapa de assentos salvo com sucesso!');
+                setTimeout(() => setSuccess(null), 3000);
             }
 
             // Refresh vehicle to update mapa_configurado flag
             await fetchVehicle();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao salvar mapa de assentos:", error);
-            alert('Erro ao salvar mapa de assentos. Por favor, tente novamente.');
+            setError(error.message || 'Erro ao salvar mapa de assentos. Por favor, tente novamente.');
+            setTimeout(() => setError(null), 5000);
         }
     };
 
@@ -169,93 +206,130 @@ export const VeiculoDetalhes: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/frota')}
-                    className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{veiculo.placa}</h1>
-                        {veiculo.tipo === 'ONIBUS' && veiculo.is_double_deck && (
-                            <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs font-semibold">
-                                Double Deck
-                            </span>
-                        )}
-                        {isOnibus && veiculo.mapa_configurado && (
-                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded text-xs font-semibold flex items-center gap-1">
-                                <CheckCircle size={12} />
-                                Mapa OK
-                            </span>
-                        )}
-                    </div>
-                    <p className="text-slate-500 dark:text-slate-400">{veiculo.modelo}</p>
-                </div>
-                <Link
-                    to={`/admin/frota/${id}/editar`}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Edit size={18} />
-                    Editar Veículo
-                </Link>
-            </div>
+        <div className="space-y-10 animate-in fade-in duration-700 pb-10 px-8">
+            {success && (
+                <Alert className="border-emerald-500 text-emerald-600 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <CheckCircle size={16} className="text-emerald-600" />
+                    <AlertTitle>Sucesso</AlertTitle>
+                    <AlertDescription>{success}</AlertDescription>
+                </Alert>
+            )}
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertTriangle size={16} />
+                    <AlertTitle>Erro</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
 
-            {/* Tabs */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <div className="border-b border-slate-200 dark:border-slate-700">
-                    <div className="flex gap-1 p-1">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium transition-colors ${activeTab === tab.id
-                                        ? 'bg-blue-600 text-white'
-                                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                        }`}
-                                >
-                                    <Icon size={18} />
-                                    {tab.label}
-                                </button>
-                            );
-                        })}
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin/frota')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Controle de Frota</span>
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">
+                                {veiculo.placa} <span className="text-primary italic">DETALHES</span>
+                            </h1>
+                            {isOnibus && veiculo.mapa_configurado && (
+                                <Badge className="bg-emerald-500/10 text-emerald-600 border-none rounded-full px-3 py-1 font-bold flex items-center gap-1.5 uppercase text-[10px] tracking-widest">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    Mapa Configurado
+                                </Badge>
+                            )}
+                        </div>
+                        <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">
+                            {veiculo.modelo} {veiculo.is_double_deck ? '• DOUBLE DECK' : ''}
+                        </p>
                     </div>
                 </div>
 
-                {/* Tab Content */}
-                <div className="p-6">
-                    {renderTabContent()}
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate(`/admin/frota/${id}/editar`)}
+                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
+                    >
+                        <Edit size={16} className="mr-2" />
+                        Editar Registro
+                    </Button>
+                    {isOnibus && (
+                        <Button
+                            variant="secondary"
+                            onClick={() => setActiveTab('mapa')}
+                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
+                        >
+                            <Map size={16} className="mr-2" />
+                            Gerenciar Assentos
+                        </Button>
+                    )}
                 </div>
             </div>
+
+            {/* Tabs Modenizadas */}
+            <Tabs defaultValue="info" value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
+                <Card className="bg-card/50 border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2rem]">
+                    <div className="px-6 pt-6">
+                        <TabsList className="bg-muted/30 p-1.5 rounded-2xl h-16 flex w-full md:w-fit border border-border/50">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                return (
+                                    <TabsTrigger
+                                        key={tab.id}
+                                        value={tab.id}
+                                        className="flex-1 md:px-8 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Icon size={16} />
+                                        <span className="hidden sm:inline">{tab.label}</span>
+                                    </TabsTrigger>
+                                );
+                            })}
+                        </TabsList>
+                    </div>
+
+                    <div className="p-8">
+                        {renderTabContent()}
+                    </div>
+                </Card>
+            </Tabs>
+
             {/* Warning Modal */}
-            <ModalConfirmacao
-                isOpen={warningModalOpen}
-                onClose={() => setWarningModalOpen(false)}
-                onConfirm={() => setWarningModalOpen(false)}
-                title="Atenção: Assentos não Excluídos"
-                variant="warning"
-                confirmText="Entendido"
-                cancelText="Fechar"
-                icon={<AlertTriangle size={32} />}
-                message={
-                    <div className="text-left">
-                        <p className="mb-4">Alguns assentos não puderam ser excluídos pois possuem reservas ativas ou histórico de uso. Eles foram mantidos no sistema mas desabilitados do mapa.</p>
-                        <ul className="list-disc pl-5 space-y-1 text-sm bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-lg">
-                            {warningMessages.map((msg, index) => (
-                                <li key={index} className="text-yellow-800 dark:text-yellow-200">{msg}</li>
-                            ))}
-                        </ul>
-                    </div>
-                }
-            />
+            <AlertDialog open={warningModalOpen} onOpenChange={setWarningModalOpen}>
+                <AlertDialogContent className="max-w-xl">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="text-orange-600" size={20} />
+                            Atenção: Assentos não Excluídos
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div className="text-left py-2">
+                                <p className="mb-4 text-slate-600 dark:text-slate-300">
+                                    Alguns assentos não puderam ser excluídos pois possuem reservas ativas ou histórico de uso. Eles foram mantidos no sistema mas desabilitados do mapa.
+                                </p>
+                                <ul className="list-disc pl-5 space-y-1 text-sm bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-lg">
+                                    {warningMessages.map((msg, index) => (
+                                        <li key={index} className="text-yellow-800 dark:text-yellow-200">{msg}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Fechar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => setWarningModalOpen(false)}>Entendido</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
+
 
 // Tab: Informações Gerais
 const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) => {
@@ -263,116 +337,120 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
     const { formatDate } = useDateFormatter();
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-10 animate-in fade-in duration-700">
+            {/* Cards de Resumo */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Tipo</p>
-                    <div className="flex items-center gap-2">
-                        {isOnibus ? <Bus size={20} className="text-blue-600" /> : <Truck size={20} className="text-orange-600" />}
-                        <p className="font-bold text-slate-800 dark:text-white">
-                            {isOnibus ? 'Ônibus' : 'Caminhão'}
-                        </p>
+                <div className="bg-muted/20 p-6 rounded-3xl border border-border/50">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 ml-1">Especificações</p>
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                            {isOnibus ? <Bus size={24} /> : <Truck size={24} />}
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-foreground uppercase tracking-tight">
+                                {isOnibus ? 'Serviço de Ônibus' : 'Serviço de Carga'}
+                            </p>
+                            <p className="text-[12px] font-medium text-muted-foreground">{veiculo.ano} • {veiculo.modelo}</p>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Ano</p>
-                    <p className="font-bold text-slate-800 dark:text-white">{veiculo.ano}</p>
+
+                <div className="bg-muted/20 p-6 rounded-3xl border border-border/50">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 ml-1">Status Operacional</p>
+                    <div className="flex items-center gap-4">
+                        <div className={cn(
+                            "p-3 rounded-2xl",
+                            veiculo.status === VeiculoStatus.ACTIVE ? 'bg-emerald-500/10 text-emerald-600' :
+                                veiculo.status === VeiculoStatus.IN_TRANSIT ? 'bg-blue-500/10 text-blue-600' : 'bg-amber-500/10 text-amber-600'
+                        )}>
+                            <div className={cn("w-2 h-2 rounded-full",
+                                veiculo.status === VeiculoStatus.ACTIVE ? 'bg-emerald-500' :
+                                    veiculo.status === VeiculoStatus.IN_TRANSIT ? 'bg-blue-500 animate-pulse' : 'bg-amber-500'
+                            )} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-foreground uppercase tracking-tight">
+                                {veiculo.status === VeiculoStatus.ACTIVE ? 'Pronto para Uso' :
+                                    veiculo.status === VeiculoStatus.IN_TRANSIT ? 'Em Operação' : 'Em Manutenção'}
+                            </p>
+                            <p className="text-[12px] font-medium text-muted-foreground">Disponibilidade Geral</p>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Status</p>
-                    <p className="font-bold text-slate-800 dark:text-white">
-                        {veiculo.status === VeiculoStatus.ACTIVE ? 'Ativo' :
-                            veiculo.status === VeiculoStatus.IN_TRANSIT ? 'Em Viagem' : 'Manutenção'}
+
+                <div className="bg-muted/20 p-6 rounded-3xl border border-border/50">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 ml-1">Capacidade</p>
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-600">
+                            <Users size={24} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-black text-foreground uppercase tracking-tight">
+                                {isOnibus ? `${veiculo.capacidade_passageiros} Poltronas` : `${veiculo.capacidade_carga} Toneladas`}
+                            </p>
+                            <p className="text-[12px] font-medium text-muted-foreground">
+                                {isOnibus ? (veiculo.is_double_deck ? 'Dois Andares' : 'Padrão Unificado') : 'Carga Máxima'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Métricas de Performance */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-muted/10 rounded-[2rem] border border-border/30">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-primary uppercase text-[10px] font-black tracking-widest mb-1">
+                        <Gauge size={14} /> Quilometragem
+                    </div>
+                    <p className="text-3xl font-black tracking-tighter text-foreground">{veiculo.km_atual.toLocaleString()} <span className="text-lg font-medium text-muted-foreground">km</span></p>
+                </div>
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-orange-500 uppercase text-[10px] font-black tracking-widest mb-1">
+                        <Wrench size={14} /> Próxima Revisão
+                    </div>
+                    <p className="text-3xl font-black tracking-tighter text-foreground">{veiculo.proxima_revisao_km.toLocaleString()} <span className="text-lg font-medium text-muted-foreground">km</span></p>
+                </div>
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-purple-500 uppercase text-[10px] font-black tracking-widest mb-1">
+                        <Calendar size={14} /> Manutenção Preventiva
+                    </div>
+                    <p className="text-3xl font-black tracking-tighter text-foreground">
+                        {veiculo.ultima_revisao ? formatDate(veiculo.ultima_revisao).replace(' de ', '/') : 'ESTRÉIA'}
                     </p>
                 </div>
             </div>
 
-            {isOnibus && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Capacidade de Passageiros</p>
-                        <p className="font-bold text-slate-800 dark:text-white">{veiculo.capacidade_passageiros} passageiros</p>
-                    </div>
-                    <div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Configuração</p>
-                        <p className="font-bold text-slate-800 dark:text-white">
-                            {veiculo.is_double_deck ? 'Double Deck (2 andares)' : 'Convencional (1 andar)'}
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {!isOnibus && (
-                <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Capacidade de Carga</p>
-                    <p className="font-bold text-slate-800 dark:text-white">{veiculo.capacidade_carga} toneladas</p>
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-center gap-2">
-                    <Gauge size={16} className="text-blue-600" />
-                    <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">KM Atual</p>
-                        <p className="font-bold text-slate-800 dark:text-white">{veiculo.km_atual.toLocaleString()} km</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Wrench size={16} className="text-orange-600" />
-                    <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Próxima Revisão</p>
-                        <p className="font-bold text-slate-800 dark:text-white">{veiculo.proxima_revisao_km.toLocaleString()} km</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Calendar size={16} className="text-purple-600" />
-                    <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">Última Revisão</p>
-                        <p className="font-bold text-slate-800 dark:text-white">
-                            {veiculo.ultima_revisao ? formatDate(veiculo.ultima_revisao) : 'N/A'}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {veiculo.observacoes && (
-                <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">Observações</p>
-                    <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                        <p className="text-slate-700 dark:text-slate-300">{veiculo.observacoes}</p>
-                    </div>
-                </div>
-            )}
-
-            {veiculo.features && veiculo.features.length > 0 && (
-                <div className="space-y-4">
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Características do Veículo</p>
-                    {Object.entries(
-                        (veiculo.features || []).reduce((acc, feature) => {
-                            const cat = feature.category?.trim() || 'Outros';
-                            if (!acc[cat]) acc[cat] = [];
-                            acc[cat].push(feature);
-                            return acc;
-                        }, {} as Record<string, IVeiculoFeature[]>)
-                    ).map(([category, items]: [string, IVeiculoFeature[]]) => (
-                        <div key={category} className="space-y-2">
-                            <h4 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider ml-1">
-                                {category}
-                            </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2">
-                                {items.map((item, idx) => (
-                                    <div key={idx} className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2 group hover:border-blue-400 dark:hover:border-blue-600 transition-colors">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                                            {item.label}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
+            {/* Observações e Features */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                {veiculo.observacoes && (
+                    <div className="space-y-4">
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                            <FileText size={16} className="text-primary" /> Observações Operacionais
+                        </h3>
+                        <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic">
+                            "{veiculo.observacoes}"
                         </div>
-                    ))}
-                </div>
-            )}
+                    </div>
+                )}
+
+                {veiculo.features && veiculo.features.length > 0 && (
+                    <div className="space-y-6">
+                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                            <CheckCircle size={16} className="text-primary" /> Conforto e Tecnologia
+                        </h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            {veiculo.features.map((item, idx) => (
+                                <div key={idx} className="bg-muted/10 p-4 rounded-2xl border border-border/30 flex items-center gap-3 transition-all hover:bg-muted/20">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                    <span className="text-sm font-bold text-foreground">
+                                        {item.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -409,111 +487,141 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
 
     const getStatusColor = (status: StatusManutencao) => {
         switch (status) {
-            case StatusManutencao.SCHEDULED: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-            case StatusManutencao.IN_PROGRESS: return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-            case StatusManutencao.COMPLETED: return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-            case StatusManutencao.CANCELLED: return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-            default: return 'bg-slate-100 text-slate-800';
+            case StatusManutencao.SCHEDULED: return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+            case StatusManutencao.IN_PROGRESS: return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
+            case StatusManutencao.COMPLETED: return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+            case StatusManutencao.CANCELLED: return 'bg-rose-500/10 text-rose-600 border-rose-500/20';
+            default: return 'bg-slate-500/10 text-slate-600 border-slate-500/20';
         }
     };
 
     if (isLoading) {
-        return <div className="text-center py-8">Carregando histórico de manutenção...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <Loader2 className="animate-spin text-primary" size={32} />
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sincronizando histórico...</p>
+            </div>
+        );
     }
 
     if (manutencoes.length === 0) {
         return (
-            <div className="text-center py-12">
-                <Wrench size={48} className="mx-auto text-slate-300 mb-4" />
-                <p className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
-                    Nenhuma manutenção registrada
+            <div className="text-center py-20 bg-muted/10 rounded-[2rem] border border-dashed border-border/50">
+                <Wrench size={48} className="mx-auto text-muted-foreground/30 mb-6" />
+                <h3 className="text-xl font-black text-foreground uppercase tracking-tight mb-2">
+                    Sem Registros de Oficina
+                </h3>
+                <p className="text-muted-foreground font-medium mb-8 max-w-sm mx-auto">
+                    Este veículo ainda não possui interações registradas no módulo de manutenção.
                 </p>
-                <p className="text-slate-500 dark:text-slate-400 mb-6">
-                    Este veículo ainda não possui histórico de manutenções.
-                </p>
-                <button
+                <Button
                     onClick={() => navigate('/admin/manutencao/nova', { state: { initialVehicle: veiculo } })}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors inline-flex items-center gap-2"
+                    className="h-14 rounded-2xl px-8 font-black uppercase text-[12px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
                 >
-                    <Plus size={18} />
-                    Registrar Primeira Manutenção
-                </button>
+                    <Plus size={18} className="mr-2" />
+                    Registrar Manutenção
+                </Button>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-white">Histórico de Manutenções</h3>
-                <button
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Histórico Técnico</h3>
+                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Todas as intervenções mecânicas realizadas</p>
+                </div>
+                <Button
                     onClick={() => navigate('/admin/manutencao/nova', { state: { initialVehicle: veiculo } })}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    className="h-12 rounded-xl px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground transition-all hover:scale-[1.02]"
                 >
-                    <Plus size={18} />
-                    Nova Manutenção
-                </button>
+                    <Plus size={18} className="mr-2" />
+                    Nova Entrada
+                </Button>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700">
-                        <tr>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Data</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tipo</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Descrição</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">KM</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Custo Total</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <div className="bg-card/30 rounded-3xl border border-border/40 overflow-hidden">
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-border/50 h-14">
+                            <TableHead className="pl-6 text-[10px] font-black uppercase tracking-widest">Data / Status</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest">Serviço Realizado</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest">Quilometragem</TableHead>
+                            <TableHead className="text-[10px] font-black uppercase tracking-widest">Investimento</TableHead>
+                            <TableHead className="pr-6 text-right text-[10px] font-black uppercase tracking-widest">Operação</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
                         {manutencoes.map((manutencao) => (
-                            <tr
+                            <TableRow
                                 key={manutencao.id}
                                 onClick={() => navigate(`/admin/manutencao/${manutencao.id}/editar`)}
-                                className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer"
+                                className="hover:bg-muted/20 border-border/30 transition-colors cursor-pointer group h-16"
                             >
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                    {formatDate(manutencao.data_agendada)}
-                                </td>
-                                <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
-                                    {manutencao.tipo}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                    {manutencao.descricao}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                    {manutencao.km_veiculo.toLocaleString()} km
-                                </td>
-                                <td className="px-6 py-4 text-sm font-medium text-slate-800 dark:text-white">
-                                    {manutencao.moeda} {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
-                                        {manutencao.status.replace('_', ' ')}
+                                <TableCell className="pl-6">
+                                    <div className="flex flex-col gap-1.5">
+                                        <span className="text-sm font-bold text-foreground">
+                                            {formatDate(manutencao.data_agendada)}
+                                        </span>
+                                        <Badge variant="outline" className={cn("inline-flex h-5 px-2 text-[9px] font-black uppercase tracking-tighter border-none", getStatusColor(manutencao.status))}>
+                                            {manutencao.status.replace('_', ' ')}
+                                        </Badge>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-black text-foreground uppercase tracking-tight">
+                                            {manutencao.tipo}
+                                        </span>
+                                        <span className="text-[12px] font-medium text-muted-foreground line-clamp-1">
+                                            {manutencao.descricao}
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-1.5">
+                                        <Gauge size={14} className="text-muted-foreground" />
+                                        <span className="text-sm font-bold text-foreground">
+                                            {manutencao.km_veiculo.toLocaleString()} <span className="text-xs text-muted-foreground">km</span>
+                                        </span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <span className="text-sm font-black text-foreground">
+                                        {manutencao.moeda} {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </span>
-                                </td>
-                            </tr>
+                                </TableCell>
+                                <TableCell className="pr-6 text-right">
+                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                        <Edit size={16} />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
                         ))}
-                    </tbody>
-                </table>
+                    </TableBody>
+                </Table>
             </div>
-        </div >
+        </div>
     );
 };
 
 // Tab: Histórico
 const HistoricoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) => {
     return (
-        <div className="text-center py-12">
-            <History size={48} className="mx-auto text-purple-600 mb-4" />
-            <p className="text-lg font-semibold text-slate-800 dark:text-white mb-2">
-                Histórico de Viagens
+        <div className="text-center py-20 bg-muted/10 rounded-[2rem] border border-dashed border-border/50">
+            <div className="w-16 h-16 bg-purple-500/10 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <History size={32} />
+            </div>
+            <h3 className="text-xl font-black text-foreground uppercase tracking-tight mb-2">
+                Timeline de Viagens
+            </h3>
+            <p className="text-muted-foreground font-medium mb-8 max-w-sm mx-auto">
+                O registro histórico de rotas e passagens para este prefixo está sendo processado.
             </p>
-            <p className="text-slate-500 dark:text-slate-400">
-                Em desenvolvimento...
-            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/10 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                <Clock size={12} /> Disponível em Breve
+            </div>
         </div>
     );
 };

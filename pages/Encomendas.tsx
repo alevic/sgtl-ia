@@ -81,7 +81,7 @@ export const Encomendas: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div key="encomendas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Encomendas</h1>
@@ -132,7 +132,7 @@ export const Encomendas: React.FC = () => {
                         <div key={encomenda.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+                                    <div className="w-12 h-14 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
                                         <Package size={24} className="text-slate-600 dark:text-slate-300" />
                                     </div>
                                     <div>

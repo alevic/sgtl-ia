@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { User, Shield, Settings, Activity } from 'lucide-react';
-import { Tabs } from '../components/ui/Tabs';
+import { Tabs } from '../components/ui/tabs-custom';
 import { UserProfileForm } from '../components/User/UserProfileForm';
 import { UserSecurityPanel } from '../components/User/UserSecurityPanel';
 import { UserPreferences } from '../components/User/UserPreferences';
@@ -35,7 +35,7 @@ export const Perfil: React.FC = () => {
     ];
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div key="perfil-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Meu Perfil</h1>

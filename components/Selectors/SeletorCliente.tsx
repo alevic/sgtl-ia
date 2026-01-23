@@ -24,18 +24,23 @@ export const SeletorCliente: React.FC<SeletorClienteProps> = ({
     };
 
     const getNome = (c: ClienteFretamento) => isPJ(c) ? c.razao_social : c.nome;
-    const getDocumento = (c: ClienteFretamento) => isPJ(c) ? c.cnpj : c.documento_numero;
+    const getDocumento = (c: ClienteFretamento) => isPJ(c) ? c.cnpj : c.documento;
     const getContato = (c: ClienteFretamento) => isPJ(c) ? c.contato_nome : c.nome;
     const getEmail = (c: ClienteFretamento) => isPJ(c) ? c.contato_email : c.email;
-    const getCredito = (c: ClienteFretamento) => isPJ(c) ? c.credito_disponivel : (c as ICliente).saldo_creditos || 0;
+    const getCredito = (c: ClienteFretamento) => isPJ(c) ? (c.credito_disponivel || 0) : ((c as ICliente).saldo_creditos || 0);
 
     const clientesFiltrados = clientes.filter(c => {
         const termo = busca.toLowerCase();
+        const nome = getNome(c) || '';
+        const documento = getDocumento(c) || '';
+        const contato = getContato(c) || '';
+        const email = getEmail(c) || '';
+
         return (
-            getNome(c).toLowerCase().includes(termo) ||
-            getDocumento(c).includes(termo) ||
-            getContato(c).toLowerCase().includes(termo) ||
-            getEmail(c).toLowerCase().includes(termo)
+            nome.toLowerCase().includes(termo) ||
+            documento.toLowerCase().includes(termo) ||
+            contato.toLowerCase().includes(termo) ||
+            email.toLowerCase().includes(termo)
         );
     });
 
@@ -60,7 +65,7 @@ export const SeletorCliente: React.FC<SeletorClienteProps> = ({
                         placeholder="Buscar por Nome, Razão Social, Documento..."
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 h-14 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
             </div>

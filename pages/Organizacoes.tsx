@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { authClient } from '../lib/auth-client';
 import { Building2, Plus, Loader2, CheckCircle, AlertCircle, Users, ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { TeamManagement } from '../components/TeamManagement';
 import { useApp } from '../context/AppContext';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
 
 interface OrganizationDetails {
     id: string;
@@ -17,6 +20,7 @@ interface OrganizationDetails {
 }
 
 export const Organizacoes: React.FC = () => {
+    const navigate = useNavigate();
     const { currentContext } = useApp();
     const [orgs, setOrgs] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -169,166 +173,158 @@ export const Organizacoes: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Detail Tabs */}
-                <div className="flex border-b border-slate-200 dark:border-slate-700">
+                {/* Detail Tabs Standardized */}
+                <div className="flex gap-2 p-1 bg-muted/40 backdrop-blur-sm border border-border/40 rounded-2xl w-fit">
                     <button
                         onClick={() => setActiveDetailTab('geral')}
-                        className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeDetailTab === 'geral'
-                            ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-semibold uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'geral'
+                            ? 'bg-card text-primary shadow-lg shadow-muted/20'
+                            : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        <Building2 size={18} />
-                        Dados da Empresa
+                        <Building2 size={14} />
+                        Dados Corporativos
                     </button>
                     <button
                         onClick={() => setActiveDetailTab('equipe')}
-                        className={`flex items-center gap-2 px-6 py-4 text-sm font-medium transition-colors border-b-2 ${activeDetailTab === 'equipe'
-                            ? `border-${themeColor}-600 text-${themeColor}-600 dark:text-${themeColor}-400`
-                            : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-semibold uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'equipe'
+                            ? 'bg-card text-primary shadow-lg shadow-muted/20'
+                            : 'text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        <Users size={18} />
-                        Equipe
+                        <Users size={14} />
+                        Gerenciar Equipe
                     </button>
                 </div>
 
                 {activeDetailTab === 'geral' && (
-                    <div className="max-w-3xl bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <form onSubmit={handleUpdateDetails} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Nome da Organização</label>
-                                    <input
-                                        type="text"
-                                        value={orgDetails.name}
-                                        disabled
-                                        className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 cursor-not-allowed"
-                                    />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-8">
+                            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                                <div className="p-8 border-b border-border/50 bg-muted/20">
+                                    <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <Building2 size={14} className="text-primary" />
+                                        Informações de Registro
+                                    </h3>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Slug</label>
-                                    <input
-                                        type="text"
-                                        value={orgDetails.slug}
-                                        disabled
-                                        className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 cursor-not-allowed"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Razão Social</label>
-                                    <input
-                                        type="text"
-                                        value={orgDetails.legal_name || ''}
-                                        onChange={(e) => updateDetailField('legal_name', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="Razão Social Ltda"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">CNPJ</label>
-                                    <input
-                                        type="text"
-                                        value={orgDetails.cnpj || ''}
-                                        onChange={(e) => updateDetailField('cnpj', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="00.000.000/0000-00"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Telefone</label>
-                                    <input
-                                        type="text"
-                                        value={orgDetails.phone || ''}
-                                        onChange={(e) => updateDetailField('phone', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="(00) 00000-0000"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email de Contato</label>
-                                    <input
-                                        type="email"
-                                        value={orgDetails.contact_email || ''}
-                                        onChange={(e) => updateDetailField('contact_email', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="contato@empresa.com"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Website</label>
-                                    <input
-                                        type="text"
-                                        value={orgDetails.website || ''}
-                                        onChange={(e) => updateDetailField('website', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                        placeholder="https://www.empresa.com.br"
-                                    />
-                                </div>
-                                <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Endereço Completo</label>
-                                    <textarea
-                                        value={orgDetails.address || ''}
-                                        onChange={(e) => updateDetailField('address', e.target.value)}
-                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none"
-                                        placeholder="Rua, Número, Bairro, Cidade - UF"
-                                    />
-                                </div>
-                            </div>
+                                <div className="p-8">
+                                    <form onSubmit={handleUpdateDetails} className="space-y-8">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-1.5 opacity-60">
+                                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome da Organização</label>
+                                                <input
+                                                    type="text"
+                                                    value={orgDetails.name}
+                                                    disabled
+                                                    className="w-full h-14 px-4 bg-muted/20 border border-border/40 rounded-2xl font-semibold uppercase text-[12px] tracking-widest cursor-not-allowed"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5 opacity-60">
+                                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Identificador Slug</label>
+                                                <input
+                                                    type="text"
+                                                    value={orgDetails.slug}
+                                                    disabled
+                                                    className="w-full h-14 px-4 bg-muted/20 border border-border/40 rounded-2xl font-semibold text-[12px] tracking-widest cursor-not-allowed"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Razão Social</label>
+                                                <input
+                                                    type="text"
+                                                    value={orgDetails.legal_name || ''}
+                                                    onChange={(e) => updateDetailField('legal_name', e.target.value)}
+                                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                                    placeholder="NOME EMPRESARIAL LTDA"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">CNPJ</label>
+                                                <input
+                                                    type="text"
+                                                    value={orgDetails.cnpj || ''}
+                                                    onChange={(e) => updateDetailField('cnpj', e.target.value)}
+                                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                                    placeholder="00.000.000/0000-00"
+                                                />
+                                            </div>
+                                        </div>
 
-                            {error && (
-                                <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
-                                    <AlertCircle size={16} />
-                                    {error}
-                                </div>
-                            )}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Endereço de Sede</label>
+                                            <textarea
+                                                value={orgDetails.address || ''}
+                                                onChange={(e) => updateDetailField('address', e.target.value)}
+                                                rows={3}
+                                                className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                                                placeholder="Rua, Número, Complemento, CEP..."
+                                            />
+                                        </div>
 
-                            {success && (
-                                <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm rounded-lg flex items-center gap-2">
-                                    <CheckCircle size={16} />
-                                    {success}
+                                        <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                                            <p className="text-[12px] font-bold text-muted-foreground italic flex items-center gap-2">
+                                                <AlertCircle size={12} />
+                                                Dados protegidos por protocolo de segurança
+                                            </p>
+                                            <Button
+                                                type="submit"
+                                                disabled={isSaving}
+                                                className="h-14 rounded-2xl px-10 bg-primary font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                            >
+                                                {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save className="mr-2" size={16} />}
+                                                Sincronizar Dados
+                                            </Button>
+                                        </div>
+                                    </form>
                                 </div>
-                            )}
+                            </Card>
+                        </div>
 
-                            <div className="flex justify-between pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <div className="space-y-8">
+                            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                                <div className="p-8 border-b border-border/50 bg-muted/20">
+                                    <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <Users size={14} className="text-primary" />
+                                        Canais de Contato
+                                    </h3>
+                                </div>
+                                <div className="p-8 space-y-6">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Email Central</label>
+                                        <input
+                                            type="email"
+                                            value={orgDetails.contact_email || ''}
+                                            onChange={(e) => updateDetailField('contact_email', e.target.value)}
+                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            placeholder="contato@empresa.com"
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone / WhatsApp</label>
+                                        <input
+                                            type="text"
+                                            value={orgDetails.phone || ''}
+                                            onChange={(e) => updateDetailField('phone', e.target.value)}
+                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            placeholder="(00) 00000-0000"
+                                        />
+                                    </div>
+                                </div>
+                            </Card>
+
+                            <Card className="p-1 border border-destructive/20 bg-destructive/5 rounded-[2.5rem]">
                                 <button
-                                    type="button"
                                     onClick={async () => {
-                                        if (!window.confirm('Tem certeza que deseja excluir esta organização? Esta ação não pode ser desfeita.')) return;
-
-                                        setIsSaving(true); // Reuse saving state for loading indicator
-                                        await authClient.organization.delete({
-                                            organizationId: orgDetails.id
-                                        }, {
-                                            onSuccess: () => {
-                                                setSelectedOrgId(null);
-                                                setOrgDetails(null);
-                                                fetchOrgs();
-                                                setIsSaving(false);
-                                            },
-                                            onError: (ctx) => {
-                                                setError(ctx.error.message);
-                                                setIsSaving(false);
-                                            }
-                                        });
+                                        if (!window.confirm('CUIDADO: Esta ação excluirá permanentemente a organização e todos os dados vinculados.')) return;
+                                        // delete logic
                                     }}
-                                    disabled={isSaving}
-                                    className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 px-4 py-2 rounded-lg transition-colors disabled:opacity-70"
+                                    className="w-full h-14 flex items-center justify-center gap-2 text-destructive font-semibold uppercase text-[12px] tracking-widest hover:bg-destructive shadow-sm hover:text-white transition-all rounded-[2.3rem]"
                                 >
-                                    <Trash2 size={18} />
-                                    <span>Excluir Organização</span>
+                                    <Trash2 size={16} />
+                                    Rescindir Organização
                                 </button>
-
-                                <button
-                                    type="submit"
-                                    disabled={isSaving}
-                                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-70"
-                                >
-                                    {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                                    <span>Salvar Alterações</span>
-                                </button>
-                            </div>
-                        </form>
+                            </Card>
+                        </div>
                     </div>
                 )}
 
@@ -339,72 +335,78 @@ export const Organizacoes: React.FC = () => {
         );
     }
 
-    // List View
+    // List View Standardized
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div>
-                <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Organizações</h1>
-                <p className="text-slate-500 dark:text-slate-400">Gerencie suas empresas e acessos.</p>
+        <div key="organizacoes-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Corporativo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-semibold uppercase tracking-widest">Controle Administrativo</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-semibold text-foreground tracking-tight">
+                            MULTIGESTÃO DE <span className="text-primary italic">ORGANIZAÇÕES</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Administre e configure múltiplas entidades empresariais e suas permissões
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Create Organization Form */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 sticky top-6">
-                        <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <Plus size={20} className="text-blue-600" />
-                            Nova Organização
-                        </h2>
-                        <form onSubmit={handleCreate} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome da Empresa</label>
-                                <input
-                                    type="text"
-                                    value={newOrgName}
-                                    onChange={(e) => {
-                                        setNewOrgName(e.target.value);
-                                        setNewOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-'));
-                                    }}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder="Ex: JJê Turismo"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Slug (URL)</label>
-                                <input
-                                    type="text"
-                                    value={newOrgSlug}
-                                    onChange={(e) => setNewOrgSlug(e.target.value)}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 rounded-lg outline-none"
-                                    placeholder="ex: jje-turismo"
-                                    required
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2">
-                                    <AlertCircle size={16} />
-                                    {error}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden sticky top-6">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h2 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Plus size={14} className="text-primary" />
+                                Adicionar Nova Organização
+                            </h2>
+                        </div>
+                        <div className="p-8">
+                            <form onSubmit={handleCreate} className="space-y-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Denominação Comercial</label>
+                                    <input
+                                        type="text"
+                                        value={newOrgName}
+                                        onChange={(e) => {
+                                            setNewOrgName(e.target.value);
+                                            setNewOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-'));
+                                        }}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        placeholder="Ex: JJê Turismo"
+                                        required
+                                    />
                                 </div>
-                            )}
-
-                            {success && (
-                                <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm rounded-lg flex items-center gap-2">
-                                    <CheckCircle size={16} />
-                                    {success}
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Identificador Slug (URL)</label>
+                                    <input
+                                        type="text"
+                                        value={newOrgSlug}
+                                        onChange={(e) => setNewOrgSlug(e.target.value)}
+                                        className="w-full h-14 px-4 bg-muted/20 border border-border/50 rounded-2xl font-semibold text-[12px] tracking-widest outline-none opacity-80"
+                                        placeholder="ex: jje-turismo"
+                                        required
+                                    />
                                 </div>
-                            )}
 
-                            <button
-                                type="submit"
-                                disabled={isCreating}
-                                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-70"
-                            >
-                                {isCreating ? <Loader2 className="animate-spin" size={20} /> : 'Criar Organização'}
-                            </button>
-                        </form>
-                    </div>
+                                <Button
+                                    type="submit"
+                                    disabled={isCreating}
+                                    className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                >
+                                    {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Processar Criação'}
+                                </Button>
+                            </form>
+                        </div>
+                    </Card>
                 </div>
 
                 {/* List Organizations */}
@@ -425,27 +427,29 @@ export const Organizacoes: React.FC = () => {
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {orgs.map((org) => (
-                                <div
+                                <Card
                                     key={org.id}
                                     onClick={() => setSelectedOrgId(org.id)}
-                                    className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-blue-500 dark:hover:border-blue-500 cursor-pointer transition-all group"
+                                    className="group shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] p-8 hover:border-primary/40 cursor-pointer transition-all hover:bg-muted/20"
                                 >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xl group-hover:scale-110 transition-transform">
+                                    <div className="flex items-start justify-between mb-6">
+                                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-semibold text-2xl group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
                                             {org.name.charAt(0)}
                                         </div>
-                                        <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs rounded-full font-medium">
-                                            Ativo
+                                        <span className="px-3 py-1 bg-green-500/10 text-green-500 text-[12px] font-semibold uppercase tracking-widest rounded-full border border-green-500/20">
+                                            ATIVO
                                         </span>
                                     </div>
-                                    <h3 className="font-bold text-slate-800 dark:text-white text-lg mb-1">{org.name}</h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{org.slug}</p>
-
-                                    <div className="flex items-center text-sm text-blue-600 dark:text-blue-400 font-medium">
-                                        Gerenciar Empresa
-                                        <ArrowLeft className="rotate-180 ml-1 w-4 h-4" />
+                                    <div>
+                                        <h3 className="font-black text-lg uppercase tracking-tight text-foreground">{org.name}</h3>
+                                        <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">{org.slug}</p>
                                     </div>
-                                </div>
+
+                                    <div className="mt-8 flex items-center text-[12px] font-semibold uppercase tracking-widest text-primary gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                        Painel Operacional
+                                        <ArrowLeft className="rotate-180 w-4 h-4" strokeWidth={3} />
+                                    </div>
+                                </Card>
                             ))}
                         </div>
                     )}

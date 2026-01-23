@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Mail, Phone, CreditCard, Calendar, Loader2, Camera, Trash2, Lock, Save, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, CreditCard, Calendar, Loader2, Camera, Trash2, Lock, Save, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { authClient } from '../../lib/auth-client';
 import { publicService } from '../../services/publicService';
 import { PhoneInput } from '../../components/Form/PhoneInput';
-import { CPFInput } from '../../components/Form/CPFInput';
+import { DocumentInput } from '../../components/Form/DocumentInput';
 import { DatePicker } from '../../components/Form/DatePicker';
+import { TipoDocumento } from '../../types';
 
 export const PerfilCliente: React.FC = () => {
     const navigate = useNavigate();
@@ -17,7 +19,8 @@ export const PerfilCliente: React.FC = () => {
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [countryCode, setCountryCode] = useState('+55');
-    const [cpf, setCpf] = useState('');
+    const [documentoTipo, setDocumentoTipo] = useState<TipoDocumento>(TipoDocumento.CPF);
+    const [documento, setDocumento] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [credits, setCredits] = useState(0);
 
@@ -46,7 +49,8 @@ export const PerfilCliente: React.FC = () => {
             const phoneWithoutCode = fullPhone.startsWith('+55') ? fullPhone.substring(3) : fullPhone;
             setPhone(phoneWithoutCode);
 
-            setCpf(profile.cpf || '');
+            setDocumento(profile.documento || profile.cpf || '');
+            setDocumentoTipo(profile.documento_tipo || TipoDocumento.CPF);
 
             // Convert birth_date from ISO to YYYY-MM-DD
             if (profile.birth_date) {
@@ -65,13 +69,16 @@ export const PerfilCliente: React.FC = () => {
     };
 
     const handleAvatarUpload = (file: File) => {
+        setError('');
+        setSuccess('');
+
         if (!file.type.startsWith('image/')) {
-            alert('Por favor, selecione apenas imagens');
+            setError('Por favor, selecione apenas imagens');
             return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            alert('A imagem deve ter no máximo 2MB');
+            setError('A imagem deve ter no máximo 2MB');
             return;
         }
 
@@ -102,16 +109,19 @@ export const PerfilCliente: React.FC = () => {
                 name,
                 email,
                 phone: fullPhone,
-                cpf: cpf || null,
+                documento: documento || null,
+                documento_tipo: documentoTipo,
                 birthDate: birthDate || null,
                 image: avatar || null,
             });
 
             setSuccess('Perfil atualizado com sucesso!');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             setTimeout(() => setSuccess(''), 3000);
         } catch (err: any) {
             console.error('Save error:', err);
             setError(err.message || 'Erro ao salvar perfil');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setIsSaving(false);
         }
@@ -157,16 +167,19 @@ export const PerfilCliente: React.FC = () => {
             {/* Content Area */}
             <main className="flex-1 max-w-2xl mx-auto w-full p-4 space-y-6 pb-24">
                 {error && (
-                    <div className="p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-400 text-sm font-medium rounded-r-lg flex items-start gap-2">
-                        <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
-                        <span>{error}</span>
-                    </div>
+                    <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Erro na Operação</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
                 )}
 
                 {success && (
-                    <div className="p-4 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 text-green-700 dark:text-green-400 text-sm font-medium rounded-r-lg">
-                        {success}
-                    </div>
+                    <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <AlertTitle>Sucesso</AlertTitle>
+                        <AlertDescription>{success}</AlertDescription>
+                    </Alert>
                 )}
 
                 {/* Credit Balance Card */}
@@ -264,9 +277,16 @@ export const PerfilCliente: React.FC = () => {
                             />
                         </div>
 
-                        {/* CPF */}
-                        <div>
-                            <CPFInput value={cpf} onChange={setCpf} />
+                        {/* Documento */}
+                        <div className="md:col-span-2">
+                            <DocumentInput
+                                documentType={documentoTipo}
+                                documentNumber={documento}
+                                onTypeChange={setDocumentoTipo}
+                                onNumberChange={setDocumento}
+                                label="Documento"
+                                required={false}
+                            />
                         </div>
 
                         {/* Data de Nascimento */}

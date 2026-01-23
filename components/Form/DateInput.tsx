@@ -40,24 +40,22 @@ export const DateInput: React.FC<DateInputProps> = ({
         const month = parseInt(numbers.substring(2, 4));
         const year = parseInt(numbers.substring(4, 8));
 
-        // Check valid ranges
-        if (day < 1 || day > 31) return { valid: false, error: 'Dia inválido' };
-        if (month < 1 || month > 12) return { valid: false, error: 'Mês inválido' };
-        if (year < 1900 || year > new Date().getFullYear()) return { valid: false, error: 'Ano inválido' };
-
-        // Check if date exists
+        // Create Date object - month is 0-indexed
         const date = new Date(year, month - 1, day);
-        if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
+
+        // Check if date components match (detects overflow like Feb 30 -> Mar 02)
+        if (date.getDate() !== day || (date.getMonth() + 1) !== month || date.getFullYear() !== year) {
             return { valid: false, error: 'Data inválida' };
         }
+
+        if (year < 1900 || year > new Date().getFullYear() + 100) return { valid: false, error: 'Ano inválido' };
 
         // Check minimum age
         if (minAge) {
             const today = new Date();
-            const birthDate = new Date(year, month - 1, day);
-            const age = today.getFullYear() - birthDate.getFullYear();
-            const monthDiff = today.getMonth() - birthDate.getMonth();
-            const dayDiff = today.getDate() - birthDate.getDate();
+            const age = today.getFullYear() - date.getFullYear();
+            const monthDiff = today.getMonth() - date.getMonth();
+            const dayDiff = today.getDate() - date.getDate();
 
             const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
 
@@ -86,7 +84,7 @@ export const DateInput: React.FC<DateInputProps> = ({
                     type="text"
                     value={formatDate(value)}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white ${!validation.valid
+                    className={`w-full pl-10 pr-4 h-14 bg-slate-50 dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white ${!validation.valid
                         ? 'border-red-300 dark:border-red-700'
                         : value.length === 8
                             ? 'border-green-300 dark:border-green-700'

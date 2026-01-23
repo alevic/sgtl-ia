@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IRota, IVeiculo, IMotorista, Moeda, IViagem, TripStatus } from '../types';
+import { IRota, IVeiculo, IMotorista, Moeda, IViagem, TripStatus, RouteType } from '../types';
 import {
     ArrowLeft, Bus, Save, DollarSign, Image, Route, Clock, MapPin, Users, X, Plus, Calendar, Loader, Trash2
 } from 'lucide-react';
@@ -14,6 +14,21 @@ import { vehiclesService } from '../services/vehiclesService';
 import { driversService } from '../services/driversService';
 import { DatePicker } from '../components/Form/DatePicker';
 import { TimePicker } from '../components/Form/TimePicker';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Button } from '../components/ui/button';
+import { Card, CardContent } from '../components/ui/card';
+import { cn } from '../lib/utils';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export const NovaViagem: React.FC = () => {
     const navigate = useNavigate();
@@ -22,6 +37,9 @@ export const NovaViagem: React.FC = () => {
 
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [showGalleryClearConfirm, setShowGalleryClearConfirm] = useState(false);
 
     // Data Lists
     const [rotas, setRotas] = useState<IRota[]>([]);
@@ -163,13 +181,10 @@ export const NovaViagem: React.FC = () => {
                     }
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao carregar dados:', error);
-            console.error('Error details:', {
-                message: error instanceof Error ? error.message : 'Unknown error',
-                stack: error instanceof Error ? error.stack : undefined
-            });
-            alert(`Erro ao carregar dados iniciais: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+            setError(`Erro ao carregar dados iniciais: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setLoading(false);
         }
@@ -236,13 +251,16 @@ export const NovaViagem: React.FC = () => {
     };
 
     const handleSalvar = async () => {
+        setError(null);
         // Validate: at least one route must be selected
         if (!rotaIdaSelecionada && !rotaVoltaSelecionada) {
-            alert('Selecione pelo menos uma rota (IDA ou VOLTA).');
+            setError('Selecione pelo menos uma rota (IDA ou VOLTA).');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
         if (!dataPartida || !horaPartida) {
-            alert('Defina a data e hora de partida.');
+            setError('Defina a data e hora de partida.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 
@@ -282,11 +300,13 @@ export const NovaViagem: React.FC = () => {
                 await tripsService.create(viagemData);
             }
 
-            navigate('/admin/viagens');
+            setSuccess(`Viagem ${isEdicao ? 'atualizada' : 'criada'} com sucesso!`);
+            setTimeout(() => navigate('/admin/viagens'), 2000);
         } catch (error: any) {
             console.error('Erro ao salvar viagem:', error);
             const errorMessage = error.response?.data?.error || error.message || 'Erro desconhecido';
-            alert(`Erro ao salvar viagem: ${errorMessage}`);
+            setError(`Erro ao salvar viagem: ${errorMessage}`);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setSaving(false);
         }
@@ -301,432 +321,457 @@ export const NovaViagem: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/viagens')}
-                    className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-                        {isEdicao ? 'Editar Viagem' : 'Nova Viagem'}
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400">Selecione as rotas e detalhes da viagem</p>
-                </div>
-                <button
-                    onClick={handleSalvar}
-                    disabled={saving}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 disabled:opacity-50"
-                >
-                    {saving ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
-                    {saving ? 'Salvando...' : 'Salvar Viagem'}
-                </button>
-            </div>
-
-            {/* Informações Básicas */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div key="nova-viagem-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin/viagens')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-semibold uppercase tracking-widest">Voltar para Viagens</span>
+                    </button>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Título da Viagem
-                        </label>
-                        <input
-                            type="text"
-                            value={titulo}
-                            onChange={(e) => setTitulo(e.target.value)}
-                            placeholder="Ex: Excursão para Aparecida do Norte"
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Tags da Viagem
-                        </label>
-                        <SeletorTags
-                            selectedTags={tags}
-                            onChange={setTags}
-                        />
+                        <h1 className="text-4xl font-semibold text-foreground tracking-tight">
+                            {isEdicao ? 'EDITAR' : 'NOVA'} <span className="text-primary italic">VIAGEM</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            {isEdicao ? 'Atualize os detalhes da viagem selecionada' : 'Planeje e cadastre uma nova viagem na grade'}
+                        </p>
                     </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Coluna Principal */}
-                <div className="lg:col-span-2 space-y-6">
-                    {/* Seleção de Rotas */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <Route size={20} className="text-purple-600" />
-                            Seleção de Rotas
-                        </h3>
-
-                        {/* Rota de IDA */}
-                        <div className="mb-4">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Rota de IDA (Opcional)
-                            </label>
-                            <SeletorRota
-                                rotas={rotas}
-                                tipoFiltro="IDA"
-                                rotaSelecionada={rotaIdaSelecionada}
-                                onChange={setRotaIdaSelecionada}
-                            />
-                        </div>
-
-                        {/* Rota de VOLTA */}
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Rota de VOLTA (Opcional)
-                            </label>
-                            <SeletorRota
-                                rotas={rotas}
-                                tipoFiltro="VOLTA"
-                                rotaSelecionada={rotaVoltaSelecionada}
-                                onChange={setRotaVoltaSelecionada}
-                            />
-                        </div>
-
-                        {!rotaIdaSelecionada && !rotaVoltaSelecionada && (
-                            <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
-                                ⚠️ Selecione pelo menos uma rota (IDA ou VOLTA)
-                            </p>
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/admin/viagens')}
+                        className="h-14 rounded-2xl px-6 font-semibold uppercase text-[12px] tracking-widest"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleSalvar}
+                        disabled={saving}
+                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        {saving ? (
+                            <Loader className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                            <Save className="w-4 h-4 mr-2" />
                         )}
-                    </div>
+                        {saving ? 'Salvando...' : 'Salvar Viagem'}
+                    </Button>
+                </div>
+            </div>
 
-                    {/* Datas e Horários */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <Calendar size={20} className="text-blue-600" />
-                            Datas e Horários
-                        </h3>
-                        {/* ... Existing Date Inputs ... */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Data de Partida
-                                </label>
-                                <DatePicker
-                                    value={dataPartida}
-                                    onChange={setDataPartida}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Hora de Partida
-                                </label>
-                                <TimePicker
-                                    value={horaPartida}
-                                    onChange={setHoraPartida}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Data de Chegada (Prevista)
-                                </label>
-                                <DatePicker
-                                    value={dataChegada}
-                                    onChange={setDataChegada}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Hora de Chegada (Prevista)
-                                </label>
-                                <TimePicker
-                                    value={horaChegada}
-                                    onChange={setHoraChegada}
-                                />
-                            </div>
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest">Erro no Processamento</AlertTitle>
+                    <AlertDescription className="text-xs font-medium">
+                        {error}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {success && (
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
+                    <AlertDescription className="text-xs font-medium text-emerald-600/80">
+                        {success}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Coluna Principal (2/3) */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Informações Básicas */}
+                    <Card className="relative z-10 focus-within:z-20 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem]">
+                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-[2.5rem]">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Bus size={14} className="text-primary" />
+                                Identificação da Viagem
+                            </h3>
                         </div>
-
-                        {/* Itinerário Estimado */}
-                        {(rotaIdaSelecionada && dataPartida && horaPartida) && (
-                            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
-                                <h4 className="font-semibold text-slate-700 dark:text-slate-200 mb-3 flex items-center gap-2">
-                                    <MapPin size={18} className="text-orange-500" />
-                                    Itinerário Estimado
-                                </h4>
-                                <div className="space-y-4">
-                                    {/* Exibir Paradas Calculadas */}
-                                    {(() => {
-                                        // Simular objeto viagem para calcular paradas
-                                        const mockViagem: any = {
-                                            usa_sistema_rotas: true,
-                                            tipo_viagem: 'IDA',
-                                            rota_ida: rotaIdaSelecionada,
-                                            departure_date: dataPartida,
-                                            departure_time: horaPartida
-                                        };
-                                        const viagemCalculada = calcularCamposViagem(mockViagem);
-
-                                        return (
-                                            <div className="relative border-l-2 border-slate-200 dark:border-slate-700 ml-3 pl-6 space-y-6">
-                                                {/* Origem */}
-                                                <div className="relative">
-                                                    <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-green-500 border-2 border-white dark:border-slate-800" />
-                                                    <div className="flex flex-col">
-                                                        <span className="font-semibold text-slate-800 dark:text-slate-200">{viagemCalculada.origem}</span>
-                                                        <span className="text-sm text-slate-500">Partida: {new Date(`${dataPartida}T${horaPartida}`).toLocaleString()}</span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Paradas Intermediárias */}
-                                                {viagemCalculada.paradas?.map((parada, idx) => (
-                                                    <div key={idx} className="relative">
-                                                        <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white dark:border-slate-800" />
-                                                        <div className="flex flex-col">
-                                                            <span className="font-medium text-slate-800 dark:text-slate-200">{parada.nome}</span>
-                                                            <div className="flex gap-4 text-xs text-slate-500 mt-1">
-                                                                <span className="flex items-center gap-1">
-                                                                    <Clock size={12} />
-                                                                    Chegada: {parada.horario_chegada ? new Date(parada.horario_chegada).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
-                                                                </span>
-                                                                <span className="flex items-center gap-1">
-                                                                    <Clock size={12} />
-                                                                    Partida: {parada.horario_partida ? new Date(parada.horario_partida).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-
-                                                {/* Destino */}
-                                                <div className="relative">
-                                                    <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-red-500 border-2 border-white dark:border-slate-800" />
-                                                    <div className="flex flex-col">
-                                                        <span className="font-semibold text-slate-800 dark:text-slate-200">{viagemCalculada.destino}</span>
-                                                        <span className="text-sm text-slate-500">
-                                                            Chegada Prevista: {dataChegada && horaChegada ? new Date(`${dataChegada}T${horaChegada}`).toLocaleString() : '--'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })()}
+                        <CardContent className="p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Título Público da Viagem</label>
+                                    <input
+                                        type="text"
+                                        value={titulo}
+                                        onChange={(e) => setTitulo(e.target.value)}
+                                        placeholder="Ex: Excursão de Final de Ano - Litoral Norte"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Tags Operacionais</label>
+                                    <SeletorTags
+                                        selectedTags={tags}
+                                        onChange={setTags}
+                                    />
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </CardContent>
+                    </Card>
 
-                    {/* Imagens e Detalhes */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <Image size={20} className="text-pink-600" />
-                            Imagens e Detalhes
-                        </h3>
-
-                        <div className="space-y-4">
-                            {/* Capa */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                    Foto de Capa
+                    {/* Seleção de Rotas */}
+                    <Card className="relative z-0 focus-within:z-10 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem]">
+                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-[2.5rem]">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Route size={14} className="text-primary" />
+                                Planejamento do Trajeto
+                            </h3>
+                        </div>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="space-y-4">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                    Rota de IDA (Obrigatória se não houver Volta)
                                 </label>
-                                <div className="flex items-center gap-4">
-                                    {imagemCapa ? (
-                                        <div className="relative group">
-                                            <img src={imagemCapa} alt="Capa" className="w-24 h-24 object-cover rounded-lg" />
-                                            <button
-                                                onClick={() => setImagemCapa('')}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                                                title="Remover capa"
-                                            >
-                                                <X size={14} />
-                                            </button>
+                                <SeletorRota
+                                    rotas={rotas}
+                                    tipoFiltro={RouteType.OUTBOUND}
+                                    rotaSelecionada={rotaIdaSelecionada}
+                                    onChange={setRotaIdaSelecionada}
+                                />
+                            </div>
+
+                            <div className="space-y-4 pt-4 border-t border-border/50">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                                    Rota de VOLTA (Opcional)
+                                </label>
+                                <SeletorRota
+                                    rotas={rotas}
+                                    tipoFiltro={RouteType.INBOUND}
+                                    rotaSelecionada={rotaVoltaSelecionada}
+                                    onChange={setRotaVoltaSelecionada}
+                                />
+                            </div>
+
+                            {!rotaIdaSelecionada && !rotaVoltaSelecionada && (
+                                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-amber-600 text-center">
+                                        ⚠️ Selecione pelo menos uma rota para prosseguir
+                                    </p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Cronograma */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem]">
+                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-[2.5rem]">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Calendar size={14} className="text-primary" />
+                                Cronograma de Execução
+                            </h3>
+                        </div>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Partida Oficial</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
+                                            <DatePicker value={dataPartida} onChange={setDataPartida} />
                                         </div>
-                                    ) : (
-                                        <div className="w-24 h-24 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center text-slate-400">
-                                            <Image size={24} />
+                                        <div className="space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>
+                                            <TimePicker value={horaPartida} onChange={setHoraPartida} />
                                         </div>
-                                    )}
-                                    <div className="flex-1">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleImageUpload}
-                                            className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                        />
-                                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                            Recomendado: 1200x600px (JPG, PNG)
-                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Chegada Prevista</h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
+                                            <DatePicker value={dataChegada} onChange={setDataChegada} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>
+                                            <TimePicker value={horaChegada} onChange={setHoraChegada} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Galeria */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Galeria de Fotos
-                                    </label>
-                                    {galeria.length > 0 && (
-                                        <button
-                                            onClick={() => {
-                                                if (confirm('Tem certeza que deseja remover todas as fotos da galeria?')) {
-                                                    setGaleria([]);
-                                                }
-                                            }}
-                                            className="text-xs text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
-                                        >
-                                            <Trash2 size={12} />
-                                            Remover todas
-                                        </button>
-                                    )}
+                            {/* Itinerário Estimado Visual */}
+                            {(rotaIdaSelecionada && dataPartida && horaPartida) && (
+                                <div className="mt-8 pt-8 border-t border-border/50">
+                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
+                                        <Clock size={14} />
+                                        Previsão de Passagem pelo Itinerário
+                                    </h4>
+                                    <div className="space-y-0">
+                                        {(() => {
+                                            const startDT = new Date(`${dataPartida}T${horaPartida}`);
+                                            const durationMin = rotaIdaSelecionada.duracao_estimada_minutos || 0;
+                                            const arrivalDT = new Date(startDT.getTime() + durationMin * 60000);
+
+                                            return (
+                                                <div className="relative pl-12 space-y-10 border-l-2 border-dashed border-border/50 ml-4 py-2">
+                                                    {/* Origem */}
+                                                    <div className="relative">
+                                                        <div className="absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[12px] font-semibold shadow-lg shadow-primary/20">
+                                                            P
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[12px] font-semibold uppercase tracking-widest">{rotaIdaSelecionada.cidade_origem}</div>
+                                                            <div className="text-xs font-medium text-muted-foreground mt-0.5">Partida em {startDT.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Destino */}
+                                                    <div className="relative">
+                                                        <div className="absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full bg-destructive flex items-center justify-center text-white text-[12px] font-semibold shadow-lg shadow-destructive/20">
+                                                            C
+                                                        </div>
+                                                        <div>
+                                                            <div className="text-[12px] font-semibold uppercase tracking-widest">{rotaIdaSelecionada.cidade_destino}</div>
+                                                            <div className="text-xs font-medium text-muted-foreground mt-0.5">Chegada estimada: {arrivalDT.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
                                 </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
-                                <div className="flex flex-wrap gap-3 mb-4">
-                                    {galeria.map((img, idx) => (
-                                        <div key={idx} className="relative group">
-                                            <img src={img} alt={`Galeria ${idx}`} className="w-20 h-20 object-cover rounded-lg border border-slate-200 dark:border-slate-700" />
-                                            <button
-                                                onClick={() => setGaleria(prev => prev.filter((_, i) => i !== idx))}
-                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                                                title="Remover foto"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {galeria.length === 0 && (
-                                        <div className="w-full py-4 text-center text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed border-slate-300 dark:border-slate-700">
-                                            Nenhuma foto na galeria
-                                        </div>
-                                    )}
-                                </div>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={handleGalleryUpload}
-                                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                                />
-                            </div>
-
-                            {/* Limite de Bagagem */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Limite de Bagagem
-                                </label>
-                                <input
-                                    type="text"
-                                    value={limiteBagagem}
-                                    onChange={(e) => setLimiteBagagem(e.target.value)}
-                                    placeholder="Ex: 1 mala de 23kg + 1 bagagem de mão"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
-                                />
-                            </div>
-
-                            {/* Alertas */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Alertas Importantes
-                                </label>
-                                <textarea
-                                    value={alertas}
-                                    onChange={(e) => setAlertas(e.target.value)}
-                                    rows={3}
-                                    placeholder="Avisos importantes para os passageiros..."
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
-                                />
-                            </div>
-
-                            {/* Observações */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Observações Gerais
-                                </label>
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    rows={3}
-                                    placeholder="Observações internas ou gerais..."
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg"
-                                />
-                            </div>
+                    {/* Mídia e Detalhes */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Image size={14} className="text-primary" />
+                                Galeria e Conteúdo Público
+                            </h3>
                         </div>
-                    </div>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Capa da Viagem</label>
+                                    <div className="flex flex-col gap-4">
+                                        {imagemCapa ? (
+                                            <div className="relative aspect-video rounded-2xl overflow-hidden border border-border/50 group">
+                                                <img src={imagemCapa} alt="Capa" className="w-full h-full object-cover" />
+                                                <button
+                                                    onClick={() => setImagemCapa('')}
+                                                    className="absolute top-2 right-2 bg-destructive text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="aspect-video rounded-2xl bg-muted/40 border border-dashed border-border/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                                                <Image size={32} strokeWidth={1.5} />
+                                                <span className="text-[12px] font-semibold uppercase tracking-widest">Sem Imagem</span>
+                                            </div>
+                                        )}
+                                        <Button
+                                            variant="outline"
+                                            className="h-14 rounded-xl relative overflow-hidden text-[12px] font-semibold uppercase"
+                                        >
+                                            Selecionar Capa
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                            />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Galeria</label>
+                                        {galeria.length > 0 && (
+                                            <button
+                                                onClick={() => setShowGalleryClearConfirm(true)}
+                                                className="text-[12px] font-semibold uppercase text-destructive hover:underline"
+                                            >
+                                                Limpar Tudo
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {galeria.map((img, idx) => (
+                                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-border/50 group">
+                                                <img src={img} alt={`Galeria ${idx}`} className="w-full h-full object-cover" />
+                                                <button
+                                                    onClick={() => setGaleria(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <X size={10} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        <label className="aspect-square rounded-lg border border-dashed border-border/50 bg-muted/20 flex items-center justify-center cursor-pointer hover:bg-muted/40 transition-colors">
+                                            <Plus size={16} className="text-muted-foreground" />
+                                            <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" />
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-border/50">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Limite de Bagagem</label>
+                                    <input
+                                        type="text"
+                                        value={limiteBagagem}
+                                        onChange={(e) => setLimiteBagagem(e.target.value)}
+                                        placeholder="Ex: 1 mala 23kg + 1 mão"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Alertas para Passageiros</label>
+                                    <input
+                                        type="text"
+                                        value={alertas}
+                                        onChange={(e) => setAlertas(e.target.value)}
+                                        placeholder="Avisos importantes..."
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Coluna Lateral */}
-                <div className="space-y-6">
-                    {/* Veículo */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <Bus size={20} className="text-purple-600" />
-                            Veículo
-                        </h3>
-
-                        <select
-                            value={veiculoId}
-                            onChange={(e) => setVeiculoId(e.target.value)}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">-- Selecione --</option>
-                            {veiculos.map((veiculo) => (
-                                <option key={veiculo.id} value={veiculo.id}>
-                                    {veiculo.placa} - {veiculo.modelo}
-                                </option>
-                            ))}
-                        </select>
-
-                        {/* Preços - Only show after vehicle selection */}
-                        {veiculoId && (
-                            <div className="mt-6 space-y-4">
-                                <h4 className="font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2 text-sm">
-                                    <DollarSign size={16} className="text-green-600" />
-                                    Preços por Tipo de Assento
-                                </h4>
-                                <div className="grid gap-3">
-                                    {tiposAssento.map((tipo) => (
-                                        <div key={tipo} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">
-                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                                {tipo?.replace('_', ' ')}
-                                            </span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                    {moeda}
-                                                </span>
-                                                <input
-                                                    type="number"
-                                                    placeholder="0.00"
-                                                    step="0.01"
-                                                    min="0"
-                                                    value={precosPorTipo[tipo as string] || ''}
-                                                    onChange={(e) => handlePrecoChange(tipo as string, e.target.value)}
-                                                    className="w-24 p-1 text-right border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 rounded focus:ring-2 focus:ring-blue-500 text-sm"
-                                                />
-                                            </div>
-                                        </div>
+                {/* Coluna Lateral (1/3) */}
+                <div className="space-y-8">
+                    {/* Alocação de Recursos */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Bus size={14} className="text-primary" />
+                                Alocação de Veículo
+                            </h3>
+                        </div>
+                        <CardContent className="p-8 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Veículo Operante</label>
+                                <select
+                                    value={veiculoId}
+                                    onChange={(e) => setVeiculoId(e.target.value)}
+                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest"
+                                >
+                                    <option value="">NÃO ATRIBUÍDO</option>
+                                    {veiculos.map((v) => (
+                                        <option key={v.id} value={v.id}>{v.placa} - {v.modelo}</option>
                                     ))}
-                                </div>
+                                </select>
                             </div>
-                        )}
 
-                        {!veiculoId && (
-                            <p className="mt-6 text-sm text-slate-500 dark:text-slate-400 italic">
-                                Selecione um veículo para definir os preços por tipo de assento
-                            </p>
-                        )}
-                    </div>
+                            {veiculoId && tiposAssento.length > 0 && (
+                                <div className="pt-6 border-t border-border/50 space-y-4">
+                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                        <DollarSign size={12} className="text-emerald-500" />
+                                        Tarifários da Viagem
+                                    </h4>
+                                    <div className="space-y-2">
+                                        {tiposAssento.map((tipo) => (
+                                            <div key={tipo} className="flex items-center justify-between p-3 rounded-2xl bg-muted/20 border border-border/50">
+                                                <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{tipo?.replace('_', ' ')}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[12px] font-semibold text-muted-foreground">{moeda}</span>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={precosPorTipo[tipo as string] || ''}
+                                                        onChange={(e) => handlePrecoChange(tipo as string, e.target.value)}
+                                                        className="w-20 bg-transparent border-none text-right font-bold text-sm focus:ring-0 p-0"
+                                                        placeholder="0,00"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
-                    {/* Motoristas */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <Users size={20} className="text-orange-600" />
-                            Motoristas
-                        </h3>
+                            {!veiculoId && (
+                                <div className="p-4 rounded-2xl bg-muted/20 border border-dashed border-border/50">
+                                    <p className="text-[12px] font-medium text-muted-foreground italic text-center leading-relaxed">
+                                        Selecione um veículo para habilitar a definição dos preços por categoria de assento.
+                                    </p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
-                        <SeletorMotoristaMultiplo
-                            motoristas={motoristas}
-                            selecionados={motoristaIds}
-                            onChange={setMotoristaIds}
-                            maxHeight="300px"
-                        />
-                    </div>
+                    {/* Tripulação */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Users size={14} className="text-primary" />
+                                Tripulação Responsável
+                            </h3>
+                        </div>
+                        <CardContent className="p-8">
+                            <SeletorMotoristaMultiplo
+                                motoristas={motoristas}
+                                selecionados={motoristaIds}
+                                onChange={setMotoristaIds}
+                                maxHeight="300px"
+                            />
+                        </CardContent>
+                    </Card>
+
+                    {/* Notas Internas */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Clock size={14} className="text-primary" />
+                                Observações do Operador
+                            </h3>
+                        </div>
+                        <CardContent className="p-8">
+                            <textarea
+                                value={notes}
+                                onChange={(e) => setNotes(e.target.value)}
+                                rows={4}
+                                placeholder="Notas internas para controle operacional..."
+                                className="w-full p-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
+                            />
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
+            <AlertDialog open={showGalleryClearConfirm} onOpenChange={setShowGalleryClearConfirm}>
+                <AlertDialogContent className="rounded-[2.5rem] p-10">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-2xl font-semibold uppercase tracking-tight">Limpar Galeria</AlertDialogTitle>
+                        <AlertDialogDescription className="text-muted-foreground">
+                            Tem certeza que deseja remover todas as fotos da galeria? Esta ação não pode ser desfeita e removerá os links permanentemente.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="mt-8 gap-3">
+                        <AlertDialogCancel className="h-14 rounded-2xl px-6 font-semibold uppercase text-[12px] tracking-widest border-border/50">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                setGaleria([]);
+                                setShowGalleryClearConfirm(false);
+                            }}
+                            className="h-14 rounded-2xl px-8 bg-destructive hover:bg-destructive/90 text-white font-semibold uppercase text-[12px] tracking-widest"
+                        >
+                            Remover Todas
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

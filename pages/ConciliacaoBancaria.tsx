@@ -5,30 +5,32 @@ import { ImportadorExtrato } from '../components/Financeiro/ImportadorExtrato';
 import { ConciliacaoCard } from '../components/Financeiro/ConciliacaoCard';
 import { findMatches } from '../utils/conciliacaoMatcher';
 import { IExtratoBancario, ITransacaoBancaria, ITransacao, TipoTransacao, StatusTransacao, Moeda, CentroCusto } from '../types';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { CheckCircle2 } from 'lucide-react';
 
 // Mock data para simular transações do sistema (em produção viria da API/Store)
 const MOCK_SISTEMA_TRANSACOES: ITransacao[] = [
     {
         id: 'sis-1',
-        tipo: TipoTransacao.RECEITA,
+        tipo: TipoTransacao.INCOME,
         descricao: 'Venda de Passagem - João Silva',
         valor: 150.00,
         moeda: Moeda.BRL,
         data_emissao: '2023-11-20',
         data_vencimento: '2023-11-20',
-        status: StatusTransacao.PAGA,
+        status: StatusTransacao.PAID,
         criado_por: 'admin',
         criado_em: '2023-11-20T10:00:00Z'
     },
     {
         id: 'sis-2',
-        tipo: TipoTransacao.DESPESA,
+        tipo: TipoTransacao.EXPENSE,
         descricao: 'Posto Ipiranga - Abastecimento',
         valor: 350.50,
         moeda: Moeda.BRL,
         data_emissao: '2023-11-21',
         data_vencimento: '2023-11-21',
-        status: StatusTransacao.PAGA,
+        status: StatusTransacao.PAID,
         criado_por: 'admin',
         criado_em: '2023-11-21T14:30:00Z'
     }
@@ -39,6 +41,7 @@ export const ConciliacaoBancaria: React.FC = () => {
     const [extrato, setExtrato] = useState<IExtratoBancario | null>(null);
     const [matches, setMatches] = useState<any[]>([]);
     const [transacoesSistema, setTransacoesSistema] = useState<ITransacao[]>(MOCK_SISTEMA_TRANSACOES);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const handleImport = (novoExtrato: IExtratoBancario) => {
         setExtrato(novoExtrato);
@@ -60,20 +63,21 @@ export const ConciliacaoBancaria: React.FC = () => {
         }));
 
         // TODO: Atualizar transação do sistema via API
-        alert(`Conciliado! Banco: ${idBancario} <-> Sistema: ${idSistema}`);
+        setSuccess(`Conciliado! Banco: ${idBancario} <-> Sistema: ${idSistema}`);
+        setTimeout(() => setSuccess(null), 3000);
     };
 
     const handleCriar = (transacaoBancaria: ITransacaoBancaria) => {
         // Criar nova transação no sistema baseada no extrato
         const novaTransacao: ITransacao = {
             id: `new-${Date.now()}`,
-            tipo: transacaoBancaria.tipo === 'CREDITO' ? TipoTransacao.RECEITA : TipoTransacao.DESPESA,
+            tipo: transacaoBancaria.tipo === 'CREDITO' ? TipoTransacao.INCOME : TipoTransacao.EXPENSE,
             descricao: transacaoBancaria.descricao,
             valor: transacaoBancaria.valor,
             moeda: Moeda.BRL,
             data_emissao: transacaoBancaria.data,
             data_vencimento: transacaoBancaria.data,
-            status: StatusTransacao.PAGA,
+            status: StatusTransacao.PAID,
             criado_por: 'conciliacao',
             criado_em: new Date().toISOString(),
             centro_custo: transacaoBancaria.tipo === 'CREDITO' ? CentroCusto.VENDAS : undefined // Sugestão básica
@@ -94,7 +98,8 @@ export const ConciliacaoBancaria: React.FC = () => {
             return m;
         }));
 
-        alert('Transação criada e conciliada com sucesso!');
+        setSuccess('Transação criada e conciliada com sucesso!');
+        setTimeout(() => setSuccess(null), 3000);
     };
 
     const handleIgnorar = (idBancario: string) => {
@@ -115,6 +120,13 @@ export const ConciliacaoBancaria: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            {success && (
+                <Alert className="border-emerald-500 text-emerald-600 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <AlertTitle>Sucesso</AlertTitle>
+                    <AlertDescription>{success}</AlertDescription>
+                </Alert>
+            )}
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">

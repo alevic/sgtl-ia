@@ -2,15 +2,27 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     DollarSign, TrendingUp, TrendingDown, Calendar, Plus, FileText,
-    CreditCard, AlertCircle, ArrowUpRight, ArrowDownRight, PieChart
+    CreditCard, AlertCircle, ArrowUpRight, ArrowDownRight, PieChart,
+    Wallet, Receipt, ArrowUpDown, ChevronRight, Inbox, Loader2
 } from 'lucide-react';
 import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa, StatusTransacaoLabel } from '../types';
-
-// Mock data - em produção viria do backend
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "../components/ui/table";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { cn } from "../lib/utils";
 
 export const Financeiro: React.FC = () => {
     const navigate = useNavigate();
@@ -42,30 +54,29 @@ export const Financeiro: React.FC = () => {
 
     useEffect(() => {
         fetchTransacoes();
-    }, [currentContext]); // Refetch when context changes (which changes active org)
+    }, [currentContext]);
 
-    // Cálculos financeiros
     const resumo = useMemo(() => {
         const receitas = transacoes
-            .filter(t => t.tipo === TipoTransacao.INCOME && t.status !== StatusTransacao.CANCELLED)
+            .filter(t => (t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA') && t.status !== StatusTransacao.CANCELLED)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesas = transacoes
-            .filter(t => t.tipo === TipoTransacao.EXPENSE && t.status !== StatusTransacao.CANCELLED)
+            .filter(t => (t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA') && t.status !== StatusTransacao.CANCELLED)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const saldo = receitas - despesas;
 
         const receitasPagas = transacoes
-            .filter(t => t.tipo === TipoTransacao.INCOME && t.status === StatusTransacao.PAID)
+            .filter(t => (t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA') && (t.status === StatusTransacao.PAID || (t.status as any) === 'PAGA'))
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesasPagas = transacoes
-            .filter(t => t.tipo === TipoTransacao.EXPENSE && t.status === StatusTransacao.PAID)
+            .filter(t => (t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA') && (t.status === StatusTransacao.PAID || (t.status as any) === 'PAGA'))
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const contasVencidas = transacoes.filter(t => {
-            if (t.status !== StatusTransacao.PENDING) return false;
+            if (t.status !== StatusTransacao.PENDING && (t.status as any) !== 'PENDENTE') return false;
             const vencimento = new Date(t.data_vencimento);
             return vencimento < new Date();
         }).length;
@@ -85,303 +96,234 @@ export const Financeiro: React.FC = () => {
     };
 
     const getStatusBadge = (status: StatusTransacao) => {
-        const styles: Record<string, string> = {
-            [StatusTransacao.PAID]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-            [StatusTransacao.PENDING]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-            [StatusTransacao.OVERDUE]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-            [StatusTransacao.CANCELLED]: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
-            [StatusTransacao.PARTIALLY_PAID]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-            // Legacy fallbacks
-            'PAGA': 'bg-green-100 text-green-700',
-            'PENDENTE': 'bg-yellow-100 text-yellow-700',
-            'VENCIDA': 'bg-red-100 text-red-700',
-            'CANCELADA': 'bg-slate-100 text-slate-700',
-            'PARCIALMENTE_PAGA': 'bg-blue-100 text-blue-700'
+        const configs: Record<string, { className: string }> = {
+            [StatusTransacao.PAID]: { className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+            [StatusTransacao.PENDING]: { className: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+            [StatusTransacao.OVERDUE]: { className: "bg-destructive/10 text-destructive border-destructive/20" },
+            [StatusTransacao.CANCELLED]: { className: "bg-muted text-muted-foreground border-border" },
+            [StatusTransacao.PARTIALLY_PAID]: { className: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+            'PAGA': { className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+            'PENDENTE': { className: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+            'VENCIDA': { className: "bg-destructive/10 text-destructive border-destructive/20" },
+            'CANCELADA': { className: "bg-muted text-muted-foreground border-border" },
+            'PARCIALMENTE_PAGA': { className: "bg-blue-500/10 text-blue-600 border-blue-500/20" }
         };
 
+        const config = configs[status] || configs[StatusTransacao.PENDING];
+
         return (
-            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${styles[status] || styles[StatusTransacao.PENDING]}`}>
+            <Badge variant="outline" className={cn("font-bold px-2 py-0.5 rounded-lg text-[12px] uppercase tracking-wider", config.className)}>
                 {StatusTransacaoLabel[status] || status}
-            </span>
+            </Badge>
         );
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div key="financeiro-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Financeiro</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Visão geral das finanças</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                            <Wallet className="text-primary w-6 h-6" strokeWidth={2.5} />
+                        </div>
+                        <h1 className="text-4xl font-black tracking-tighter text-foreground">
+                            Gestão <span className="text-primary">Financeira</span>
+                        </h1>
+                    </div>
+                    <p className="text-muted-foreground font-medium text-sm ml-1">Fluxo de caixa e controle de transações</p>
                 </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={() => navigate('/admin/financeiro/transacoes/nova')}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                    >
-                        <Plus size={18} />
-                        Nova Transação
-                    </button>
-                </div>
+                <Button
+                    onClick={() => navigate('/admin/financeiro/transacoes/nova')}
+                    className="h-14 px-6 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                >
+                    <Plus size={20} className="mr-2" strokeWidth={3} />
+                    NOVA TRANSAÇÃO
+                </Button>
             </div>
 
-            {/* Filtro de Período */}
-            <div className="flex gap-2 border-b border-slate-200 dark:border-slate-700">
-                <button
-                    onClick={() => setPeriodoSelecionado('mes')}
-                    className={`px-4 py-2 font-medium transition-colors border-b-2 ${periodoSelecionado === 'mes'
-                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                        }`}
-                >
-                    Este Mês
-                </button>
-                <button
-                    onClick={() => setPeriodoSelecionado('trimestre')}
-                    className={`px-4 py-2 font-medium transition-colors border-b-2 ${periodoSelecionado === 'trimestre'
-                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                        }`}
-                >
-                    Trimestre
-                </button>
-                <button
-                    onClick={() => setPeriodoSelecionado('ano')}
-                    className={`px-4 py-2 font-medium transition-colors border-b-2 ${periodoSelecionado === 'ano'
-                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
-                        }`}
-                >
-                    Este Ano
-                </button>
-            </div>
+            {/* Period Filter */}
+            <Tabs value={periodoSelecionado} onValueChange={(v: any) => setPeriodoSelecionado(v)} className="w-fit bg-muted/40 p-1 rounded-2xl border border-border/50">
+                <TabsList className="bg-transparent h-10 gap-1">
+                    <TabsTrigger value="mes" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm">ESTE MÊS</TabsTrigger>
+                    <TabsTrigger value="trimestre" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Trimestre</TabsTrigger>
+                    <TabsTrigger value="ano" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Este Ano</TabsTrigger>
+                </TabsList>
+            </Tabs>
 
-            {/* Cards de Resumo */}
+            {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Receitas */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Receitas</span>
-                        <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                            <TrendingUp size={20} className="text-green-600 dark:text-green-400" />
-                        </div>
-                    </div>
-                    <p className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                        {formatCurrency(resumo.receitas)}
-                    </p>
-                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                        <ArrowUpRight size={14} />
-                        {formatCurrency(resumo.receitasPagas)} recebidas
-                    </p>
-                </div>
-
-                {/* Despesas */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Despesas</span>
-                        <div className="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-                            <TrendingDown size={20} className="text-red-600 dark:text-red-400" />
-                        </div>
-                    </div>
-                    <p className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
-                        {formatCurrency(resumo.despesas)}
-                    </p>
-                    <p className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-                        <ArrowDownRight size={14} />
-                        {formatCurrency(resumo.despesasPagas)} pagas
-                    </p>
-                </div>
-
-                {/* Saldo */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Saldo</span>
-                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                            <DollarSign size={20} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                    </div>
-                    <p className={`text-2xl font-bold mb-1 ${resumo.saldo >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                        }`}>
-                        {formatCurrency(resumo.saldo)}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {resumo.saldo >= 0 ? 'Superávit' : 'Déficit'}
-                    </p>
-                </div>
-
-                {/* Contas Vencidas */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Vencidas</span>
-                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center">
-                            <AlertCircle size={20} className="text-amber-600 dark:text-amber-400" />
-                        </div>
-                    </div>
-                    <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mb-1">
-                        {resumo.contasVencidas}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Contas pendentes
-                    </p>
-                </div>
-            </div>
-
-            {/* Ações Rápidas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <button
-                    onClick={() => navigate('/admin/financeiro/contas-receber')}
-                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <ArrowUpRight size={24} className="text-green-600 dark:text-green-400" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                Contas a Receber
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Gerenciar receitas
-                            </p>
-                        </div>
-                    </div>
-                </button>
-
-                <button
-                    onClick={() => navigate('/admin/financeiro/contas-pagar')}
-                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <ArrowDownRight size={24} className="text-red-600 dark:text-red-400" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                Contas a Pagar
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Gerenciar despesas
-                            </p>
-                        </div>
-                    </div>
-                </button>
-
-                <button
-                    onClick={() => navigate('/admin/relatorios')}
-                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FileText size={24} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                Relatórios
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                DRE, Fluxo de Caixa
-                            </p>
-                        </div>
-                    </div>
-                </button>
-
-                <button
-                    onClick={() => navigate('/admin/financeiro/centros-custo')}
-                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <PieChart size={24} className="text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                Centros de Custo
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Análise de custos
-                            </p>
-                        </div>
-                    </div>
-                </button>
-
-                <button
-                    onClick={() => navigate('/admin/financeiro/conciliacao')}
-                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 hover:border-blue-300 dark:hover:border-blue-700 transition-colors text-left group"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <FileText size={24} className="text-orange-600 dark:text-orange-400" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                Conciliação Bancária
-                            </p>
-                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Importar extrato
-                            </p>
-                        </div>
-                    </div>
-                </button>
-            </div>
-
-            {/* Transações Recentes */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Transações Recentes</h2>
-                        <button
-                            onClick={() => navigate('/admin/financeiro/transacoes')}
-                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                            Ver todas
-                        </button>
-                    </div>
-                </div>
-                <div className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {isLoading ? (
-                        <div className="p-8 text-center text-slate-500">Carregando transações...</div>
-                    ) : transacoes.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500">Nenhuma transação encontrada.</div>
-                    ) : (
-                        transacoes.slice(0, 5).map((transacao) => (
-                            <div key={transacao.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3 flex-1">
-                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME'
-                                            ? 'bg-green-100 dark:bg-green-900/30'
-                                            : 'bg-red-100 dark:bg-red-900/30'
-                                            }`}>
-                                            {transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME' ? (
-                                                <ArrowUpRight size={20} className="text-green-600 dark:text-green-400" />
-                                            ) : (
-                                                <ArrowDownRight size={20} className="text-red-600 dark:text-red-400" />
-                                            )}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-slate-800 dark:text-white truncate">
-                                                {transacao.descricao}
-                                            </p>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                {formatDate(transacao.data_emissao)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        {getStatusBadge(transacao.status)}
-                                        <p className={`text-lg font-semibold ${transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME'
-                                            ? 'text-green-600 dark:text-green-400'
-                                            : 'text-red-600 dark:text-red-400'
-                                            }`}>
-                                            {transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME' ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
-                                        </p>
-                                        <TransactionActions transacao={transacao} onUpdate={fetchTransacoes} />
-                                    </div>
+                {[
+                    { label: 'Receitas Totais', value: resumo.receitas, secondaryValue: `${formatCurrency(resumo.receitasPagas)} recebidas`, icon: TrendingUp, color: 'emerald' },
+                    { label: 'Despesas Totais', value: resumo.despesas, secondaryValue: `${formatCurrency(resumo.despesasPagas)} pagas`, icon: TrendingDown, color: 'red' },
+                    { label: 'Saldo Atual', value: resumo.saldo, secondaryValue: resumo.saldo >= 0 ? 'Superávit' : 'Déficit', icon: Wallet, color: resumo.saldo >= 0 ? 'blue' : 'red' },
+                    { label: 'Contas Vencidas', value: resumo.contasVencidas, secondaryValue: 'Necessitam atenção', icon: AlertCircle, color: resumo.contasVencidas > 0 ? 'amber' : 'muted' }
+                ].map((stat, i) => (
+                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                        <CardContent className="p-6">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-1">
+                                    <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
+                                    <p className={cn(
+                                        "text-2xl font-black tracking-tighter",
+                                        i === 2 && stat.value < 0 ? "text-destructive" : i === 2 ? "text-emerald-600" : "text-foreground"
+                                    )}>
+                                        {i === 3 ? stat.value : formatCurrency(stat.value)}
+                                    </p>
+                                    <p className="text-[12px] font-bold text-muted-foreground/60 uppercase">{stat.secondaryValue}</p>
+                                </div>
+                                <div className={cn(
+                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                    stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
+                                        stat.color === 'red' ? "bg-destructive/10 text-destructive" :
+                                            stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
+                                                stat.color === 'amber' ? "bg-amber-500/10 text-amber-600" :
+                                                    "bg-muted text-muted-foreground"
+                                )}>
+                                    <stat.icon size={20} strokeWidth={2.5} />
                                 </div>
                             </div>
-                        ))
-                    )}
-                </div>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
+
+            {/* Quick Actions Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                {[
+                    { label: 'Contas a Receber', icon: ArrowUpRight, color: 'emerald', path: '/admin/financeiro/contas-receber' },
+                    { label: 'Contas a Pagar', icon: ArrowDownRight, color: 'red', path: '/admin/financeiro/contas-pagar' },
+                    { label: 'Relatórios', icon: FileText, color: 'blue', path: '/admin/relatorios' },
+                    { label: 'Centros de Custo', icon: PieChart, color: 'purple', path: '/admin/financeiro/centros-custo' },
+                    { label: 'Conciliação', icon: Receipt, color: 'amber', path: '/admin/financeiro/conciliacao' }
+                ].map((action, i) => (
+                    <button
+                        key={i}
+                        onClick={() => navigate(action.path)}
+                        className="p-5 flex items-center gap-4 bg-card/50 backdrop-blur-sm rounded-3xl border border-border/50 hover:border-primary/30 hover:bg-card transition-all group text-left shadow-lg shadow-muted/10 active:scale-95"
+                    >
+                        <div className={cn(
+                            "w-12 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm",
+                            action.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
+                                action.color === 'red' ? "bg-destructive/10 text-destructive" :
+                                    action.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
+                                        action.color === 'purple' ? "bg-purple-500/10 text-purple-600" :
+                                            "bg-amber-500/10 text-amber-600"
+                        )}>
+                            <action.icon size={24} strokeWidth={2.5} />
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="font-black text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">{action.label}</p>
+                            <p className="text-[12px] font-bold text-muted-foreground opacity-60 uppercase tracking-widest flex items-center gap-1">
+                                Acessar <ChevronRight size={10} strokeWidth={3} />
+                            </p>
+                        </div>
+                    </button>
+                ))}
+            </div>
+
+            {/* Recent Transactions Table */}
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                <div className="p-8 border-b border-border/50 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-xl">
+                            <ArrowUpDown className="w-5 h-5 text-primary" strokeWidth={2.5} />
+                        </div>
+                        <h2 className="text-xl font-black tracking-tight">Transações Recentes</h2>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/admin/financeiro/transacoes')}
+                        className="rounded-xl font-black text-xs hover:bg-primary/10 text-primary"
+                    >
+                        VER TODAS AS TRANSAÇÕES
+                    </Button>
+                </div>
+
+                <Table>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="hover:bg-transparent border-border/50">
+                            <TableHead className="pl-8 h-14 text-[12px] font-black uppercase tracking-widest">Descrição / Emissão</TableHead>
+                            <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Tipo</TableHead>
+                            <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Status</TableHead>
+                            <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Valor</TableHead>
+                            <TableHead className="pr-8 h-14 text-[12px] font-black uppercase tracking-widest text-right">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-64 text-center">
+                                    <div className="flex flex-col items-center gap-3 animate-pulse">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                            <Loader2 className="animate-spin" />
+                                        </div>
+                                        <p className="font-black text-sm tracking-widest text-muted-foreground uppercase">Carregando registro...</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : transacoes.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="h-64 text-center">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Inbox className="w-12 h-14 text-muted-foreground/30" />
+                                        <p className="font-bold text-sm text-muted-foreground">Nenhuma transação encontrada</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            transacoes.slice(0, 10).map((transacao) => {
+                                const isIncome = transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME';
+
+                                return (
+                                    <TableRow key={transacao.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                        <TableCell className="pl-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110",
+                                                    isIncome ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"
+                                                )}>
+                                                    {isIncome ? <ArrowUpRight size={20} strokeWidth={2.5} /> : <ArrowDownRight size={20} strokeWidth={2.5} />}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-black text-sm tracking-tight text-foreground">{transacao.descricao}</span>
+                                                    <span className="text-[12px] font-bold text-muted-foreground/60 tracking-wider">
+                                                        {formatDate(transacao.data_emissao)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant="secondary" className={cn(
+                                                "font-black text-[9px] uppercase",
+                                                isIncome ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"
+                                            )}>
+                                                {isIncome ? 'Receita' : 'Despesa'}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            {getStatusBadge(transacao.status)}
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <span className={cn(
+                                                    "text-sm font-black",
+                                                    isIncome ? "text-emerald-600" : "text-destructive"
+                                                )}>
+                                                    {isIncome ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="pr-8 text-right">
+                                            <TransactionActions transacao={transacao} onUpdate={fetchTransacoes} />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
+                    </TableBody>
+                </Table>
+            </Card>
         </div>
     );
 };

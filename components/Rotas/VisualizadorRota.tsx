@@ -136,7 +136,7 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                     const isDestino = ponto.tipo === 'DESTINO';
 
                     // Não mostrar badge se o nome já contiver "Origem" ou "Destino"
-                    const showBadge = !ponto.nome.toLowerCase().includes(ponto.tipo.toLowerCase());
+                    const showBadge = !ponto.nome?.toLowerCase().includes(ponto.tipo.toLowerCase());
 
                     return (
                         <div key={ponto.id || index} className="relative flex gap-4">
@@ -160,7 +160,7 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                                                 {ponto.nome}
                                             </span>
                                             {showBadge && (
-                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isOrigem ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                                <span className={`px-2 py-0.5 rounded text-[12px] font-bold uppercase tracking-wider ${isOrigem ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                                                     isDestino ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                                         'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                                                     }`}>
@@ -217,12 +217,12 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
                                 {ponto.tipo === 'PARADA_INTERMEDIARIA' && (ponto.permite_embarque || ponto.permite_desembarque) && (
                                     <div className="flex gap-2 mt-2">
                                         {ponto.permite_embarque && (
-                                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-green-200 text-green-700 bg-green-50 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+                                            <span className="text-[12px] font-medium px-1.5 py-0.5 rounded border border-green-200 text-green-700 bg-green-50 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
                                                 Embarque
                                             </span>
                                         )}
                                         {ponto.permite_desembarque && (
-                                            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-red-200 text-red-700 bg-red-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
+                                            <span className="text-[12px] font-medium px-1.5 py-0.5 rounded border border-red-200 text-red-700 bg-red-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-400">
                                                 Desembarque
                                             </span>
                                         )}

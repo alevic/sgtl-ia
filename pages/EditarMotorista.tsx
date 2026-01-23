@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase } from 'lucide-react';
+import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase, Loader, CheckCircle2, Mail, CheckCircle } from 'lucide-react';
 import { DatePicker } from '../components/Form/DatePicker';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Button } from '../components/ui/button';
+import { Card, CardContent } from '../components/ui/card';
+import { cn } from '../lib/utils';
+import { DriverStatus } from '../types';
 
 export const EditarMotorista: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -9,7 +14,7 @@ export const EditarMotorista: React.FC = () => {
 
     // Dados Pessoais
     const [nome, setNome] = useState('');
-    const [status, setStatus] = useState<'DISPONIVEL' | 'EM_VIAGEM' | 'FERIAS' | 'AFASTADO'>('DISPONIVEL');
+    const [status, setStatus] = useState<DriverStatus>(DriverStatus.AVAILABLE);
 
     // Documentação
     const [cnh, setCnh] = useState('');
@@ -41,9 +46,12 @@ export const EditarMotorista: React.FC = () => {
 
     // Observações
     const [observacoes, setObservacoes] = useState('');
+    const [isSearchingCep, setIsSearchingCep] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
     const [isFetching, setIsFetching] = useState(true);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     useEffect(() => {
         const fetchMotorista = async () => {
@@ -63,7 +71,7 @@ export const EditarMotorista: React.FC = () => {
 
                 // Populate form
                 setNome(data.nome || '');
-                setStatus(data.status || 'DISPONIVEL');
+                setStatus(data.status || DriverStatus.AVAILABLE);
                 setCnh(data.cnh || '');
                 setCategoriaCnh(data.categoria_cnh || 'D');
                 setValidadeCnh(data.validade_cnh ? data.validade_cnh.split('T')[0] : '');
@@ -81,8 +89,8 @@ export const EditarMotorista: React.FC = () => {
 
             } catch (error) {
                 console.error("Erro ao buscar motorista:", error);
-                alert('Erro ao carregar motorista. Redirecionando...');
-                navigate('/admin/motoristas');
+                setError('Erro ao carregar motorista. Redirecionando...');
+                setTimeout(() => navigate('/admin/motoristas'), 2000);
             } finally {
                 setIsFetching(false);
             }
@@ -107,17 +115,20 @@ export const EditarMotorista: React.FC = () => {
     const passaporteValidadeInfo = verificarValidade(validadePassaporte);
 
     const handleSalvar = async () => {
+        setError('');
+        setSuccess('');
+
         // Validações básicas
         if (!nome.trim()) {
-            alert('Nome é obrigatório');
+            setError('Nome é obrigatório');
             return;
         }
         if (!cnh.trim()) {
-            alert('Número da CNH é obrigatório');
+            setError('Número da CNH é obrigatório');
             return;
         }
         if (!validadeCnh) {
-            alert('Validade da CNH é obrigatória');
+            setError('Validade da CNH é obrigatória');
             return;
         }
 
@@ -156,13 +167,39 @@ export const EditarMotorista: React.FC = () => {
                 throw new Error('Failed to update driver');
             }
 
-            alert(`Motorista ${nome} atualizado com sucesso!`);
-            navigate(`/admin/motoristas/${id}`);
+            setSuccess(`Motorista ${nome} atualizado com sucesso!`);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => navigate(`/admin/motoristas/${id}`), 2000);
         } catch (error) {
             console.error("Erro ao atualizar motorista:", error);
-            alert('Erro ao atualizar motorista. Por favor, tente novamente.');
+            setError('Erro ao atualizar motorista. Por favor, tente novamente.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawCep = e.target.value.replace(/\D/g, '');
+        setCep(rawCep);
+
+        if (rawCep.length === 8) {
+            setIsSearchingCep(true);
+            try {
+                const response = await fetch(`https://viacep.com.br/ws/${rawCep}/json/`);
+                const data = await response.json();
+
+                if (!data.erro) {
+                    // Preenche campos se encontrados
+                    if (data.logradouro) setEndereco(data.logradouro);
+                    if (data.localidade) setCidade(data.localidade);
+                    if (data.uf) setEstado(data.uf);
+                }
+            } catch (err) {
+                console.error("Erro ao buscar CEP:", err);
+            } finally {
+                setIsSearchingCep(false);
+            }
         }
     };
 
@@ -175,419 +212,371 @@ export const EditarMotorista: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate(`/admin/motoristas/${id}`)}
-                    className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Editar Motorista</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Atualize as informações do motorista</p>
+        <div key="editar-motorista-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate(`/admin/motoristas/${id}`)}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Painel do Motorista</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">
+                            EDITAR <span className="text-primary italic">MOTORISTA</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Atualize as qualificações e dados operacionais do colaborador
+                        </p>
+                    </div>
                 </div>
-                <button
-                    onClick={handleSalvar}
-                    disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Save size={18} />
-                    {isLoading ? 'Salvando...' : 'Salvar Alterações'}
-                </button>
+
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate(`/admin/motoristas/${id}`)}
+                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleSalvar}
+                        disabled={isLoading}
+                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                        {isLoading ? 'Sincronizando...' : 'Atualizar Registro'}
+                    </Button>
+                </div>
             </div>
 
-            <div className="max-w-4xl mx-auto space-y-6">
-                {/* Dados Pessoais */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <User size={20} className="text-blue-600" />
-                        Dados Pessoais
-                    </h3>
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro na Atualização</AlertTitle>
+                    <AlertDescription className="text-xs font-medium">
+                        {error}
+                    </AlertDescription>
+                </Alert>
+            )}
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Nome Completo *
-                            </label>
-                            <input
-                                type="text"
-                                value={nome}
-                                onChange={(e) => setNome(e.target.value)}
-                                placeholder="Ex: Carlos Alberto Silva"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
+            {success && (
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                    <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
+                    <AlertDescription className="text-xs font-medium text-emerald-600/80">
+                        {success}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Coluna Principal */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Dados Pessoais */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <User size={14} className="text-primary" />
+                                Identificação e Perfil
+                            </h3>
                         </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Status Inicial
-                            </label>
-                            <select
-                                value={status}
-                                onChange={(e) => setStatus(e.target.value as typeof status)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="DISPONIVEL">Disponível</option>
-                                <option value="FERIAS">Férias</option>
-                                <option value="AFASTADO">Afastado</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                {/* CNH */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <FileText size={20} className="text-blue-600" />
-                        CNH - Carteira Nacional de Habilitação
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Número da CNH *
-                            </label>
-                            <input
-                                type="text"
-                                value={cnh}
-                                onChange={(e) => setCnh(e.target.value.replace(/\D/g, ''))}
-                                placeholder="12345678900"
-                                maxLength={11}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Categoria *
-                            </label>
-                            <select
-                                value={categoriaCnh}
-                                onChange={(e) => setCategoriaCnh(e.target.value)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="A">A - Motocicleta</option>
-                                <option value="B">B - Carro</option>
-                                <option value="C">C - Veículos de Carga</option>
-                                <option value="D">D - Ônibus e Van</option>
-                                <option value="E">E - Articulados</option>
-                                <option value="AB">AB - A + B</option>
-                                <option value="AC">AC - A + C</option>
-                                <option value="AD">AD - A + D</option>
-                                <option value="AE">AE - A + E</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Validade *
-                            </label>
-                            <DatePicker
-                                value={validadeCnh}
-                                onChange={setValidadeCnh}
-                                placeholder="DD/MM/AAAA"
-                            />
-                        </div>
-                    </div>
-
-                    {cnhValidade && (
-                        <div className={`mt-4 p-3 rounded-lg border ${cnhValidade.cor === 'red'
-                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                            : cnhValidade.cor === 'orange'
-                                ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
-                                : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                            }`}>
-                            <div className="flex items-center gap-2">
-                                <AlertTriangle size={18} className={`text-${cnhValidade.cor}-600`} />
-                                <p className={`text-sm font-medium text-${cnhValidade.cor}-700 dark:text-${cnhValidade.cor}-300`}>
-                                    CNH: {cnhValidade.texto}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Contatos */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <Phone size={20} className="text-green-600" />
-                        Contatos
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Telefone Principal
-                            </label>
-                            <input
-                                type="tel"
-                                value={telefone}
-                                onChange={(e) => setTelefone(e.target.value)}
-                                placeholder="(11) 98765-4321"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="motorista@email.com"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Endereço */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <MapPin size={20} className="text-red-600" />
-                        Endereço
-                    </h3>
-
-                    <div className="grid grid-cols-1 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Endereço Completo
-                            </label>
-                            <input
-                                type="text"
-                                value={endereco}
-                                onChange={(e) => setEndereco(e.target.value)}
-                                placeholder="Rua, número, complemento"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    CEP
-                                </label>
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo *</label>
                                 <input
                                     type="text"
-                                    value={cep}
-                                    onChange={(e) => setCep(e.target.value.replace(/\D/g, ''))}
-                                    placeholder="12345-678"
-                                    maxLength={8}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    value={nome}
+                                    onChange={(e) => setNome(e.target.value)}
+                                    placeholder="Ex: Carlos Alberto Silva"
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Cidade
-                                </label>
-                                <input
-                                    type="text"
-                                    value={cidade}
-                                    onChange={(e) => setCidade(e.target.value)}
-                                    placeholder="São Paulo"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    Estado
-                                </label>
-                                <input
-                                    type="text"
-                                    value={estado}
-                                    onChange={(e) => setEstado(e.target.value.toUpperCase())}
-                                    placeholder="SP"
-                                    maxLength={2}
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                    País
-                                </label>
-                                <input
-                                    type="text"
-                                    value={pais}
-                                    onChange={(e) => setPais(e.target.value)}
-                                    placeholder="Brasil"
-                                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Escalas e Gestão */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <Briefcase size={20} className="text-purple-600" />
-                        Informações para Escalas e Gestão
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-2">
-                                <Calendar size={14} className="text-blue-600" />
-                                Data de Admissão
-                            </label>
-                            <DatePicker
-                                value={dataAdmissao}
-                                onChange={setDataAdmissao}
-                                placeholder="DD/MM/AAAA"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Jornada de Trabalho
-                            </label>
-                            <select
-                                value={jornadaTrabalho}
-                                onChange={(e) => setJornadaTrabalho(e.target.value as typeof jornadaTrabalho)}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="DIURNA">Diurna</option>
-                                <option value="NOTURNA">Noturna</option>
-                                <option value="MISTA">Mista</option>
-                                <option value="FLEXIVEL">Flexível</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Horas Semanais
-                            </label>
-                            <input
-                                type="number"
-                                value={horasSemanais}
-                                onChange={(e) => setHorasSemanais(e.target.value)}
-                                placeholder="44"
-                                min="1"
-                                max="60"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <div className="border-t border-slate-200 dark:border-slate-600 pt-4 mt-2">
-                                <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3">Disponibilidade</h4>
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status Operacional</label>
+                                    <select
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value as DriverStatus)}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                    >
+                                        <option value={DriverStatus.AVAILABLE}>Disponível</option>
+                                        <option value={DriverStatus.IN_TRANSIT}>Em Viagem</option>
+                                        <option value={DriverStatus.ON_LEAVE}>Férias</option>
+                                        <option value={DriverStatus.AWAY}>Afastado</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Email Corporativo</label>
+                                    <div className="relative group">
+                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                                         <input
-                                            type="checkbox"
-                                            checked={disponivelViagensLongas}
-                                            onChange={(e) => setDisponivelViagensLongas(e.target.checked)}
-                                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="motorista@email.com"
+                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            Disponível para viagens longas
-                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Endereço */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <MapPin size={14} className="text-primary" />
+                                Residência e Localização
+                            </h3>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-1.5 md:col-span-1">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">CEP</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={cep}
+                                            onChange={handleCepChange}
+                                            placeholder="00000000"
+                                            maxLength={8}
+                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        />
+                                        {isSearchingCep && <Loader className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />}
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Logradouro / Endereço</label>
+                                    <input
+                                        type="text"
+                                        value={endereco}
+                                        onChange={(e) => setEndereco(e.target.value)}
+                                        placeholder="Rua, número, complemento"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Cidade</label>
+                                    <input
+                                        type="text"
+                                        value={cidade}
+                                        onChange={(e) => setCidade(e.target.value)}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Estado (UF)</label>
+                                    <input
+                                        type="text"
+                                        value={estado}
+                                        onChange={(e) => setEstado(e.target.value.toUpperCase())}
+                                        maxLength={2}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">País</label>
+                                    <input
+                                        type="text"
+                                        value={pais}
+                                        onChange={(e) => setPais(e.target.value)}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Escalas e Gestão */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Briefcase size={14} className="text-primary" />
+                                Gestão e Disponibilidade
+                            </h3>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Admissão</label>
+                                    <DatePicker
+                                        value={dataAdmissao}
+                                        onChange={setDataAdmissao}
+                                        placeholder="DD/MM/AAAA"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Jornada de Trabalho</label>
+                                    <select
+                                        value={jornadaTrabalho}
+                                        onChange={(e) => setJornadaTrabalho(e.target.value as typeof jornadaTrabalho)}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                    >
+                                        <option value="DIURNA">Diurna</option>
+                                        <option value="NOTURNA">Noturna</option>
+                                        <option value="MISTA">Mista</option>
+                                        <option value="FLEXIVEL">Flexível</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horas Semanais</label>
+                                    <input
+                                        type="number"
+                                        value={horasSemanais}
+                                        onChange={(e) => setHorasSemanais(e.target.value)}
+                                        min="1"
+                                        max="60"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-3 pb-2">
+                                    <label className="flex items-center gap-3 group cursor-pointer">
+                                        <div className={cn(
+                                            "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
+                                            disponivelViagensLongas ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
+                                        )}>
+                                            <input
+                                                type="checkbox"
+                                                checked={disponivelViagensLongas}
+                                                onChange={(e) => setDisponivelViagensLongas(e.target.checked)}
+                                                className="hidden"
+                                            />
+                                            {disponivelViagensLongas && <CheckCircle className="w-4 h-4 text-primary-foreground" />}
+                                        </div>
+                                        <span className="text-[13px] font-bold text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-tight">Viagens Longas</span>
                                     </label>
-
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={disponivelInternacional}
-                                            onChange={(e) => setDisponivelInternacional(e.target.checked)}
-                                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                                        />
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            Disponível para viagens internacionais
-                                        </span>
+                                    <label className="flex items-center gap-3 group cursor-pointer">
+                                        <div className={cn(
+                                            "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
+                                            disponivelInternacional ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
+                                        )}>
+                                            <input
+                                                type="checkbox"
+                                                checked={disponivelInternacional}
+                                                onChange={(e) => setDisponivelInternacional(e.target.checked)}
+                                                className="hidden"
+                                            />
+                                            {disponivelInternacional && <CheckCircle className="w-4 h-4 text-primary-foreground" />}
+                                        </div>
+                                        <span className="text-[13px] font-bold text-muted-foreground group-hover:text-foreground transition-colors uppercase tracking-tight">Viagens Internacionais</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 </div>
 
-                {/* Documentação Internacional */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <Globe size={20} className="text-blue-600" />
-                        Documentação Internacional (Opcional)
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Número do Passaporte
-                            </label>
-                            <input
-                                type="text"
-                                value={passaporte}
-                                onChange={(e) => setPassaporte(e.target.value.toUpperCase())}
-                                placeholder="BR123456"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
+                {/* Coluna Lateral */}
+                <div className="space-y-8">
+                    {/* Habilitação */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <FileText size={14} className="text-primary" />
+                                Habilitação (CNH)
+                            </h3>
                         </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                                Validade do Passaporte
-                            </label>
-                            <DatePicker
-                                value={validadePassaporte}
-                                onChange={setValidadePassaporte}
-                                disabled={!passaporte}
-                                placeholder="DD/MM/AAAA"
-                            />
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nº Registro CNH *</label>
+                                <input
+                                    type="text"
+                                    value={cnh}
+                                    onChange={(e) => setCnh(e.target.value.replace(/\D/g, ''))}
+                                    maxLength={11}
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria</label>
+                                    <select
+                                        value={categoriaCnh}
+                                        onChange={(e) => setCategoriaCnh(e.target.value)}
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                    >
+                                        {['A', 'B', 'C', 'D', 'E', 'AB', 'AC', 'AD', 'AE'].map(cat => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Vencimento</label>
+                                    <DatePicker
+                                        value={validadeCnh}
+                                        onChange={setValidadeCnh}
+                                    />
+                                </div>
+                            </div>
+                            {cnhValidade && (
+                                <div className={cn(
+                                    "p-4 rounded-2xl border-2 flex items-center gap-3",
+                                    cnhValidade.cor === 'green' ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500" :
+                                        cnhValidade.cor === 'orange' ? "bg-orange-500/5 border-orange-500/20 text-orange-500" :
+                                            "bg-red-500/5 border-red-500/20 text-red-500"
+                                )}>
+                                    <AlertTriangle size={16} />
+                                    <span className="text-xs font-black uppercase tracking-widest">{cnhValidade.texto}</span>
+                                </div>
+                            )}
                         </div>
-                    </div>
+                    </Card>
 
-                    {passaporte && passaporteValidadeInfo && (
-                        <div className={`mt-4 p-3 rounded-lg border ${passaporteValidadeInfo.cor === 'red'
-                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                            : passaporteValidadeInfo.cor === 'orange'
-                                ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
-                                : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
-                            }`}>
-                            <div className="flex items-center gap-2">
-                                <AlertTriangle size={18} className={`text-${passaporteValidadeInfo.cor}-600`} />
-                                <p className={`text-sm font-medium text-${passaporteValidadeInfo.cor}-700 dark:text-${passaporteValidadeInfo.cor}-300`}>
-                                    Passaporte: {passaporteValidadeInfo.texto}
-                                </p>
+                    {/* Internacional */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Globe size={14} className="text-primary" />
+                                Passaporte (Opcional)
+                            </h3>
+                        </div>
+                        <div className="p-8 space-y-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nº Passaporte</label>
+                                <input
+                                    type="text"
+                                    value={passaporte}
+                                    onChange={(e) => setPassaporte(e.target.value.toUpperCase())}
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Vencimento</label>
+                                <DatePicker
+                                    value={validadePassaporte}
+                                    onChange={setValidadePassaporte}
+                                    disabled={!passaporte}
+                                />
                             </div>
                         </div>
-                    )}
+                    </Card>
 
-                    {passaporte && !validadePassaporte && (
-                        <div className="mt-4 p-3 rounded-lg border bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800">
-                            <div className="flex items-center gap-2">
-                                <AlertTriangle size={18} className="text-orange-600" />
-                                <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                                    Informe a validade do passaporte
-                                </p>
-                            </div>
+                    {/* Observações */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <FileText size={14} className="text-primary" />
+                                Observações Internas
+                            </h3>
                         </div>
-                    )}
-                </div>
-
-                {/* Observações */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">
-                        Observações
-                    </h3>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                            Informações Adicionais
-                        </label>
-                        <textarea
-                            value={observacoes}
-                            onChange={(e) => setObservacoes(e.target.value)}
-                            placeholder="Ex: Especializado em viagens longas, conhecimento de rotas internacionais, experiência com veículos de grande porte..."
-                            rows={4}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
+                        <div className="p-8">
+                            <textarea
+                                value={observacoes}
+                                onChange={(e) => setObservacoes(e.target.value)}
+                                rows={5}
+                                className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                            />
+                        </div>
+                    </Card>
                 </div>
             </div>
         </div>

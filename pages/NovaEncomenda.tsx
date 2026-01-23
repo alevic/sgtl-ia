@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { Package, User, MapPin, Truck, Save, ArrowLeft, Loader } from 'lucide-react';
+import { Package, User, MapPin, Truck, Save, ArrowLeft, Loader, AlertCircle, CheckCircle2, DollarSign, ListFilter } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
 import { tripsService } from '../services/tripsService';
 import { IViagem, TripStatus } from '../types';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Button } from '../components/ui/button';
+import { Card, CardContent } from '../components/ui/card';
+import { cn } from '../lib/utils';
 
 export const NovaEncomenda: React.FC = () => {
     const navigate = useNavigate();
@@ -12,6 +16,8 @@ export const NovaEncomenda: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [trips, setTrips] = useState<IViagem[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         sender_name: '',
@@ -60,296 +66,399 @@ export const NovaEncomenda: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
         try {
             setSaving(true);
             await parcelsService.create({
                 ...formData,
                 trip_id: formData.trip_id || null
             });
-            alert('Encomenda criada com sucesso!');
-            navigate('/admin/encomendas');
+            setSuccess('Encomenda criada com sucesso!');
+            setTimeout(() => navigate('/admin/encomendas'), 2000);
         } catch (error) {
             console.error('Erro ao criar encomenda:', error);
-            alert('Erro ao criar encomenda.');
+            setError('Erro ao criar encomenda.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setSaving(false);
         }
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/encomendas')}
-                    className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                >
-                    <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div className="flex-1">
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Nova Encomenda</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Registrar nova encomenda</p>
+        <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin/encomendas')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-semibold uppercase tracking-widest">Voltar para Encomendas</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-semibold text-foreground tracking-tight">
+                            NOVA <span className="text-primary italic">CARGA</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Registre uma nova encomenda ou carga no sistema
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={() => navigate('/admin/encomendas')}
+                        className="h-14 rounded-2xl px-6 font-semibold uppercase text-[12px] tracking-widest"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={saving}
+                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        {saving ? (
+                            <Loader className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                            <Save className="w-4 h-4 mr-2" />
+                        )}
+                        {saving ? 'Salvando...' : 'Salvar Carga'}
+                    </Button>
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Remetente e Destinatário */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Remetente */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <User size={20} />
-                            Remetente
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
-                                <input
-                                    type="text"
-                                    name="sender_name"
-                                    required
-                                    value={formData.sender_name}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest">Erro no Cadastro</AlertTitle>
+                    <AlertDescription className="text-xs font-medium">
+                        {error}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {success && (
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
+                    <AlertDescription className="text-xs font-medium text-emerald-600/80">
+                        {success}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Coluna Principal (2/3) */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Partes Envolvidas */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Remetente */}
+                        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                            <div className="p-8 border-b border-border/50 bg-muted/20">
+                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <User size={14} className="text-primary" />
+                                    Remetente
+                                </h3>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Documento (CPF/CNPJ)</label>
+                            <CardContent className="p-8 space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo</label>
+                                    <input
+                                        type="text"
+                                        name="sender_name"
+                                        required
+                                        value={formData.sender_name}
+                                        onChange={handleChange}
+                                        placeholder="Nome do remetente"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">CPF/CNPJ</label>
                                     <input
                                         type="text"
                                         name="sender_document"
                                         value={formData.sender_document}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                        placeholder="000.000.000-00"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone</label>
                                     <input
                                         type="text"
                                         name="sender_phone"
                                         value={formData.sender_phone}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                        placeholder="(00) 00000-0000"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                            </CardContent>
+                        </Card>
 
-                    {/* Destinatário */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                            <User size={20} />
-                            Destinatário
-                        </h3>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo</label>
-                                <input
-                                    type="text"
-                                    name="recipient_name"
-                                    required
-                                    value={formData.recipient_name}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                />
+                        {/* Destinatário */}
+                        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                            <div className="p-8 border-b border-border/50 bg-muted/20">
+                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <User size={14} className="text-primary" />
+                                    Destinatário
+                                </h3>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Documento (CPF/CNPJ)</label>
+                            <CardContent className="p-8 space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo</label>
+                                    <input
+                                        type="text"
+                                        name="recipient_name"
+                                        required
+                                        value={formData.recipient_name}
+                                        onChange={handleChange}
+                                        placeholder="Nome do destinatário"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">CPF/CNPJ</label>
                                     <input
                                         type="text"
                                         name="recipient_document"
                                         value={formData.recipient_document}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                        placeholder="000.000.000-00"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Telefone</label>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone</label>
                                     <input
                                         type="text"
                                         name="recipient_phone"
                                         value={formData.recipient_phone}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                        placeholder="(00) 00000-0000"
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Detalhes da Carga */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Package size={14} className="text-primary" />
+                                Conteúdo e Dimensões
+                            </h3>
+                        </div>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Descrição do Conteúdo</label>
+                                <input
+                                    type="text"
+                                    name="description"
+                                    required
+                                    value={formData.description}
+                                    onChange={handleChange}
+                                    placeholder="Ex: Caixa com eletrônicos diversos"
+                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Peso Estimado (kg)</label>
+                                    <input
+                                        type="number"
+                                        name="weight"
+                                        step="0.1"
+                                        min="0"
+                                        value={formData.weight}
+                                        onChange={handleChange}
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Dimensões (CxLxA em cm)</label>
+                                    <input
+                                        type="text"
+                                        name="dimensions"
+                                        placeholder="Ex: 30x20x10"
+                                        value={formData.dimensions}
+                                        onChange={handleChange}
+                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Rota */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <MapPin size={14} className="text-primary" />
+                                Itinerário da Carga
+                            </h3>
                         </div>
-                    </div>
+                        <CardContent className="p-8 space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-primary" />
+                                        <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Origem</h4>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-4">
+                                        <div className="col-span-3 space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Cidade</label>
+                                            <input
+                                                type="text"
+                                                name="origin_city"
+                                                required
+                                                value={formData.origin_city}
+                                                onChange={handleChange}
+                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">UF</label>
+                                            <input
+                                                type="text"
+                                                name="origin_state"
+                                                required
+                                                maxLength={2}
+                                                value={formData.origin_state}
+                                                onChange={handleChange}
+                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] text-center"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-destructive" />
+                                        <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Destino</h4>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-4">
+                                        <div className="col-span-3 space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Cidade</label>
+                                            <input
+                                                type="text"
+                                                name="destination_city"
+                                                required
+                                                value={formData.destination_city}
+                                                onChange={handleChange}
+                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">UF</label>
+                                            <input
+                                                type="text"
+                                                name="destination_state"
+                                                required
+                                                maxLength={2}
+                                                value={formData.destination_state}
+                                                onChange={handleChange}
+                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] text-center"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Origem e Destino */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <MapPin size={20} />
-                        Rota
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-4">
-                            <h4 className="font-medium text-slate-600 dark:text-slate-400">Origem</h4>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cidade</label>
+                {/* Coluna Lateral (1/3) */}
+                <div className="space-y-8">
+                    {/* Financeiro */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <DollarSign size={14} className="text-primary" />
+                                Valor do Frete
+                            </h3>
+                        </div>
+                        <CardContent className="p-8">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Valor Unitário (R$)</label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-[12px]">R$</div>
                                     <input
-                                        type="text"
-                                        name="origin_city"
+                                        type="number"
+                                        name="price"
+                                        step="0.01"
+                                        min="0"
                                         required
-                                        value={formData.origin_city}
+                                        value={formData.price}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">UF</label>
-                                    <input
-                                        type="text"
-                                        name="origin_state"
-                                        required
-                                        maxLength={2}
-                                        value={formData.origin_state}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white uppercase"
+                                        className="w-full h-14 pl-12 pr-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-xl"
                                     />
                                 </div>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Vínculo de Viagem */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <Truck size={14} className="text-primary" />
+                                Embarque Imediato
+                            </h3>
                         </div>
-                        <div className="space-y-4">
-                            <h4 className="font-medium text-slate-600 dark:text-slate-400">Destino</h4>
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cidade</label>
-                                    <input
-                                        type="text"
-                                        name="destination_city"
-                                        required
-                                        value={formData.destination_city}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">UF</label>
-                                    <input
-                                        type="text"
-                                        name="destination_state"
-                                        required
-                                        maxLength={2}
-                                        value={formData.destination_state}
-                                        onChange={handleChange}
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white uppercase"
-                                    />
-                                </div>
+                        <CardContent className="p-8 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Vincular à Viagem</label>
+                                <select
+                                    name="trip_id"
+                                    value={formData.trip_id}
+                                    onChange={handleChange}
+                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest"
+                                >
+                                    <option value="">NÃO VINCULAR</option>
+                                    {trips.map(trip => (
+                                        <option key={trip.id} value={trip.id}>
+                                            {trip.route_name} - {formatDate(trip.departure_date || '')}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                                <p className="text-[12px] font-medium text-primary leading-relaxed">
+                                    Selecione uma viagem ativa para que a carga seja embarcada e processada imediatamente.
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                {/* Detalhes do Pacote */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <Package size={20} />
-                        Detalhes do Pacote
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="md:col-span-3">
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
-                            <input
-                                type="text"
-                                name="description"
-                                required
-                                value={formData.description}
-                                onChange={handleChange}
-                                placeholder="Ex: Caixa com eletrônicos"
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                            />
+                    {/* Observações */}
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                <ListFilter size={14} className="text-primary" />
+                                Observações
+                            </h3>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Peso (kg)</label>
-                            <input
-                                type="number"
-                                name="weight"
-                                step="0.1"
-                                min="0"
-                                value={formData.weight}
+                        <CardContent className="p-8">
+                            <textarea
+                                name="notes"
+                                value={formData.notes}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
+                                placeholder="Notas internas sobre a carga..."
+                                rows={4}
+                                className="w-full p-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
                             />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Dimensões (cm)</label>
-                            <input
-                                type="text"
-                                name="dimensions"
-                                placeholder="Ex: 30x20x10"
-                                value={formData.dimensions}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Valor do Frete (R$)</label>
-                            <input
-                                type="number"
-                                name="price"
-                                step="0.01"
-                                min="0"
-                                required
-                                value={formData.price}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                            />
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
-
-                {/* Transporte */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                    <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                        <Truck size={20} />
-                        Transporte (Opcional)
-                    </h3>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Vincular à Viagem</label>
-                        <select
-                            name="trip_id"
-                            value={formData.trip_id}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                        >
-                            <option value="">Selecione uma viagem...</option>
-                            {trips.map(trip => (
-                                <option key={trip.id} value={trip.id}>
-                                    {trip.route_name} - {formatDate(trip.departure_date || '')} {trip.departure_time}
-                                </option>
-                            ))}
-                        </select>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            Selecione uma viagem para embarcar esta encomenda imediatamente.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex justify-end gap-3">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/admin/encomendas')}
-                        className="px-6 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors"
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-400 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                    >
-                        {saving ? <Loader size={20} className="animate-spin" /> : <Save size={20} />}
-                        {saving ? 'Salvando...' : 'Salvar Encomenda'}
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     );
 };

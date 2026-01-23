@@ -1,8 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { Edit, Trash2, CheckCircle, Clock, MoreHorizontal, AlertTriangle, Loader2, ArrowUpDown } from 'lucide-react';
 import { ITransacao, StatusTransacao } from '../../types';
-import { ResponsiveActions, ActionGroup } from '../Common/ResponsiveActions';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "../../components/ui/dialog";
+import { Button } from "../../components/ui/button";
 
 interface TransactionActionsProps {
     transacao: ITransacao;
@@ -50,83 +66,104 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
         }
     };
 
-    const actionGroups: ActionGroup[] = [
-        {
-            actions: [
-                {
-                    icon: Edit,
-                    label: 'Editar',
-                    onClick: () => navigate('/admin/financeiro/transacoes/nova', { state: transacao }),
-                    color: 'slate'
-                }
-            ]
-        },
-        {
-            label: 'Alterar Status',
-            actions: [
-                {
-                    icon: CheckCircle,
-                    label: 'Marcar como Paga',
-                    onClick: () => handleStatusChange(StatusTransacao.PAGA),
-                    color: 'green',
-                    hidden: transacao.status === StatusTransacao.PAGA
-                },
-                {
-                    icon: Clock,
-                    label: 'Marcar como Pendente',
-                    onClick: () => handleStatusChange(StatusTransacao.PENDENTE),
-                    color: 'yellow',
-                    hidden: transacao.status === StatusTransacao.PENDENTE
-                }
-            ]
-        },
-        {
-            actions: [
-                {
-                    icon: Trash2,
-                    label: isDeleting ? 'Excluindo...' : 'Excluir',
-                    onClick: () => setShowDeleteConfirm(true),
-                    color: 'red'
-                }
-            ]
-        }
-    ];
+    const isPaid = transacao.status === StatusTransacao.PAID || (transacao.status as any) === 'PAGA';
+    const isPending = transacao.status === StatusTransacao.PENDING || (transacao.status as any) === 'PENDENTE';
 
     return (
         <>
-            <ResponsiveActions actions={actionGroups} />
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors">
+                        <span className="sr-only">Abrir menu</span>
+                        <MoreHorizontal className="h-5 w-5" strokeWidth={2.5} />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl shadow-2xl border-none bg-card/95 backdrop-blur-md">
+                    <DropdownMenuLabel className="text-[12px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">Operações</DropdownMenuLabel>
+                    <DropdownMenuItem
+                        onClick={() => navigate('/admin/financeiro/transacoes/nova', { state: transacao })}
+                        className="rounded-xl px-3 py-2.5 font-bold focus:bg-primary focus:text-primary-foreground gap-3"
+                    >
+                        <Edit className="h-4 w-4" />
+                        Editar Registro
+                    </DropdownMenuItem>
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={(e) => e.stopPropagation()}>
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-xl">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
-                            Confirmar Exclusão
-                        </h3>
-                        <p className="text-slate-600 dark:text-slate-400 mb-6">
-                            Tem certeza que deseja excluir esta transação de <strong>R$ {Number(transacao.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>?
-                            Esta ação não pode ser desfeita.
-                        </p>
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => setShowDeleteConfirm(false)}
-                                disabled={isDeleting}
-                                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors disabled:opacity-50"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
-                            >
-                                <Trash2 size={16} />
-                                {isDeleting ? 'Excluindo...' : 'Excluir'}
-                            </button>
+                    <DropdownMenuSeparator className="bg-border/50 my-2" />
+                    <DropdownMenuLabel className="text-[12px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">Alterar Status</DropdownMenuLabel>
+
+                    {!isPaid && (
+                        <DropdownMenuItem
+                            onClick={() => handleStatusChange(StatusTransacao.PAID)}
+                            className="rounded-xl px-3 py-2.5 font-bold text-emerald-600 focus:bg-emerald-500 focus:text-white gap-3"
+                        >
+                            <CheckCircle className="h-4 w-4" />
+                            Marcar como Paga
+                        </DropdownMenuItem>
+                    )}
+
+                    {!isPending && (
+                        <DropdownMenuItem
+                            onClick={() => handleStatusChange(StatusTransacao.PENDING)}
+                            className="rounded-xl px-3 py-2.5 font-bold text-amber-600 focus:bg-amber-500 focus:text-white gap-3"
+                        >
+                            <Clock className="h-4 w-4" />
+                            Marcar como Pendente
+                        </DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuSeparator className="bg-border/50 my-2" />
+                    <DropdownMenuItem
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="rounded-xl px-3 py-2.5 font-bold text-destructive focus:bg-destructive focus:text-destructive-foreground gap-3"
+                    >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir Transação
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <DialogContent className="rounded-[2rem] border-none shadow-2xl max-w-sm p-8 bg-card/95 backdrop-blur-md">
+                    <DialogHeader className="space-y-4">
+                        <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+                            <AlertTriangle className="h-8 w-8 text-destructive" strokeWidth={2.5} />
                         </div>
-                    </div>
-                </div>
-            )}
+                        <div className="space-y-2 text-center">
+                            <DialogTitle className="text-2xl font-black tracking-tight">Confirmar Exclusão</DialogTitle>
+                            <DialogDescription className="font-medium text-muted-foreground leading-relaxed">
+                                Você tem certeza que deseja excluir esta transação de <strong className="text-foreground">R$ {Number(transacao.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>?
+                                <br />
+                                <span className="text-xs uppercase font-black tracking-widest opacity-50 text-destructive">Esta ação é irreversível</span>
+                            </DialogDescription>
+                        </div>
+                    </DialogHeader>
+                    <DialogFooter className="mt-8 flex-col sm:flex-col gap-3">
+                        <Button
+                            variant="destructive"
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="w-full h-12 rounded-2xl font-black tracking-tighter text-base shadow-lg shadow-destructive/20 active:scale-95 transition-all"
+                        >
+                            {isDeleting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                                    EXCLUINDO...
+                                </>
+                            ) : (
+                                "EXCLUIR DEFINITIVAMENTE"
+                            )}
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            onClick={() => setShowDeleteConfirm(false)}
+                            disabled={isDeleting}
+                            className="w-full h-12 rounded-2xl font-black tracking-tighter text-muted-foreground hover:bg-muted/50 transition-all"
+                        >
+                            CANCELAR
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 };

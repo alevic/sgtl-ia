@@ -10,6 +10,7 @@ import {
     TipoTransacao, StatusTransacao, FormaPagamento,
     VeiculoStatus, AssentoStatus, DriverStatus
 } from "../types";
+import { isValidDateISO } from "./utils/validation";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -183,8 +184,9 @@ app.post("/api/users", authorize(['admin']), async (req, res) => {
             [username, userId]
         );
 
-        // 6. Create Client Profile if role is 'client'
-        if (role === 'client') {
+        // 6. Create Client Profile if any of the roles is 'client'
+        const roles = (role || 'user').split(',').map((r: string) => r.trim());
+        if (roles.includes('client')) {
             const orgId = (req as any).session.session.activeOrganizationId;
             console.log(`[ADMIN] Creating client profile for user ${username} in org ${orgId}`);
             await pool.query(
@@ -1263,6 +1265,17 @@ app.post("/api/fleet/drivers", authorize(['admin', 'operacional']), async (req, 
             data_contratacao, salario, anos_experiencia, viagens_internacionais,
             disponivel_internacional, observacoes
         } = req.body;
+
+        // Date Validation
+        if (!isValidDateISO(validade_cnh)) {
+            return res.status(400).json({ error: "Data de validade da CNH inválida" });
+        }
+        if (validade_passaporte && !isValidDateISO(validade_passaporte)) {
+            return res.status(400).json({ error: "Data de validade do passaporte inválida" });
+        }
+        if (data_contratacao && !isValidDateISO(data_contratacao)) {
+            return res.status(400).json({ error: "Data de contratação inválida" });
+        }
 
         const result = await pool.query(
             `INSERT INTO driver (

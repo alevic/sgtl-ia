@@ -165,7 +165,7 @@ export const CheckoutReserva: React.FC = () => {
                 const name = (index === 0 && (clientProfile?.nome || sessionData?.user?.name)) ? (clientProfile?.nome || sessionData.user.name) : '';
                 const email = (index === 0 && (clientProfile?.email || sessionData?.user?.email)) ? (clientProfile?.email || sessionData.user.email) : '';
                 const phone = (index === 0 && (clientProfile?.telefone || sessionData?.user?.phoneNumber)) ? (clientProfile?.telefone || sessionData.user.phoneNumber) : '';
-                const document = (index === 0 && (clientProfile?.documento || clientProfile?.documento_numero)) ? (clientProfile.documento || clientProfile.documento_numero) : '';
+                const document = (index === 0 && clientProfile?.documento) ? clientProfile.documento : '';
 
                 return {
                     seat_number: num,
@@ -425,7 +425,7 @@ export const CheckoutReserva: React.FC = () => {
                                 onClick={() => navigate(`/cliente/login?returnUrl=${returnUrl}`)}
                                 className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl hover:border-blue-500 transition-all group"
                             >
-                                <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <div className="w-12 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     <User size={24} />
                                 </div>
                                 <span className="font-bold text-slate-800 dark:text-white">Já sou cliente</span>
@@ -436,7 +436,7 @@ export const CheckoutReserva: React.FC = () => {
                                 onClick={() => navigate(`/cliente/signup?returnUrl=${returnUrl}`)}
                                 className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl hover:border-emerald-500 transition-all group"
                             >
-                                <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                <div className="w-12 h-14 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                     <User size={24} />
                                 </div>
                                 <span className="font-bold text-slate-800 dark:text-white">Ainda não sou cliente</span>
@@ -450,7 +450,7 @@ export const CheckoutReserva: React.FC = () => {
 
                         <div className="space-y-6">
                             <div className="flex gap-4">
-                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
+                                <div className="w-12 h-14 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
                                     <Bus size={24} />
                                 </div>
                                 <div>
@@ -460,7 +460,7 @@ export const CheckoutReserva: React.FC = () => {
                             </div>
 
                             <div className="flex gap-4">
-                                <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
+                                <div className="w-12 h-14 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
                                     <Calendar size={24} />
                                 </div>
                                 <div>
@@ -510,7 +510,7 @@ export const CheckoutReserva: React.FC = () => {
                         <form onSubmit={handleSubmit} className="space-y-8">
                             {passengers.map((p, index) => (
                                 <div key={p.seat_number} className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 py-1 px-3 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-bl-lg">
+                                    <div className="absolute top-0 right-0 py-1 px-3 bg-blue-600 text-white text-[12px] font-bold uppercase tracking-widest rounded-bl-lg">
                                         Assento {p.seat_number}
                                     </div>
 
@@ -607,7 +607,7 @@ export const CheckoutReserva: React.FC = () => {
                                     {clientProfile?.saldo_creditos > 0 && (
                                         <div className={`p-4 rounded-2xl border transition-all ${useCredits ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${useCredits ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                <div className={`w-12 h-14 rounded-xl flex items-center justify-center transition-colors ${useCredits ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                                                     <Wallet size={24} />
                                                 </div>
                                                 <div className="flex-1">
@@ -639,7 +639,7 @@ export const CheckoutReserva: React.FC = () => {
 
                                     <div className={`p-4 rounded-2xl border transition-all ${isPartialPayment ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isPartialPayment ? 'bg-purple-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                            <div className={`w-12 h-14 rounded-xl flex items-center justify-center transition-colors ${isPartialPayment ? 'bg-purple-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                                                 <CreditCard size={24} />
                                             </div>
                                             <div className="flex-1">
@@ -684,7 +684,7 @@ export const CheckoutReserva: React.FC = () => {
                                         onClick={() => setPaymentMethod('PIX')}
                                         className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-2xl transition-all ${paymentMethod === 'PIX' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
                                     >
-                                        <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-3">
+                                        <div className="w-12 h-14 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-3">
                                             <QrCode size={24} />
                                         </div>
                                         <span className="font-bold text-slate-800 dark:text-white">PIX</span>
@@ -696,7 +696,7 @@ export const CheckoutReserva: React.FC = () => {
                                         onClick={() => setPaymentMethod('LINK')}
                                         className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-2xl transition-all ${paymentMethod === 'LINK' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
                                     >
-                                        <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center mb-3">
+                                        <div className="w-12 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center mb-3">
                                             <CreditCard size={24} />
                                         </div>
                                         <span className="font-bold text-slate-800 dark:text-white">Cartão ou Boleto</span>
@@ -765,7 +765,7 @@ export const CheckoutReserva: React.FC = () => {
                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
                                     <div className="flex items-center gap-2 text-green-600 mb-2">
                                         <MapPin size={14} />
-                                        <span className="text-[10px] font-bold uppercase tracking-wider">Itinerário</span>
+                                        <span className="text-[12px] font-bold uppercase tracking-wider">Itinerário</span>
                                     </div>
                                     <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300">
                                         {passengers.length > 0 && Array.from(new Set(passengers.map(p => p.boarding_point))).length === 1
@@ -799,7 +799,7 @@ export const CheckoutReserva: React.FC = () => {
                                 )}
 
                                 <div className="pt-2 border-t border-emerald-200/50 flex justify-between items-end">
-                                    <span className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest mb-1">
+                                    <span className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[12px] tracking-widest mb-1">
                                         {isPartialPayment ? 'Entrada / Sinal' : 'Total a Pagar'}
                                     </span>
                                     <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
@@ -808,7 +808,7 @@ export const CheckoutReserva: React.FC = () => {
                                 </div>
 
                                 {isPartialPayment && (
-                                    <p className="text-[10px] text-slate-400 italic text-right mt-1">
+                                    <p className="text-[12px] text-slate-400 italic text-right mt-1">
                                         Restante de R$ {Math.max(0, (totalSelecionado - creditsToUse) - entryValue).toFixed(2)} no embarque
                                     </p>
                                 )}

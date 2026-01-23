@@ -8,8 +8,11 @@
 import React, { useState, useEffect } from 'react';
 import { User, Mail, Loader2, Camera, Upload, Trash2 } from 'lucide-react';
 import { PhoneInput } from '../Form/PhoneInput';
-import { CPFInput } from '../Form/CPFInput';
+import { DocumentInput } from '../Form/DocumentInput';
 import { DatePicker } from '../Form/DatePicker';
+import { TipoDocumento } from '../../types';
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { CheckCircle2, AlertTriangle } from 'lucide-react';
 
 interface UserProfileFormProps {
     userId: string;
@@ -36,7 +39,8 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
-    const [cpf, setCpf] = useState('');
+    const [documentoTipo, setDocumentoTipo] = useState<TipoDocumento>(TipoDocumento.CPF);
+    const [documento, setDocumento] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [avatar, setAvatar] = useState('');
     const [role, setRole] = useState('user');
@@ -46,6 +50,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
     useEffect(() => {
         fetchUserData();
@@ -80,7 +85,8 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                 const phoneWithoutCode = fullPhone.startsWith('+55') ? fullPhone.substring(3) : fullPhone;
                 setPhone(phoneWithoutCode);
 
-                setCpf(user.cpf || '');
+                setDocumento(user.documento || user.cpf || '');
+                setDocumentoTipo(user.documento_tipo || TipoDocumento.CPF);
 
                 // Convert birth_date from ISO timestamp to YYYY-MM-DD
                 let birthDateValue = '';
@@ -100,6 +106,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSuccess('');
         setIsSaving(true);
 
         try {
@@ -110,7 +117,8 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                 name,
                 email: email || null,
                 phone: fullPhone,
-                cpf: cpf || null,
+                documento: documento || null,
+                documento_tipo: documentoTipo,
                 birthDate: formattedBirthDate,
                 image: avatar || null, // Save base64 avatar
                 role: canEditRole ? role : undefined,
@@ -135,29 +143,36 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                 });
 
                 if (response.ok) {
-                    alert('Perfil atualizado com sucesso!');
+                    setSuccess('Perfil atualizado com sucesso!');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    setTimeout(() => setSuccess(''), 5000);
                     fetchUserData();
                 } else {
                     const errorData = await response.json();
                     setError(errorData.error || 'Erro ao atualizar perfil');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
             }
         } catch (err) {
             console.error('Save error:', err);
             setError('Erro ao atualizar perfil');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleAvatarUpload = (file: File) => {
+        setError('');
+        setSuccess('');
+
         if (!file.type.startsWith('image/')) {
-            alert('Por favor, selecione apenas imagens');
+            setError('Por favor, selecione apenas imagens');
             return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            alert('A imagem deve ter no máximo 2MB');
+            setError('A imagem deve ter no máximo 2MB');
             return;
         }
 
@@ -191,9 +206,19 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400">
-                    {error}
-                </div>
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Erro na Operação</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+
+            {success && (
+                <Alert className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <AlertTitle>Sucesso</AlertTitle>
+                    <AlertDescription>{success}</AlertDescription>
+                </Alert>
             )}
 
             {showAvatar && (
@@ -294,9 +319,14 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                     <PhoneInput value={phone} onChange={setPhone} required />
                 </div>
 
-                {/* CPF */}
-                <div>
-                    <CPFInput value={cpf} onChange={setCpf} />
+                {/* Documento */}
+                <div className="md:col-span-2">
+                    <DocumentInput
+                        documentType={documentoTipo}
+                        documentNumber={documento}
+                        onTypeChange={setDocumentoTipo}
+                        onNumberChange={setDocumento}
+                    />
                 </div>
 
                 {/* Data de Nascimento */}

@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { EmpresaContexto } from '../types';
 import {
     Save, Bell, Shield, Monitor, RefreshCw, Database,
     Settings2, Plus, Trash2, AlertCircle, Loader2,
     Globe, CalendarClock, Wallet, Truck, Users, CreditCard,
-    Search, X, ChevronRight, Check
+    Search, X, ChevronRight, Check, AlertTriangle, CheckCircle2, ArrowLeft
 } from 'lucide-react';
 import { authClient } from '../lib/auth-client';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 interface IParameter {
     id: string;
@@ -43,7 +57,7 @@ const SettingField: React.FC<ISettingFieldProps> = ({
         <div className="space-y-1">
             <div className="flex justify-between items-baseline">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
-                <code className="text-[10px] text-slate-400 bg-slate-50 dark:bg-slate-900 px-1 rounded">{k}</code>
+                <code className="text-[12px] text-slate-400 bg-slate-50 dark:bg-slate-900 px-1 rounded">{k}</code>
             </div>
             {description && <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{description}</p>}
 
@@ -158,6 +172,7 @@ const PARAM_METADATA: Record<string, IParameterMetadata> = {
 };
 
 export const Configuracoes: React.FC = () => {
+    const navigate = useNavigate();
     const { currentContext, refreshSettings } = useApp();
     const [selectedGroup, setSelectedGroup] = useState<string>('Sistema');
     const [searchQuery, setSearchQuery] = useState('');
@@ -173,6 +188,7 @@ export const Configuracoes: React.FC = () => {
     const [isSaving, setIsSaving] = React.useState(false);
     const [newParam, setNewParam] = React.useState({ key: '', value: '', description: '', group_name: 'Avançado' });
     const [allSettings, setAllSettings] = React.useState<Record<string, string>>({});
+    const [paramToDelete, setParamToDelete] = useState<string | null>(null);
 
     const fetchParameters = async () => {
         setIsLoadingParams(true);
@@ -278,13 +294,19 @@ export const Configuracoes: React.FC = () => {
 
 
     const handleDeleteParameter = async (paramId: string) => {
-        if (!window.confirm('Excluir este parâmetro?')) return;
+        setParamToDelete(paramId);
+    };
+
+    const confirmDelete = async () => {
+        if (!paramToDelete) return;
+        const idToDelete = paramToDelete;
+        setParamToDelete(null);
 
         try {
             const { data: session } = await authClient.getSession();
             if (!session?.session.activeOrganizationId) return;
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters/${paramId}`, {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters/${idToDelete}`, {
                 method: 'DELETE',
                 credentials: 'include'
             });
@@ -370,192 +392,179 @@ export const Configuracoes: React.FC = () => {
     });
 
     return (
-        <div className="flex flex-col h-[calc(100vh-120px)] group">
-            {/* Header with Search */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Configurações do Sistema</h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Administre todos os parâmetros e preferências globais.</p>
+        <div key="configuracoes-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10 flex flex-col group">
+            <AlertDialog open={!!paramToDelete} onOpenChange={(open) => !open && setParamToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir Parâmetro?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tem certeza que deseja excluir este parâmetro? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Excluir
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Painel Administrativo</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">
+                            CONFIGURAÇÕES DO <span className="text-primary italic">SISTEMA</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Ajustes globais, políticas de segurança e integração de infraestrutura técnica
+                        </p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+
+                <div className="flex items-center gap-3">
+                    <div className="relative group flex-1 md:w-64">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                         <input
                             type="text"
-                            placeholder="Pesquisar..."
+                            placeholder="Localizar parâmetro..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm"
+                            className="w-full h-14 pl-12 pr-4 bg-card/50 backdrop-blur-sm border border-border/40 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-[12px] tracking-tight"
                         />
-                        {searchQuery && (
-                            <button
-                                onClick={() => setSearchQuery('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                            >
-                                <X size={16} />
-                            </button>
-                        )}
                     </div>
-                    <button
+                    <Button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl transition-all text-sm font-bold shadow-md shadow-blue-600/20 whitespace-nowrap"
+                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
-                        <Plus size={18} />
-                        <span className="hidden md:inline">Novo Parâmetro</span>
-                    </button>
+                        <Plus size={16} className="mr-2" />
+                        Novo Parâmetro
+                    </Button>
                 </div>
             </div>
 
-            <div className="flex flex-1 overflow-hidden gap-6">
-                {/* Sidebar Groups */}
-                <div className="w-64 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col shrink-0">
-                    <div className="p-4 border-b border-slate-100 dark:border-slate-700">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Módulos</span>
-                    </div>
-                    <div className="flex-1 overflow-y-auto py-2">
-                        {groups.map(group => (
-                            <button
-                                key={group}
-                                onClick={() => { setSelectedGroup(group); setSearchQuery(''); }}
-                                className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-all ${selectedGroup === group && !searchQuery
-                                    ? `bg-${themeColor}-50 dark:bg-${themeColor}-900/20 text-${themeColor}-600 dark:text-${themeColor}-400 border-r-4 border-${themeColor}-600`
-                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                                    }`}
-                            >
-                                {group}
-                                {selectedGroup === group && !searchQuery && <ChevronRight size={14} />}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="p-4 border-t border-slate-100 dark:border-slate-700">
-                        {/* Removed inline button */}
-                    </div>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 overflow-hidden">
+                {/* Sidebar Premium */}
+                <div className="lg:col-span-1 space-y-4 overflow-hidden flex flex-col">
+                    <Card className="flex-1 shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden p-3 flex flex-col">
+                        <div className="p-4 border-b border-border/50 mb-2">
+                            <span className="text-[12px] font-black text-muted-foreground uppercase tracking-[0.2em]">Arquitetura de Dados</span>
+                        </div>
+                        <div className="flex-1 overflow-y-auto scroller-hidden space-y-1">
+                            {groups.map(group => (
+                                <button
+                                    key={group}
+                                    onClick={() => { setSelectedGroup(group); setSearchQuery(''); }}
+                                    className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all ${selectedGroup === group && !searchQuery
+                                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                        }`}
+                                >
+                                    <span className="text-[12px] font-black uppercase tracking-widest">{group}</span>
+                                    {selectedGroup === group && !searchQuery && <ChevronRight size={14} />}
+                                </button>
+                            ))}
+                        </div>
+                    </Card>
+
+                    <Card className="p-8 bg-primary/5 border-dashed border-primary/20 rounded-[2.5rem]">
+                        <h4 className="text-[12px] font-black uppercase tracking-widest text-primary mb-2">Segurança de Rede</h4>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[12px] font-bold text-muted-foreground">NODES OPERACIONAIS</span>
+                        </div>
+                    </Card>
                 </div>
 
-                {/* Main Content Area */}
-                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                    {/* Feedback Messages */}
-                    {(error || success) && (
-                        <div className="mb-6 space-y-2">
-                            {error && (
-                                <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg flex items-center gap-2 border border-red-100 dark:border-red-900/30">
-                                    <AlertCircle size={18} /> {error}
-                                </div>
-                            )}
-                            {success && (
-                                <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-sm rounded-lg border border-green-100 dark:border-green-900/30 flex items-center gap-2">
-                                    <Check size={18} /> {success}
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {isLoadingParams ? (
-                        <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
-                            <Loader2 className="animate-spin" size={32} />
-                            <p className="text-sm">Carregando parâmetros...</p>
-                        </div>
-                    ) : filteredParameters.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-64 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-500 gap-4">
-                            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-full">
-                                <Search size={32} className="text-slate-300" />
-                            </div>
-                            <div className="text-center">
-                                <p className="font-medium text-slate-800 dark:text-white">Nenhum parâmetro encontrado</p>
-                                <p className="text-sm">Tente ajustar sua pesquisa ou trocar de módulo.</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-6 pb-12">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-tight">
-                                    {searchQuery ? `Resultados para "${searchQuery}"` : selectedGroup}
-                                    <span className="text-xs font-normal text-slate-400 normal-case">({filteredParameters.length} itens)</span>
-                                </h2>
-                                {!searchQuery && (
-                                    <button
-                                        onClick={() => handleSaveBatch(filteredParameters.map(p => ({ key: p.key, description: PARAM_METADATA[p.key]?.description || p.description })))}
-                                        disabled={isSaving}
-                                        className={`flex items-center gap-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white px-4 py-2 rounded-lg transition-all text-sm font-bold shadow-md shadow-${themeColor}-600/20 disabled:opacity-50`}
-                                    >
-                                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                                        Salvar Tudo
-                                    </button>
+                {/* Main Content Area Executive */}
+                <div className="lg:col-span-3 overflow-y-auto scroller-hidden pb-20">
+                    <div className="space-y-8">
+                        {(error || success) && (
+                            <div className="space-y-4">
+                                {error && (
+                                    <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertDescription className="text-xs font-bold uppercase tracking-tight">{error}</AlertDescription>
+                                    </Alert>
+                                )}
+                                {success && (
+                                    <Alert className="border-emerald-500 text-emerald-600 bg-emerald-50/50 backdrop-blur-sm animate-in fade-in slide-in-from-top-2">
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        <AlertDescription className="text-xs font-bold uppercase tracking-tight">{success}</AlertDescription>
+                                    </Alert>
                                 )}
                             </div>
+                        )}
 
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                                {filteredParameters.map(param => {
-                                    const meta = PARAM_METADATA[param.key];
-                                    return (
-                                        <div key={param.id} className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 transition-all flex flex-col justify-between group/card">
-                                            <div className="space-y-3">
-                                                <div className="flex justify-between items-start">
-                                                    <div>
-                                                        <h4 className="font-bold text-slate-800 dark:text-white">{meta?.label || param.key}</h4>
-                                                        <div className="flex items-center gap-2 mt-1">
-                                                            <code className="text-[10px] font-mono bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-800 uppercase">
-                                                                {param.key}
-                                                            </code>
-                                                            <select
-                                                                value={param.group_name || meta?.group || 'Avançado'}
-                                                                onChange={(e) => {
-                                                                    const newGroup = e.target.value;
-                                                                    const { data: session } = authClient.getSession() as any;
-                                                                    if (!session?.session.activeOrganizationId) return;
-
-                                                                    fetch(`${import.meta.env.VITE_API_URL}/api/organization/${session.session.activeOrganizationId}/parameters`, {
-                                                                        method: 'POST',
-                                                                        credentials: 'include',
-                                                                        headers: { 'Content-Type': 'application/json' },
-                                                                        body: JSON.stringify({
-                                                                            key: param.key,
-                                                                            value: param.value,
-                                                                            description: param.description,
-                                                                            group_name: newGroup
-                                                                        })
-                                                                    }).then(() => {
-                                                                        setSuccess('Módulo atualizado!');
-                                                                        fetchParameters();
-                                                                    });
-                                                                }}
-                                                                className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-none outline-none focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
-                                                            >
-                                                                {groups.map(g => <option key={g} value={g}>{g}</option>)}
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-1 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                                                        <button
-                                                            onClick={() => handleDeleteParameter(param.id)}
-                                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
-                                                            title="Excluir Parâmetro"
-                                                        >
-                                                            <Trash2 size={14} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                                    {meta?.description || param.description || 'Sem descrição definida.'}
-                                                </p>
-                                                <div className="pt-2">
-                                                    <SettingField
-                                                        label=""
-                                                        k={param.key}
-                                                        type={meta?.type || 'text'}
-                                                        options={meta?.options}
-                                                        allSettings={allSettings}
-                                                        setAllSettings={setAllSettings}
-                                                        themeColor={themeColor}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
+                                    {searchQuery ? `Resultados: "${searchQuery}"` : selectedGroup}
+                                    <span className="text-[12px] font-bold text-muted-foreground normal-case opacity-60">
+                                        {filteredParameters.length} parâmetros técnicos
+                                    </span>
+                                </h2>
                             </div>
+                            {!searchQuery && (
+                                <Button
+                                    onClick={() => handleSaveBatch(filteredParameters.map(p => ({ key: p.key, description: PARAM_METADATA[p.key]?.description || p.description })))}
+                                    disabled={isSaving}
+                                    className="h-14 rounded-2xl px-10 bg-foreground text-background font-black uppercase text-[12px] tracking-widest shadow-lg transition-all hover:scale-[1.02]"
+                                >
+                                    {isSaving ? <Loader2 className="animate-spin mr-2" size={16} /> : <Save className="mr-2" size={16} />}
+                                    Sincronizar Módulo
+                                </Button>
+                            )}
                         </div>
-                    )}
+
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            {filteredParameters.map(param => {
+                                const meta = PARAM_METADATA[param.key];
+                                return (
+                                    <Card key={param.id} className="group/card shadow-xl shadow-muted/10 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] p-8 hover:border-primary/40 transition-all">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="space-y-1">
+                                                <h4 className="font-black text-xs uppercase tracking-tight text-foreground">{meta?.label || param.key}</h4>
+                                                <code className="inline-block text-[9px] font-black bg-muted/50 px-2 py-0.5 rounded-lg text-primary tracking-widest uppercase">
+                                                    {param.key}
+                                                </code>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteParameter(param.id)}
+                                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all opacity-0 group-hover/card:opacity-100"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+
+                                        <p className="text-[12px] font-medium text-muted-foreground leading-relaxed uppercase tracking-wide mb-6">
+                                            {meta?.description || param.description || 'CONFORME PROTOCOLO PADRÃO'}
+                                        </p>
+
+                                        <div className="p-6 bg-muted/20 rounded-2xl border border-border/30">
+                                            <SettingField
+                                                label=""
+                                                k={param.key}
+                                                type={meta?.type || 'text'}
+                                                options={meta?.options}
+                                                allSettings={allSettings}
+                                                setAllSettings={setAllSettings}
+                                                themeColor={themeColor}
+                                            />
+                                        </div>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -591,7 +600,7 @@ export const Configuracoes: React.FC = () => {
                                         placeholder="ex: system_custom_key"
                                         required
                                     />
-                                    <p className="text-[10px] text-slate-400 mt-1 ml-1">Identificador único do parâmetro no banco de dados.</p>
+                                    <p className="text-[12px] text-slate-400 mt-1 ml-1">Identificador único do parâmetro no banco de dados.</p>
                                 </div>
 
                                 <div className="col-span-1">

@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Search, X, MapPin, Clock } from 'lucide-react';
-import { IRota } from '../../types';
+import { IRota, RouteType } from '../../types';
 import { VisualizadorRota } from './VisualizadorRota';
 
 interface SeletorRotaProps {
     rotas: IRota[];
-    tipoFiltro: 'IDA' | 'VOLTA';
+    tipoFiltro: RouteType | 'IDA' | 'VOLTA';
     rotaSelecionada?: IRota | null;
     onChange: (rota: IRota | null) => void;
 }
@@ -21,8 +21,14 @@ export const SeletorRota: React.FC<SeletorRotaProps> = ({
     // Filtrar rotas por tipo e busca
     const rotasFiltradas = useMemo(() => {
         return rotas.filter(rota => {
-            // Filtrar por tipo
-            if (rota.tipo_rota !== tipoFiltro) return false;
+            // Filtrar por tipo (suporta enums novos e strings legadas)
+            const tipo = rota.tipo_rota;
+            const filtro = tipoFiltro;
+
+            const matchesIda = (filtro === RouteType.OUTBOUND || filtro === 'IDA') && (tipo === RouteType.OUTBOUND || tipo === 'IDA' as any);
+            const matchesVolta = (filtro === RouteType.INBOUND || filtro === 'VOLTA') && (tipo === RouteType.INBOUND || tipo === 'VOLTA' as any);
+
+            if (!matchesIda && !matchesVolta) return false;
 
             // Filtrar apenas rotas ativas
             if (!rota.ativa) return false;
@@ -30,8 +36,8 @@ export const SeletorRota: React.FC<SeletorRotaProps> = ({
             // Filtrar por busca
             if (busca.trim()) {
                 const termoBusca = busca.toLowerCase();
-                const origem = rota.pontos[0]?.nome.toLowerCase() || '';
-                const destino = rota.pontos[rota.pontos.length - 1]?.nome.toLowerCase() || '';
+                const origem = rota.pontos[0]?.nome?.toLowerCase() || '';
+                const destino = rota.pontos[rota.pontos.length - 1]?.nome?.toLowerCase() || '';
                 const nomeRota = rota.nome?.toLowerCase() || '';
 
                 return origem.includes(termoBusca) ||
@@ -94,16 +100,16 @@ export const SeletorRota: React.FC<SeletorRotaProps> = ({
                                     key={rota.id}
                                     onClick={() => handleSelecionar(rota)}
                                     className={`p-4 cursor-pointer transition-colors ${estaSelecionada
-                                            ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600'
-                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                                        ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-600'
+                                        : 'hover:bg-slate-50 dark:hover:bg-slate-800'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
                                             {/* Nome da rota */}
                                             <h4 className={`font-semibold mb-1 truncate ${estaSelecionada
-                                                    ? 'text-blue-700 dark:text-blue-400'
-                                                    : 'text-slate-700 dark:text-slate-300'
+                                                ? 'text-blue-700 dark:text-blue-400'
+                                                : 'text-slate-700 dark:text-slate-300'
                                                 }`}>
                                                 {rota.nome || `${origem?.nome} → ${destino?.nome}`}
                                             </h4>
@@ -139,8 +145,8 @@ export const SeletorRota: React.FC<SeletorRotaProps> = ({
 
                                         {/* Radio button visual */}
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 ${estaSelecionada
-                                                ? 'border-blue-600 bg-blue-600'
-                                                : 'border-slate-300 dark:border-slate-600'
+                                            ? 'border-blue-600 bg-blue-600'
+                                            : 'border-slate-300 dark:border-slate-600'
                                             }`}>
                                             {estaSelecionada && (
                                                 <div className="w-2 h-2 rounded-full bg-white"></div>

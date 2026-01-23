@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-    MapPin, Flag, Building, Plus, Search, Edit, Trash2, Save, X, Tag
+    MapPin, Flag, Building, Plus, Search, Edit, Trash2, Save, X, Tag, AlertCircle, CheckCircle2, ArrowLeft, Layers
 } from 'lucide-react';
 import { IEstado, ICidade, IBairro, ITag } from '../types';
 import { tripsService } from '../services/tripsService';
 import { locationService } from '../services/locationService';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "../components/ui/alert-dialog";
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
 
 type TabType = 'estados' | 'cidades' | 'bairros' | 'tags';
 
 export const CadastrosAuxiliares: React.FC = () => {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<TabType>('estados');
     const [busca, setBusca] = useState('');
 
@@ -23,6 +38,9 @@ export const CadastrosAuxiliares: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<any>({});
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     // Fetch data on mount and tab change
     useEffect(() => {
@@ -91,7 +109,7 @@ export const CadastrosAuxiliares: React.FC = () => {
             }
         } catch (error) {
             console.error('Error loading data:', error);
-            alert('Erro ao carregar dados');
+            setError('Erro ao carregar dados');
         } finally {
             setLoading(false);
         }
@@ -116,16 +134,18 @@ export const CadastrosAuxiliares: React.FC = () => {
     };
 
     const handleSave = async () => {
+        setError(null);
+        setSuccess(null);
         try {
             if (activeTab === 'estados') {
-                alert('Estados são dados do sistema e não podem ser editados.');
+                setError('Estados são dados do sistema e não podem ser editados.');
                 return;
             } else if (activeTab === 'cidades') {
                 if (editingId) {
                     await locationService.updateCity(parseInt(editingId), formData.nome);
                 } else {
                     if (!formData.estado_id) {
-                        alert('Selecione um estado');
+                        setError('Selecione um estado');
                         return;
                     }
                     await locationService.createCity(formData.nome, parseInt(formData.estado_id));
@@ -135,7 +155,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                     await locationService.updateNeighborhood(parseInt(editingId), formData.nome);
                 } else {
                     if (!formData.cidade_id) {
-                        alert('Selecione uma cidade');
+                        setError('Selecione uma cidade');
                         return;
                     }
                     await locationService.createNeighborhood(formData.nome, parseInt(formData.cidade_id));
@@ -147,20 +167,28 @@ export const CadastrosAuxiliares: React.FC = () => {
                     await tripsService.createTag({ nome: formData.nome, cor: formData.cor });
                 }
             }
+            setSuccess('Registro salvo com sucesso!');
             handleCancel();
             await loadData();
         } catch (error) {
             console.error('Error saving:', error);
-            alert('Erro ao salvar');
+            setError('Erro ao salvar');
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja excluir este item?')) return;
+    const handleDelete = (id: string) => {
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        const id = deleteId;
+        setDeleteId(null);
+        setError(null);
 
         try {
             if (activeTab === 'estados') {
-                alert('Estados são dados do sistema e não podem ser excluídos.');
+                setError('Estados são dados do sistema e não podem ser excluídos.');
                 return;
             } else if (activeTab === 'cidades') {
                 await locationService.deleteCity(parseInt(id));
@@ -169,10 +197,11 @@ export const CadastrosAuxiliares: React.FC = () => {
             } else if (activeTab === 'tags') {
                 await tripsService.deleteTag(id);
             }
+            setSuccess('Excluído com sucesso');
             await loadData();
         } catch (error) {
             console.error('Error deleting:', error);
-            alert('Erro ao excluir. Verifique se não existem dependências.');
+            setError('Erro ao excluir. Verifique se não existem dependências.');
         }
     };
 
@@ -379,121 +408,156 @@ export const CadastrosAuxiliares: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Cadastros Auxiliares</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Gerencie tabelas de apoio do sistema</p>
-                </div>
-                {activeTab !== 'estados' && (
+        <div key="cadastros-aux-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir Registro?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Excluir
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {error && (
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Erro</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+            {success && (
+                <Alert className="border-emerald-500 text-emerald-600 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <AlertTitle>Sucesso</AlertTitle>
+                    <AlertDescription>{success}</AlertDescription>
+                </Alert>
+            )}
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
                     <button
-                        onClick={handleNew}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                        onClick={() => navigate('/admin')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
                     >
-                        <Plus size={18} />
-                        Novo Registro
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Painel Administrativo</span>
                     </button>
-                )}
+                    <div>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">
+                            CADASTROS <span className="text-primary italic">AUXILIARES</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Manutenção de tabelas básicas, parâmetros territoriais e categorização do ecossistema
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    {activeTab !== 'estados' && (
+                        <Button
+                            onClick={handleNew}
+                            className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Novo Registro
+                        </Button>
+                    )}
+                </div>
             </div>
 
-            {/* Tabs */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-                <div className="flex border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
-                    <button
-                        onClick={() => setActiveTab('estados')}
-                        className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'estados'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Flag size={18} />
-                        Estados
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('cidades')}
-                        className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'cidades'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Building size={18} />
-                        Cidades
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('bairros')}
-                        className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'bairros'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <MapPin size={18} />
-                        Bairros
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('tags')}
-                        className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors border-b-2 whitespace-nowrap ${activeTab === 'tags'
-                            ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/10'
-                            : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                            }`}
-                    >
-                        <Tag size={18} />
-                        Tags de Viagem
-                    </button>
+            {/* Navigation Tabs Dynamic */}
+            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                <div className="p-2 overflow-x-auto scroller-hidden">
+                    <div className="flex gap-2">
+                        {[
+                            { id: 'estados', label: 'Territórios', icon: Flag },
+                            { id: 'cidades', label: 'Cidades', icon: Building },
+                            { id: 'bairros', label: 'Bairros', icon: MapPin },
+                            { id: 'tags', label: 'Categorização', icon: Tag },
+                        ].map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id as TabType)}
+                                className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all rounded-2xl ${activeTab === tab.id
+                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                    }`}
+                            >
+                                <tab.icon size={14} strokeWidth={2.5} />
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
+            </Card>
 
-                {/* Toolbar */}
-                <div className="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                    <div className="relative max-w-md">
-                        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+            {/* Content Table Executive */}
+            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                <div className="p-8 border-b border-border/50 bg-muted/20 flex flex-col md:flex-row justify-between gap-6">
+                    <div className="relative group flex-1 max-w-xl">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
-                            placeholder={`Buscar em ${activeTab}...`}
+                            placeholder={`Pesquisar em ${activeTab}...`}
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full h-14 pl-12 pr-4 bg-muted/20 border border-border/40 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-[12px] tracking-tight"
                         />
                     </div>
                 </div>
 
-                {/* Content */}
-                {renderList()}
-            </div>
+                <div className="overflow-x-auto">
+                    {renderList()}
+                </div>
+            </Card>
 
-            {/* Modal de Edição */}
+            {/* Modal de Edição Executivo */}
             {isEditing && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-                        <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700">
-                            <h3 className="text-xl font-bold text-slate-800 dark:text-white">
-                                {editingId ? 'Editar Registro' : 'Novo Registro'}
-                            </h3>
-                            <button onClick={handleCancel} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                                <X size={24} />
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <Card className="w-full max-w-2xl bg-card border border-border/40 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-primary/10 rounded-2xl text-primary font-black uppercase text-xs">
+                                    {editingId ? 'EDT' : 'NEW'}
+                                </div>
+                                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                                    {editingId ? 'Editar' : 'Novo'} Registro no Módulo {activeTab}
+                                </h2>
+                            </div>
+                            <button onClick={handleCancel} className="p-2 hover:bg-muted rounded-xl transition-colors">
+                                <X size={20} />
                             </button>
                         </div>
-
-                        <div className="p-6">
+                        <div className="p-8">
                             {renderForm()}
-                        </div>
-
-                        <div className="flex justify-end gap-3 p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                            <button
-                                onClick={handleCancel}
-                                className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                            {activeTab !== 'estados' && (
-                                <button
-                                    onClick={handleSave}
-                                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+                            <div className="flex gap-4 mt-8 pt-8 border-t border-border/50">
+                                <Button
+                                    variant="outline"
+                                    onClick={handleCancel}
+                                    className="flex-1 h-14 rounded-2xl border-border/40 font-black uppercase text-[12px] tracking-widest"
                                 >
-                                    <Save size={18} />
-                                    Salvar
-                                </button>
-                            )}
+                                    Cancelar Operação
+                                </Button>
+                                {activeTab !== 'estados' && (
+                                    <Button
+                                        onClick={handleSave}
+                                        className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                    >
+                                        <Save className="w-4 h-4 mr-2" />
+                                        Salvar Alterações
+                                    </Button>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    </Card>
                 </div>
             )}
         </div>

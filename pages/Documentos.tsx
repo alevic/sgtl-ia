@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import {
     FileText, Search, Filter, Download, Upload, Trash2,
     AlertTriangle, CheckCircle, Clock,
-    Truck, Users, Building
+    Truck, Users, Building, ArrowLeft
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { EmpresaContexto } from '../types';
 import { ResponsiveActions, ActionItem } from '../components/Common/ResponsiveActions';
+import { Button } from '../components/ui/button';
+import { Card } from '../components/ui/card';
 
 interface IDocumento {
     id: string;
@@ -67,124 +69,146 @@ export const Documentos: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <FileText className="text-blue-600" />
-                        Gestão de Documentos
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400">
-                        Central de documentos e arquivos digitais
-                    </p>
+        <div key="documentos-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+            {/* Header Executivo */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-4">
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+                        <span className="text-[12px] font-black uppercase tracking-widest">Painel Administrativo</span>
+                    </button>
+                    <div>
+                        <h1 className="text-4xl font-black text-foreground tracking-tight">
+                            GESTÃO DE <span className="text-primary italic">DOCUMENTOS</span>
+                        </h1>
+                        <p className="text-muted-foreground font-medium mt-1">
+                            Central de custódia e controle de validades de arquivos digitais
+                        </p>
+                    </div>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-sm">
-                    <Upload size={18} />
-                    <span>Novo Documento</span>
-                </button>
+
+                <div className="flex items-center gap-3">
+                    <Button
+                        onClick={() => { }}
+                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Novo Documento
+                    </Button>
+                </div>
             </div>
 
             {/* Tabs & Filters */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4">
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2rem] overflow-hidden">
+                <div className="p-4 flex flex-col md:flex-row justify-between gap-6">
+                    <div className="flex border-b border-border/50 md:border-none">
                         <button
                             onClick={() => setActiveTab('veiculo')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'veiculo'
-                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                            className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'veiculo'
+                                ? 'border-primary text-primary bg-primary/5'
+                                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
                                 }`}
                         >
-                            <Truck size={18} />
+                            <Truck size={14} />
                             Veículos
                         </button>
                         <button
                             onClick={() => setActiveTab('motorista')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'motorista'
-                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                            className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'motorista'
+                                ? 'border-primary text-primary bg-primary/5'
+                                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
                                 }`}
                         >
-                            <Users size={18} />
+                            <Users size={14} />
                             Motoristas
                         </button>
                         <button
                             onClick={() => setActiveTab('administrativo')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${activeTab === 'administrativo'
-                                ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                            className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'administrativo'
+                                ? 'border-primary text-primary bg-primary/5'
+                                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
                                 }`}
                         >
-                            <Building size={18} />
-                            Administrativo
+                            <Building size={14} />
+                            Empresa
                         </button>
                     </div>
 
-                    <div className="relative w-full md:w-64">
-                        <input
-                            type="text"
-                            placeholder="Buscar documentos..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
-                        />
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <div className="flex items-center gap-4 px-4 pb-4 md:pb-0">
+                        <div className="relative w-full md:w-80 group">
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Filtrar por nome ou entidade..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-xs"
+                            />
+                        </div>
                     </div>
                 </div>
-            </div>
+            </Card>
 
             {/* Document List */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                        <thead className="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 font-medium">
+                    <table className="w-full text-left">
+                        <thead className="bg-muted/20 border-b border-border/50">
                             <tr>
-                                <th className="px-6 py-4">Nome do Documento</th>
-                                <th className="px-6 py-4">Referência</th>
-                                <th className="px-6 py-4">Data Emissão</th>
-                                <th className="px-6 py-4">Vencimento</th>
-                                <th className="px-6 py-4">Status</th>
-                                <th className="px-6 py-4 text-right">Ações</th>
+                                <th className="px-8 py-6 text-[12px] font-black uppercase tracking-widest text-muted-foreground">Documento</th>
+                                <th className="px-8 py-6 text-[12px] font-black uppercase tracking-widest text-muted-foreground">Entidade</th>
+                                <th className="px-8 py-6 text-[12px] font-black uppercase tracking-widest text-muted-foreground">Emissão</th>
+                                <th className="px-8 py-6 text-[12px] font-black uppercase tracking-widest text-muted-foreground">Vencimento</th>
+                                <th className="px-8 py-6 text-[12px] font-black uppercase tracking-widest text-muted-foreground">Status</th>
+                                <th className="px-8 py-6 text-right text-[12px] font-black uppercase tracking-widest text-muted-foreground">Ações</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                        <tbody className="divide-y divide-border/30">
                             {filteredDocs.length > 0 ? (
                                 filteredDocs.map((doc) => (
-                                    <tr key={doc.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
-                                                    <FileText size={16} />
+                                    <tr key={doc.id} className="group hover:bg-muted/30 transition-colors">
+                                        <td className="px-8 py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                                    <FileText size={18} strokeWidth={2.5} />
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-slate-800 dark:text-white">{doc.nome}</p>
-                                                    <p className="text-xs text-slate-500">{doc.tamanho}</p>
+                                                    <p className="font-black text-xs uppercase tracking-tight text-foreground">{doc.nome}</p>
+                                                    <p className="text-[12px] font-bold text-muted-foreground uppercase opacity-60 tracking-widest mt-0.5">{doc.tamanho}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
-                                            {doc.entidade}
+                                        <td className="px-8 py-5">
+                                            <span className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">{doc.entidade}</span>
                                         </td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
-                                            {new Date(doc.data_emissao).toLocaleDateString('pt-BR')}
-                                        </td>
-                                        <td className="px-6 py-4 text-slate-600 dark:text-slate-300">
-                                            {doc.data_vencimento !== '-' ? new Date(doc.data_vencimento).toLocaleDateString('pt-BR') : '-'}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
-                                                {getStatusIcon(doc.status)}
-                                                {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
+                                        <td className="px-8 py-5">
+                                            <span className="text-xs font-bold text-foreground">
+                                                {new Date(doc.data_emissao).toLocaleDateString('pt-BR')}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <ResponsiveActions
-                                                actions={[
-                                                    { icon: Download, label: 'Baixar', onClick: () => console.log('Download', doc.id), color: 'blue' },
-                                                    { icon: Trash2, label: 'Excluir', onClick: () => console.log('Delete', doc.id), color: 'red' }
-                                                ]}
-                                            />
+                                        <td className="px-8 py-5">
+                                            <span className="text-xs font-bold text-foreground">
+                                                {doc.data_vencimento !== '-' ? new Date(doc.data_vencimento).toLocaleDateString('pt-BR') : '-'}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${getStatusColor(doc.status)}`}>
+                                                {getStatusIcon(doc.status)}
+                                                {doc.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-5 text-right">
+                                            <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button className="p-2 bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all rounded-xl">
+                                                    <Download size={16} strokeWidth={2.5} />
+                                                </button>
+                                                <button className="p-2 bg-muted/50 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all rounded-xl">
+                                                    <Trash2 size={16} strokeWidth={2.5} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -193,7 +217,7 @@ export const Documentos: React.FC = () => {
                                     <td colSpan={6} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                                         <div className="flex flex-col items-center gap-2">
                                             <FileText size={32} className="text-slate-300 dark:text-slate-600" />
-                                            <p>Nenhum documento encontrado nesta categoria.</p>
+                                            <p className="text-[12px] font-bold uppercase tracking-widest text-muted-foreground">Nenhum documento encontrado nesta categoria.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -201,7 +225,7 @@ export const Documentos: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

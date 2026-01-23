@@ -291,7 +291,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                     <Calendar size={20} className="text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Data</p>
+                                    <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Data</p>
                                     <p className="text-sm font-bold text-slate-800 dark:text-white">
                                         {formatDate(viagem.departure_date)}
                                     </p>
@@ -302,7 +302,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                     <Clock size={20} className="text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Horário</p>
+                                    <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Horário</p>
                                     <p className="text-sm font-bold text-slate-800 dark:text-white">
                                         {formatTime(viagem.departure_time)}
                                     </p>
@@ -313,7 +313,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                     <Users size={20} className="text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vagas</p>
+                                    <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Vagas</p>
                                     <p className="text-sm font-bold text-slate-800 dark:text-white">
                                         {availableSeats} disponíveis
                                     </p>
@@ -324,7 +324,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                     <DollarSign size={20} className="text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mínimo</p>
+                                    <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Mínimo</p>
                                     <p className="text-sm font-bold text-green-600">
                                         R$ {minPrice > 0 ? minPrice.toFixed(2) : '--'}
                                     </p>
@@ -415,12 +415,12 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                                 </p>
                                                 <div className="flex gap-2 mt-1">
                                                     {veiculo.placa && (
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded uppercase">
+                                                        <span className="text-[12px] font-bold px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded uppercase">
                                                             {veiculo.placa}
                                                         </span>
                                                     )}
                                                     {veiculo.ano && (
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded uppercase">
+                                                        <span className="text-[12px] font-bold px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded uppercase">
                                                             Ano {veiculo.ano}
                                                         </span>
                                                     )}
@@ -518,7 +518,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                                     <p className="font-bold text-slate-800 dark:text-white">
                                                         Assento {assento.numero}
                                                     </p>
-                                                    <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest">{assento.tipo}</p>
+                                                    <p className="text-[12px] font-bold text-blue-500 uppercase tracking-widest">{assento.tipo}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <span className="font-bold text-slate-800 dark:text-white px-2 py-1 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
@@ -546,7 +546,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                     </button>
 
                                     <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                        <p className="text-[12px] text-slate-500 font-bold uppercase tracking-wider">
                                             Ambiente 100% Seguro
                                         </p>
                                     </div>
@@ -568,12 +568,12 @@ export const ViagemDetalhesPublico: React.FC = () => {
                         <div className="px-4 flex items-center justify-center gap-4 text-slate-400">
                             <div className="flex items-center gap-1.5 grayscale opacity-50">
                                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                <span className="text-[10px] font-bold uppercase">Pagamento via PIX</span>
+                                <span className="text-[12px] font-bold uppercase">Pagamento via PIX</span>
                             </div>
                             <div className="w-1 h-1 rounded-full bg-slate-300"></div>
                             <div className="flex items-center gap-1.5 grayscale opacity-50">
                                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                <span className="text-[10px] font-bold uppercase">Suporte 24h</span>
+                                <span className="text-[12px] font-bold uppercase">Suporte 24h</span>
                             </div>
                         </div>
                     </div>
