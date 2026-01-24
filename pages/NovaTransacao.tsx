@@ -179,7 +179,7 @@ export const NovaTransacao: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/admin/financeiro')}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
                     >
                         Cancelar
                     </Button>
@@ -187,7 +187,7 @@ export const NovaTransacao: React.FC = () => {
             </div>
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro no Lançamento</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -197,7 +197,7 @@ export const NovaTransacao: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Documento Salvo</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -209,7 +209,7 @@ export const NovaTransacao: React.FC = () => {
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8 space-y-8">
                     {/* Informações Básicas */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <FileText size={14} className="text-primary" />
@@ -251,7 +251,7 @@ export const NovaTransacao: React.FC = () => {
                                     value={descricao}
                                     onChange={e => setDescricao(e.target.value)}
                                     placeholder="Ex: Liquidação de Fatura, Manutenção Preventiva..."
-                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
                                 />
                             </div>
 
@@ -277,7 +277,7 @@ export const NovaTransacao: React.FC = () => {
                                     <select
                                         value={moeda}
                                         onChange={e => setMoeda(e.target.value as Moeda)}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
                                     >
                                         <option value={Moeda.BRL}>BRL - Real</option>
                                         <option value={Moeda.USD}>USD - Dólar</option>
@@ -293,7 +293,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={categoriaReceita}
                                             onChange={e => setCategoriaReceita(e.target.value as CategoriaReceita)}
-                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
                                         >
                                             <option value={CategoriaReceita.VENDA_PASSAGEM}>Venda de Passagem</option>
                                             <option value={CategoriaReceita.FRETAMENTO}>Fretamento</option>
@@ -305,7 +305,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={categoriaDespesa}
                                             onChange={e => setCategoriaDespesa(e.target.value as CategoriaDespesa)}
-                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
                                         >
                                             <option value={CategoriaDespesa.COMBUSTIVEL}>Combustível</option>
                                             <option value={CategoriaDespesa.MANUTENCAO}>Manutenção</option>
@@ -332,7 +332,7 @@ export const NovaTransacao: React.FC = () => {
                                             value={numeroDocumento}
                                             onChange={e => setNumeroDocumento(e.target.value)}
                                             placeholder="Ex: NF-123.456"
-                                            className="w-full h-14 pl-12 pr-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
+                                            className="w-full h-14 pl-12 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
                                         />
                                     </div>
                                 </div>
@@ -341,7 +341,7 @@ export const NovaTransacao: React.FC = () => {
                                     <select
                                         value={formaPagamento}
                                         onChange={e => setFormaPagamento(e.target.value as FormaPagamento)}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
                                     >
                                         <option value={FormaPagamento.CASH}>Dinheiro Vivo</option>
                                         <option value={FormaPagamento.PIX}>PIX Instantâneo</option>
@@ -357,7 +357,7 @@ export const NovaTransacao: React.FC = () => {
                     </Card>
 
                     {/* Centros de Custo */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Tag size={14} className="text-primary" />
@@ -398,7 +398,7 @@ export const NovaTransacao: React.FC = () => {
                                 )}
                             </div>
 
-                            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
+                            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
                                 <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500 mt-1">
                                     <AlertCircle size={16} />
                                 </div>
@@ -415,7 +415,7 @@ export const NovaTransacao: React.FC = () => {
                     </Card>
 
                     {/* Observações */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <FileText size={14} className="text-primary" />
@@ -428,7 +428,7 @@ export const NovaTransacao: React.FC = () => {
                                 onChange={e => setObservacoes(e.target.value)}
                                 rows={4}
                                 placeholder="Notas detalhadas sobre a transação financeira..."
-                                className="w-full p-6 rounded-[2rem] bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none resize-none"
+                                className="w-full p-6 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none resize-none"
                             />
                         </CardContent>
                     </Card>
@@ -480,7 +480,7 @@ export const NovaTransacao: React.FC = () => {
                             <div className="pt-4">
                                 <Button
                                     type="submit"
-                                    className="w-full h-16 rounded-[2rem] bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                    className="w-full h-16 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
                                 >
                                     <Save size={18} className="mr-2" />
                                     Confirmar Lançamento
@@ -490,7 +490,7 @@ export const NovaTransacao: React.FC = () => {
                     </Card>
 
                     {/* Ficha de Transparência */}
-                    <div className="p-8 rounded-[2.5rem] bg-muted/30 border border-border/40 space-y-4">
+                    <div className="p-8 rounded-3xl bg-muted/30 border border-border/40 space-y-4">
                         <div className="flex items-center gap-3 text-primary">
                             <CheckCircle2 size={18} />
                             <h4 className="text-[12px] font-black uppercase tracking-widest">Compliance Financeiro</h4>

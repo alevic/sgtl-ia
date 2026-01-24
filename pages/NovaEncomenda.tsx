@@ -110,14 +110,14 @@ export const NovaEncomenda: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/admin/encomendas')}
-                        className="h-14 rounded-2xl px-6 font-semibold uppercase text-[12px] tracking-widest"
+                        className="h-14 rounded-xl px-6 font-semibold uppercase text-[12px] tracking-widest"
                     >
                         Cancelar
                     </Button>
                     <Button
                         onClick={handleSubmit}
                         disabled={saving}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {saving ? (
                             <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -130,7 +130,7 @@ export const NovaEncomenda: React.FC = () => {
             </div>
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest">Erro no Cadastro</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -140,7 +140,7 @@ export const NovaEncomenda: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -155,7 +155,7 @@ export const NovaEncomenda: React.FC = () => {
                     {/* Partes Envolvidas */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Remetente */}
-                        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                             <div className="p-8 border-b border-border/50 bg-muted/20">
                                 <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                     <User size={14} className="text-primary" />
@@ -172,7 +172,7 @@ export const NovaEncomenda: React.FC = () => {
                                         value={formData.sender_name}
                                         onChange={handleChange}
                                         placeholder="Nome do remetente"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -183,7 +183,7 @@ export const NovaEncomenda: React.FC = () => {
                                         value={formData.sender_document}
                                         onChange={handleChange}
                                         placeholder="000.000.000-00"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -194,14 +194,14 @@ export const NovaEncomenda: React.FC = () => {
                                         value={formData.sender_phone}
                                         onChange={handleChange}
                                         placeholder="(00) 00000-0000"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* Destinatário */}
-                        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                             <div className="p-8 border-b border-border/50 bg-muted/20">
                                 <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                     <User size={14} className="text-primary" />
@@ -218,7 +218,7 @@ export const NovaEncomenda: React.FC = () => {
                                         value={formData.recipient_name}
                                         onChange={handleChange}
                                         placeholder="Nome do destinatário"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -229,7 +229,7 @@ export const NovaEncomenda: React.FC = () => {
                                         value={formData.recipient_document}
                                         onChange={handleChange}
                                         placeholder="000.000.000-00"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -240,7 +240,7 @@ export const NovaEncomenda: React.FC = () => {
                                         value={formData.recipient_phone}
                                         onChange={handleChange}
                                         placeholder="(00) 00000-0000"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
                             </CardContent>
@@ -248,7 +248,7 @@ export const NovaEncomenda: React.FC = () => {
                     </div>
 
                     {/* Detalhes da Carga */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Package size={14} className="text-primary" />
@@ -265,7 +265,7 @@ export const NovaEncomenda: React.FC = () => {
                                     value={formData.description}
                                     onChange={handleChange}
                                     placeholder="Ex: Caixa com eletrônicos diversos"
-                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                 />
                             </div>
 
@@ -279,7 +279,7 @@ export const NovaEncomenda: React.FC = () => {
                                         min="0"
                                         value={formData.weight}
                                         onChange={handleChange}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -290,7 +290,7 @@ export const NovaEncomenda: React.FC = () => {
                                         placeholder="Ex: 30x20x10"
                                         value={formData.dimensions}
                                         onChange={handleChange}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
                             </div>
@@ -298,7 +298,7 @@ export const NovaEncomenda: React.FC = () => {
                     </Card>
 
                     {/* Rota */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <MapPin size={14} className="text-primary" />
@@ -321,7 +321,7 @@ export const NovaEncomenda: React.FC = () => {
                                                 required
                                                 value={formData.origin_city}
                                                 onChange={handleChange}
-                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                                className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -333,7 +333,7 @@ export const NovaEncomenda: React.FC = () => {
                                                 maxLength={2}
                                                 value={formData.origin_state}
                                                 onChange={handleChange}
-                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] text-center"
+                                                className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] text-center"
                                             />
                                         </div>
                                     </div>
@@ -353,7 +353,7 @@ export const NovaEncomenda: React.FC = () => {
                                                 required
                                                 value={formData.destination_city}
                                                 onChange={handleChange}
-                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                                className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                             />
                                         </div>
                                         <div className="space-y-2">
@@ -365,7 +365,7 @@ export const NovaEncomenda: React.FC = () => {
                                                 maxLength={2}
                                                 value={formData.destination_state}
                                                 onChange={handleChange}
-                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] text-center"
+                                                className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] text-center"
                                             />
                                         </div>
                                     </div>
@@ -378,7 +378,7 @@ export const NovaEncomenda: React.FC = () => {
                 {/* Coluna Lateral (1/3) */}
                 <div className="space-y-8">
                     {/* Financeiro */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <DollarSign size={14} className="text-primary" />
@@ -398,7 +398,7 @@ export const NovaEncomenda: React.FC = () => {
                                         required
                                         value={formData.price}
                                         onChange={handleChange}
-                                        className="w-full h-14 pl-12 pr-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-xl"
+                                        className="w-full h-14 pl-12 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-xl"
                                     />
                                 </div>
                             </div>
@@ -406,7 +406,7 @@ export const NovaEncomenda: React.FC = () => {
                     </Card>
 
                     {/* Vínculo de Viagem */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Truck size={14} className="text-primary" />
@@ -420,7 +420,7 @@ export const NovaEncomenda: React.FC = () => {
                                     name="trip_id"
                                     value={formData.trip_id}
                                     onChange={handleChange}
-                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest"
                                 >
                                     <option value="">NÃO VINCULAR</option>
                                     {trips.map(trip => (
@@ -430,7 +430,7 @@ export const NovaEncomenda: React.FC = () => {
                                     ))}
                                 </select>
                             </div>
-                            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                            <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
                                 <p className="text-[12px] font-medium text-primary leading-relaxed">
                                     Selecione uma viagem ativa para que a carga seja embarcada e processada imediatamente.
                                 </p>
@@ -439,7 +439,7 @@ export const NovaEncomenda: React.FC = () => {
                     </Card>
 
                     {/* Observações */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <ListFilter size={14} className="text-primary" />
@@ -453,7 +453,7 @@ export const NovaEncomenda: React.FC = () => {
                                 onChange={handleChange}
                                 placeholder="Notas internas sobre a carga..."
                                 rows={4}
-                                className="w-full p-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
+                                className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
                             />
                         </CardContent>
                     </Card>

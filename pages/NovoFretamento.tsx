@@ -261,14 +261,14 @@ export const NovoFretamento: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/admin/fretamento')}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
                     >
                         Cancelar
                     </Button>
                     <Button
                         onClick={handleSalvar}
                         disabled={saving}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {saving ? (
                             <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -284,7 +284,7 @@ export const NovoFretamento: React.FC = () => {
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Cliente Corporativo */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-lg font-black tracking-tight flex items-center gap-3">
                                 <div className="p-2 bg-blue-500/10 rounded-xl text-blue-600">
@@ -304,7 +304,7 @@ export const NovoFretamento: React.FC = () => {
                             </div>
 
                             {clienteSelecionado && (
-                                <div className="bg-primary/5 border border-primary/10 rounded-[2rem] p-6 animate-in zoom-in-95 duration-300">
+                                <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 animate-in zoom-in-95 duration-300">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="space-y-1">
                                             <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Contato</p>
@@ -337,7 +337,7 @@ export const NovoFretamento: React.FC = () => {
                     </Card>
 
                     {/* Rota e Localização */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-lg font-black tracking-tight flex items-center gap-3">
                                 <div className="p-2 bg-red-500/10 rounded-xl text-red-600">
@@ -358,7 +358,7 @@ export const NovoFretamento: React.FC = () => {
                                             setRotaVoltaSelecionada(null);
                                         }}
                                         className={cn(
-                                            "flex-1 p-4 rounded-2xl border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
+                                            "flex-1 p-4 rounded-xl border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
                                             !temRotaVolta ? "border-primary bg-primary/5 text-primary" : "border-border/50 hover:border-border text-muted-foreground"
                                         )}
                                     >
@@ -367,7 +367,7 @@ export const NovoFretamento: React.FC = () => {
                                     <button
                                         onClick={() => setTemRotaVolta(true)}
                                         className={cn(
-                                            "flex-1 p-4 rounded-2xl border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
+                                            "flex-1 p-4 rounded-xl border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
                                             temRotaVolta ? "border-primary bg-primary/5 text-primary" : "border-border/50 hover:border-border text-muted-foreground"
                                         )}
                                     >
@@ -378,7 +378,7 @@ export const NovoFretamento: React.FC = () => {
 
                             {/* Tabs Simplified */}
                             {temRotaVolta && (
-                                <div className="flex p-1 bg-muted/40 rounded-2xl border border-border/50">
+                                <div className="flex p-1 bg-muted/40 rounded-xl border border-border/50">
                                     <button
                                         onClick={() => setAbaRotaAtiva('IDA')}
                                         className={cn(
@@ -425,7 +425,7 @@ export const NovoFretamento: React.FC = () => {
 
                             {/* Resumo visual estilizado */}
                             {resumoViagem && (
-                                <div className="bg-gradient-to-br from-primary/5 to-indigo-500/5 border border-primary/10 rounded-[2rem] p-8 space-y-6">
+                                <div className="bg-gradient-to-br from-primary/5 to-indigo-500/5 border border-primary/10 rounded-3xl p-8 space-y-6">
                                     <div className="flex items-center gap-2 text-primary">
                                         <Route size={18} strokeWidth={2.5} />
                                         <span className="text-xs font-black uppercase tracking-widest">Resumo Operacional</span>
@@ -475,7 +475,7 @@ export const NovoFretamento: React.FC = () => {
                 {/* Coluna Lateral (1/3) */}
                 <div className="space-y-8">
                     {/* Configurações do Serviço */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Bus size={14} className="text-primary" />
@@ -489,7 +489,7 @@ export const NovoFretamento: React.FC = () => {
                                     <button
                                         onClick={() => setTipo('PONTUAL')}
                                         className={cn(
-                                            "h-14 rounded-2xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipo === 'PONTUAL' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -498,7 +498,7 @@ export const NovoFretamento: React.FC = () => {
                                     <button
                                         onClick={() => setTipo('RECORRENTE')}
                                         className={cn(
-                                            "h-14 rounded-2xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipo === 'RECORRENTE' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -516,7 +516,7 @@ export const NovoFretamento: React.FC = () => {
                                         min="1"
                                         value={passageiros}
                                         onChange={(e) => setPassageiros(parseInt(e.target.value) || 0)}
-                                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         placeholder="0"
                                     />
                                 </div>
@@ -525,7 +525,7 @@ export const NovoFretamento: React.FC = () => {
                     </Card>
 
                     {/* Recursos Operacionais */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Users size={14} className="text-primary" />
@@ -538,7 +538,7 @@ export const NovoFretamento: React.FC = () => {
                                 <select
                                     value={veiculoId}
                                     onChange={(e) => setVeiculoId(e.target.value)}
-                                    className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-2xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
+                                    className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
                                 >
                                     <option value="">AGUARDANDO ATRIBUIÇÃO</option>
                                     {veiculos.map((veiculo) => (
@@ -554,7 +554,7 @@ export const NovoFretamento: React.FC = () => {
                                 <select
                                     value={motoristaId}
                                     onChange={(e) => setMotoristaId(e.target.value)}
-                                    className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-2xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
+                                    className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
                                 >
                                     <option value="">AGUARDANDO ATRIBUIÇÃO</option>
                                     {motoristas.map((motorista) => (
@@ -568,7 +568,7 @@ export const NovoFretamento: React.FC = () => {
                     </Card>
 
                     {/* Datas do Evento */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Calendar size={14} className="text-primary" />

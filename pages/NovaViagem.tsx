@@ -346,14 +346,14 @@ export const NovaViagem: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/admin/viagens')}
-                        className="h-14 rounded-2xl px-6 font-semibold uppercase text-[12px] tracking-widest"
+                        className="h-14 rounded-xl px-6 font-semibold uppercase text-[12px] tracking-widest"
                     >
                         Cancelar
                     </Button>
                     <Button
                         onClick={handleSalvar}
                         disabled={saving}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {saving ? (
                             <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -366,7 +366,7 @@ export const NovaViagem: React.FC = () => {
             </div>
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest">Erro no Processamento</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -376,7 +376,7 @@ export const NovaViagem: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-semibold uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -389,8 +389,8 @@ export const NovaViagem: React.FC = () => {
                 {/* Coluna Principal (2/3) */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Informações Básicas */}
-                    <Card className="relative z-10 focus-within:z-20 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem]">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-[2.5rem]">
+                    <Card className="relative z-10 focus-within:z-20 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl">
+                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-3xl">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Bus size={14} className="text-primary" />
                                 Identificação da Viagem
@@ -405,7 +405,7 @@ export const NovaViagem: React.FC = () => {
                                         value={titulo}
                                         onChange={(e) => setTitulo(e.target.value)}
                                         placeholder="Ex: Excursão de Final de Ano - Litoral Norte"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -420,7 +420,7 @@ export const NovaViagem: React.FC = () => {
                     </Card>
 
                     {/* Seleção de Rotas */}
-                    <Card className="relative z-0 focus-within:z-10 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem]">
+                    <Card className="relative z-0 focus-within:z-10 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl">
                         <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-[2.5rem]">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Route size={14} className="text-primary" />
@@ -465,8 +465,8 @@ export const NovaViagem: React.FC = () => {
                     </Card>
 
                     {/* Cronograma */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem]">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-[2.5rem]">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl">
+                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-3xl">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Calendar size={14} className="text-primary" />
                                 Cronograma de Execução
@@ -549,7 +549,7 @@ export const NovaViagem: React.FC = () => {
                     </Card>
 
                     {/* Mídia e Detalhes */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Image size={14} className="text-primary" />
@@ -562,7 +562,7 @@ export const NovaViagem: React.FC = () => {
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Capa da Viagem</label>
                                     <div className="flex flex-col gap-4">
                                         {imagemCapa ? (
-                                            <div className="relative aspect-video rounded-2xl overflow-hidden border border-border/50 group">
+                                            <div className="relative aspect-video rounded-xl overflow-hidden border border-border/50 group">
                                                 <img src={imagemCapa} alt="Capa" className="w-full h-full object-cover" />
                                                 <button
                                                     onClick={() => setImagemCapa('')}
@@ -572,7 +572,7 @@ export const NovaViagem: React.FC = () => {
                                                 </button>
                                             </div>
                                         ) : (
-                                            <div className="aspect-video rounded-2xl bg-muted/40 border border-dashed border-border/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                                            <div className="aspect-video rounded-xl bg-muted/40 border border-dashed border-border/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
                                                 <Image size={32} strokeWidth={1.5} />
                                                 <span className="text-[12px] font-semibold uppercase tracking-widest">Sem Imagem</span>
                                             </div>
@@ -606,7 +606,7 @@ export const NovaViagem: React.FC = () => {
                                     </div>
                                     <div className="grid grid-cols-4 gap-2">
                                         {galeria.map((img, idx) => (
-                                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-border/50 group">
+                                            <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border/50 group">
                                                 <img src={img} alt={`Galeria ${idx}`} className="w-full h-full object-cover" />
                                                 <button
                                                     onClick={() => setGaleria(prev => prev.filter((_, i) => i !== idx))}
@@ -616,7 +616,7 @@ export const NovaViagem: React.FC = () => {
                                                 </button>
                                             </div>
                                         ))}
-                                        <label className="aspect-square rounded-lg border border-dashed border-border/50 bg-muted/20 flex items-center justify-center cursor-pointer hover:bg-muted/40 transition-colors">
+                                        <label className="aspect-square rounded-xl border border-dashed border-border/50 bg-muted/20 flex items-center justify-center cursor-pointer hover:bg-muted/40 transition-colors">
                                             <Plus size={16} className="text-muted-foreground" />
                                             <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" />
                                         </label>
@@ -632,7 +632,7 @@ export const NovaViagem: React.FC = () => {
                                         value={limiteBagagem}
                                         onChange={(e) => setLimiteBagagem(e.target.value)}
                                         placeholder="Ex: 1 mala 23kg + 1 mão"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -642,7 +642,7 @@ export const NovaViagem: React.FC = () => {
                                         value={alertas}
                                         onChange={(e) => setAlertas(e.target.value)}
                                         placeholder="Avisos importantes..."
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
                             </div>
@@ -653,7 +653,7 @@ export const NovaViagem: React.FC = () => {
                 {/* Coluna Lateral (1/3) */}
                 <div className="space-y-8">
                     {/* Alocação de Recursos */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Bus size={14} className="text-primary" />
@@ -666,7 +666,7 @@ export const NovaViagem: React.FC = () => {
                                 <select
                                     value={veiculoId}
                                     onChange={(e) => setVeiculoId(e.target.value)}
-                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest"
                                 >
                                     <option value="">NÃO ATRIBUÍDO</option>
                                     {veiculos.map((v) => (
@@ -683,7 +683,7 @@ export const NovaViagem: React.FC = () => {
                                     </h4>
                                     <div className="space-y-2">
                                         {tiposAssento.map((tipo) => (
-                                            <div key={tipo} className="flex items-center justify-between p-3 rounded-2xl bg-muted/20 border border-border/50">
+                                            <div key={tipo} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/50">
                                                 <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{tipo?.replace('_', ' ')}</span>
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-[12px] font-semibold text-muted-foreground">{moeda}</span>
@@ -703,7 +703,7 @@ export const NovaViagem: React.FC = () => {
                             )}
 
                             {!veiculoId && (
-                                <div className="p-4 rounded-2xl bg-muted/20 border border-dashed border-border/50">
+                                <div className="p-4 rounded-xl bg-muted/20 border border-dashed border-border/50">
                                     <p className="text-[12px] font-medium text-muted-foreground italic text-center leading-relaxed">
                                         Selecione um veículo para habilitar a definição dos preços por categoria de assento.
                                     </p>
@@ -713,7 +713,7 @@ export const NovaViagem: React.FC = () => {
                     </Card>
 
                     {/* Tripulação */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Users size={14} className="text-primary" />
@@ -744,14 +744,14 @@ export const NovaViagem: React.FC = () => {
                                 onChange={(e) => setNotes(e.target.value)}
                                 rows={4}
                                 placeholder="Notas internas para controle operacional..."
-                                className="w-full p-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
+                                className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
                             />
                         </CardContent>
                     </Card>
                 </div>
             </div>
             <AlertDialog open={showGalleryClearConfirm} onOpenChange={setShowGalleryClearConfirm}>
-                <AlertDialogContent className="rounded-[2.5rem] p-10">
+                <AlertDialogContent className="rounded-3xl p-10">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-2xl font-semibold uppercase tracking-tight">Limpar Galeria</AlertDialogTitle>
                         <AlertDialogDescription className="text-muted-foreground">
@@ -759,13 +759,13 @@ export const NovaViagem: React.FC = () => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-8 gap-3">
-                        <AlertDialogCancel className="h-14 rounded-2xl px-6 font-semibold uppercase text-[12px] tracking-widest border-border/50">Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel className="h-14 rounded-xl px-6 font-semibold uppercase text-[12px] tracking-widest border-border/50">Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => {
                                 setGaleria([]);
                                 setShowGalleryClearConfirm(false);
                             }}
-                            className="h-14 rounded-2xl px-8 bg-destructive hover:bg-destructive/90 text-white font-semibold uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-xl px-8 bg-destructive hover:bg-destructive/90 text-white font-semibold uppercase text-[12px] tracking-widest"
                         >
                             Remover Todas
                         </AlertDialogAction>

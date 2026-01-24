@@ -182,14 +182,14 @@ export const NovoMotorista: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/admin/motoristas')}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
                     >
                         Cancelar
                     </Button>
                     <Button
                         onClick={handleSalvar}
                         disabled={isLoading}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {isLoading ? (
                             <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -202,7 +202,7 @@ export const NovoMotorista: React.FC = () => {
             </div>
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro no Cadastro</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -212,7 +212,7 @@ export const NovoMotorista: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -225,7 +225,7 @@ export const NovoMotorista: React.FC = () => {
                 {/* Coluna Principal (2/3) */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Dados Pessoais */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <User size={14} className="text-primary" />
@@ -243,7 +243,7 @@ export const NovoMotorista: React.FC = () => {
                                         value={nome}
                                         onChange={(e) => setNome(e.target.value)}
                                         placeholder="Ex: Carlos Alberto Silva"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
 
@@ -254,7 +254,7 @@ export const NovoMotorista: React.FC = () => {
                                     <select
                                         value={status}
                                         onChange={(e) => setStatus(e.target.value as DriverStatus)}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
                                     >
                                         <option value={DriverStatus.AVAILABLE}>Disponível</option>
                                         <option value={DriverStatus.IN_TRANSIT}>Em Viagem</option>
@@ -267,7 +267,7 @@ export const NovoMotorista: React.FC = () => {
                     </Card>
 
                     {/* Habilitação */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <FileText size={14} className="text-primary" />
@@ -286,7 +286,7 @@ export const NovoMotorista: React.FC = () => {
                                         onChange={(e) => setCnh(e.target.value.replace(/\D/g, ''))}
                                         placeholder="12345678900"
                                         maxLength={11}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
 
@@ -297,7 +297,7 @@ export const NovoMotorista: React.FC = () => {
                                     <select
                                         value={categoriaCnh}
                                         onChange={(e) => setCategoriaCnh(e.target.value)}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
                                     >
                                         <option value="A">A - Motocicleta</option>
                                         <option value="B">B - Carro</option>
@@ -325,7 +325,7 @@ export const NovoMotorista: React.FC = () => {
 
                             {cnhValidade && (
                                 <div className={cn(
-                                    "p-4 rounded-2xl border transition-all animate-in fade-in slide-in-from-top-2 duration-300",
+                                    "p-4 rounded-xl border transition-all animate-in fade-in slide-in-from-top-2 duration-300",
                                     cnhValidade.cor === 'red'
                                         ? 'bg-destructive/5 border-destructive/20'
                                         : cnhValidade.cor === 'orange'
@@ -361,7 +361,7 @@ export const NovoMotorista: React.FC = () => {
                                             value={passaporte}
                                             onChange={(e) => setPassaporte(e.target.value.toUpperCase())}
                                             placeholder="BR123456"
-                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                         />
                                     </div>
 
@@ -379,7 +379,7 @@ export const NovoMotorista: React.FC = () => {
 
                                 {passaporte && passaporteValidadeInfo && (
                                     <div className={cn(
-                                        "mt-6 p-4 rounded-2xl border transition-all animate-in fade-in slide-in-from-top-2 duration-300",
+                                        "mt-6 p-4 rounded-xl border transition-all animate-in fade-in slide-in-from-top-2 duration-300",
                                         passaporteValidadeInfo.cor === 'red'
                                             ? 'bg-destructive/5 border-destructive/20'
                                             : passaporteValidadeInfo.cor === 'orange'
@@ -404,7 +404,7 @@ export const NovoMotorista: React.FC = () => {
                     </Card>
 
                     {/* Escalas e Disponibilidade */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Briefcase size={14} className="text-primary" />
@@ -450,7 +450,7 @@ export const NovoMotorista: React.FC = () => {
                                         placeholder="44"
                                         min="1"
                                         max="60"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                 </div>
                             </div>
@@ -490,7 +490,7 @@ export const NovoMotorista: React.FC = () => {
                 {/* Coluna Lateral (1/3) */}
                 <div className="space-y-8">
                     {/* Contatos */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Phone size={14} className="text-primary" />
@@ -533,7 +533,7 @@ export const NovoMotorista: React.FC = () => {
                                             value={contatoEmergenciaNome}
                                             onChange={(e) => setContatoEmergenciaNome(e.target.value)}
                                             placeholder="Ex: Maria Silva"
-                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -543,7 +543,7 @@ export const NovoMotorista: React.FC = () => {
                                             value={contatoEmergenciaRelacao}
                                             onChange={(e) => setContatoEmergenciaRelacao(e.target.value)}
                                             placeholder="Ex: Esposa"
-                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -553,7 +553,7 @@ export const NovoMotorista: React.FC = () => {
                                             value={telefoneEmergencia}
                                             onChange={(e) => setTelefoneEmergencia(e.target.value)}
                                             placeholder="(11) 99999-9999"
-                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                         />
                                     </div>
                                 </div>
@@ -562,7 +562,7 @@ export const NovoMotorista: React.FC = () => {
                     </Card>
 
                     {/* Endereço */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <MapPin size={14} className="text-primary" />
@@ -579,7 +579,7 @@ export const NovoMotorista: React.FC = () => {
                                         onChange={handleCepChange}
                                         placeholder="12345678"
                                         maxLength={8}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                     />
                                     {isSearchingCep && (
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -606,7 +606,7 @@ export const NovoMotorista: React.FC = () => {
                                         value={cidade}
                                         onChange={(e) => setCidade(e.target.value)}
                                         placeholder="Cidade"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -617,7 +617,7 @@ export const NovoMotorista: React.FC = () => {
                                         onChange={(e) => setEstado(e.target.value.toUpperCase())}
                                         placeholder="UF"
                                         maxLength={2}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs text-center"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs text-center"
                                     />
                                 </div>
                             </div>
@@ -637,7 +637,7 @@ export const NovoMotorista: React.FC = () => {
                                 onChange={(e) => setObservacoes(e.target.value)}
                                 placeholder="Notas internas sobre o motorista..."
                                 rows={4}
-                                className="w-full p-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
+                                className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
                             />
                         </CardContent>
                     </Card>

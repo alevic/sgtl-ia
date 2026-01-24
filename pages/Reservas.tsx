@@ -406,7 +406,7 @@ export const Reservas: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                        <div className="p-2.5 bg-primary/10 rounded-xl">
                             <Ticket size={24} className="text-primary" strokeWidth={2.5} />
                         </div>
                         <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
@@ -419,7 +419,7 @@ export const Reservas: React.FC = () => {
                 </div>
                 <Button
                     onClick={() => navigate('/admin/reservas/nova')}
-                    className="h-14 px-6 rounded-2xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                    className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                 >
                     <Plus size={20} className="mr-2" strokeWidth={3} />
                     NOVA RESERVA
@@ -434,7 +434,7 @@ export const Reservas: React.FC = () => {
                     { label: 'Confirmadas', value: reservas.filter(r => r.status === ReservationStatus.CONFIRMED).length, icon: ShieldCheck, color: 'emerald' },
                     { label: 'Valor Total', value: `R$ ${reservas.reduce((acc, r) => acc + (Number(r.valor_total || r.price || 0)), 0).toLocaleString()}`, icon: Wallet, color: 'indigo' },
                 ].map((stat, i) => (
-                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
                         <CardContent className="p-6">
                             <div className="flex justify-between items-start">
                                 <div className="space-y-1">
@@ -442,7 +442,7 @@ export const Reservas: React.FC = () => {
                                     <p className="text-3xl font-semibold tracking-tighter text-foreground">{stat.value}</p>
                                 </div>
                                 <div className={cn(
-                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                    "p-3 rounded-xl transition-transform group-hover:scale-110 duration-500",
                                     stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
                                         stat.color === 'amber' ? "bg-amber-500/10 text-amber-600" :
                                             stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
@@ -457,7 +457,7 @@ export const Reservas: React.FC = () => {
             </div>
 
             {/* Filters Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10">
                 {/* Busca */}
                 <div className="space-y-1.5">
                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Reserva</label>
@@ -467,7 +467,7 @@ export const Reservas: React.FC = () => {
                             placeholder="Código, passageiro ou doc..."
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
-                            className="h-14 pl-12 pr-4 bg-muted/40 border-border rounded-2xl focus-visible:ring-primary/20 font-bold"
+                            className="h-14 pl-12 pr-4 bg-muted/40 border-border rounded-xl focus-visible:ring-primary/20 font-bold"
                         />
                     </div>
                 </div>
@@ -476,13 +476,13 @@ export const Reservas: React.FC = () => {
                 <div className="space-y-1.5">
                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Veículo</label>
                     <Select value={filtroVeiculo} onValueChange={(v) => setFiltroVeiculo(v)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-2xl font-bold shadow-none focus:ring-primary/20">
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-xl font-bold shadow-none focus:ring-primary/20">
                             <div className="flex items-center">
                                 <Bus size={16} className="mr-2 text-muted-foreground" />
                                 <SelectValue placeholder="Todos os veículos" />
                             </div>
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-none shadow-2xl">
+                        <SelectContent className="rounded-xl border-none shadow-2xl">
                             <SelectItem value="TODOS" className="rounded-xl font-bold">Todos os Veículos</SelectItem>
                             {veiculos.map(v => (
                                 <SelectItem key={v.id} value={v.id} className="rounded-xl font-bold">
@@ -497,13 +497,13 @@ export const Reservas: React.FC = () => {
                 <div className="space-y-1.5">
                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Viagem / Rota</label>
                     <Select value={filtroViagem} onValueChange={(v) => setFiltroViagem(v)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-2xl font-bold shadow-none focus:ring-primary/20">
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-xl font-bold shadow-none focus:ring-primary/20">
                             <div className="flex items-center">
                                 <Calendar size={16} className="mr-2 text-muted-foreground" />
                                 <SelectValue placeholder="Todas as viagens" />
                             </div>
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-none shadow-2xl max-h-[300px]">
+                        <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
                             <SelectItem value="TODOS" className="rounded-xl font-bold">Todas as Viagens</SelectItem>
                             {viagens.map(v => (
                                 <SelectItem key={v.id} value={v.id} className="rounded-xl font-bold">
@@ -521,7 +521,7 @@ export const Reservas: React.FC = () => {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="h-14 w-full bg-muted/40 border-border rounded-2xl font-bold justify-between hover:bg-muted/60"
+                                className="h-14 w-full bg-muted/40 border-border rounded-xl font-bold justify-between hover:bg-muted/60"
                             >
                                 <div className="flex items-center gap-2">
                                     <Filter size={16} strokeWidth={2.5} />
@@ -534,7 +534,7 @@ export const Reservas: React.FC = () => {
                                 <ChevronDown size={16} className={cn("transition-transform", isStatusDropdownOpen && "rotate-180")} />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[240px] p-3 rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
+                        <PopoverContent className="w-[240px] p-3 rounded-xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Selecionar Status</span>
@@ -580,7 +580,7 @@ export const Reservas: React.FC = () => {
 
             {/* Table Module */}
             {/* Reservations Table Container */}
-            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
                 <div className="p-8 border-b border-border/50 flex justify-between items-center bg-muted/20">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-primary/10 rounded-xl">
@@ -605,7 +605,7 @@ export const Reservas: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={5} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-3 animate-pulse">
-                                        <div className="w-12 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                                             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                         </div>
                                         <p className="font-semibold text-sm tracking-widest text-muted-foreground uppercase">Carregando registro...</p>
@@ -683,7 +683,7 @@ export const Reservas: React.FC = () => {
                                                         <MoreHorizontal className="h-5 w-5" strokeWidth={2.5} />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl shadow-2xl border-none bg-card/95 backdrop-blur-md">
+                                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl shadow-2xl border-none bg-card/95 backdrop-blur-md">
                                                     <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground px-3 py-2">Operações</DropdownMenuLabel>
                                                     <DropdownMenuItem onClick={() => handleEditClick(reserva)} className="rounded-xl px-3 py-2.5 font-bold focus:bg-primary focus:text-primary-foreground gap-3 transition-all">
                                                         <Edit className="h-4 w-4" />
@@ -730,7 +730,7 @@ export const Reservas: React.FC = () => {
 
             {/* Edit Modal */}
             <Dialog open={!!editingReserva} onOpenChange={(open) => !open && setEditingReserva(null)}>
-                <DialogContent className="sm:max-w-[600px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+                <DialogContent className="sm:max-w-[600px] rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
                     <DialogHeader className="p-8 bg-primary/5 border-b border-primary/10">
                         <DialogTitle className="text-2xl font-semibold flex items-center gap-3">
                             <div className="p-2 bg-primary/10 rounded-xl">
@@ -749,7 +749,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_name}
                                     onChange={e => setEditForm({ ...editForm, passenger_name: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -757,7 +757,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_document}
                                     onChange={e => setEditForm({ ...editForm, passenger_document: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -765,7 +765,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_email}
                                     onChange={e => setEditForm({ ...editForm, passenger_email: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -773,7 +773,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_phone}
                                     onChange={e => setEditForm({ ...editForm, passenger_phone: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
                                 />
                             </div>
                         </div>
@@ -793,10 +793,10 @@ export const Reservas: React.FC = () => {
                                                     value={editForm.boarding_point}
                                                     onValueChange={v => setEditForm({ ...editForm, boarding_point: v })}
                                                 >
-                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-2xl font-bold">
+                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-xl font-bold">
                                                         <SelectValue placeholder="Selecione o ponto" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                                    <SelectContent className="rounded-xl border-none shadow-2xl">
                                                         {boardingOptions.map((s: any, idx: number) => (
                                                             <SelectItem key={idx} value={s.nome} className="rounded-xl font-bold">
                                                                 {s.nome}
@@ -829,10 +829,10 @@ export const Reservas: React.FC = () => {
                                                     value={editForm.dropoff_point}
                                                     onValueChange={v => setEditForm({ ...editForm, dropoff_point: v })}
                                                 >
-                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-2xl font-bold">
+                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-xl font-bold">
                                                         <SelectValue placeholder="Selecione o ponto" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                                    <SelectContent className="rounded-xl border-none shadow-2xl">
                                                         {dropoffOptions.map((s: any, idx: number) => (
                                                             <SelectItem key={idx} value={s.nome} className="rounded-xl font-bold">
                                                                 {s.nome}
@@ -980,7 +980,7 @@ export const Reservas: React.FC = () => {
                                         <CreditCard size={16} className="mr-2 text-muted-foreground" />
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                    <SelectContent className="rounded-xl border-none shadow-2xl">
                                         <SelectItem value={FormaPagamento.PIX} className="rounded-xl font-bold">PIX</SelectItem>
                                         <SelectItem value={FormaPagamento.CASH} className="rounded-xl font-bold">Dinheiro / Espécie</SelectItem>
                                         <SelectItem value={FormaPagamento.CREDIT_CARD} className="rounded-xl font-bold">Cartão de Crédito</SelectItem>

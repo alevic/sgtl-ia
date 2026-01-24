@@ -384,7 +384,7 @@ export const NovaManutencao: React.FC = () => {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin/manutencao')}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
                 >
                     <ArrowLeft size={24} className="text-slate-600 dark:text-slate-400" />
                 </button>
@@ -400,7 +400,7 @@ export const NovaManutencao: React.FC = () => {
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Dados do Veículo e Tipo */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                         <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                             <Wrench size={20} className="text-blue-500" />
                             Dados Principais
@@ -425,7 +425,7 @@ export const NovaManutencao: React.FC = () => {
                                 <select
                                     name="tipo"
                                     required
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                     onChange={handleInputChange}
                                     value={formData.tipo}
                                 >
@@ -444,7 +444,7 @@ export const NovaManutencao: React.FC = () => {
                                 <select
                                     name="status"
                                     required
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                     onChange={handleInputChange}
                                     value={formData.status}
                                 >
@@ -459,7 +459,7 @@ export const NovaManutencao: React.FC = () => {
                     </div>
 
                     {/* Detalhes e Custos */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                         <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                             <FileText size={20} className="text-blue-500" />
                             Detalhes do Serviço
@@ -474,7 +474,7 @@ export const NovaManutencao: React.FC = () => {
                                     name="descricao"
                                     required
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                     placeholder="Descreva o serviço a ser realizado..."
                                     onChange={handleInputChange}
                                     value={formData.descricao || ''}
@@ -545,7 +545,7 @@ export const NovaManutencao: React.FC = () => {
                                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                                         Total Estimado
                                     </label>
-                                    <div className="px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-slate-800 dark:text-white font-bold">
+                                    <div className="px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-800 dark:text-white font-bold">
                                         {formData.moeda} {((Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
                                 </div>
@@ -556,7 +556,7 @@ export const NovaManutencao: React.FC = () => {
 
                 {/* Coluna Lateral */}
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                         <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                             <Calendar size={20} className="text-blue-500" />
                             Datas
@@ -594,7 +594,7 @@ export const NovaManutencao: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border border-blue-100 dark:border-blue-800">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-3xl p-6 border border-blue-100 dark:border-blue-800">
                         <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
                             <AlertTriangle size={18} />
                             Atenção
@@ -607,7 +607,7 @@ export const NovaManutencao: React.FC = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading ? (
                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

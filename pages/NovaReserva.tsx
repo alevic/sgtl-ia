@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ErrorBoundary } from '../components/ErrorBoundary';
-
-// ... (existing imports)
-
-// ... inside NovaReserva component
-
-
 import { useNavigate } from 'react-router-dom';
+import { ErrorBoundary } from '../components/ErrorBoundary';
+import { Button } from '../components/ui/button';
+import { Card, CardContent } from '../components/ui/card';
 import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, ReservationStatus, ReservationStatusLabel, TripStatus, TripStatusLabel } from '../types';
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
@@ -47,7 +43,7 @@ export const NovaReserva: React.FC = () => {
 
   // Payment State
   const [paymentMethod, setPaymentMethod] = useState<'MANUAL' | 'DIGITAL'>('MANUAL');
-  const [detailedPaymentMethod, setDetailedPaymentMethod] = useState<FormaPagamento>(FormaPagamento.DINHEIRO);
+  const [detailedPaymentMethod, setDetailedPaymentMethod] = useState<FormaPagamento>(FormaPagamento.CASH);
   const [paymentData, setPaymentData] = useState<IPaymentResponse | null>(null);
   const [generatingPayment, setGeneratingPayment] = useState(false);
 
@@ -217,7 +213,7 @@ export const NovaReserva: React.FC = () => {
       ...prev,
       [seatNumber]: {
         nome: client.nome,
-        documento: client.documento_numero,
+        documento: client.documento,
         cliente_id: client.id,
         email: client.email,
         telefone: client.telefone
@@ -441,173 +437,198 @@ export const NovaReserva: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate('/admin/reservas')}
-          className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-        >
-          <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Nova Reserva</h1>
-          <p className="text-slate-500 dark:text-slate-400">Crie uma reserva para múltiplos passageiros</p>
+    <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+      {/* Header Executivo */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-4">
+          <button
+            onClick={() => navigate('/admin/reservas')}
+            className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
+            <span className="text-[12px] font-black uppercase tracking-widest">Painel de Reservas</span>
+          </button>
+          <div>
+            <h1 className="text-4xl font-black text-foreground tracking-tight">
+              NOVA <span className="text-primary italic">RESERVA</span>
+            </h1>
+            <p className="text-muted-foreground font-medium mt-1">
+              Gerencie a alocação de passageiros e pagamentos no padrão de excelência
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Stepper */}
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-        <div className="flex items-center justify-between">
+      {/* Stepper Executivo */}
+      <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
+        <div className="p-8 flex items-center justify-between">
           {/* Step 1 */}
-          <div className="flex items-center gap-3 flex-1">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${step >= 1
-              ? 'bg-blue-600 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+          <div className="flex items-center gap-4 flex-1">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${step >= 1
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+              : 'bg-muted text-muted-foreground'
               }`}>
               {step > 1 ? <Check size={20} /> : '1'}
             </div>
             <div>
-              <p className={`font-semibold ${step >= 1 ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
-                Selecionar Viagem
+              <p className={`text-[12px] font-black uppercase tracking-widest ${step >= 1 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Identificação
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Escolha a viagem</p>
+              <p className="text-xs font-medium text-muted-foreground">Viagem Selecionada</p>
             </div>
           </div>
 
-          <ArrowRight size={20} className="text-slate-300 dark:text-slate-600" />
+          <div className="px-4">
+            <ArrowRight size={20} className="text-muted-foreground/30" />
+          </div>
 
           {/* Step 2 */}
-          <div className="flex items-center gap-3 flex-1">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${step >= 2
-              ? 'bg-blue-600 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+          <div className="flex items-center gap-4 flex-1">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${step >= 2
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+              : 'bg-muted text-muted-foreground'
               }`}>
               {step > 2 ? <Check size={20} /> : '2'}
             </div>
             <div>
-              <p className={`font-semibold ${step >= 2 ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
-                Passageiros & Assentos
+              <p className={`text-[12px] font-black uppercase tracking-widest ${step >= 2 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Passageiros
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Adicione passageiros</p>
+              <p className="text-xs font-medium text-muted-foreground">Assentos & Dados</p>
             </div>
           </div>
 
-          <ArrowRight size={20} className="text-slate-300 dark:text-slate-600" />
+          <div className="px-4">
+            <ArrowRight size={20} className="text-muted-foreground/30" />
+          </div>
 
           {/* Step 3 */}
-          <div className="flex items-center gap-3 flex-1">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${step >= 3
-              ? 'bg-blue-600 text-white'
-              : 'bg-slate-200 dark:bg-slate-700 text-slate-400'
+          <div className="flex items-center gap-4 flex-1">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black ${step >= 3
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+              : 'bg-muted text-muted-foreground'
               }`}>
               3
             </div>
             <div>
-              <p className={`font-semibold ${step >= 3 ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
-                Revisão & Pagamento
+              <p className={`text-[12px] font-black uppercase tracking-widest ${step >= 3 ? 'text-foreground' : 'text-muted-foreground'}`}>
+                Finalização
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Confirme a reserva</p>
+              <p className="text-xs font-medium text-muted-foreground">Revisão & Checkout</p>
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Content */}
-      {step === 1 && (
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-            <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Selecione uma viagem</h3>
+      <div className="space-y-6">
+        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
+          <div className="p-8 border-b border-border/50 bg-muted/20">
+            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+              <RefreshCw size={14} className="text-primary" />
+              Seletor de Grade Operacional
+            </h3>
+          </div>
+          <CardContent className="p-8">
             <SeletorViagem
               viagens={viagens}
               viagemSelecionada={viagemSelecionada}
               onChange={setViagemSelecionada}
             />
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/admin/reservas')}
-                className="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-              >
-                <ArrowLeft size={18} />
-                Voltar
-              </button>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/admin/reservas')}
+            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+          >
+            Voltar
+          </Button>
 
-              {viagemSelecionada && (
-                <button
-                  onClick={() => setViagemSelecionada(null)}
-                  className="text-blue-600 dark:text-blue-400 hover:underline font-medium flex items-center gap-2"
-                >
-                  <RefreshCw size={16} />
-                  Escolher outra viagem
-                </button>
-              )}
-            </div>
-
+          {viagemSelecionada && (
             <button
-              onClick={() => setStep(2)}
-              disabled={!podeAvancarStep1}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+              onClick={() => setViagemSelecionada(null)}
+              className="text-primary hover:text-primary/80 font-black uppercase text-[11px] tracking-widest flex items-center gap-2 transition-colors ml-4"
             >
-              Próximo
-              <ArrowRight size={18} />
+              <RefreshCw size={14} />
+              Alterar Seleção
             </button>
-          </div>
+          )}
         </div>
-      )}
 
+        <Button
+          onClick={() => setStep(2)}
+          disabled={!podeAvancarStep1}
+          className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+        >
+          Próxima Etapa
+          <ArrowRight size={18} className="ml-2" />
+        </Button>
+      </div>
       {step === 2 && (
         <ErrorBoundary>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Mapa de Assentos (Left) */}
-            <div className="lg:col-span-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 h-fit sticky top-6">
-              <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-3">Mapa de Assentos</h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Selecione os assentos desejados no mapa abaixo.
-              </p>
-              {veiculo ? (
-                loading ? (
-                  <div className="flex justify-center p-8"><Loader className="animate-spin" /></div>
+            <Card className="lg:col-span-5 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden h-fit sticky top-6">
+              <div className="p-8 border-b border-border/50 bg-muted/20">
+                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  Mapeamento de Assentos
+                </h3>
+              </div>
+              <CardContent className="p-8">
+                <p className="text-xs font-medium text-muted-foreground mb-6 uppercase tracking-widest">
+                  Selecione as poltronas vinculadas a esta operação
+                </p>
+                {veiculo ? (
+                  loading ? (
+                    <div className="flex justify-center p-8"><Loader className="animate-spin text-primary" /></div>
+                  ) : (
+                    <MapaAssentosReserva
+                      veiculo={veiculo}
+                      assentosReservados={assentosOcupados}
+                      assentosSelecionados={assentosSelecionados}
+                      onSelecionarAssento={handleSelecionarAssento}
+                      precos={viagemSelecionada ? {
+                        'CONVENCIONAL': Number(viagemSelecionada.price_conventional || 0),
+                        'EXECUTIVO': Number(viagemSelecionada.price_executive || 0),
+                        'SEMI_LEITO': Number(viagemSelecionada.price_semi_sleeper || 0),
+                        'LEITO': Number(viagemSelecionada.price_sleeper || 0),
+                        'CAMA': Number(viagemSelecionada.price_bed || 0),
+                        'CAMA_MASTER': Number(viagemSelecionada.price_master_bed || 0),
+                        ... (viagemSelecionada.precos_por_tipo || {})
+                      } : undefined}
+                    />
+                  )
                 ) : (
-                  <MapaAssentosReserva
-                    veiculo={veiculo}
-                    assentosReservados={assentosOcupados}
-                    assentosSelecionados={assentosSelecionados}
-                    onSelecionarAssento={handleSelecionarAssento}
-                    precos={viagemSelecionada ? {
-                      'CONVENCIONAL': Number(viagemSelecionada.price_conventional || 0),
-                      'EXECUTIVO': Number(viagemSelecionada.price_executive || 0),
-                      'SEMI_LEITO': Number(viagemSelecionada.price_semi_sleeper || 0),
-                      'LEITO': Number(viagemSelecionada.price_sleeper || 0),
-                      'CAMA': Number(viagemSelecionada.price_bed || 0),
-                      'CAMA_MASTER': Number(viagemSelecionada.price_master_bed || 0),
-                      ... (viagemSelecionada.precos_por_tipo || {})
-                    } : undefined}
-                  />
-                )
-              ) : (
-                <p className="text-slate-500 dark:text-slate-400">Selecione uma viagem primeiro</p>
-              )}
-            </div>
+                  <p className="text-muted-foreground italic text-center py-8">Aguardando definição da viagem...</p>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Lista de Passageiros (Right) */}
-            <div className="lg:col-span-7 space-y-4">
-              <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-3">Dados dos Passageiros</h3>
+            <div className="lg:col-span-7 space-y-6">
+              <div className="flex items-center justify-between px-2">
+                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                  Dados dos Passageiros
+                </h3>
+                <span className="px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black text-primary uppercase tracking-widest">
+                  {assentosSelecionados.length} Selecionados
+                </span>
+              </div>
               {assentosSelecionados.length === 0 ? (
-                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700 border-dashed">
-                  <Users size={48} className="mx-auto mb-4 text-slate-300 dark:text-slate-600" />
-                  <p className="text-slate-500 dark:text-slate-400 mb-2">
-                    Nenhum assento selecionado
+                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl p-12 text-center border-dashed">
+                  <Users size={48} className="mx-auto mb-6 text-muted-foreground/30" />
+                  <p className="text-[14px] font-black uppercase tracking-widest text-muted-foreground mb-2">
+                    Nenhuma poltrona selecionada
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">
-                    Selecione assentos no mapa para preencher os dados dos passageiros.
+                  <p className="text-xs font-medium text-muted-foreground/60 max-w-[200px] mx-auto">
+                    Interaja com o mapa ao lado para iniciar o cadastro
                   </p>
-                </div>
+                </Card>
               ) : (
                 assentosSelecionados.map((seat) => (
-                  <div key={seat.numero} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 animate-in slide-in-from-left-2">
+                  <div key={seat.numero} className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 animate-in slide-in-from-left-2">
                     <div className="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
                       <div>
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Assento</span>
@@ -648,7 +669,7 @@ export const NovaReserva: React.FC = () => {
                             type="text"
                             value={passageirosMap[seat.numero]?.nome || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'nome', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                             placeholder="Nome do passageiro"
                           />
                         </div>
@@ -658,7 +679,7 @@ export const NovaReserva: React.FC = () => {
                             type="text"
                             value={passageirosMap[seat.numero]?.documento || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'documento', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                             placeholder="000.000.000-00"
                           />
                         </div>
@@ -673,7 +694,7 @@ export const NovaReserva: React.FC = () => {
                           <select
                             value={passageirosMap[seat.numero]?.boarding_point || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'boarding_point', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                           >
                             <option value="">Selecione...</option>
                             {(() => {
@@ -694,7 +715,7 @@ export const NovaReserva: React.FC = () => {
                           <select
                             value={passageirosMap[seat.numero]?.dropoff_point || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'dropoff_point', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                           >
                             <option value="">Selecione...</option>
                             {(() => {
@@ -718,27 +739,29 @@ export const NovaReserva: React.FC = () => {
           </div>
 
           {/* Botões de Navegação - Fora do Grid para visibilidade constante */}
-          <div className="flex justify-between pt-6 border-t border-slate-200 dark:border-slate-700 mt-6">
-            <button
+          <div className="flex justify-between items-center pt-8 border-t border-border/50 mt-8">
+            <Button
+              variant="ghost"
               onClick={() => setStep(1)}
-              className="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+              className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={16} className="mr-2" />
               Voltar
-            </button>
-            <div className="flex items-center gap-4">
-              <div className="text-right mr-2">
-                <p className="text-xs text-slate-500 dark:text-slate-400">Total Estimado</p>
-                <p className="text-xl font-bold text-slate-800 dark:text-white">R$ {valorTotal.toFixed(2)}</p>
+            </Button>
+
+            <div className="flex items-center gap-6">
+              <div className="text-right">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Subtotal da Carga</p>
+                <p className="text-2xl font-black tracking-tight text-primary">R$ {valorTotal.toFixed(2)}</p>
               </div>
-              <button
+              <Button
                 onClick={() => setStep(3)}
                 disabled={!podeAvancarStep2}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
               >
-                Próximo
-                <ArrowRight size={18} />
-              </button>
+                Revisão Final
+                <ArrowRight size={18} className="ml-2" />
+              </Button>
             </div>
           </div>
         </ErrorBoundary>
@@ -746,348 +769,327 @@ export const NovaReserva: React.FC = () => {
 
       {step === 3 && (
         <ErrorBoundary>
-          <div className="space-y-6">
-
-            {/* Credits Logic Effect */}
-            {/* Using an inline component or just a side-effect hook at the top level is better, 
-              but since we are inside a conditional render {step === 3}, we must use a mounted component or carefully verify hooks.
-              IMPORTANT: React Hooks must not be called conditionally *unless* the component structure is stable.
-              Here, this block is conditionally rendered. Standard hooks like useEffect CANNOT be put directly here if the parent component (NovaReserva) renders typically.
-              However, 'NovaReserva' has unconditional hooks at the top. 
-              If we want to run this logic ONLY when step === 3, we should use a proper useEffect at the top level with a dependency on 'step'. 
-          */}
-            {/* Moving logic to top-level useEffect to avoid conditional hook rules violation and render loop */}
-
-            {/* Header already rendered above, just the content here */}
-            {/* Resumo da Viagem */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-              <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4">Dados da Viagem</h3>
-              {viagemSelecionada && (
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Título</p>
-                    <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.titulo || viagemSelecionada.route_name}</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Origem</p>
-                      <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.origem || viagemSelecionada.origin_city}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Destino</p>
-                      <p className="font-semibold text-slate-800 dark:text-white">{viagemSelecionada.destino || viagemSelecionada.destination_city}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Data de Partida</p>
-                      <p className="font-semibold text-slate-800 dark:text-white">
-                        {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
-                          ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleString('pt-BR')
-                          : 'Data não definida'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">Status</p>
-                      <p className="font-semibold text-slate-800 dark:text-white">
-                        {TRIP_STATUS_LABELS[viagemSelecionada.status] || viagemSelecionada.status}
-                      </p>
-                    </div>
-                  </div>
+          <div className="space-y-8 animate-in slide-in-from-bottom-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Resumo da Viagem */}
+              <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
+                <div className="p-8 border-b border-border/50 bg-muted/20">
+                  <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">Resumo Operacional</h3>
                 </div>
-              )}
-            </div>
+                <CardContent className="p-8 space-y-6">
+                  {viagemSelecionada && (
+                    <>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <Check size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Viagem Selecionada</p>
+                            <p className="font-black text-foreground">{viagemSelecionada.titulo || viagemSelecionada.route_name}</p>
+                          </div>
+                        </div>
 
-            {/* Lista de Passageiros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-              <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
-                <Users size={20} />
-                Passageiros ({assentosSelecionados.length})
-              </h3>
-              <div className="space-y-3">
-                {assentosSelecionados.map((seat, index) => {
-                  const p = passageirosMap[seat.numero];
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-semibold text-slate-800 dark:text-white">
-                          {p?.nome || 'Passageiro sem nome'}
-                        </p>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">
-                          Assento {seat.numero} • {seat.tipo.replace('_', ' ')} • Doc: {p?.documento}
-                        </p>
+                        <div className="grid grid-cols-2 gap-8 ml-13">
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Origem</p>
+                            <p className="font-bold text-foreground">{viagemSelecionada.origem || viagemSelecionada.origin_city}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Destino</p>
+                            <p className="font-bold text-foreground">{viagemSelecionada.destino || viagemSelecionada.destination_city}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Data Partida</p>
+                            <p className="font-bold text-foreground">
+                              {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
+                                ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleDateString('pt-BR')
+                                : 'Definir'}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Horário</p>
+                            <p className="font-bold text-foreground">
+                              {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
+                                ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                                : '00:00'}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-lg font-bold text-green-600 dark:text-green-400">
-                        R$ {seat.valor.toFixed(2)}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Total e Pagamento */}
-            <div className="bg-slate-800 dark:bg-slate-950 text-white rounded-xl shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <span className="text-lg text-slate-300">Valor Total</span>
-                <span className="text-3xl font-bold">R$ {valorTotal.toFixed(2)}</span>
-              </div>
-
-              {/* Payment Method Selector */}
-              <div className="mb-6 bg-slate-700/50 p-1 rounded-lg flex">
-                <button
-                  onClick={() => setPaymentMethod('MANUAL')}
-                  className={`flex-1 py-2 rounded-md transition-all ${paymentMethod === 'MANUAL' ? 'bg-slate-600 shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'}`}
-                >
-                  Manual / Presencial
-                </button>
-                <button
-                  onClick={() => setPaymentMethod('DIGITAL')}
-                  className={`flex-1 py-2 rounded-md transition-all ${paymentMethod === 'DIGITAL' ? 'bg-blue-600 shadow-sm font-semibold' : 'text-slate-400 hover:text-slate-200'}`}
-                >
-                  Digital (Pix/Link)
-                </button>
-              </div>
-
-              {/* Manual Payment Detail Selector */}
-              {paymentMethod === 'MANUAL' && (
-                <div className="mb-6 animate-in fade-in">
-                  <label className="block text-sm text-slate-400 mb-2">Forma de Pagamento</label>
-                  <select
-                    value={detailedPaymentMethod}
-                    onChange={(e) => setDetailedPaymentMethod(e.target.value as FormaPagamento)}
-                    className="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                  >
-                    <option value="DINHEIRO">Dinheiro</option>
-                    <option value="PIX">Pix (Presencial)</option>
-                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                    <option value="CARTAO_DEBITO">Cartão de Débito</option>
-                  </select>
-                </div>
-              )}
-
-
-              {/* Client Credits Section */}
-              {payerClient && payerClient.saldo_creditos > 0 && (
-                <div className="mb-6 bg-indigo-900/40 p-4 rounded-lg border border-indigo-500/30 animate-in fade-in">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-                      <Wallet size={20} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-white">Saldo de Créditos Disponível</p>
-                      <p className="text-sm text-indigo-300">
-                        Cliente: {payerClient.nome} • Saldo: R$ {Number(payerClient.saldo_creditos || 0).toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                    <input
-                      type="checkbox"
-                      id="useCredits"
-                      checked={useCredits}
-                      onChange={(e) => {
-                        const isChecked = e.target.checked;
-                        setUseCredits(isChecked);
-                        let newCredits = 0;
-                        if (isChecked) {
-                          // Max possible usage is min(Balance, Total) - allowing full total coverage
-                          newCredits = Math.min(Number(payerClient.saldo_creditos || 0), valorTotal);
-                        }
-                        setCreditsToUse(newCredits);
-
-                        // Update Entry Value if Partial is active (Signal should be 20% of Remaining Debt)
-                        if (isPartialPayment) {
-                          const effectiveTotal = Math.max(0, valorTotal - newCredits);
-                          setEntryValue(effectiveTotal * 0.20);
-                        }
-                      }}
-                      className="w-5 h-5 rounded border-slate-500 bg-slate-800 text-indigo-500 focus:ring-indigo-500"
-                    />
-                    <label htmlFor="useCredits" className="flex-1 cursor-pointer select-none">
-                      <span className="block font-medium text-white">Usar Créditos</span>
-                      <span className="text-xs text-slate-400">Abater do valor total.</span>
-                    </label>
-                  </div>
-
-                  {useCredits && (
-                    <div className="mt-3 ml-11">
-                      <p className="text-sm text-green-400 font-semibold">
-                        - R$ {creditsToUse.toFixed(2)} (Créditos aplicados)
-                      </p>
-                      <p className="text-sm text-slate-300 mt-1 pb-2 border-b border-slate-700 mb-2">
-                        {/* 
-                            Logic: If partial, we just pay the entry value (which is already reduced).
-                            If full, we pay (Total - Credits). 
-                        */}
-                        Restante a Pagar Agora: <span className="font-bold text-white">
-                          R$ {(isPartialPayment ? entryValue : Math.max(0, valorTotal - creditsToUse)).toFixed(2)}
-                        </span>
-                      </p>
-                    </div>
+                      <div className="pt-6 border-t border-border/50">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Passageiros Selecionados</h4>
+                          <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-widest border border-primary/20">
+                            {assentosSelecionados.length} Assentos
+                          </span>
+                        </div>
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                          {assentosSelecionados.map((seat, index) => {
+                            const p = passageirosMap[seat.numero];
+                            return (
+                              <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl border border-border/30 group hover:border-primary/30 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-[12px] font-black text-primary group-hover:scale-110 transition-transform">
+                                    {seat.numero}
+                                  </div>
+                                  <div>
+                                    <p className="text-[12px] font-bold text-foreground truncate max-w-[150px]">{p?.nome || 'Pendente'}</p>
+                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{seat.tipo.replace('_', ' ')}</p>
+                                  </div>
+                                </div>
+                                <span className="text-[12px] font-black text-primary">R$ {seat.valor.toFixed(2)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
                   )}
-                </div>
-              )}
+                </CardContent>
+              </Card>
 
-              <div className="mb-6 flex items-center gap-3 bg-slate-700/30 p-3 rounded-lg border border-slate-600/50">
-                <input
-                  type="checkbox"
-                  id="partialPayment"
-                  checked={isPartialPayment}
-                  onChange={(e) => {
-                    setIsPartialPayment(e.target.checked);
-                    if (e.target.checked) {
-                      // Signal: 20% of (Total - Credits)
-                      const effectiveTotal = Math.max(0, valorTotal - creditsToUse);
-                      setEntryValue(effectiveTotal * 0.20);
-                    } else {
-                      setEntryValue(valorTotal); // Not used really, but good reset
-                    }
-                  }}
-                  className="w-5 h-5 rounded border-slate-500 bg-slate-800 text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="partialPayment" className="flex-1 cursor-pointer select-none">
-                  <span className="block font-medium text-white">Pagamento Parcial (Sinal)</span>
-                  <span className="text-xs text-slate-400">Pagar apenas uma entrada agora (Base de cálculo: Total - Créditos).</span>
-                </label>
-              </div>
-
-
-
-              {isPartialPayment && (
-                <div className="mb-6 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
-                  <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600">
-                    <label className="block text-xs text-slate-400 mb-1">Valor de Entrada (Sinal)</label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-400">R$</span>
-                      <input
-                        type="number"
-                        value={entryValue}
-                        onChange={(e) => setEntryValue(Number(e.target.value))}
-                        className="bg-transparent border-none text-xl font-bold text-white w-full focus:ring-0 p-0"
-                        min="0"
-                        max={Math.max(0, valorTotal - creditsToUse)}
-                      />
+              {/* Pagamento e Finalização */}
+              <div className="space-y-8">
+                <Card className="shadow-2xl shadow-primary/10 bg-slate-900 border-none rounded-3xl overflow-hidden relative group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                  <div className="p-8 relative">
+                    <div className="flex justify-between items-center mb-8">
+                      <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/70 mb-1">Checkout Executivo</h3>
+                        <p className="text-2xl font-black text-white tracking-tight">PAGAMENTO</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Investimento Total</p>
+                        <p className="text-4xl font-black text-white tracking-tighter italic">R$ {valorTotal.toFixed(2)}</p>
+                      </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">20% de R$ {(valorTotal - creditsToUse).toFixed(2)}</p>
-                  </div>
-                  <div className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 opacity-70">
-                    <label className="block text-xs text-slate-400 mb-1">Restante no Embarque</label>
-                    <p className="text-xl font-bold text-slate-300">
-                      {/* Logic: Remaining = (Total - Credits) - Entry */}
-                      R$ {Math.max(0, (valorTotal - creditsToUse) - entryValue).toFixed(2)}
+
+                    {/* Payment Method Selector */}
+                    <div className="flex p-1 bg-slate-800/80 backdrop-blur-sm rounded-2xl mb-8 border border-slate-700/50">
+                      <button
+                        onClick={() => setPaymentMethod('MANUAL')}
+                        className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all gap-2 ${paymentMethod === 'MANUAL'
+                          ? 'bg-slate-700 text-white shadow-xl shadow-black/20 ring-1 ring-white/10'
+                          : 'text-slate-500 hover:text-slate-300'
+                          }`}
+                      >
+                        <Wallet size={20} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Presencial</span>
+                      </button>
+                      <button
+                        onClick={() => setPaymentMethod('DIGITAL')}
+                        className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all gap-2 ${paymentMethod === 'DIGITAL'
+                          ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/30 ring-1 ring-white/10'
+                          : 'text-slate-500 hover:text-slate-300'
+                          }`}
+                      >
+                        <QrCode size={20} />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Link / Pix</span>
+                      </button>
+                    </div>
+
+                    {/* Sub-opções Manual */}
+                    {paymentMethod === 'MANUAL' && (
+                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Modalidade de Recebimento</label>
+                        <select
+                          value={detailedPaymentMethod}
+                          onChange={(e) => setDetailedPaymentMethod(e.target.value as FormaPagamento)}
+                          className="w-full h-14 px-4 bg-slate-800/50 border border-slate-700 rounded-xl text-white font-black uppercase text-[12px] tracking-widest focus:ring-2 focus:ring-primary/50 transition-all outline-none appearance-none"
+                        >
+                          <option value="DINHEIRO">Espécie (Dinheiro)</option>
+                          <option value="PIX">Pix Transferência</option>
+                          <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                          <option value="CARTAO_DEBITO">Cartão de Débito</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Gestão de Créditos */}
+                    {payerClient && payerClient.saldo_creditos > 0 && (
+                      <div className="mt-8 p-6 bg-indigo-500/10 border border-indigo-500/20 rounded-3xl animate-in fade-in">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                            <Wallet size={24} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 italic">FIDELIDADE & CRÉDITOS</p>
+                            <p className="text-lg font-black text-white">R$ {Number(payerClient.saldo_creditos || 0).toFixed(2)} disponível</p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            const isChecked = !useCredits;
+                            setUseCredits(isChecked);
+                            let newCredits = 0;
+                            if (isChecked) {
+                              newCredits = Math.min(Number(payerClient.saldo_creditos || 0), valorTotal);
+                            }
+                            setCreditsToUse(newCredits);
+                            if (isPartialPayment) {
+                              const effectiveTotal = Math.max(0, valorTotal - newCredits);
+                              setEntryValue(effectiveTotal * 0.20);
+                            }
+                          }}
+                          className={`w-full py-4 rounded-xl border-2 transition-all font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 ${useCredits
+                            ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500/30'
+                            : 'border-white/10 text-white/40 hover:border-indigo-500/50 hover:text-white'
+                            }`}
+                        >
+                          {useCredits ? <Check size={16} /> : null}
+                          {useCredits ? 'Créditos Aplicados' : 'Abater Saldo de Créditos'}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* SINAL/PARCIAL */}
+                    <div className="mt-8 pt-8 border-t border-slate-700/50">
+                      <div
+                        onClick={() => {
+                          const val = !isPartialPayment;
+                          setIsPartialPayment(val);
+                          if (val) {
+                            const effectiveTotal = Math.max(0, valorTotal - creditsToUse);
+                            setEntryValue(effectiveTotal * 0.20);
+                          } else {
+                            setEntryValue(valorTotal);
+                          }
+                        }}
+                        className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all border ${isPartialPayment
+                          ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                          : 'border-transparent text-slate-500 hover:bg-white/5'
+                          }`}
+                      >
+                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPartialPayment ? 'bg-blue-500 border-blue-400' : 'border-slate-600'}`}>
+                          {isPartialPayment && <Check size={14} className="text-white" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[10px] font-black uppercase tracking-widest">Habilitar Pagamento de Sinal</p>
+                          <p className="text-[11px] font-medium opacity-60">Pague agora apenas a entrada operacional</p>
+                        </div>
+                      </div>
+
+                      {isPartialPayment && (
+                        <div className="mt-4 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
+                          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">Entrada (Agora)</label>
+                            <div className="flex items-center gap-2 border-b border-primary/30 pb-1">
+                              <span className="text-primary font-black">R$</span>
+                              <input
+                                type="number"
+                                value={entryValue}
+                                onChange={(e) => setEntryValue(Number(e.target.value))}
+                                className="bg-transparent border-none text-xl font-black text-white w-full focus:ring-0 p-0 outline-none"
+                              />
+                            </div>
+                          </div>
+                          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 flex flex-col justify-between">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">Saldo (Embarque)</label>
+                            <p className="text-xl font-black text-slate-400 italic">
+                              R$ {Math.max(0, (valorTotal - creditsToUse) - entryValue).toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Botões de Ação Finais */}
+                    <div className="mt-10 flex gap-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setStep(2)}
+                        className="h-16 flex-1 bg-transparent border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-2xl font-black uppercase text-[12px] tracking-widest"
+                      >
+                        Corrigir Dados
+                      </Button>
+                      <Button
+                        onClick={handleConfirmarReserva}
+                        disabled={saving}
+                        className="h-16 flex-[2] bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                      >
+                        {saving ? <Loader size={20} className="animate-spin" /> : <CreditCard size={20} />}
+                        {saving ? 'PROCESSANDO...' : 'FINALIZAR RESERVA'}
+                      </Button>
+                    </div>
+
+                    {/* Rodapé Interno */}
+                    <p className="mt-6 text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
+                      Sistema de Gestão Operacional de Transporte • SGTL
                     </p>
                   </div>
-                </div>
-              )}
+                </Card>
 
-              {paymentMethod === 'DIGITAL' ? (
-                <div className="bg-slate-700/50 rounded-lg p-4 mb-6 animate-in fade-in">
-                  {!paymentData ? (
-                    <div className="space-y-4">
-                      <p className="text-sm text-slate-300">
-                        Gere uma cobrança digital integrada (Asaas). O cliente receberá o link ou você pode apresentar o QR Code agora.
-                      </p>
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          onClick={() => handleGeneratePayment('PIX')}
-                          disabled={generatingPayment}
-                          className="py-3 bg-teal-600 hover:bg-teal-500 rounded-lg font-semibold flex flex-col items-center justify-center gap-1 transition-colors"
-                        >
-                          {generatingPayment ? <Loader size={20} className="animate-spin" /> : <QrCode size={24} />}
-                          <span className="text-sm">Gerar Pix Agora</span>
-                        </button>
-                        <button
-                          onClick={() => handleGeneratePayment('LINK')}
-                          disabled={generatingPayment}
-                          className="py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-semibold flex flex-col items-center justify-center gap-1 transition-colors"
-                        >
-                          {generatingPayment ? <Loader size={20} className="animate-spin" /> : <LinkIcon size={24} />}
-                          <span className="text-sm">Link WhatsApp</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-bold text-green-400">Cobrança Gerada!</h4>
-                        <button onClick={() => setPaymentData(null)} className="text-slate-400 hover:text-white">
-                          <X size={18} />
-                        </button>
-                      </div>
-
-                      {paymentData.qrCode && (
-                        <div className="bg-white p-2 rounded-lg w-48 h-48 mx-auto flex items-center justify-center">
-                          <img src={paymentData.qrCode} alt="QR Code Pix" className="max-w-full max-h-full" />
+                {/* Info Digital (Show only if DIGITAL) */}
+                {paymentMethod === 'DIGITAL' && (
+                  <Card className="shadow-xl bg-blue-600 rounded-3xl overflow-hidden border-none text-white animate-in zoom-in-95">
+                    <CardContent className="p-8">
+                      {!paymentData ? (
+                        <div className="flex flex-col items-center text-center space-y-6">
+                          <QrCode size={48} className="text-blue-200 opacity-50" />
+                          <div>
+                            <h4 className="text-xl font-black tracking-tight mb-2 uppercase italic">Gateway Digital</h4>
+                            <p className="text-sm font-medium text-blue-100 opacity-80 leading-relaxed">
+                              Inicie a transação integrada para gerar o QR Code dinâmico ou link de pagamento via WhatsApp.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 w-full">
+                            <Button onClick={() => handleGeneratePayment('PIX')} disabled={generatingPayment} className="h-14 bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-xl font-black uppercase text-[11px] tracking-widest gap-2">
+                              {generatingPayment ? <Loader size={16} className="animate-spin" /> : <QrCode size={18} />}
+                              Pix Imediato
+                            </Button>
+                            <Button onClick={() => handleGeneratePayment('LINK')} disabled={generatingPayment} className="h-14 bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-xl font-black uppercase text-[11px] tracking-widest gap-2">
+                              {generatingPayment ? <Loader size={16} className="animate-spin" /> : <LinkIcon size={18} />}
+                              Link Pagamento
+                            </Button>
+                          </div>
                         </div>
-                      )}
-
-                      {paymentData.copyPasteCode && (
-                        <div>
-                          <p className="text-xs text-slate-400 mb-1">Copia e Cola</p>
-                          <div className="flex gap-2">
-                            <input
-                              readOnly
-                              value={paymentData.copyPasteCode}
-                              className="flex-1 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs text-slate-300"
-                            />
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(paymentData.copyPasteCode || '');
-                                alert('Copiado!');
-                              }}
-                              className="p-1 bg-slate-600 rounded hover:bg-slate-500"
-                            >
-                              <Copy size={14} />
+                      ) : (
+                        <div className="space-y-6">
+                          <div className="flex justify-between items-start">
+                            <h4 className="text-2xl font-black tracking-tight uppercase italic inset-shadow-sm text-blue-100">Checkout Ativo</h4>
+                            <button onClick={() => setPaymentData(null)} className="p-2 bg-black/10 hover:bg-black/20 rounded-lg transition-colors">
+                              <X size={18} />
                             </button>
                           </div>
-                        </div>
-                      )}
 
-                      {paymentData.paymentLink && (
-                        <div className="bg-blue-900/40 border border-blue-500/30 rounded-lg p-3">
-                          <p className="text-sm text-blue-200 mb-1">Link de Pagamento</p>
-                          <a href={paymentData.paymentLink} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline text-sm break-all">
-                            {paymentData.paymentLink}
-                          </a>
-                          <div className="mt-2">
-                            <a
-                              href={`https://wa.me/?text=${encodeURIComponent(`Olá! Segue o link para pagamento da sua reserva: ${paymentData.paymentLink}`)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block w-full text-center py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-semibold transition-colors"
-                            >
-                              Enviar no WhatsApp
-                            </a>
+                          <div className="flex flex-col md:flex-row gap-8">
+                            {paymentData.qrCode && (
+                              <div className="bg-white p-4 rounded-3xl shadow-2xl flex-shrink-0 animate-in flip-in-y">
+                                <img src={paymentData.qrCode} alt="QR Code Pix" className="w-40 h-40" />
+                                <p className="text-[10px] font-black text-slate-800 text-center mt-3 uppercase tracking-widest">Escaneie o QR Code</p>
+                              </div>
+                            )}
+
+                            <div className="flex-1 space-y-4 flex flex-col justify-center">
+                              {paymentData.copyPasteCode && (
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black uppercase tracking-widest text-blue-200">Pix Copia e Cola</label>
+                                  <div className="flex gap-2">
+                                    <input readOnly value={paymentData.copyPasteCode} className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-xs font-mono text-white outline-none" />
+                                    <Button onClick={() => { navigator.clipboard.writeText(paymentData.copyPasteCode || ''); alert('Copiado!'); }} className="bg-white text-blue-600 hover:bg-blue-50 px-3 rounded-xl h-10">
+                                      <Copy size={16} />
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+                              {paymentData.paymentLink && (
+                                <Button
+                                  onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Olá! Segue o link para pagamento da sua reserva: ${paymentData.paymentLink}`)}`, '_blank')}
+                                  className="h-14 bg-green-500 hover:bg-green-400 text-white rounded-xl font-black uppercase text-[12px] tracking-widest shadow-xl shadow-green-900/40"
+                                >
+                                  Enviar WhatsApp <ArrowRight size={18} className="ml-2" />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}
-
-                      <p className="text-xs text-slate-400 text-center">
-                        Assim que o pagamento for confirmado, clique em "Confirmar Reserva" abaixo.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setStep(2)}
-                  className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
-                >
-                  Voltar
-                </button>
-                <button
-                  onClick={handleConfirmarReserva}
-                  disabled={saving}
-                  className="flex-2 px-8 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  {saving ? <Loader size={20} className="animate-spin" /> : <CreditCard size={20} />}
-                  {saving ? 'Confirmando...' : 'Confirmar Reserva'}
-                </button>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>

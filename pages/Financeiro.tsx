@@ -112,7 +112,7 @@ export const Financeiro: React.FC = () => {
         const config = configs[status] || configs[StatusTransacao.PENDING];
 
         return (
-            <Badge variant="outline" className={cn("font-bold px-2 py-0.5 rounded-lg text-[12px] uppercase tracking-wider", config.className)}>
+            <Badge variant="outline" className={cn("font-bold px-2 py-0.5 rounded-xl text-[12px] uppercase tracking-wider", config.className)}>
                 {StatusTransacaoLabel[status] || status}
             </Badge>
         );
@@ -124,7 +124,7 @@ export const Financeiro: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                        <div className="p-2.5 bg-primary/10 rounded-xl">
                             <Wallet className="text-primary w-6 h-6" strokeWidth={2.5} />
                         </div>
                         <h1 className="text-4xl font-black tracking-tighter text-foreground">
@@ -135,7 +135,7 @@ export const Financeiro: React.FC = () => {
                 </div>
                 <Button
                     onClick={() => navigate('/admin/financeiro/transacoes/nova')}
-                    className="h-14 px-6 rounded-2xl font-black transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                    className="h-14 px-6 rounded-xl font-black transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                 >
                     <Plus size={20} className="mr-2" strokeWidth={3} />
                     NOVA TRANSAÇÃO
@@ -143,7 +143,7 @@ export const Financeiro: React.FC = () => {
             </div>
 
             {/* Period Filter */}
-            <Tabs value={periodoSelecionado} onValueChange={(v: any) => setPeriodoSelecionado(v)} className="w-fit bg-muted/40 p-1 rounded-2xl border border-border/50">
+            <Tabs value={periodoSelecionado} onValueChange={(v: any) => setPeriodoSelecionado(v)} className="w-fit bg-muted/40 p-1 rounded-xl border border-border/50">
                 <TabsList className="bg-transparent h-10 gap-1">
                     <TabsTrigger value="mes" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm">ESTE MÊS</TabsTrigger>
                     <TabsTrigger value="trimestre" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Trimestre</TabsTrigger>
@@ -159,7 +159,7 @@ export const Financeiro: React.FC = () => {
                     { label: 'Saldo Atual', value: resumo.saldo, secondaryValue: resumo.saldo >= 0 ? 'Superávit' : 'Déficit', icon: Wallet, color: resumo.saldo >= 0 ? 'blue' : 'red' },
                     { label: 'Contas Vencidas', value: resumo.contasVencidas, secondaryValue: 'Necessitam atenção', icon: AlertCircle, color: resumo.contasVencidas > 0 ? 'amber' : 'muted' }
                 ].map((stat, i) => (
-                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
                         <CardContent className="p-6">
                             <div className="flex justify-between items-start">
                                 <div className="space-y-1">
@@ -173,7 +173,7 @@ export const Financeiro: React.FC = () => {
                                     <p className="text-[12px] font-bold text-muted-foreground/60 uppercase">{stat.secondaryValue}</p>
                                 </div>
                                 <div className={cn(
-                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                    "p-3 rounded-xl transition-transform group-hover:scale-110 duration-500",
                                     stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
                                         stat.color === 'red' ? "bg-destructive/10 text-destructive" :
                                             stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
@@ -200,10 +200,10 @@ export const Financeiro: React.FC = () => {
                     <button
                         key={i}
                         onClick={() => navigate(action.path)}
-                        className="p-5 flex items-center gap-4 bg-card/50 backdrop-blur-sm rounded-3xl border border-border/50 hover:border-primary/30 hover:bg-card transition-all group text-left shadow-lg shadow-muted/10 active:scale-95"
+                        className="p-5 flex items-center gap-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 hover:border-primary/30 hover:bg-card transition-all group text-left shadow-lg shadow-muted/10 active:scale-95"
                     >
                         <div className={cn(
-                            "w-12 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm",
+                            "w-12 h-14 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm",
                             action.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
                                 action.color === 'red' ? "bg-destructive/10 text-destructive" :
                                     action.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
@@ -223,10 +223,10 @@ export const Financeiro: React.FC = () => {
             </div>
 
             {/* Recent Transactions Table */}
-            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
                 <div className="p-8 border-b border-border/50 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-xl">
+                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                             <ArrowUpDown className="w-5 h-5 text-primary" strokeWidth={2.5} />
                         </div>
                         <h2 className="text-xl font-black tracking-tight">Transações Recentes</h2>
@@ -255,7 +255,7 @@ export const Financeiro: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={5} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-3 animate-pulse">
-                                        <div className="w-12 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                                             <Loader2 className="animate-spin" />
                                         </div>
                                         <p className="font-black text-sm tracking-widest text-muted-foreground uppercase">Carregando registro...</p>

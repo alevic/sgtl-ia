@@ -72,7 +72,7 @@ const SettingField: React.FC<ISettingFieldProps> = ({
                 <select
                     value={value}
                     onChange={(e) => handleChange(e.target.value)}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                 </select>
@@ -438,12 +438,12 @@ export const Configuracoes: React.FC = () => {
                             placeholder="Localizar parâmetro..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-14 pl-12 pr-4 bg-card/50 backdrop-blur-sm border border-border/40 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-[12px] tracking-tight"
+                            className="w-full h-14 pl-12 pr-4 bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-[12px] tracking-tight"
                         />
                     </div>
                     <Button
                         onClick={() => setIsModalOpen(true)}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <Plus size={16} className="mr-2" />
                         Novo Parâmetro
@@ -463,7 +463,7 @@ export const Configuracoes: React.FC = () => {
                                 <button
                                     key={group}
                                     onClick={() => { setSelectedGroup(group); setSearchQuery(''); }}
-                                    className={`w-full flex items-center justify-between px-6 py-4 rounded-2xl transition-all ${selectedGroup === group && !searchQuery
+                                    className={`w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all ${selectedGroup === group && !searchQuery
                                         ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
                                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                         }`}
@@ -475,7 +475,7 @@ export const Configuracoes: React.FC = () => {
                         </div>
                     </Card>
 
-                    <Card className="p-8 bg-primary/5 border-dashed border-primary/20 rounded-[2.5rem]">
+                    <Card className="p-8 bg-primary/5 border-dashed border-primary/20 rounded-3xl">
                         <h4 className="text-[12px] font-black uppercase tracking-widest text-primary mb-2">Segurança de Rede</h4>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -517,7 +517,7 @@ export const Configuracoes: React.FC = () => {
                                 <Button
                                     onClick={() => handleSaveBatch(filteredParameters.map(p => ({ key: p.key, description: PARAM_METADATA[p.key]?.description || p.description })))}
                                     disabled={isSaving}
-                                    className="h-14 rounded-2xl px-10 bg-foreground text-background font-black uppercase text-[12px] tracking-widest shadow-lg transition-all hover:scale-[1.02]"
+                                    className="h-14 rounded-xl px-10 bg-foreground text-background font-black uppercase text-[12px] tracking-widest shadow-lg transition-all hover:scale-[1.02]"
                                 >
                                     {isSaving ? <Loader2 className="animate-spin mr-2" size={16} /> : <Save className="mr-2" size={16} />}
                                     Sincronizar Módulo
@@ -529,7 +529,7 @@ export const Configuracoes: React.FC = () => {
                             {filteredParameters.map(param => {
                                 const meta = PARAM_METADATA[param.key];
                                 return (
-                                    <Card key={param.id} className="group/card shadow-xl shadow-muted/10 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] p-8 hover:border-primary/40 transition-all">
+                                    <Card key={param.id} className="group/card shadow-xl shadow-muted/10 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl p-8 hover:border-primary/40 transition-all">
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="space-y-1">
                                                 <h4 className="font-black text-xs uppercase tracking-tight text-foreground">{meta?.label || param.key}</h4>
@@ -549,7 +549,7 @@ export const Configuracoes: React.FC = () => {
                                             {meta?.description || param.description || 'CONFORME PROTOCOLO PADRÃO'}
                                         </p>
 
-                                        <div className="p-6 bg-muted/20 rounded-2xl border border-border/30">
+                                        <div className="p-6 bg-muted/20 rounded-xl border border-border/30">
                                             <SettingField
                                                 label=""
                                                 k={param.key}

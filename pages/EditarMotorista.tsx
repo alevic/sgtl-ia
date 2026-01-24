@@ -237,14 +237,14 @@ export const EditarMotorista: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate(`/admin/motoristas/${id}`)}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
                     >
                         Cancelar
                     </Button>
                     <Button
                         onClick={handleSalvar}
                         disabled={isLoading}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                         {isLoading ? 'Sincronizando...' : 'Atualizar Registro'}
@@ -253,7 +253,7 @@ export const EditarMotorista: React.FC = () => {
             </div>
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro na Atualização</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -263,7 +263,7 @@ export const EditarMotorista: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
                     <CheckCircle className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -276,7 +276,7 @@ export const EditarMotorista: React.FC = () => {
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Dados Pessoais */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <User size={14} className="text-primary" />
@@ -291,7 +291,7 @@ export const EditarMotorista: React.FC = () => {
                                     value={nome}
                                     onChange={(e) => setNome(e.target.value)}
                                     placeholder="Ex: Carlos Alberto Silva"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
 
@@ -301,7 +301,7 @@ export const EditarMotorista: React.FC = () => {
                                     <select
                                         value={status}
                                         onChange={(e) => setStatus(e.target.value as DriverStatus)}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
                                     >
                                         <option value={DriverStatus.AVAILABLE}>Disponível</option>
                                         <option value={DriverStatus.IN_TRANSIT}>Em Viagem</option>
@@ -318,7 +318,7 @@ export const EditarMotorista: React.FC = () => {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="motorista@email.com"
-                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                     </div>
                                 </div>
@@ -327,7 +327,7 @@ export const EditarMotorista: React.FC = () => {
                     </Card>
 
                     {/* Endereço */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <MapPin size={14} className="text-primary" />
@@ -345,7 +345,7 @@ export const EditarMotorista: React.FC = () => {
                                             onChange={handleCepChange}
                                             placeholder="00000000"
                                             maxLength={8}
-                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                         {isSearchingCep && <Loader className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-primary" />}
                                     </div>
@@ -357,7 +357,7 @@ export const EditarMotorista: React.FC = () => {
                                         value={endereco}
                                         onChange={(e) => setEndereco(e.target.value)}
                                         placeholder="Rua, número, complemento"
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                             </div>
@@ -368,7 +368,7 @@ export const EditarMotorista: React.FC = () => {
                                         type="text"
                                         value={cidade}
                                         onChange={(e) => setCidade(e.target.value)}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -378,7 +378,7 @@ export const EditarMotorista: React.FC = () => {
                                         value={estado}
                                         onChange={(e) => setEstado(e.target.value.toUpperCase())}
                                         maxLength={2}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -387,7 +387,7 @@ export const EditarMotorista: React.FC = () => {
                                         type="text"
                                         value={pais}
                                         onChange={(e) => setPais(e.target.value)}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                             </div>
@@ -395,7 +395,7 @@ export const EditarMotorista: React.FC = () => {
                     </Card>
 
                     {/* Escalas e Gestão */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Briefcase size={14} className="text-primary" />
@@ -417,7 +417,7 @@ export const EditarMotorista: React.FC = () => {
                                     <select
                                         value={jornadaTrabalho}
                                         onChange={(e) => setJornadaTrabalho(e.target.value as typeof jornadaTrabalho)}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
                                     >
                                         <option value="DIURNA">Diurna</option>
                                         <option value="NOTURNA">Noturna</option>
@@ -435,7 +435,7 @@ export const EditarMotorista: React.FC = () => {
                                         onChange={(e) => setHorasSemanais(e.target.value)}
                                         min="1"
                                         max="60"
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                                 <div className="flex flex-col gap-3 pb-2">
@@ -478,7 +478,7 @@ export const EditarMotorista: React.FC = () => {
                 {/* Coluna Lateral */}
                 <div className="space-y-8">
                     {/* Habilitação */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <FileText size={14} className="text-primary" />
@@ -493,7 +493,7 @@ export const EditarMotorista: React.FC = () => {
                                     value={cnh}
                                     onChange={(e) => setCnh(e.target.value.replace(/\D/g, ''))}
                                     maxLength={11}
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -502,7 +502,7 @@ export const EditarMotorista: React.FC = () => {
                                     <select
                                         value={categoriaCnh}
                                         onChange={(e) => setCategoriaCnh(e.target.value)}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
                                     >
                                         {['A', 'B', 'C', 'D', 'E', 'AB', 'AC', 'AD', 'AE'].map(cat => (
                                             <option key={cat} value={cat}>{cat}</option>
@@ -519,7 +519,7 @@ export const EditarMotorista: React.FC = () => {
                             </div>
                             {cnhValidade && (
                                 <div className={cn(
-                                    "p-4 rounded-2xl border-2 flex items-center gap-3",
+                                    "p-4 rounded-xl border-2 flex items-center gap-3",
                                     cnhValidade.cor === 'green' ? "bg-emerald-500/5 border-emerald-500/20 text-emerald-500" :
                                         cnhValidade.cor === 'orange' ? "bg-orange-500/5 border-orange-500/20 text-orange-500" :
                                             "bg-red-500/5 border-red-500/20 text-red-500"
@@ -532,7 +532,7 @@ export const EditarMotorista: React.FC = () => {
                     </Card>
 
                     {/* Internacional */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Globe size={14} className="text-primary" />
@@ -546,7 +546,7 @@ export const EditarMotorista: React.FC = () => {
                                     type="text"
                                     value={passaporte}
                                     onChange={(e) => setPassaporte(e.target.value.toUpperCase())}
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -573,7 +573,7 @@ export const EditarMotorista: React.FC = () => {
                                 value={observacoes}
                                 onChange={(e) => setObservacoes(e.target.value)}
                                 rows={5}
-                                className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                                className="w-full p-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
                             />
                         </div>
                     </Card>

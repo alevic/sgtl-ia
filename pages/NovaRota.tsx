@@ -154,14 +154,14 @@ export const NovaRota: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/admin/rotas')}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
                     >
                         Cancelar
                     </Button>
                     <Button
                         onClick={handleSalvar}
                         disabled={saving}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {saving ? (
                             <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -174,7 +174,7 @@ export const NovaRota: React.FC = () => {
             </div>
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Incidente no Processamento</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -184,7 +184,7 @@ export const NovaRota: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -196,7 +196,7 @@ export const NovaRota: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Configurações Estruturais (1/4) */}
                 <div className="lg:col-span-1 space-y-8">
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Route size={14} className="text-primary" />
@@ -212,7 +212,7 @@ export const NovaRota: React.FC = () => {
                                     value={nomeRota}
                                     onChange={(e) => setNomeRota(e.target.value)}
                                     placeholder="Ex: SP-RJ EXPRESS"
-                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
                                 />
                             </div>
 
@@ -223,7 +223,7 @@ export const NovaRota: React.FC = () => {
                                     <button
                                         onClick={() => handleTipoChange('IDA')}
                                         className={cn(
-                                            "h-14 rounded-2xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipoRota === 'IDA' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -232,7 +232,7 @@ export const NovaRota: React.FC = () => {
                                     <button
                                         onClick={() => handleTipoChange('VOLTA')}
                                         className={cn(
-                                            "h-14 rounded-2xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipoRota === 'VOLTA' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -250,7 +250,7 @@ export const NovaRota: React.FC = () => {
                                         value={distanciaTotal}
                                         onChange={(e) => setDistanciaTotal(e.target.value === '' ? '' : Number(e.target.value))}
                                         placeholder="0"
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm"
                                     />
                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-black text-muted-foreground uppercase">quilômetros</span>
                                 </div>
@@ -296,7 +296,7 @@ export const NovaRota: React.FC = () => {
 
                 {/* Editor de Rota (3/4) */}
                 <div className="lg:col-span-3">
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
                         <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Route size={14} className="text-primary" />

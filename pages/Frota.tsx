@@ -113,7 +113,7 @@ const StatusBadge: React.FC<{ status: VeiculoStatus }> = ({ status }) => {
     const Icon = config.icon || Bus;
 
     return (
-        <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-lg", config.className)}>
+        <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-xl", config.className)}>
             <Icon size={12} strokeWidth={2.5} />
             {config.label}
         </Badge>
@@ -180,7 +180,7 @@ export const Frota: React.FC = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-2xl">
+                        <div className="p-2.5 bg-primary/10 rounded-xl">
                             <Bus className="text-primary w-6 h-6" strokeWidth={2.5} />
                         </div>
                         <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
@@ -190,7 +190,7 @@ export const Frota: React.FC = () => {
                     <p className="text-muted-foreground font-medium text-sm ml-1">Controle operacional e manutenção preventiva</p>
                 </div>
                 <Link to="/admin/frota/novo">
-                    <Button className="h-14 px-6 rounded-2xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
+                    <Button className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         NOVO VEÍCULO
                     </Button>
@@ -205,7 +205,7 @@ export const Frota: React.FC = () => {
                     { label: 'Em Operação', value: veiculosEmViagem, icon: TrendingUp, color: 'blue' },
                     { label: 'Manutenção', value: veiculosManutencao, icon: Wrench, color: 'amber' }
                 ].map((stat, i) => (
-                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
+                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
                         <CardContent className="p-6">
                             <div className="flex justify-between items-start">
                                 <div className="space-y-1">
@@ -213,7 +213,7 @@ export const Frota: React.FC = () => {
                                     <p className="text-3xl font-semibold tracking-tighter">{stat.value}</p>
                                 </div>
                                 <div className={cn(
-                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
+                                    "p-3 rounded-xl transition-transform group-hover:scale-110 duration-500",
                                     stat.color === 'primary' ? "bg-primary/10 text-primary" :
                                         stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
                                             stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
@@ -228,7 +228,7 @@ export const Frota: React.FC = () => {
             </div>
 
             {/* Filters Module */}
-            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
+            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {/* Busca */}
                     <div className="space-y-1.5 flex flex-col">
@@ -239,7 +239,7 @@ export const Frota: React.FC = () => {
                                 placeholder="Placa ou modelo..."
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                className="pl-11 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                                className="pl-11 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                             />
                         </div>
                     </div>
@@ -248,7 +248,7 @@ export const Frota: React.FC = () => {
                     <div className="space-y-1.5 flex flex-col">
                         <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status Operacional</label>
                         <Tabs value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)} className="w-full">
-                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
+                            <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
                                 <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
                                 <TabsTrigger value={VeiculoStatus.ACTIVE} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVOS</TabsTrigger>
                                 <TabsTrigger value={VeiculoStatus.IN_TRANSIT} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">EM VIAGEM</TabsTrigger>
@@ -261,7 +261,7 @@ export const Frota: React.FC = () => {
                     <div className="space-y-1.5 flex flex-col">
                         <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria</label>
                         <Tabs value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)} className="w-full">
-                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
+                            <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
                                 <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background transition-all">TODOS</TabsTrigger>
                                 <TabsTrigger value="ONIBUS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background transition-all">ÔNIBUS</TabsTrigger>
                                 <TabsTrigger value="CAMINHAO" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background transition-all">CAMINHÕES</TabsTrigger>
@@ -272,7 +272,7 @@ export const Frota: React.FC = () => {
             </div>
 
             {/* Vehicles Table Listing */}
-            <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+            <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent border-border/50">
@@ -289,7 +289,7 @@ export const Frota: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={6} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-3 animate-pulse">
-                                        <div className="w-12 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
                                             <Loader className="w-6 h-6 text-primary animate-spin" />
                                         </div>
                                         <p className="font-semibold text-sm tracking-widest text-muted-foreground uppercase">Carregando frota...</p>
@@ -316,7 +316,7 @@ export const Frota: React.FC = () => {
                                         <TableCell className="pl-8 py-5">
                                             <div className="flex items-center gap-4">
                                                 <div className={cn(
-                                                    "w-12 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110",
+                                                    "w-12 h-14 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110",
                                                     veiculo.tipo === 'ONIBUS' ? "bg-gradient-to-br from-blue-500 to-purple-600" : "bg-gradient-to-br from-orange-500 to-red-600 shadow-orange-500/20"
                                                 )}>
                                                     {veiculo.tipo === 'ONIBUS' ? <Bus size={22} /> : <Truck size={22} />}
