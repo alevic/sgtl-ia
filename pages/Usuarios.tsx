@@ -3,20 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { User, Plus, Search, Trash2, Shield, Mail, Calendar, Edit, Key, X } from 'lucide-react';
 import { authClient } from '../lib/auth-client';
 import { UserRole } from '../types';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
+import { cn } from '../lib/utils';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 
 const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
     const config = {
-        [UserRole.ADMIN]: { label: 'Administrador', color: 'purple' },
-        [UserRole.FINANCEIRO]: { label: 'Financeiro', color: 'green' },
-        [UserRole.OPERACIONAL]: { label: 'Operacional', color: 'orange' },
-        [UserRole.USER]: { label: 'Usuário', color: 'blue' },
+        [UserRole.ADMIN]: { label: 'ADMINISTRADOR', color: 'purple' },
+        [UserRole.FINANCEIRO]: { label: 'FINANCEIRO', color: 'green' },
+        [UserRole.OPERACIONAL]: { label: 'OPERACIONAL', color: 'orange' },
+        [UserRole.USER]: { label: 'USUÁRIO', color: 'blue' },
     };
 
     const { label, color } = config[role as UserRole] || config[UserRole.USER];
 
     return (
-        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-${color}-100 text-${color}-700 dark:bg-${color}-900/30 dark:text-${color}-400`}>
-            <Shield size={10} />
+        <span className={cn(
+            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[9px] font-black tracking-widest border-none",
+            color === 'purple' ? "bg-purple-100 text-purple-700" :
+                color === 'green' ? "bg-emerald-100 text-emerald-700" :
+                    color === 'orange' ? "bg-amber-100 text-amber-700" :
+                        "bg-blue-100 text-blue-700"
+        )}>
+            <Shield size={10} strokeWidth={3} />
             {label}
         </span>
     );
@@ -113,33 +124,34 @@ export const Usuarios: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Gerenciar Usuários</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Administração de acesso e permissões</p>
-                </div>
-                <button
-                    onClick={() => navigate('/admin/usuarios/novo')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center gap-2 transition-colors shadow-sm shadow-blue-600/20"
-                >
-                    <Plus size={20} />
-                    Novo Usuário
-                </button>
-            </div>
+            {/* Header Module */}
+            <PageHeader
+                title="Gestão de Usuários"
+                subtitle="Administração de acesso, permissões e segurança do sistema"
+                icon={User}
+                rightElement={
+                    <Button
+                        onClick={() => navigate('/admin/usuarios/novo')}
+                        className="h-14 px-8 rounded-xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        <Plus size={20} className="mr-2" strokeWidth={3} />
+                        NOVO USUÁRIO
+                    </Button>
+                }
+            />
 
-            {/* Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="relative">
-                    <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nome ou email..."
+            {/* Filters Module */}
+            <ListFilterSection>
+                <div className="relative flex-1 group">
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input
+                        placeholder="Buscar usuários por nome ou email..."
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                     />
                 </div>
-            </div>
+            </ListFilterSection>
 
             {/* Lista de Usuários (Cards) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -159,12 +171,14 @@ export const Usuarios: React.FC = () => {
                             <div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl shadow-lg shadow-primary/5">
                                             {user.name?.charAt(0) || '?'}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-slate-800 dark:text-white">{user.name || 'Sem nome'}</h3>
-                                            <RoleBadge role={user.role} />
+                                            <h3 className="text-lg font-black text-foreground tracking-tight leading-tight">{user.name || 'Sem nome'}</h3>
+                                            <div className="mt-1">
+                                                <RoleBadge role={user.role} />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -183,28 +197,31 @@ export const Usuarios: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex gap-2 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                <button
+                            <div className="flex gap-2 pt-5 border-t border-border/40">
+                                <Button
                                     onClick={() => navigate(`/admin/usuarios/${user.id}/editar`)}
-                                    className="flex-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                                    variant="outline"
+                                    className="flex-1 h-11 bg-muted/20 hover:bg-primary/10 hover:text-primary rounded-xl font-bold transition-all border-none"
                                 >
-                                    <Edit size={16} />
-                                    Editar
-                                </button>
-                                <button
+                                    <Edit size={16} className="mr-2" />
+                                    EDITAR
+                                </Button>
+                                <Button
                                     onClick={() => setResetPasswordUser(user)}
-                                    className="px-3 py-2 bg-orange-50 hover:bg-orange-100 dark:bg-orange-900/20 dark:hover:bg-orange-900/40 text-orange-600 dark:text-orange-400 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+                                    variant="outline"
+                                    className="w-11 h-11 p-0 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 rounded-xl transition-all border-none"
                                     title="Redefinir Senha"
                                 >
                                     <Key size={16} />
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={() => handleDelete(user.id)}
-                                    className="px-3 py-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+                                    variant="outline"
+                                    className="w-11 h-11 p-0 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 rounded-xl transition-all border-none"
                                     title="Excluir Usuário"
                                 >
                                     <Trash2 size={16} />
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     ))

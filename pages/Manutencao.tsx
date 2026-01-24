@@ -29,6 +29,9 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
 import { cn } from "../lib/utils";
 import { MaintenanceActions } from '../components/Manutencao/MaintenanceActions';
 
@@ -198,90 +201,78 @@ export const Manutencao: React.FC = () => {
     return (
         <div key="manutencao-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-2xl">
-                            <Wrench className="text-primary w-6 h-6" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
-                            Gestão de <span className="text-primary">Manutenção</span>
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-1">Controle preventivo e corretivo da frota</p>
-                </div>
-                <Button
-                    onClick={() => navigate('/admin/manutencao/nova')}
-                    className="h-14 px-6 rounded-2xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
-                >
-                    <Plus size={20} className="mr-2" strokeWidth={3} />
-                    NOVA MANUTENÇÃO
-                </Button>
-            </div>
+            <PageHeader
+                title="Gestão de Manutenção"
+                subtitle="Controle preventivo e corretivo da frota"
+                icon={Wrench}
+                rightElement={
+                    <Button
+                        onClick={() => navigate('/admin/manutencao/nova')}
+                        className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                    >
+                        <Plus size={20} className="mr-2" strokeWidth={3} />
+                        NOVA MANUTENÇÃO
+                    </Button>
+                }
+            />
 
             {/* Premium Stat Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                    { label: 'Total Registros', value: totalMaintenances, icon: Wrench, color: 'primary' },
-                    { label: 'Na Oficina', value: inProgress, icon: Clock, color: 'amber' },
-                    { label: 'Investimento Total', value: `R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'emerald' },
-                    { label: 'Agendadas (7d)', value: scheduledNext7Days, icon: Calendar, color: 'violet' }
-                ].map((stat, i) => (
-                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                        <CardContent className="p-6">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                                    <p className={cn("font-semibold tracking-tighter truncate w-36 xl:w-full", typeof stat.value === 'string' ? "text-xl" : "text-3xl")}>
-                                        {stat.value}
-                                    </p>
-                                </div>
-                                <div className={cn(
-                                    "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
-                                    stat.color === 'primary' ? "bg-primary/10 text-primary" :
-                                        stat.color === 'amber' ? "bg-amber-500/10 text-amber-600" :
-                                            stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
-                                                "bg-violet-500/10 text-violet-600"
-                                )}>
-                                    <stat.icon size={20} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                <DashboardCard
+                    title="Total Registros"
+                    value={totalMaintenances}
+                    icon={Wrench}
+                    variant="primary"
+                />
+                <DashboardCard
+                    title="Na Oficina"
+                    value={inProgress}
+                    icon={Clock}
+                    variant="amber"
+                />
+                <DashboardCard
+                    title="Investimento Total"
+                    value={`R$ ${totalCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                    icon={DollarSign}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Agendadas (7d)"
+                    value={scheduledNext7Days}
+                    icon={Calendar}
+                    variant="purple"
+                />
             </div>
 
             {/* Filters Module */}
-            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Busca */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 text-left block">Buscar Manutenção</label>
-                        <div className="relative group flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
-                            <Input
-                                placeholder="Descrição, oficina ou placa..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-12 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Status Tabs */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 text-left block">Status da Manutenção</label>
-                        <Tabs value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)} className="w-full">
-                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
-                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                                <TabsTrigger value={StatusManutencao.SCHEDULED} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Agendadas</TabsTrigger>
-                                <TabsTrigger value={StatusManutencao.IN_PROGRESS} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Em Andamento</TabsTrigger>
-                                <TabsTrigger value={StatusManutencao.COMPLETED} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Concluídas</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
+            <ListFilterSection>
+                {/* Busca */}
+                <div className="space-y-1.5 flex flex-col lg:col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Buscar Manutenção</label>
+                    <div className="relative group flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                        <Input
+                            placeholder="Descrição, oficina ou placa..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                        />
                     </div>
                 </div>
-            </div>
+
+                {/* Status Tabs */}
+                <div className="space-y-1.5 flex flex-col lg:col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Status da Manutenção</label>
+                    <Tabs value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)} className="w-full">
+                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value={StatusManutencao.SCHEDULED} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Agendadas</TabsTrigger>
+                            <TabsTrigger value={StatusManutencao.IN_PROGRESS} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Oficina</TabsTrigger>
+                            <TabsTrigger value={StatusManutencao.COMPLETED} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Concluídas</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+            </ListFilterSection>
 
             {/* Maintenances Table */}
             <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">

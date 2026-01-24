@@ -8,9 +8,13 @@ import { PhoneInput } from '../components/Form/PhoneInput';
 import { DocumentInput } from '../components/Form/DocumentInput';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { authClient } from '../lib/auth-client';
+import { useApp } from '../context/AppContext';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 
 export const EditarCliente: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -133,44 +137,34 @@ export const EditarCliente: React.FC = () => {
 
     return (
         <div key="editar-cliente-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate(`/admin/clientes/${id}`)}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel do Cliente</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            EDITAR <span className="text-primary italic">CLIENTE</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Atualize as credenciais e informações cadastrais do perfil
-                        </p>
+            {/* Header Module */}
+            <PageHeader
+                title="Editar Registro"
+                subtitle={`Atualizando credenciais de: ${formData.nome || '...'}`}
+                suffix="CLIENTE"
+                icon={User}
+                backLink={`/admin/clientes/${id}`}
+                backLabel="Painel do Cliente"
+                rightElement={
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate(`/admin/clientes/${id}`)}
+                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        >
+                            Descartar
+                        </Button>
+                        <Button
+                            onClick={handleSalvar}
+                            disabled={isLoading}
+                            className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            {isLoading ? 'Sincronizando...' : 'Salvar Alterações'}
+                        </Button>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate(`/admin/clientes/${id}`)}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        onClick={handleSalvar}
-                        disabled={isLoading}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                        {isLoading ? 'Sincronizando...' : 'Atualizar Registro'}
-                    </Button>
-                </div>
-            </div>
+                }
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
@@ -196,15 +190,12 @@ export const EditarCliente: React.FC = () => {
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Informações Pessoais */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <User size={14} className="text-primary" />
-                                Informações Pessoais
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
-                            <div className="space-y-1.5">
+                    <FormSection
+                        title="Informações Pessoais"
+                        icon={User}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1.5 md:col-span-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo *</label>
                                 <input
                                     type="text"
@@ -216,70 +207,63 @@ export const EditarCliente: React.FC = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Email *</label>
-                                    <div className="relative group">
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
-                                        <input
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            placeholder="email@exemplo.com"
-                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone / WhatsApp</label>
-                                    <PhoneInput
-                                        value={formData.telefone}
-                                        onChange={(val) => setFormData(prev => ({ ...prev, telefone: val }))}
-                                        countryCode={countryCode}
-                                        onCountryCodeChange={setCountryCode}
-                                        required={false}
-                                        showLabel={false}
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Email *</label>
+                                <div className="relative group">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        placeholder="email@exemplo.com"
+                                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Telefone / WhatsApp</label>
+                                <PhoneInput
+                                    value={formData.telefone}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, telefone: val }))}
+                                    countryCode={countryCode}
+                                    onCountryCodeChange={setCountryCode}
+                                    required={false}
+                                    showLabel={false}
+                                />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Nascimento</label>
-                                    <DatePicker
-                                        value={formData.data_nascimento}
-                                        onChange={(val) => setFormData(prev => ({ ...prev, data_nascimento: val }))}
-                                        placeholder="DD/MM/AAAA"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Segmento</label>
-                                    <select
-                                        name="segmento"
-                                        value={formData.segmento}
-                                        onChange={handleChange}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
-                                    >
-                                        <option value="Standard">Standard</option>
-                                        <option value="VIP">VIP</option>
-                                        <option value="Corporativo">Corporativo</option>
-                                    </select>
-                                </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Nascimento</label>
+                                <DatePicker
+                                    value={formData.data_nascimento}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, data_nascimento: val }))}
+                                    placeholder="DD/MM/AAAA"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Segmento</label>
+                                <select
+                                    name="segmento"
+                                    value={formData.segmento}
+                                    onChange={handleChange}
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                >
+                                    <option value="Standard">Standard</option>
+                                    <option value="VIP">VIP</option>
+                                    <option value="Corporativo">Corporativo</option>
+                                </select>
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Endereço */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <MapPin size={14} className="text-primary" />
-                                Localização e Endereço
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
-                            <div className="space-y-1.5">
+                    <FormSection
+                        title="Localização e Endereço"
+                        icon={MapPin}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Logradouro</label>
                                 <input
                                     type="text"
@@ -291,57 +275,52 @@ export const EditarCliente: React.FC = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Cidade</label>
-                                    <input
-                                        type="text"
-                                        name="cidade"
-                                        value={formData.cidade}
-                                        onChange={handleChange}
-                                        placeholder="São Paulo"
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Estado (UF)</label>
-                                    <input
-                                        type="text"
-                                        name="estado"
-                                        value={formData.estado}
-                                        onChange={handleChange}
-                                        placeholder="SP"
-                                        maxLength={2}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none uppercase"
-                                    />
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2 lg:col-span-1">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">País</label>
-                                    <input
-                                        type="text"
-                                        name="pais"
-                                        value={formData.pais}
-                                        onChange={handleChange}
-                                        placeholder="Brasil"
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
-                                    />
-                                </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Cidade</label>
+                                <input
+                                    type="text"
+                                    name="cidade"
+                                    value={formData.cidade}
+                                    onChange={handleChange}
+                                    placeholder="São Paulo"
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Estado (UF)</label>
+                                <input
+                                    type="text"
+                                    name="estado"
+                                    value={formData.estado}
+                                    onChange={handleChange}
+                                    placeholder="SP"
+                                    maxLength={2}
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none uppercase"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">País</label>
+                                <input
+                                    type="text"
+                                    name="pais"
+                                    value={formData.pais}
+                                    onChange={handleChange}
+                                    placeholder="Brasil"
+                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                />
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
                 </div>
 
                 {/* Coluna Lateral */}
                 <div className="space-y-8">
                     {/* Documentação */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Documentação
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Documentação"
+                        icon={FileText}
+                    >
+                        <div className="space-y-6">
                             <DocumentInput
                                 documentType={formData.documento_tipo}
                                 documentNumber={formData.documento}
@@ -361,17 +340,14 @@ export const EditarCliente: React.FC = () => {
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Financeiro e Notas */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <MessageSquare size={14} className="text-primary" />
-                                Resumo e Notas
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Resumo e Notas"
+                        icon={MessageSquare}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Saldo de Créditos</label>
                                 <input
@@ -396,7 +372,7 @@ export const EditarCliente: React.FC = () => {
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
                 </div>
             </div>
         </div>

@@ -10,7 +10,9 @@ import { DocumentInput } from '../components/Form/DocumentInput';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { CardContent } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
 
 export const NovoCliente: React.FC = () => {
@@ -156,43 +158,31 @@ export const NovoCliente: React.FC = () => {
     return (
         <div key="novo-cliente-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin/clientes')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel de Clientes</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            NOVO <span className="text-primary italic">CLIENTE</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Cadastre um novo perfil de passageiro ou parceiro comercial
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate('/admin/clientes')}
-                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        onClick={handleSalvar}
-                        disabled={isSaving}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        {isSaving ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                        {isSaving ? 'Processando...' : 'Salvar Registro'}
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Novo Cliente"
+                subtitle="Cadastre um novo perfil de passageiro ou parceiro comercial"
+                backLink="/admin/clientes"
+                backText="Painel de Clientes"
+                rightElement={
+                    <>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate('/admin/clientes')}
+                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSalvar}
+                            disabled={isSaving}
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            {isSaving ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            {isSaving ? 'Processando...' : 'Salvar Registro'}
+                        </Button>
+                    </>
+                }
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
@@ -208,14 +198,11 @@ export const NovoCliente: React.FC = () => {
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Dados Pessoais */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <User size={14} className="text-primary" />
-                                Credenciais e Identificação
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Credenciais e Identificação"
+                        icon={User}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo *</label>
                                 <input
@@ -274,17 +261,14 @@ export const NovoCliente: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Endereço */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <MapPin size={14} className="text-primary" />
-                                Base de Localização
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Base de Localização"
+                        icon={MapPin}
+                    >
+                        <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div className="md:col-span-1 space-y-1.5">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">CEP</label>
@@ -356,79 +340,64 @@ export const NovoCliente: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
                 </div>
 
                 {/* Coluna Lateral */}
                 <div className="space-y-8">
                     {/* Documentação */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Protocolos Oficiais
-                            </h3>
-                        </div>
-                        <div className="p-8">
-                            <DocumentInput
-                                documentType={documentoTipo}
-                                documentNumber={documento}
-                                onTypeChange={setDocumentoTipo}
-                                onNumberChange={setDocumento}
-                                required
-                            />
-                        </div>
-                    </Card>
+                    <FormSection
+                        title="Protocolos Oficiais"
+                        icon={FileText}
+                    >
+                        <DocumentInput
+                            documentType={documentoTipo}
+                            documentNumber={documento}
+                            onTypeChange={setDocumentoTipo}
+                            onNumberChange={setDocumento}
+                            required
+                        />
+                    </FormSection>
 
                     {/* Classificação */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Briefcase size={14} className="text-primary" />
-                                Nível Comercial
-                            </h3>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <div className="space-y-1.5">
-                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Segmento</label>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {['NOVO', 'REGULAR', 'VIP', 'INATIVO'].map((seg) => (
-                                        <button
-                                            key={seg}
-                                            onClick={() => setSegmento(seg as any)}
-                                            className={cn(
-                                                "py-3 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
-                                                segmento === seg
-                                                    ? "border-primary bg-primary shadow-lg shadow-primary/20 text-primary-foreground"
-                                                    : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/50"
-                                            )}
-                                        >
-                                            {seg}
-                                        </button>
-                                    ))}
-                                </div>
+                    <FormSection
+                        title="Nível Comercial"
+                        icon={Briefcase}
+                    >
+                        <div className="space-y-1.5">
+                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Segmento</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {['NOVO', 'REGULAR', 'VIP', 'INATIVO'].map((seg) => (
+                                    <button
+                                        key={seg}
+                                        onClick={() => setSegmento(seg as any)}
+                                        className={cn(
+                                            "py-3 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            segmento === seg
+                                                ? "border-primary bg-primary shadow-lg shadow-primary/20 text-primary-foreground"
+                                                : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/50"
+                                        )}
+                                    >
+                                        {seg}
+                                    </button>
+                                ))}
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Observações */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Histórico e Memória
-                            </h3>
-                        </div>
-                        <div className="p-6">
-                            <textarea
-                                value={observacoes}
-                                onChange={(e) => setObservacoes(e.target.value)}
-                                rows={6}
-                                placeholder="Informações relevantes sobre o relacionamento..."
-                                className="w-full p-4 bg-muted/40 border border-border/50 rounded-xl font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
-                            />
-                        </div>
-                    </Card>
+                    <FormSection
+                        title="Histórico e Memória"
+                        icon={FileText}
+                    >
+                        <textarea
+                            value={observacoes}
+                            onChange={(e) => setObservacoes(e.target.value)}
+                            rows={6}
+                            placeholder="Informações relevantes sobre o relacionamento..."
+                            className="w-full p-4 bg-muted/40 border border-border/50 rounded-xl font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
+                        />
+                    </FormSection>
                 </div>
             </div>
         </div>

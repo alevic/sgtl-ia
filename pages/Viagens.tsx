@@ -57,6 +57,9 @@ import {
     AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { PageHeader } from "../components/Layout/PageHeader";
+import { DashboardCard } from "../components/Layout/DashboardCard";
+import { ListFilterSection } from "../components/Layout/ListFilterSection";
 import { cn } from "../lib/utils";
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -293,192 +296,152 @@ export const Viagens: React.FC = () => {
                 </Alert>
             )}
             {/* Executive Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-xl">
-                            <Bus size={24} className="text-primary" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
-                            Gerenciamento de <span className="text-primary">Viagens</span>
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-0">
-                        Monitoramento em tempo real e controle operacional
-                    </p>
-                </div>
-                <Button asChild className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
-                    <Link to="/admin/viagens/nova" className="flex items-center gap-2">
-                        <Plus size={20} strokeWidth={2.5} />
-                        NOVA VIAGEM
-                    </Link>
-                </Button>
-            </div>
+            <PageHeader
+                title="Gerenciamento de Viagens"
+                subtitle="Monitoramento em tempo real e controle operacional"
+                icon={Bus}
+                rightElement={
+                    <Button asChild className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                        <Link to="/admin/viagens/nova" className="flex items-center gap-2">
+                            <Plus size={20} strokeWidth={2.5} />
+                            NOVA VIAGEM
+                        </Link>
+                    </Button>
+                }
+            />
 
             {/* Executive KPI Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Total de Viagens</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-foreground">{totalViagens}</p>
-                            </div>
-                            <div className="p-3 rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 duration-500">
-                                <Bus size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Confirmadas</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-emerald-600">{viagensConfirmadas}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-110 duration-500">
-                                <CheckCircle size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Em Curso</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-blue-600">{viagensEmCurso}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 transition-transform group-hover:scale-110 duration-500">
-                                <Loader size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Ocupação Média</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-purple-600">78%</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-purple-500/10 text-purple-600 transition-transform group-hover:scale-110 duration-500">
-                                <TrendingUp size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-foreground">
+                <DashboardCard
+                    title="Total de Viagens"
+                    value={totalViagens}
+                    icon={Bus}
+                    variant="primary"
+                />
+                <DashboardCard
+                    title="Confirmadas"
+                    value={viagensConfirmadas}
+                    icon={CheckCircle}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Em Curso"
+                    value={viagensEmCurso}
+                    icon={Loader}
+                    variant="blue"
+                />
+                <DashboardCard
+                    title="Ocupação Média"
+                    value="78%"
+                    icon={TrendingUp}
+                    variant="purple"
+                    trend="+5% vs mês anterior"
+                />
             </div>
 
             {/* Executive Filters Module */}
-            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Busca */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Viagem</label>
-                        <div className="relative group flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
-                            <Input
-                                placeholder="Origem, destino ou rota..."
-                                className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
-                                value={busca}
-                                onChange={(e) => setBusca(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Data de Partida */}
-                    <div className="space-y-1.5">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Partida</label>
-                        <DatePicker
-                            value={filtroDataPartida}
-                            onChange={setFiltroDataPartida}
-                            placeholder="Qualquer data"
-                            showIcon={true}
-                            className="h-14 bg-muted/40 border-input rounded-xl font-bold"
-                            containerClassName="w-full"
+            <ListFilterSection>
+                {/* Busca */}
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Buscar Viagem</label>
+                    <div className="relative group flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                        <Input
+                            placeholder="Origem, destino ou rota..."
+                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
                         />
                     </div>
-
-                    {/* Visibilidade */}
-                    <div className="space-y-1.5">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Visibilidade</label>
-                        <Select value={filtroAtiva} onValueChange={(v) => setFiltroAtiva(v as any)}>
-                            <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold">
-                                <SelectValue placeholder="Todas" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
-                                <SelectItem value="TODOS">Todas</SelectItem>
-                                <SelectItem value="ATIVA">Somente Ativas</SelectItem>
-                                <SelectItem value="INATIVA">Somente Inativas</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Status da Viagem */}
-                    <div className="space-y-1.5">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status da Viagem</label>
-                        <Popover open={isStatusDropdownOpen} onOpenChange={setIsStatusDropdownOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold justify-between hover:bg-muted/60"
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <Filter size={16} strokeWidth={2.5} />
-                                        <span className="truncate">
-                                            {filtroStatus.length === 0
-                                                ? 'Todos os Status'
-                                                : `${filtroStatus.length} selecionado(s)`}
-                                        </span>
-                                    </div>
-                                    <ChevronDown size={16} className={cn("transition-transform", isStatusDropdownOpen && "rotate-180")} />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[240px] p-3 rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Selecionar Status</span>
-                                        {filtroStatus.length > 0 && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => setFiltroStatus([])}
-                                                className="h-6 px-2 text-xs font-bold"
-                                            >
-                                                Limpar
-                                            </Button>
-                                        )}
-                                    </div>
-                                    {statusOptions.map((option) => (
-                                        <div
-                                            key={option.value}
-                                            className="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors"
-                                            onClick={() => toggleStatus(option.value)}
-                                        >
-                                            <div className={cn(
-                                                "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
-                                                filtroStatus.includes(option.value)
-                                                    ? "bg-primary border-primary"
-                                                    : "border-muted-foreground/30"
-                                            )}>
-                                                {filtroStatus.includes(option.value) && (
-                                                    <Check size={12} className="text-primary-foreground" strokeWidth={3} />
-                                                )}
-                                            </div>
-                                            <span className="text-sm font-semibold flex-1">{option.label}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
                 </div>
-            </div>
+
+                {/* Data de Partida */}
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Data de Partida</label>
+                    <DatePicker
+                        value={filtroDataPartida}
+                        onChange={setFiltroDataPartida}
+                        placeholder="Qualquer data"
+                        showIcon={true}
+                        className="h-14 bg-muted/40 border-input rounded-xl font-bold"
+                        containerClassName="w-full"
+                    />
+                </div>
+
+                {/* Visibilidade */}
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Visibilidade</label>
+                    <Select value={filtroAtiva} onValueChange={(v) => setFiltroAtiva(v as any)}>
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold">
+                            <SelectValue placeholder="Todas" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                            <SelectItem value="TODOS">Todas</SelectItem>
+                            <SelectItem value="ATIVA">Somente Ativas</SelectItem>
+                            <SelectItem value="INATIVA">Somente Inativas</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Status da Viagem */}
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Status da Viagem</label>
+                    <Popover open={isStatusDropdownOpen} onOpenChange={setIsStatusDropdownOpen}>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold justify-between hover:bg-muted/60"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Filter size={16} strokeWidth={2.5} />
+                                    <span className="truncate">
+                                        {filtroStatus.length === 0
+                                            ? 'Todos os Status'
+                                            : `${filtroStatus.length} selecionado(s)`}
+                                    </span>
+                                </div>
+                                <ChevronDown size={16} className={cn("transition-transform", isStatusDropdownOpen && "rotate-180")} />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[240px] p-3 rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80">Selecionar Status</span>
+                                    {filtroStatus.length > 0 && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setFiltroStatus([])}
+                                            className="h-6 px-2 text-xs font-bold"
+                                        >
+                                            Limpar
+                                        </Button>
+                                    )}
+                                </div>
+                                {statusOptions.map((option) => (
+                                    <div
+                                        key={option.value}
+                                        className="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors"
+                                        onClick={() => toggleStatus(option.value)}
+                                    >
+                                        <div className={cn(
+                                            "w-4 h-4 rounded border-2 flex items-center justify-center transition-all",
+                                            filtroStatus.includes(option.value)
+                                                ? "bg-primary border-primary"
+                                                : "border-muted-foreground/30"
+                                        )}>
+                                            {filtroStatus.includes(option.value) && (
+                                                <Check size={12} className="text-primary-foreground" strokeWidth={3} />
+                                            )}
+                                        </div>
+                                        <span className="text-sm font-semibold flex-1">{option.label}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                </div>
+            </ListFilterSection>
 
             {/* Executive Table Module */}
             {viagensFiltradas.length === 0 ? (

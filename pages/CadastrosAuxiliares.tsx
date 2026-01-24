@@ -6,6 +6,10 @@ import {
 import { IEstado, ICidade, IBairro, ITag } from '../types';
 import { tripsService } from '../services/tripsService';
 import { locationService } from '../services/locationService';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
+import { cn } from '../lib/utils';
+import { Input } from '../components/ui/input';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import {
     AlertDialog,
@@ -440,80 +444,65 @@ export const CadastrosAuxiliares: React.FC = () => {
                     <AlertDescription>{success}</AlertDescription>
                 </Alert>
             )}
-            {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel Administrativo</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            CADASTROS <span className="text-primary italic">AUXILIARES</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Manutenção de tabelas básicas, parâmetros territoriais e categorização do ecossistema
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    {activeTab !== 'estados' && (
+            {/* Header Module */}
+            <PageHeader
+                title="Cadastros Auxiliares"
+                subtitle="Manutenção de tabelas básicas, parâmetros territoriais e categorização do ecossistema"
+                icon={Layers}
+                backLink="/admin"
+                backLabel="Painel Administrativo"
+                rightElement={
+                    activeTab !== 'estados' && (
                         <Button
                             onClick={handleNew}
-                            className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
-                            <Plus className="w-4 h-4 mr-2" />
+                            <Plus className="w-4 h-4 mr-2" strokeWidth={3} />
                             Novo Registro
                         </Button>
-                    )}
-                </div>
+                    )
+                }
+            />
+
+            {/* Navigation Tabs Module */}
+            <div className="flex bg-muted/40 p-1.5 rounded-xl border border-border/50 h-16 w-full lg:w-fit gap-2 overflow-x-auto scroller-hidden">
+                {[
+                    { id: 'estados', label: 'Territórios', icon: Flag },
+                    { id: 'cidades', label: 'Cidades', icon: Building },
+                    { id: 'bairros', label: 'Bairros', icon: MapPin },
+                    { id: 'tags', label: 'Categorização', icon: Tag },
+                ].map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id as TabType)}
+                        className={cn(
+                            "flex items-center gap-2.5 px-6 h-full text-[10px] font-black uppercase tracking-widest transition-all rounded-lg whitespace-nowrap",
+                            activeTab === tab.id
+                                ? "bg-background text-primary shadow-sm"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                    >
+                        <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Navigation Tabs Dynamic */}
-            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                <div className="p-2 overflow-x-auto scroller-hidden">
-                    <div className="flex gap-2">
-                        {[
-                            { id: 'estados', label: 'Territórios', icon: Flag },
-                            { id: 'cidades', label: 'Cidades', icon: Building },
-                            { id: 'bairros', label: 'Bairros', icon: MapPin },
-                            { id: 'tags', label: 'Categorização', icon: Tag },
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id as TabType)}
-                                className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all rounded-2xl ${activeTab === tab.id
-                                    ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                                    }`}
-                            >
-                                <tab.icon size={14} strokeWidth={2.5} />
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
+            {/* Search Module */}
+            <ListFilterSection>
+                <div className="relative group flex-1">
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input
+                        placeholder={`Pesquisar em ${activeTab}...`}
+                        value={busca}
+                        onChange={(e) => setBusca(e.target.value)}
+                        className="w-full h-14 pl-12 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20 text-xs tracking-tight"
+                    />
                 </div>
-            </Card>
+            </ListFilterSection>
 
             {/* Content Table Executive */}
             <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                <div className="p-8 border-b border-border/50 bg-muted/20 flex flex-col md:flex-row justify-between gap-6">
-                    <div className="relative group flex-1 max-w-xl">
-                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                        <input
-                            type="text"
-                            placeholder={`Pesquisar em ${activeTab}...`}
-                            value={busca}
-                            onChange={(e) => setBusca(e.target.value)}
-                            className="w-full h-14 pl-12 pr-4 bg-muted/20 border border-border/40 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-[12px] tracking-tight"
-                        />
-                    </div>
-                </div>
-
                 <div className="overflow-x-auto">
                     {renderList()}
                 </div>

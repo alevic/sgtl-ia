@@ -6,7 +6,9 @@ import { IVeiculoFeature } from '../types';
 import { DatePicker } from '../components/Form/DatePicker';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { CardContent } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
 import { AlertCircle } from 'lucide-react';
 
@@ -143,47 +145,35 @@ export const NovoVeiculo: React.FC = () => {
     return (
         <div key="novo-veiculo-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin/frota')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Voltar para Frota</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            NOVO <span className="text-primary italic">VEÍCULO</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Cadastre um novo veículo na frota do sistema
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate('/admin/frota')}
-                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        onClick={handleSalvar}
-                        disabled={isLoading}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        {isLoading ? (
-                            <Loader className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                            <Save className="w-4 h-4 mr-2" />
-                        )}
-                        {isLoading ? 'Salvando...' : 'Salvar Veículo'}
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Novo Veículo"
+                subtitle="Cadastre um novo veículo na frota do sistema"
+                backLink="/admin/frota"
+                backText="Voltar para Frota"
+                rightElement={
+                    <>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate('/admin/frota')}
+                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSalvar}
+                            disabled={isLoading}
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            {isLoading ? (
+                                <Loader className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                                <Save className="w-4 h-4 mr-2" />
+                            )}
+                            {isLoading ? 'Salvando...' : 'Salvar Veículo'}
+                        </Button>
+                    </>
+                }
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
@@ -199,172 +189,160 @@ export const NovoVeiculo: React.FC = () => {
                 {/* Coluna Principal (2/3) */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Informações Básicas */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Informações Básicas
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
-                                        Placa *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={placa}
-                                        onChange={(e) => setPlaca(e.target.value.toUpperCase())}
-                                        placeholder="ABC-1234"
-                                        maxLength={8}
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
-                                    />
-                                </div>
+                    <FormSection
+                        title="Informações Básicas"
+                        icon={FileText}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
+                                    Placa *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={placa}
+                                    onChange={(e) => setPlaca(e.target.value.toUpperCase())}
+                                    placeholder="ABC-1234"
+                                    maxLength={8}
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                />
+                            </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
-                                        Modelo *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={modelo}
-                                        onChange={(e) => setModelo(e.target.value)}
-                                        placeholder="Ex: Mercedes-Benz O500"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
-                                    />
-                                </div>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
+                                    Modelo *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={modelo}
+                                    onChange={(e) => setModelo(e.target.value)}
+                                    placeholder="Ex: Mercedes-Benz O500"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                />
+                            </div>
 
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
+                                    Ano de Fabricação *
+                                </label>
+                                <input
+                                    type="number"
+                                    value={ano}
+                                    onChange={(e) => setAno(e.target.value)}
+                                    placeholder="2023"
+                                    min="1990"
+                                    max={new Date().getFullYear() + 1}
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                />
+                            </div>
+
+                            {tipo === 'ONIBUS' ? (
                                 <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
-                                        Ano de Fabricação *
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                        <Bus size={10} className="text-primary" />
+                                        Capacidade de Passageiros
                                     </label>
                                     <input
                                         type="number"
-                                        value={ano}
-                                        onChange={(e) => setAno(e.target.value)}
-                                        placeholder="2023"
-                                        min="1990"
-                                        max={new Date().getFullYear() + 1}
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                        value={capacidadePassageiros}
+                                        onChange={(e) => setCapacidadePassageiros(e.target.value)}
+                                        placeholder="46"
+                                        min="1"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                     />
                                 </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                        <Truck size={10} className="text-primary" />
+                                        Capacidade de Carga (ton)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={capacidadeCarga}
+                                        onChange={(e) => setCapacidadeCarga(e.target.value)}
+                                        placeholder="25.5"
+                                        step="0.1"
+                                        min="0"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    />
+                                </div>
+                            )}
 
-                                {tipo === 'ONIBUS' ? (
-                                    <div className="space-y-2">
-                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                                            <Bus size={10} className="text-primary" />
-                                            Capacidade de Passageiros
-                                        </label>
+                            {tipo === 'ONIBUS' && (
+                                <div className="md:col-span-2 flex items-center h-full">
+                                    <label className="relative inline-flex items-center cursor-pointer group">
                                         <input
-                                            type="number"
-                                            value={capacidadePassageiros}
-                                            onChange={(e) => setCapacidadePassageiros(e.target.value)}
-                                            placeholder="46"
-                                            min="1"
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                            type="checkbox"
+                                            checked={isDoubleDeck}
+                                            onChange={(e) => setIsDoubleDeck(e.target.checked)}
+                                            className="sr-only peer"
                                         />
-                                    </div>
-                                ) : (
-                                    <div className="space-y-2">
-                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                                            <Truck size={10} className="text-primary" />
-                                            Capacidade de Carga (ton)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            value={capacidadeCarga}
-                                            onChange={(e) => setCapacidadeCarga(e.target.value)}
-                                            placeholder="25.5"
-                                            step="0.1"
-                                            min="0"
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
-                                        />
-                                    </div>
-                                )}
-
-                                {tipo === 'ONIBUS' && (
-                                    <div className="md:col-span-2 flex items-center h-full">
-                                        <label className="relative inline-flex items-center cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={isDoubleDeck}
-                                                onChange={(e) => setIsDoubleDeck(e.target.checked)}
-                                                className="sr-only peer"
-                                            />
-                                            <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                                            <span className="ml-3 text-[12px] font-semibold uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
-                                                Possui dois andares (Double Deck)?
-                                            </span>
-                                        </label>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                                        <div className="w-11 h-6 bg-muted rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                        <span className="ml-3 text-[12px] font-semibold uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">
+                                            Possui dois andares (Double Deck)?
+                                        </span>
+                                    </label>
+                                </div>
+                            )}
+                        </div>
+                    </FormSection>
 
                     {/* Quilometragem e Manutenção */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Wrench size={14} className="text-primary" />
-                                Quilometragem e Manutenção
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                                        <Gauge size={10} className="text-primary" />
-                                        Quilometragem Atual (km) *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={kmAtual}
-                                        onChange={(e) => setKmAtual(e.target.value)}
-                                        placeholder="87500"
-                                        min="0"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                                        <Wrench size={10} className="text-primary" />
-                                        Próxima Revisão (km) *
-                                    </label>
-                                    <input
-                                        type="number"
-                                        value={proximaRevisaoKm}
-                                        onChange={(e) => setProximaRevisaoKm(e.target.value)}
-                                        placeholder="95000"
-                                        min="0"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                                        <Calendar size={10} className="text-primary" />
-                                        Data da Última Revisão
-                                    </label>
-                                    <DatePicker
-                                        value={ultimaRevisao}
-                                        onChange={setUltimaRevisao}
-                                        placeholder="DD/MM/AAAA"
-                                    />
-                                </div>
+                    <FormSection
+                        title="Quilometragem e Manutenção"
+                        icon={Wrench}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                    <Gauge size={10} className="text-primary" />
+                                    Quilometragem Atual (km) *
+                                </label>
+                                <input
+                                    type="number"
+                                    value={kmAtual}
+                                    onChange={(e) => setKmAtual(e.target.value)}
+                                    placeholder="87500"
+                                    min="0"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                />
                             </div>
-                        </CardContent>
-                    </Card>
+
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                    <Wrench size={10} className="text-primary" />
+                                    Próxima Revisão (km) *
+                                </label>
+                                <input
+                                    type="number"
+                                    value={proximaRevisaoKm}
+                                    onChange={(e) => setProximaRevisaoKm(e.target.value)}
+                                    placeholder="95000"
+                                    min="0"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                    <Calendar size={10} className="text-primary" />
+                                    Data da Última Revisão
+                                </label>
+                                <DatePicker
+                                    value={ultimaRevisao}
+                                    onChange={setUltimaRevisao}
+                                    placeholder="DD/MM/AAAA"
+                                />
+                            </div>
+                        </div>
+                    </FormSection>
 
                     {/* Características do Veículo */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Bus size={14} className="text-primary" />
-                                Características do Veículo
-                            </h3>
+                    <FormSection
+                        title="Características do Veículo"
+                        icon={Bus}
+                        rightElement={
                             <Button
                                 type="button"
                                 variant="outline"
@@ -375,103 +353,94 @@ export const NovoVeiculo: React.FC = () => {
                                 <Plus size={12} className="mr-1" />
                                 Adicionar
                             </Button>
+                        }
+                    >
+                        <div className="space-y-4">
+                            {features.map((feature, index) => (
+                                <div key={index} className="flex gap-4 items-start animate-in slide-in-from-left-2 duration-200">
+                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <input
+                                            type="text"
+                                            value={feature.category}
+                                            onChange={(e) => updateFeature(index, 'category', e.target.value)}
+                                            placeholder="Categoria (Ex: Segurança)"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={feature.label}
+                                            onChange={(e) => updateFeature(index, 'label', e.target.value)}
+                                            placeholder="Item (Ex: Freios ABS e EBS à disco)"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none"
+                                        />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => removeFeature(index)}
+                                        className="h-14 w-12 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                    >
+                                        <Trash2 size={18} />
+                                    </Button>
+                                </div>
+                            ))}
+                            {features.length === 0 && (
+                                <div className="text-center py-10 bg-muted/20 rounded-3xl border border-dashed border-border/50">
+                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">
+                                        Nenhuma característica personalizada adicionada
+                                    </p>
+                                </div>
+                            )}
                         </div>
-                        <CardContent className="p-8">
-                            <div className="space-y-4">
-                                {features.map((feature, index) => (
-                                    <div key={index} className="flex gap-4 items-start animate-in slide-in-from-left-2 duration-200">
-                                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <input
-                                                type="text"
-                                                value={feature.category}
-                                                onChange={(e) => updateFeature(index, 'category', e.target.value)}
-                                                placeholder="Categoria (Ex: Segurança)"
-                                                className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={feature.label}
-                                                onChange={(e) => updateFeature(index, 'label', e.target.value)}
-                                                placeholder="Item (Ex: Freios ABS e EBS à disco)"
-                                                className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm"
-                                            />
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => removeFeature(index)}
-                                            className="h-14 w-12 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                                        >
-                                            <Trash2 size={18} />
-                                        </Button>
-                                    </div>
-                                ))}
-                                {features.length === 0 && (
-                                    <div className="text-center py-10 bg-muted/20 rounded-3xl border border-dashed border-border/50">
-                                        <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">
-                                            Nenhuma característica personalizada adicionada
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    </FormSection>
 
                     {/* Galeria de Fotos */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Image size={14} className="text-primary" />
-                                Galeria de Fotos
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {galeria.map((img, idx) => (
-                                    <div key={idx} className="relative group aspect-square">
-                                        <img
-                                            src={img}
-                                            alt={`Foto ${idx + 1}`}
-                                            className="w-full h-full object-cover rounded-xl border border-border/50 shadow-sm transition-transform group-hover:scale-[1.02]"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeGaleriaImage(idx)}
-                                            className="absolute -top-2 -right-2 p-1.5 bg-destructive text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <X size={12} />
-                                        </button>
-                                    </div>
-                                ))}
-                                <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border/50 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
-                                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                        <Plus size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                                    </div>
-                                    <span className="mt-2 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Adicionar</span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={handleGaleriaUpload}
-                                        className="hidden"
+                    <FormSection
+                        title="Galeria de Fotos"
+                        icon={Image}
+                    >
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {galeria.map((img, idx) => (
+                                <div key={idx} className="relative group aspect-square">
+                                    <img
+                                        src={img}
+                                        alt={`Foto ${idx + 1}`}
+                                        className="w-full h-full object-cover rounded-xl border border-border/50 shadow-sm transition-transform group-hover:scale-[1.02]"
                                     />
-                                </label>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeGaleriaImage(idx)}
+                                        className="absolute -top-2 -right-2 p-1.5 bg-destructive text-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <X size={12} />
+                                    </button>
+                                </div>
+                            ))}
+                            <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border/50 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                                    <Plus size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                                </div>
+                                <span className="mt-2 text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">Adicionar</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    onChange={handleGaleriaUpload}
+                                    className="hidden"
+                                />
+                            </label>
+                        </div>
+                    </FormSection>
                 </div>
 
                 {/* Coluna Lateral (1/3) */}
                 <div className="space-y-8">
                     {/* Status e Tipo */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                                Configurações Operacionais
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-6">
+                    <FormSection
+                        title="Configurações Operacionais"
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Tipo de Veículo
@@ -513,75 +482,67 @@ export const NovoVeiculo: React.FC = () => {
                                 <select
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value as VeiculoStatus)}
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                 >
                                     <option value={VeiculoStatus.ACTIVE}>Ativo</option>
                                     <option value={VeiculoStatus.MAINTENANCE}>Em Manutenção</option>
                                     <option value={VeiculoStatus.IN_TRANSIT}>Em Viagem</option>
                                 </select>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </FormSection>
 
                     {/* Foto de Capa */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                                Foto Principal
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            {imagem ? (
-                                <div className="relative group">
-                                    <img
-                                        src={imagem}
-                                        alt="Capa do veículo"
-                                        className="w-full aspect-video object-cover rounded-2xl border border-border/50 shadow-md"
-                                    />
-                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setImagem('')}
-                                            className="p-2 bg-destructive text-white rounded-xl hover:scale-110 transition-transform"
-                                        >
-                                            <X size={16} />
-                                        </button>
-                                    </div>
+                    <FormSection
+                        title="Foto Principal"
+                        icon={Upload}
+                    >
+                        {imagem ? (
+                            <div className="relative group">
+                                <img
+                                    src={imagem}
+                                    alt="Capa do veículo"
+                                    className="w-full aspect-video object-cover rounded-2xl border border-border/50 shadow-md"
+                                />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setImagem('')}
+                                        className="p-2 bg-destructive text-white rounded-xl hover:scale-110 transition-transform"
+                                    >
+                                        <X size={16} />
+                                    </button>
                                 </div>
-                            ) : (
-                                <label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border/50 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
-                                    <div className="w-12 h-14 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                        <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
-                                    </div>
-                                    <span className="mt-3 text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Upload da Foto</span>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImagemUpload}
-                                        className="hidden"
-                                    />
-                                </label>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </div>
+                        ) : (
+                            <label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border/50 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                                <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                                    <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                                </div>
+                                <span className="mt-3 text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Upload da Foto</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImagemUpload}
+                                    className="hidden"
+                                />
+                            </label>
+                        )}
+                    </FormSection>
 
                     {/* Observações */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                                Observações Internas
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <textarea
-                                value={observacoes}
-                                onChange={(e) => setObservacoes(e.target.value)}
-                                placeholder="Informações adicionais sobre o veículo..."
-                                rows={4}
-                                className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
-                            />
-                        </CardContent>
-                    </Card>
+                    <FormSection
+                        title="Observações Internas"
+                        icon={FileText}
+                    >
+                        <textarea
+                            value={observacoes}
+                            onChange={(e) => setObservacoes(e.target.value)}
+                            placeholder="Informações adicionais sobre o veículo..."
+                            rows={4}
+                            className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
+                        />
+                    </FormSection>
 
                     {/* Info Box */}
                     <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 space-y-3">

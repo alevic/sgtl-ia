@@ -10,7 +10,9 @@ import { authClient } from '../lib/auth-client';
 import { DatePicker } from '../components/Form/DatePicker';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
+import { CardContent } from "../components/ui/card";
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from "../lib/utils";
 import { AlertCircle, CheckCircle2, Loader } from 'lucide-react';
 
@@ -156,35 +158,30 @@ export const NovaTransacao: React.FC = () => {
     return (
         <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin/financeiro')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Fluxo Financeiro</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            {id ? 'EDITAR' : 'NOVA'} <span className="text-primary italic">TRANSAÇÃO</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            {id ? 'Ajuste de registro financeiro existente' : 'Lançamento manual de entrada ou saída de caixa'}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate('/admin/financeiro')}
-                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title={id ? 'Editar Transação' : 'Nova Transação'}
+                subtitle={id ? 'Ajuste de registro financeiro existente' : 'Lançamento manual de entrada ou saída de caixa'}
+                backLink="/admin/financeiro"
+                backText="Fluxo Financeiro"
+                rightElement={
+                    <>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate('/admin/financeiro')}
+                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSubmit}
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            <Save size={18} className="mr-2" />
+                            Confirmar Lançamento
+                        </Button>
+                    </>
+                }
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
@@ -209,18 +206,16 @@ export const NovaTransacao: React.FC = () => {
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8 space-y-8">
                     {/* Informações Básicas */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Natureza do Lançamento
-                            </h3>
+                    <FormSection
+                        title="Natureza do Lançamento"
+                        icon={FileText}
+                        rightElement={
                             <div className="flex gap-2">
                                 <button
                                     type="button"
                                     onClick={() => setTipo(TipoTransacao.INCOME)}
                                     className={cn(
-                                        "px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-widest transition-all",
+                                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
                                         tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA'
                                             ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
                                             : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -232,7 +227,7 @@ export const NovaTransacao: React.FC = () => {
                                     type="button"
                                     onClick={() => setTipo(TipoTransacao.EXPENSE)}
                                     className={cn(
-                                        "px-4 py-1.5 rounded-full text-[12px] font-black uppercase tracking-widest transition-all",
+                                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
                                         tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA'
                                             ? "bg-red-500 text-white shadow-lg shadow-red-500/30"
                                             : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -241,8 +236,9 @@ export const NovaTransacao: React.FC = () => {
                                     Despesa
                                 </button>
                             </div>
-                        </div>
-                        <CardContent className="p-8 space-y-8">
+                        }
+                    >
+                        <div className="space-y-8">
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Descrição do Documento *</label>
                                 <input
@@ -258,8 +254,8 @@ export const NovaTransacao: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Valor Nominal *</label>
-                                    <div className="relative">
-                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground">R$</span>
+                                    <div className="relative group">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground group-focus-within:text-primary transition-colors">R$</span>
                                         <input
                                             type="number"
                                             required
@@ -268,7 +264,7 @@ export const NovaTransacao: React.FC = () => {
                                             value={valor}
                                             onChange={e => setValor(e.target.value)}
                                             placeholder="0,00"
-                                            className="w-full h-14 pl-10 pr-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black text-lg outline-none"
+                                            className="w-full h-14 pl-10 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black text-lg outline-none"
                                         />
                                     </div>
                                 </div>
@@ -277,7 +273,7 @@ export const NovaTransacao: React.FC = () => {
                                     <select
                                         value={moeda}
                                         onChange={e => setMoeda(e.target.value as Moeda)}
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     >
                                         <option value={Moeda.BRL}>BRL - Real</option>
                                         <option value={Moeda.USD}>USD - Dólar</option>
@@ -293,7 +289,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={categoriaReceita}
                                             onChange={e => setCategoriaReceita(e.target.value as CategoriaReceita)}
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                         >
                                             <option value={CategoriaReceita.VENDA_PASSAGEM}>Venda de Passagem</option>
                                             <option value={CategoriaReceita.FRETAMENTO}>Fretamento</option>
@@ -305,7 +301,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={categoriaDespesa}
                                             onChange={e => setCategoriaDespesa(e.target.value as CategoriaDespesa)}
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                         >
                                             <option value={CategoriaDespesa.COMBUSTIVEL}>Combustível</option>
                                             <option value={CategoriaDespesa.MANUTENCAO}>Manutenção</option>
@@ -325,8 +321,8 @@ export const NovaTransacao: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Identificador de Documento</label>
-                                    <div className="relative">
-                                        <Tag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                    <div className="relative group">
+                                        <Tag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                         <input
                                             type="text"
                                             value={numeroDocumento}
@@ -341,7 +337,7 @@ export const NovaTransacao: React.FC = () => {
                                     <select
                                         value={formaPagamento}
                                         onChange={e => setFormaPagamento(e.target.value as FormaPagamento)}
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     >
                                         <option value={FormaPagamento.CASH}>Dinheiro Vivo</option>
                                         <option value={FormaPagamento.PIX}>PIX Instantâneo</option>
@@ -353,18 +349,15 @@ export const NovaTransacao: React.FC = () => {
                                     </select>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </FormSection>
 
                     {/* Centros de Custo */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Tag size={14} className="text-primary" />
-                                Classificação Contábil
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-6">
+                    <FormSection
+                        title="Classificação Contábil"
+                        icon={Tag}
+                    >
+                        <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Centro de Custo Responsável *</label>
@@ -372,7 +365,7 @@ export const NovaTransacao: React.FC = () => {
                                         required
                                         value={centroCusto}
                                         onChange={e => setCentroCusto(e.target.value as CentroCusto)}
-                                        className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     >
                                         <option value={CentroCusto.ESTOQUE}>Estoque - Ativos e Equipamentos</option>
                                         <option value={CentroCusto.VENDAS}>Comercial - Serviços e Vendas</option>
@@ -387,7 +380,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={classificacaoContabil}
                                             onChange={e => setClassificacaoContabil(e.target.value as ClassificacaoContabil)}
-                                            className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                         >
                                             <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Estrutural Fixo</option>
                                             <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Operacional Variável</option>
@@ -404,46 +397,38 @@ export const NovaTransacao: React.FC = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[12px] font-black uppercase tracking-widest text-blue-500">Inteligência de Faturamento</p>
-                                    <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                                    <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
                                         {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA')
                                             ? 'Receitas provenientes de serviços são alocadas em COMERCIAL. Alienação de bens em ESTOQUE.'
                                             : 'Custos estão diretamente ligados à operação. Despesas suportam a estrutura organizacional.'}
                                     </p>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </FormSection>
 
                     {/* Observações */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Memória de Cálculo / Notas
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <textarea
-                                value={observacoes}
-                                onChange={e => setObservacoes(e.target.value)}
-                                rows={4}
-                                placeholder="Notas detalhadas sobre a transação financeira..."
-                                className="w-full p-6 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none resize-none"
-                            />
-                        </CardContent>
-                    </Card>
+                    <FormSection
+                        title="Memória de Cálculo / Notas"
+                        icon={FileText}
+                    >
+                        <textarea
+                            value={observacoes}
+                            onChange={e => setObservacoes(e.target.value)}
+                            rows={4}
+                            placeholder="Notas detalhadas sobre a transação financeira..."
+                            className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none resize-none"
+                        />
+                    </FormSection>
                 </div>
 
                 <div className="lg:col-span-4 space-y-8">
                     {/* Datas e Status */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden sticky top-8">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Calendar size={14} className="text-primary" />
-                                Temporalidade e Status
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-6">
+                    <FormSection
+                        title="Temporalidade e Status"
+                        icon={Calendar}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Emissão *</label>
                                 <DatePicker
@@ -468,7 +453,7 @@ export const NovaTransacao: React.FC = () => {
                                     required
                                     value={status}
                                     onChange={e => setStatus(e.target.value as StatusTransacao)}
-                                    className="w-full h-14 px-4 rounded-2xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                 >
                                     <option value={StatusTransacao.PENDING}>AGUARDANDO PAGAMENTO</option>
                                     <option value={StatusTransacao.PAID}>LIQUIDADO / PAGO</option>
@@ -476,18 +461,8 @@ export const NovaTransacao: React.FC = () => {
                                     <option value={StatusTransacao.CANCELLED}>TÍTULO CANCELADO</option>
                                 </select>
                             </div>
-
-                            <div className="pt-4">
-                                <Button
-                                    type="submit"
-                                    className="w-full h-16 rounded-xl bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98]"
-                                >
-                                    <Save size={18} className="mr-2" />
-                                    Confirmar Lançamento
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </FormSection>
 
                     {/* Ficha de Transparência */}
                     <div className="p-8 rounded-3xl bg-muted/30 border border-border/40 space-y-4">

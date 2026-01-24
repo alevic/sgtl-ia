@@ -7,20 +7,13 @@ import {
     ArrowLeft, FileText, Map, History, Wrench,
     Bus, Truck, Gauge, Calendar, Edit, CheckCircle, Plus, AlertTriangle, Users, Clock, Loader2
 } from 'lucide-react';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "../components/ui/card";
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "../components/ui/tabs";
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { cn } from '../lib/utils';
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import {
     Table,
     TableBody,
@@ -29,7 +22,6 @@ import {
     TableHeader,
     TableRow,
 } from "../components/ui/table";
-import { cn } from "../lib/utils";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -222,55 +214,43 @@ export const VeiculoDetalhes: React.FC = () => {
                 </Alert>
             )}
 
-            {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin/frota')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Controle de Frota</span>
-                    </button>
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">
-                                {veiculo.placa} <span className="text-primary italic">DETALHES</span>
-                            </h1>
-                            {isOnibus && veiculo.mapa_configurado && (
-                                <Badge className="bg-emerald-500/10 text-emerald-600 border-none rounded-full px-3 py-1 font-bold flex items-center gap-1.5 uppercase text-[10px] tracking-widest">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                    Mapa Configurado
-                                </Badge>
-                            )}
-                        </div>
-                        <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">
-                            {veiculo.modelo} {veiculo.is_double_deck ? '• DOUBLE DECK' : ''}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate(`/admin/frota/${id}/editar`)}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
-                    >
-                        <Edit size={16} className="mr-2" />
-                        Editar Registro
-                    </Button>
-                    {isOnibus && (
+            {/* Header Module */}
+            <PageHeader
+                title={veiculo.placa}
+                subtitle={`${veiculo.modelo} ${veiculo.is_double_deck ? '• DOUBLE DECK' : ''}`}
+                suffix="FROTA"
+                icon={Bus}
+                backLink="/admin/frota"
+                backLabel="Controle de Frota"
+                rightElement={
+                    <div className="flex items-center gap-3">
+                        {isOnibus && veiculo.mapa_configurado && (
+                            <Badge className="bg-emerald-500/10 text-emerald-600 border-none rounded-full px-4 py-2 font-bold flex items-center gap-2 uppercase text-[10px] tracking-widest mr-4">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                Mapa Configurado
+                            </Badge>
+                        )}
                         <Button
-                            variant="secondary"
-                            onClick={() => setActiveTab('mapa')}
-                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
+                            variant="outline"
+                            onClick={() => navigate(`/admin/frota/${id}/editar`)}
+                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
                         >
-                            <Map size={16} className="mr-2" />
-                            Gerenciar Assentos
+                            <Edit size={16} className="mr-2" />
+                            Editar Registro
                         </Button>
-                    )}
-                </div>
-            </div>
+                        {isOnibus && (
+                            <Button
+                                variant="secondary"
+                                onClick={() => setActiveTab('mapa')}
+                                className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
+                            >
+                                <Map size={16} className="mr-2" />
+                                Gerenciar Assentos
+                            </Button>
+                        )}
+                    </div>
+                }
+            />
 
             {/* Tabs Modenizadas */}
             <Tabs defaultValue="info" value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
@@ -339,61 +319,30 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
     return (
         <div className="space-y-10 animate-in fade-in duration-700">
             {/* Cards de Resumo */}
+            {/* Summary Analytics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-muted/20 p-6 rounded-3xl border border-border/50">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 ml-1">Especificações</p>
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-primary/10 rounded-2xl text-primary">
-                            {isOnibus ? <Bus size={24} /> : <Truck size={24} />}
-                        </div>
-                        <div>
-                            <p className="text-sm font-black text-foreground uppercase tracking-tight">
-                                {isOnibus ? 'Serviço de Ônibus' : 'Serviço de Carga'}
-                            </p>
-                            <p className="text-[12px] font-medium text-muted-foreground">{veiculo.ano} • {veiculo.modelo}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-muted/20 p-6 rounded-3xl border border-border/50">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 ml-1">Status Operacional</p>
-                    <div className="flex items-center gap-4">
-                        <div className={cn(
-                            "p-3 rounded-2xl",
-                            veiculo.status === VeiculoStatus.ACTIVE ? 'bg-emerald-500/10 text-emerald-600' :
-                                veiculo.status === VeiculoStatus.IN_TRANSIT ? 'bg-blue-500/10 text-blue-600' : 'bg-amber-500/10 text-amber-600'
-                        )}>
-                            <div className={cn("w-2 h-2 rounded-full",
-                                veiculo.status === VeiculoStatus.ACTIVE ? 'bg-emerald-500' :
-                                    veiculo.status === VeiculoStatus.IN_TRANSIT ? 'bg-blue-500 animate-pulse' : 'bg-amber-500'
-                            )} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-black text-foreground uppercase tracking-tight">
-                                {veiculo.status === VeiculoStatus.ACTIVE ? 'Pronto para Uso' :
-                                    veiculo.status === VeiculoStatus.IN_TRANSIT ? 'Em Operação' : 'Em Manutenção'}
-                            </p>
-                            <p className="text-[12px] font-medium text-muted-foreground">Disponibilidade Geral</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-muted/20 p-6 rounded-3xl border border-border/50">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3 ml-1">Capacidade</p>
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-indigo-500/10 rounded-2xl text-indigo-600">
-                            <Users size={24} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-black text-foreground uppercase tracking-tight">
-                                {isOnibus ? `${veiculo.capacidade_passageiros} Poltronas` : `${veiculo.capacidade_carga} Toneladas`}
-                            </p>
-                            <p className="text-[12px] font-medium text-muted-foreground">
-                                {isOnibus ? (veiculo.is_double_deck ? 'Dois Andares' : 'Padrão Unificado') : 'Carga Máxima'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
+                <DashboardCard
+                    title="Especificações"
+                    value={isOnibus ? 'Serviço de Ônibus' : 'Serviço de Carga'}
+                    icon={isOnibus ? Bus : Truck}
+                    variant="indigo"
+                    footer={`${veiculo.ano} • ${veiculo.modelo}`}
+                />
+                <DashboardCard
+                    title="Status Operacional"
+                    value={veiculo.status === VeiculoStatus.ACTIVE ? 'Pronto para Uso' :
+                        veiculo.status === VeiculoStatus.IN_TRANSIT ? 'Em Operação' : 'Em Manutenção'}
+                    icon={Clock}
+                    variant={veiculo.status === VeiculoStatus.ACTIVE ? "emerald" : "indigo"}
+                    footer="Disponibilidade Geral"
+                />
+                <DashboardCard
+                    title="Capacidade"
+                    value={isOnibus ? `${veiculo.capacidade_passageiros} Poltronas` : `${veiculo.capacidade_carga} Toneladas`}
+                    icon={Users}
+                    variant="indigo"
+                    footer={isOnibus ? (veiculo.is_double_deck ? 'Dois Andares' : 'Padrão Unificado') : 'Carga Máxima'}
+                />
             </div>
 
             {/* Métricas de Performance */}
@@ -424,7 +373,7 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {veiculo.observacoes && (
                     <div className="space-y-4">
-                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                        <h3 className="text-section-header flex items-center gap-2">
                             <FileText size={16} className="text-primary" /> Observações Operacionais
                         </h3>
                         <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic">
@@ -435,7 +384,7 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
 
                 {veiculo.features && veiculo.features.length > 0 && (
                     <div className="space-y-6">
-                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                        <h3 className="text-section-header flex items-center gap-2">
                             <CheckCircle size={16} className="text-primary" /> Conforto e Tecnologia
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
@@ -508,7 +457,7 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
         return (
             <div className="text-center py-20 bg-muted/10 rounded-[2rem] border border-dashed border-border/50">
                 <Wrench size={48} className="mx-auto text-muted-foreground/30 mb-6" />
-                <h3 className="text-xl font-black text-foreground uppercase tracking-tight mb-2">
+                <h3 className="text-section-header">
                     Sem Registros de Oficina
                 </h3>
                 <p className="text-muted-foreground font-medium mb-8 max-w-sm mx-auto">
@@ -529,8 +478,8 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
         <div className="space-y-8 animate-in fade-in duration-700">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Histórico Técnico</h3>
-                    <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Todas as intervenções mecânicas realizadas</p>
+                    <h3 className="text-section-header">Histórico Técnico</h3>
+                    <p className="text-section-description mt-0.5">Todas as intervenções mecânicas realizadas</p>
                 </div>
                 <Button
                     onClick={() => navigate('/admin/manutencao/nova', { state: { initialVehicle: veiculo } })}
@@ -545,11 +494,11 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent border-border/50 h-14">
-                            <TableHead className="pl-6 text-[10px] font-black uppercase tracking-widest">Data / Status</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest">Serviço Realizado</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest">Quilometragem</TableHead>
-                            <TableHead className="text-[10px] font-black uppercase tracking-widest">Investimento</TableHead>
-                            <TableHead className="pr-6 text-right text-[10px] font-black uppercase tracking-widest">Operação</TableHead>
+                            <TableHead className="pl-6 text-table-head">Data / Status</TableHead>
+                            <TableHead className="text-table-head">Serviço Realizado</TableHead>
+                            <TableHead className="text-table-head">Quilometragem</TableHead>
+                            <TableHead className="text-table-head">Investimento</TableHead>
+                            <TableHead className="pr-6 text-right text-table-head">Operação</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -613,7 +562,7 @@ const HistoricoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
             <div className="w-16 h-16 bg-purple-500/10 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <History size={32} />
             </div>
-            <h3 className="text-xl font-black text-foreground uppercase tracking-tight mb-2">
+            <h3 className="text-section-header mb-2">
                 Timeline de Viagens
             </h3>
             <p className="text-muted-foreground font-medium mb-8 max-w-sm mx-auto">

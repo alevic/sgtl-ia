@@ -22,6 +22,8 @@ import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { PageHeader } from "../components/Layout/PageHeader";
+import { DashboardCard } from "../components/Layout/DashboardCard";
 import { cn } from "../lib/utils";
 
 export const Financeiro: React.FC = () => {
@@ -120,27 +122,20 @@ export const Financeiro: React.FC = () => {
 
     return (
         <div key="financeiro-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-xl">
-                            <Wallet className="text-primary w-6 h-6" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-black tracking-tighter text-foreground">
-                            Gestão <span className="text-primary">Financeira</span>
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-1">Fluxo de caixa e controle de transações</p>
-                </div>
-                <Button
-                    onClick={() => navigate('/admin/financeiro/transacoes/nova')}
-                    className="h-14 px-6 rounded-xl font-black transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
-                >
-                    <Plus size={20} className="mr-2" strokeWidth={3} />
-                    NOVA TRANSAÇÃO
-                </Button>
-            </div>
+            {/* Header Executivo */}
+            <PageHeader
+                title="Gestão Financeira"
+                subtitle="Fluxo de caixa e controle de transações operacional no padrão de excelência"
+                rightElement={
+                    <Button
+                        onClick={() => navigate('/admin/financeiro/transacoes/nova')}
+                        className="h-14 px-8 rounded-xl font-black shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        <Plus size={20} className="mr-2" strokeWidth={3} />
+                        NOVA TRANSAÇÃO
+                    </Button>
+                }
+            />
 
             {/* Period Filter */}
             <Tabs value={periodoSelecionado} onValueChange={(v: any) => setPeriodoSelecionado(v)} className="w-fit bg-muted/40 p-1 rounded-xl border border-border/50">
@@ -153,39 +148,34 @@ export const Financeiro: React.FC = () => {
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                    { label: 'Receitas Totais', value: resumo.receitas, secondaryValue: `${formatCurrency(resumo.receitasPagas)} recebidas`, icon: TrendingUp, color: 'emerald' },
-                    { label: 'Despesas Totais', value: resumo.despesas, secondaryValue: `${formatCurrency(resumo.despesasPagas)} pagas`, icon: TrendingDown, color: 'red' },
-                    { label: 'Saldo Atual', value: resumo.saldo, secondaryValue: resumo.saldo >= 0 ? 'Superávit' : 'Déficit', icon: Wallet, color: resumo.saldo >= 0 ? 'blue' : 'red' },
-                    { label: 'Contas Vencidas', value: resumo.contasVencidas, secondaryValue: 'Necessitam atenção', icon: AlertCircle, color: resumo.contasVencidas > 0 ? 'amber' : 'muted' }
-                ].map((stat, i) => (
-                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                        <CardContent className="p-6">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                    <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                                    <p className={cn(
-                                        "text-2xl font-black tracking-tighter",
-                                        i === 2 && stat.value < 0 ? "text-destructive" : i === 2 ? "text-emerald-600" : "text-foreground"
-                                    )}>
-                                        {i === 3 ? stat.value : formatCurrency(stat.value)}
-                                    </p>
-                                    <p className="text-[12px] font-bold text-muted-foreground/60 uppercase">{stat.secondaryValue}</p>
-                                </div>
-                                <div className={cn(
-                                    "p-3 rounded-xl transition-transform group-hover:scale-110 duration-500",
-                                    stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
-                                        stat.color === 'red' ? "bg-destructive/10 text-destructive" :
-                                            stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
-                                                stat.color === 'amber' ? "bg-amber-500/10 text-amber-600" :
-                                                    "bg-muted text-muted-foreground"
-                                )}>
-                                    <stat.icon size={20} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                <DashboardCard
+                    title="Receitas Totais"
+                    value={formatCurrency(resumo.receitas)}
+                    icon={TrendingUp}
+                    variant="emerald"
+                    trend={`${formatCurrency(resumo.receitasPagas)} recebidas`}
+                />
+                <DashboardCard
+                    title="Despesas Totais"
+                    value={formatCurrency(resumo.despesas)}
+                    icon={TrendingDown}
+                    variant="rose"
+                    trend={`${formatCurrency(resumo.despesasPagas)} pagas`}
+                />
+                <DashboardCard
+                    title="Saldo Atual"
+                    value={formatCurrency(resumo.saldo)}
+                    icon={Wallet}
+                    variant={resumo.saldo >= 0 ? "blue" : "rose"}
+                    trend={resumo.saldo >= 0 ? "Superávit" : "Déficit"}
+                />
+                <DashboardCard
+                    title="Contas Vencidas"
+                    value={resumo.contasVencidas}
+                    icon={AlertCircle}
+                    variant={resumo.contasVencidas > 0 ? "amber" : "primary"}
+                    trend={resumo.contasVencidas > 0 ? "Ação necessária" : "Em dia"}
+                />
             </div>
 
             {/* Quick Actions Grid */}
@@ -243,11 +233,11 @@ export const Financeiro: React.FC = () => {
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent border-border/50">
-                            <TableHead className="pl-8 h-14 text-[12px] font-black uppercase tracking-widest">Descrição / Emissão</TableHead>
-                            <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Tipo</TableHead>
-                            <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Status</TableHead>
-                            <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Valor</TableHead>
-                            <TableHead className="pr-8 h-14 text-[12px] font-black uppercase tracking-widest text-right">Ações</TableHead>
+                            <TableHead className="pl-8 h-14 text-table-head">Descrição / Emissão</TableHead>
+                            <TableHead className="h-14 text-table-head">Tipo</TableHead>
+                            <TableHead className="h-14 text-table-head">Status</TableHead>
+                            <TableHead className="h-14 text-table-head">Valor</TableHead>
+                            <TableHead className="pr-8 h-14 text-table-head text-right">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

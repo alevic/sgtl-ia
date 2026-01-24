@@ -2,8 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { IEncomenda, TipoEncomenda, Moeda, EncomendaStatus, EncomendaStatusLabel } from '../types';
-import { Package, Truck, Bus, MapPin, Calendar, TrendingUp, Check, Loader } from 'lucide-react';
+import { Package, Truck, Bus, MapPin, Calendar, TrendingUp, Check, Loader, Search } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Input } from '../components/ui/input';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
+import { cn } from '../lib/utils';
 
 const TipoTag: React.FC<{ tipo: TipoEncomenda }> = ({ tipo }) => {
     if (tipo === TipoEncomenda.BUS_CARGO || (tipo as any) === 'CARGA_ONIBUS') {
@@ -80,45 +88,75 @@ export const Encomendas: React.FC = () => {
         );
     }
 
+    // KPIs
+    const total = encomendas.length;
+    const busCargo = encomendas.filter(e => e.tipo === TipoEncomenda.BUS_CARGO || (e.tipo as any) === 'CARGA_ONIBUS').length;
+    const truckFreight = encomendas.filter(e => e.tipo === TipoEncomenda.TRUCK_FREIGHT || (e.tipo as any) === 'FRETE_CAMINHAO').length;
+    const inTransit = encomendas.filter(e => e.status === EncomendaStatus.IN_TRANSIT || (e.status as any) === 'EM_TRANSITO').length;
+
     return (
         <div key="encomendas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Encomendas</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Logística híbrida: Ônibus e Caminhões</p>
-                </div>
-                <button
-                    onClick={() => navigate('/admin/encomendas/nova')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Package size={18} />
-                    Nova Encomenda
-                </button>
+            {/* Header */}
+            <PageHeader
+                title="Gestão de Encomendas"
+                subtitle="Logística híbrida: Ônibus e Caminhões"
+                icon={Package}
+                rightElement={
+                    <Button
+                        onClick={() => navigate('/admin/encomendas/nova')}
+                        className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20"
+                    >
+                        <Package size={20} />
+                        NOVA ENCOMENDA
+                    </Button>
+                }
+            />
+
+            {/* Stat Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <DashboardCard
+                    title="Total Encomendas"
+                    value={total}
+                    icon={Package}
+                    variant="primary"
+                />
+                <DashboardCard
+                    title="Carga Ônibus"
+                    value={busCargo}
+                    icon={Bus}
+                    variant="blue"
+                />
+                <DashboardCard
+                    title="Frete Caminhão"
+                    value={truckFreight}
+                    icon={Truck}
+                    variant="amber"
+                />
+                <DashboardCard
+                    title="Em Trânsito"
+                    value={inTransit}
+                    icon={TrendingUp}
+                    variant="emerald"
+                />
             </div>
 
-            {/* Filtros */}
-            <div className="flex gap-2">
-                <button
-                    onClick={() => setFiltroTipo('TODOS')}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${filtroTipo === 'TODOS' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
-                >
-                    Todos
-                </button>
-                <button
-                    onClick={() => setFiltroTipo(TipoEncomenda.BUS_CARGO)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroTipo === TipoEncomenda.BUS_CARGO ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
-                >
-                    <Bus size={16} />
-                    Carga Ônibus
-                </button>
-                <button
-                    onClick={() => setFiltroTipo(TipoEncomenda.TRUCK_FREIGHT)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${filtroTipo === TipoEncomenda.TRUCK_FREIGHT ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
-                >
-                    <Truck size={16} />
-                    Frete Caminhão
-                </button>
-            </div>
+            {/* Filters */}
+            <ListFilterSection>
+                <div className="space-y-1.5 flex flex-col lg:col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Modalidade de Envio</label>
+                    <Tabs value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)} className="w-full">
+                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value={TipoEncomenda.BUS_CARGO} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-blue-600 gap-2">
+                                <Bus size={14} /> ONIBUS
+                            </TabsTrigger>
+                            <TabsTrigger value={TipoEncomenda.TRUCK_FREIGHT} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-amber-600 gap-2">
+                                <Truck size={14} /> CAMINHAO
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+            </ListFilterSection>
 
             {/* Lista de Encomendas */}
             <div className="grid gap-4">

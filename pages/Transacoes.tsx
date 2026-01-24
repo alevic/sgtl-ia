@@ -9,9 +9,16 @@ import {
 } from '../types';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
-import { DatePicker } from '../components/Form/DatePicker';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
+import { cn } from '../lib/utils';
+import { Card } from '../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { ArrowLeftRight, TrendingUp, TrendingDown, Info, CreditCard, DollarSign } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { Info } from 'lucide-react';
 
 export const Transacoes: React.FC = () => {
     const navigate = useNavigate();
@@ -89,11 +96,11 @@ export const Transacoes: React.FC = () => {
 
     const resumo = useMemo(() => {
         const receitas = transacoesFiltradas
-            .filter(t => t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA')
+            .filter(t => t.tipo === TipoTransacao.INCOME)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const despesas = transacoesFiltradas
-            .filter(t => t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA')
+            .filter(t => t.tipo === TipoTransacao.EXPENSE)
             .reduce((sum, t) => sum + Number(t.valor), 0);
 
         const saldo = receitas - despesas;
@@ -133,18 +140,18 @@ export const Transacoes: React.FC = () => {
     };
 
     const getTipoBadge = (tipo: TipoTransacao) => {
-        if (tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') {
+        if (tipo === TipoTransacao.INCOME) {
             return (
-                <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded text-xs font-semibold flex items-center gap-1">
-                    <ArrowUpRight size={12} />
-                    {TipoTransacaoLabel[TipoTransacao.INCOME].toUpperCase()}
+                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border border-emerald-500/20">
+                    <ArrowUpRight size={12} strokeWidth={3} />
+                    RECEITA
                 </span>
             );
         }
         return (
-            <span className="px-2 py-0.5 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded text-xs font-semibold flex items-center gap-1">
-                <ArrowDownRight size={12} />
-                {TipoTransacaoLabel[TipoTransacao.EXPENSE].toUpperCase()}
+            <span className="px-2 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border border-rose-500/20">
+                <ArrowDownRight size={12} strokeWidth={3} />
+                DESPESA
             </span>
         );
     };
@@ -164,171 +171,142 @@ export const Transacoes: React.FC = () => {
                     <AlertDescription>{info}</AlertDescription>
                 </Alert>
             )}
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate('/admin/financeiro')}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            {/* Header Module */}
+            <PageHeader
+                title="Fluxo de Caixa Unificado"
+                subtitle="Rastreamento consolidado de todas as movimentações financeiras do ecossistema"
+                icon={ArrowLeftRight}
+                backLink="/admin/financeiro"
+                backLabel="Painel Financeiro"
+                rightElement={
+                    <Button
+                        onClick={() => navigate('/admin/financeiro/transacoes/nova')}
+                        className="h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
-                        <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Transações Financeiras</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Histórico completo de receitas e despesas</p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => navigate('/admin/financeiro/transacoes/nova')}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    Nova Transação
-                </button>
+                        <Plus size={20} className="mr-2" strokeWidth={3} />
+                        Nova Transação
+                    </Button>
+                }
+            />
+
+            {/* Dashboard KPIs Container */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <DashboardCard
+                    title="Entradas (Filtro)"
+                    value={formatCurrency(resumo.receitas)}
+                    icon={TrendingUp}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Saídas (Filtro)"
+                    value={formatCurrency(resumo.despesas)}
+                    icon={TrendingDown}
+                    variant="rose"
+                />
+                <DashboardCard
+                    title="Resultado Líquido"
+                    value={formatCurrency(resumo.saldo)}
+                    icon={DollarSign}
+                    variant={resumo.saldo >= 0 ? "indigo" : "amber"}
+                    trend={resumo.saldo >= 0 ? "Superávit no período" : "Déficit no período"}
+                />
+                <DashboardCard
+                    title="Volume de Operações"
+                    value={resumo.total.toString()}
+                    icon={CreditCard}
+                    variant="slate"
+                    trend="Total de registros"
+                />
             </div>
 
-            {/* Cards de Resumo */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Receitas</span>
-                        <ArrowUpRight size={18} className="text-green-600 dark:text-green-400" />
-                    </div>
-                    <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                        {formatCurrency(resumo.receitas)}
-                    </p>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Despesas</span>
-                        <ArrowDownRight size={18} className="text-red-600 dark:text-red-400" />
-                    </div>
-                    <p className="text-xl font-bold text-red-600 dark:text-red-400">
-                        {formatCurrency(resumo.despesas)}
-                    </p>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Saldo</span>
-                        <Calendar size={18} className="text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <p className={`text-xl font-bold ${resumo.saldo >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {formatCurrency(resumo.saldo)}
-                    </p>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Transações</span>
-                        <Filter size={18} className="text-slate-600 dark:text-slate-400" />
-                    </div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-white">
-                        {resumo.total}
-                    </p>
-                </div>
-            </div>
-
-            {/* Filtros */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {/* Busca */}
-                    <div className="md:col-span-2">
-                        <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
+            {/* Filters Module */}
+            <ListFilterSection>
+                <div className="space-y-4 w-full">
+                    <div className="flex flex-col lg:flex-row gap-4">
+                        <div className="relative flex-1 group">
+                            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <Input
                                 placeholder="Buscar por descrição, ID ou documento..."
                                 value={busca}
                                 onChange={e => setBusca(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                             />
                         </div>
-                    </div>
 
-                    {/* Filtro Tipo */}
-                    <div>
-                        <select
-                            value={filtroTipo}
-                            onChange={e => setFiltroTipo(e.target.value as TipoTransacao | 'TODAS')}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODAS">Todos os Tipos</option>
-                            <option value={TipoTransacao.INCOME}>{TipoTransacaoLabel[TipoTransacao.INCOME]}</option>
-                            <option value={TipoTransacao.EXPENSE}>{TipoTransacaoLabel[TipoTransacao.EXPENSE]}</option>
-                        </select>
-                    </div>
+                        <div className="flex flex-wrap gap-3">
+                            <Select value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)}>
+                                <SelectTrigger className="w-[160px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
+                                    <SelectValue placeholder="TIPO" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="TODAS">TODOS OS TIPOS</SelectItem>
+                                    <SelectItem value={TipoTransacao.INCOME}>RECEITA</SelectItem>
+                                    <SelectItem value={TipoTransacao.EXPENSE}>DESPESA</SelectItem>
+                                </SelectContent>
+                            </Select>
 
-                    {/* Filtro Status */}
-                    <div>
-                        <select
-                            value={filtroStatus}
-                            onChange={e => setFiltroStatus(e.target.value as StatusTransacao | 'TODAS')}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODAS">Todos os Status</option>
-                            <option value={StatusTransacao.PAID}>{StatusTransacaoLabel[StatusTransacao.PAID]}</option>
-                            <option value={StatusTransacao.PENDING}>{StatusTransacaoLabel[StatusTransacao.PENDING]}</option>
-                            <option value={StatusTransacao.OVERDUE}>{StatusTransacaoLabel[StatusTransacao.OVERDUE]}</option>
-                            <option value={StatusTransacao.PARTIALLY_PAID}>{StatusTransacaoLabel[StatusTransacao.PARTIALLY_PAID]}</option>
-                        </select>
-                    </div>
-
-                    {/* Filtro Centro de Custo */}
-                    <div>
-                        <select
-                            value={filtroCentroCusto}
-                            onChange={e => setFiltroCentroCusto(e.target.value as CentroCusto | 'TODOS')}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODOS">Todos Centros de Custo</option>
-                            <option value={CentroCusto.ESTOQUE}>Estoque</option>
-                            <option value={CentroCusto.VENDAS}>Vendas</option>
-                            <option value={CentroCusto.ADMINISTRATIVO}>Administrativo</option>
-                        </select>
-                    </div>
-
-                    {/* Filtro Classificação */}
-                    <div>
-                        <select
-                            value={filtroClassificacao}
-                            onChange={e => setFiltroClassificacao(e.target.value as ClassificacaoContabil | 'TODAS')}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODAS">Todas Classificações</option>
-                            <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Fixo</option>
-                            <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Variável</option>
-                            <option value={ClassificacaoContabil.DESPESA_FIXA}>Despesa Fixa</option>
-                            <option value={ClassificacaoContabil.DESPESA_VARIAVEL}>Despesa Variável</option>
-                        </select>
-                    </div>
-
-                    {/* Período */}
-                    <div className="md:col-span-5">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Data Início</label>
-                                <DatePicker
-                                    value={dataInicio}
-                                    onChange={setDataInicio}
-                                    showIcon={true}
-                                    placeholder="DD/MM/AAAA"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">Data Fim</label>
-                                <DatePicker
-                                    value={dataFim}
-                                    onChange={setDataFim}
-                                    showIcon={true}
-                                    placeholder="DD/MM/AAAA"
-                                />
-                            </div>
+                            <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
+                                <SelectTrigger className="w-[180px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
+                                    <SelectValue placeholder="STATUS" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="TODAS">TODOS OS STATUS</SelectItem>
+                                    <SelectItem value={StatusTransacao.PAID}>PAGA / RECEBIDA</SelectItem>
+                                    <SelectItem value={StatusTransacao.PENDING}>PENDENTE</SelectItem>
+                                    <SelectItem value={StatusTransacao.OVERDUE}>VENCIDA</SelectItem>
+                                    <SelectItem value={StatusTransacao.PARTIALLY_PAID}>PARCIAL</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
+
+                    <div className="flex flex-wrap gap-4 items-center pt-2 border-t border-border/40">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Período:</span>
+                            <Input
+                                type="date"
+                                value={dataInicio}
+                                onChange={e => setDataInicio(e.target.value)}
+                                className="w-40 h-10 bg-muted/20 border-input rounded-lg text-xs font-bold"
+                            />
+                            <span className="text-muted-foreground">→</span>
+                            <Input
+                                type="date"
+                                value={dataFim}
+                                onChange={e => setDataFim(e.target.value)}
+                                className="w-40 h-10 bg-muted/20 border-input rounded-lg text-xs font-bold"
+                            />
+                        </div>
+
+                        <div className="h-6 w-px bg-border/40 mx-2" />
+
+                        <Select value={filtroCentroCusto} onValueChange={(v: any) => setFiltroCentroCusto(v)}>
+                            <SelectTrigger className="w-[180px] h-10 bg-card/30 border-input rounded-lg font-bold text-[10px] uppercase tracking-widest">
+                                <SelectValue placeholder="CENTRO CUSTO" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="TODOS">TODOS C. CUSTO</SelectItem>
+                                <SelectItem value={CentroCusto.ESTOQUE}>ESTOQUE</SelectItem>
+                                <SelectItem value={CentroCusto.VENDAS}>VENDAS</SelectItem>
+                                <SelectItem value={CentroCusto.ADMINISTRATIVO}>ADMINISTRATIVO</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={filtroClassificacao} onValueChange={(v: any) => setFiltroClassificacao(v)}>
+                            <SelectTrigger className="w-[180px] h-10 bg-card/30 border-input rounded-lg font-bold text-[10px] uppercase tracking-widest">
+                                <SelectValue placeholder="CLASSIFICAÇÃO" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="TODAS">TODAS CLASSIF.</SelectItem>
+                                <SelectItem value={ClassificacaoContabil.CUSTO_FIXO}>CUSTO FIXO</SelectItem>
+                                <SelectItem value={ClassificacaoContabil.CUSTO_VARIAVEL}>CUSTO VARIÁVEL</SelectItem>
+                                <SelectItem value={ClassificacaoContabil.DESPESA_FIXA}>DESPESA FIXA</SelectItem>
+                                <SelectItem value={ClassificacaoContabil.DESPESA_VARIAVEL}>DESPESA VARIÁVEL</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
-            </div>
+            </ListFilterSection>
 
             {/* Lista de Transações */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -407,11 +385,11 @@ export const Transacoes: React.FC = () => {
                                     </div>
                                     <div className="text-right ml-4 flex items-center gap-3">
                                         <div>
-                                            <p className={`text-xl font-bold ${transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA'
-                                                ? 'text-green-600 dark:text-green-400'
-                                                : 'text-red-600 dark:text-red-400'
+                                            <p className={`text-xl font-black ${transacao.tipo === TipoTransacao.INCOME
+                                                ? 'text-emerald-600 dark:text-emerald-400'
+                                                : 'text-rose-600 dark:text-rose-400'
                                                 }`}>
-                                                {transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
+                                                {transacao.tipo === TipoTransacao.INCOME ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
                                             </p>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">
                                                 {transacao.moeda}

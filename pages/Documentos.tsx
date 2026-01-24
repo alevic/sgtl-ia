@@ -10,6 +10,8 @@ import { EmpresaContexto } from '../types';
 import { ResponsiveActions, ActionItem } from '../components/Common/ResponsiveActions';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
 
 interface IDocumento {
     id: string;
@@ -70,87 +72,70 @@ export const Documentos: React.FC = () => {
 
     return (
         <div key="documentos-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel Administrativo</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            GESTÃO DE <span className="text-primary italic">DOCUMENTOS</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Central de custódia e controle de validades de arquivos digitais
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
+            {/* Header Module */}
+            <PageHeader
+                title="Gestão de Documentos"
+                subtitle="Central de custódia e controle de validades de arquivos digitais"
+                icon={FileText}
+                backLink="/admin"
+                backLabel="Painel Administrativo"
+                rightElement={
                     <Button
                         onClick={() => { }}
-                        className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <Upload className="w-4 h-4 mr-2" />
                         Novo Documento
                     </Button>
-                </div>
-            </div>
+                }
+            />
 
             {/* Tabs & Filters */}
-            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2rem] overflow-hidden">
-                <div className="p-4 flex flex-col md:flex-row justify-between gap-6">
-                    <div className="flex border-b border-border/50 md:border-none">
-                        <button
-                            onClick={() => setActiveTab('veiculo')}
-                            className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'veiculo'
-                                ? 'border-primary text-primary bg-primary/5'
-                                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                                }`}
-                        >
-                            <Truck size={14} />
-                            Veículos
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('motorista')}
-                            className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'motorista'
-                                ? 'border-primary text-primary bg-primary/5'
-                                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                                }`}
-                        >
-                            <Users size={14} />
-                            Motoristas
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('administrativo')}
-                            className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all border-b-2 ${activeTab === 'administrativo'
-                                ? 'border-primary text-primary bg-primary/5'
-                                : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                                }`}
-                        >
-                            <Building size={14} />
-                            Empresa
-                        </button>
-                    </div>
-
-                    <div className="flex items-center gap-4 px-4 pb-4 md:pb-0">
-                        <div className="relative w-full md:w-80 group">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                            <input
-                                type="text"
-                                placeholder="Filtrar por nome ou entidade..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-xs"
-                            />
-                        </div>
-                    </div>
+            <ListFilterSection>
+                <div className="flex bg-muted/40 p-1.5 rounded-xl border border-border/50 h-14 w-full md:w-fit gap-2">
+                    <button
+                        onClick={() => setActiveTab('veiculo')}
+                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${activeTab === 'veiculo'
+                            ? 'bg-background text-primary shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            }`}
+                    >
+                        <Truck size={14} />
+                        Veículos
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('motorista')}
+                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${activeTab === 'motorista'
+                            ? 'bg-background text-primary shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            }`}
+                    >
+                        <Users size={14} />
+                        Motoristas
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('administrativo')}
+                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${activeTab === 'administrativo'
+                            ? 'bg-background text-primary shadow-sm'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            }`}
+                    >
+                        <Building size={14} />
+                        Empresa
+                    </button>
                 </div>
-            </Card>
+
+                <div className="relative w-full md:w-80 group">
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <input
+                        type="text"
+                        placeholder="Filtrar documentos..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border-input rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-xs"
+                    />
+                </div>
+            </ListFilterSection>
 
             {/* Document List */}
             <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">

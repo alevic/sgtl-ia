@@ -8,22 +8,14 @@ import {
     FileText, MessageSquare, History, Star, Edit, Plus, Check, X,
     TrendingUp, Award, CreditCard, ShieldCheck, Clock
 } from 'lucide-react';
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "../components/ui/card";
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from "../components/ui/tabs";
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { cn } from '../lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
-import { cn } from "../lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { clientsService } from '../services/clientsService';
 import { reservationsService } from '../services/reservationsService';
 
@@ -264,109 +256,73 @@ export const ClienteDetalhes: React.FC = () => {
     return (
         <div className="space-y-10 animate-in fade-in duration-700 pb-10 px-8">
             {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <Link
-                        to="/admin/clientes"
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Gestão de Clientes</span>
-                    </Link>
-                    <div className="flex items-center gap-5">
-                        <Avatar className="h-20 w-20 rounded-[2rem] border-4 border-background shadow-2xl">
-                            <AvatarImage src="" />
-                            <AvatarFallback className="bg-primary/10 text-primary text-2xl font-black">
-                                {cliente.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">
-                                    {cliente.nome}
-                                </h1>
-                                {cliente.segmento === 'VIP' && (
-                                    <Badge className="bg-amber-500/10 text-amber-600 border-none rounded-full px-3 py-1 font-bold flex items-center gap-1.5 uppercase text-[10px] tracking-widest">
-                                        <Award size={12} fill="currentColor" />
-                                        Cliente VIP
-                                    </Badge>
-                                )}
-                            </div>
-                            <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">
-                                ID #{cliente.id} • Membro desde {new Date(cliente.data_cadastro).getFullYear()}
-                            </p>
-                        </div>
+            {/* Header Module */}
+            <PageHeader
+                title={cliente.nome}
+                subtitle={`Membro desde ${new Date(cliente.data_cadastro).getFullYear()} • ID #${cliente.id}`}
+                suffix="PERFIL"
+                icon={User}
+                backLink="/admin/clientes"
+                backLabel="Gestão de Clientes"
+                rightElement={
+                    <div className="flex items-center gap-3">
+                        {cliente.segmento === 'VIP' && (
+                            <Badge className="bg-amber-500/10 text-amber-600 border-none rounded-full px-4 py-2 font-bold flex items-center gap-2 uppercase text-[10px] tracking-widest mr-4">
+                                <Award size={14} fill="currentColor" />
+                                Cliente VIP
+                            </Badge>
+                        )}
+                        <Button
+                            variant="outline"
+                            onClick={handleEditClick}
+                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
+                        >
+                            <Edit size={16} className="mr-2" />
+                            Editar Castro
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setActiveTab('interacoes')}
+                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
+                        >
+                            <MessageSquare size={16} className="mr-2" />
+                            Registrar Contato
+                        </Button>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="outline"
-                        onClick={handleEditClick}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
-                    >
-                        <Edit size={16} className="mr-2" />
-                        Editar Cadastro
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        onClick={() => setActiveTab('interacoes')}
-                        className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
-                    >
-                        <MessageSquare size={16} className="mr-2" />
-                        Registrar Contato
-                    </Button>
-                </div>
-            </div>
+                }
+            />
 
             {/* Stats Hero - Premium Cards */}
+            {/* Dashboard Analytics Section */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-primary/5 p-6 rounded-3xl border border-primary/20 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                        <TrendingUp size={64} />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 mb-3">Volume de Viagens</p>
-                    <div className="flex items-baseline gap-2">
-                        <p className="text-4xl font-black tracking-tighter text-foreground">{cliente.historico_viagens || 0}</p>
-                        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded uppercase tracking-tighter">+12%</span>
-                    </div>
-                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Viagens realizadas</p>
-                </div>
-
-                <div className="bg-indigo-500/5 p-6 rounded-3xl border border-indigo-500/20 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                        <CreditCard size={64} />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500/60 mb-3">Saldo Disponível</p>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-lg font-black text-indigo-500">R$</span>
-                        <p className="text-4xl font-black tracking-tighter text-foreground">{(cliente.saldo_creditos || 0).toLocaleString('pt-BR')}</p>
-                    </div>
-                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Créditos em conta</p>
-                </div>
-
-                <div className="bg-emerald-500/5 p-6 rounded-3xl border border-emerald-500/20 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                        <DollarSign size={64} />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600/60 mb-3">Investimento Total</p>
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-lg font-black text-emerald-600">R$</span>
-                        <p className="text-4xl font-black tracking-tighter text-foreground">{(cliente.valor_total_gasto || 0).toLocaleString('pt-BR')}</p>
-                    </div>
-                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Total faturado</p>
-                </div>
-
-                <div className="bg-slate-500/5 p-6 rounded-3xl border border-slate-500/10 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                        <Clock size={64} />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-3">Atividade Recente</p>
-                    <p className="text-xl font-black tracking-tight text-foreground uppercase mt-2">
-                        {cliente.ultima_viagem ? new Date(cliente.ultima_viagem).toLocaleDateString('pt-BR') : 'Sem registro'}
-                    </p>
-                    <p className="text-[11px] font-medium text-muted-foreground mt-1">Última movimentação</p>
-                </div>
+                <DashboardCard
+                    title="Volume de Viagens"
+                    value={cliente.historico_viagens || 0}
+                    icon={TrendingUp}
+                    variant="indigo"
+                    footer="Viagens realizadas"
+                />
+                <DashboardCard
+                    title="Saldo Disponível"
+                    value={(cliente.saldo_creditos || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    icon={CreditCard}
+                    variant="indigo"
+                    footer="Créditos em conta"
+                />
+                <DashboardCard
+                    title="Investimento Total"
+                    value={(cliente.valor_total_gasto || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    icon={DollarSign}
+                    variant="indigo"
+                    footer="Total faturado"
+                />
+                <DashboardCard
+                    title="Atividade Recente"
+                    value={cliente.ultima_viagem ? new Date(cliente.ultima_viagem).toLocaleDateString('pt-BR') : 'Sem registro'}
+                    icon={Clock}
+                    variant="indigo"
+                    footer="Última movimentação"
+                />
             </div>
 
             {/* Main Tabs UI */}
@@ -395,26 +351,26 @@ export const ClienteDetalhes: React.FC = () => {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in duration-700">
                                 <div className="space-y-10 focus-visible:outline-none">
                                     <div className="space-y-6">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <User size={16} className="text-primary" /> Informações do Titular
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço de E-mail</p>
+                                                <p className="text-label-caps">Endereço de E-mail</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.email || '-'}</p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telefone de Contato</p>
+                                                <p className="text-label-caps">Telefone de Contato</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.telefone || '-'}</p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data de Nascimento</p>
+                                                <p className="text-label-caps">Data de Nascimento</p>
                                                 <p className="text-base font-bold text-foreground">
                                                     {cliente.data_nascimento ? new Date(cliente.data_nascimento).toLocaleDateString('pt-BR') : '-'}
                                                 </p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nivel de Fidelidade</p>
+                                                <p className="text-label-caps">Nivel de Fidelidade</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <Badge className="bg-purple-500/10 text-purple-600 border-none font-black uppercase text-[10px] tracking-widest px-3">
                                                         {cliente.segmento || 'REGULAR'}
@@ -425,20 +381,20 @@ export const ClienteDetalhes: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-6">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <ShieldCheck size={16} className="text-primary" /> Documentação Legal
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Tipo de Identidade</p>
+                                                <p className="text-label-caps">Tipo de Identidade</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.documento_tipo || '-'}</p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Número do Registro</p>
+                                                <p className="text-label-caps">Número do Registro</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.documento || '-'}</p>
                                             </div>
                                             <div className="sm:col-span-2 space-y-1 pt-2 border-t border-border/30">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nacionalidade Declarada</p>
+                                                <p className="text-label-caps">Nacionalidade Declarada</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.nacionalidade || '-'}</p>
                                             </div>
                                         </div>
@@ -447,25 +403,25 @@ export const ClienteDetalhes: React.FC = () => {
 
                                 <div className="space-y-10">
                                     <div className="space-y-6">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <MapPin size={16} className="text-primary" /> Localização Residencial
                                         </h3>
                                         <div className="space-y-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Logradouro / Complemento</p>
+                                                <p className="text-label-caps">Logradouro / Complemento</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.endereco || '-'}</p>
                                             </div>
                                             <div className="grid grid-cols-3 gap-6">
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cidade</p>
+                                                    <p className="text-label-caps">Cidade</p>
                                                     <p className="text-sm font-bold text-foreground">{cliente.cidade || '-'}</p>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Estado</p>
+                                                    <p className="text-label-caps">Estado</p>
                                                     <p className="text-sm font-bold text-foreground">{cliente.estado || '-'}</p>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">País</p>
+                                                    <p className="text-label-caps">País</p>
                                                     <p className="text-sm font-bold text-foreground">{cliente.pais || '-'}</p>
                                                 </div>
                                             </div>
@@ -473,7 +429,7 @@ export const ClienteDetalhes: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <MessageSquare size={16} className="text-primary" /> Notas Internas
                                         </h3>
                                         <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
@@ -483,7 +439,7 @@ export const ClienteDetalhes: React.FC = () => {
 
                                     {cliente.tags && cliente.tags.length > 0 && (
                                         <div className="space-y-4">
-                                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">Classificação do Perfil</h3>
+                                            <h3 className="text-section-header">Classificação do Perfil</h3>
                                             <div className="flex flex-wrap gap-2">
                                                 {cliente.tags.map((tag, index) => (
                                                     <Badge key={index} className="px-4 py-1.5 bg-primary/10 text-primary border-none rounded-full text-[10px] font-black uppercase tracking-widest">
@@ -501,8 +457,8 @@ export const ClienteDetalhes: React.FC = () => {
                             <div className="space-y-8 animate-in fade-in duration-700">
                                 <div className="flex justify-between items-center">
                                     <div>
-                                        <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Registro de Viagens</h3>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Histórico completo de reservas confirmadas</p>
+                                        <h3 className="text-section-header">Registro de Viagens</h3>
+                                        <p className="text-section-description mt-0.5">Histórico completo de reservas confirmadas</p>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 gap-4">
@@ -542,7 +498,7 @@ export const ClienteDetalhes: React.FC = () => {
                                                         </div>
                                                     </div>
                                                     <div className="text-right w-full md:w-auto mt-2 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-border/30">
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Valor do Ticket</p>
+                                                        <p className="text-label-caps mb-1">Valor do Ticket</p>
                                                         <p className="text-2xl font-black text-foreground tracking-tighter">
                                                             {reserva.moeda} {(reserva.valor_total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </p>
@@ -559,8 +515,8 @@ export const ClienteDetalhes: React.FC = () => {
                             <div className="space-y-8 animate-in fade-in duration-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                     <div>
-                                        <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Linha do Tempo</h3>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Rastreamento de pontos de contato e suporte</p>
+                                        <h3 className="text-section-header">Linha do Tempo</h3>
+                                        <p className="text-section-description mt-0.5">Rastreamento de pontos de contato e suporte</p>
                                     </div>
                                     <Button
                                         onClick={() => setShowInteractionModal(true)}
@@ -653,8 +609,8 @@ export const ClienteDetalhes: React.FC = () => {
                             <div className="space-y-8 animate-in fade-in duration-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                     <div>
-                                        <h3 className="text-xl font-black tracking-tight text-foreground uppercase">Base de Conhecimento</h3>
-                                        <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Observações estratégicas e diretrizes de atendimento</p>
+                                        <h3 className="text-section-header">Base de Conhecimento</h3>
+                                        <p className="text-section-description mt-0.5">Observações estratégicas e diretrizes de atendimento</p>
                                     </div>
                                     <Button
                                         onClick={() => setShowNoteModal(true)}

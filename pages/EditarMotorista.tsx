@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase, Loader, CheckCircle2, Mail, CheckCircle } from 'lucide-react';
 import { DatePicker } from '../components/Form/DatePicker';
-import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { authClient } from '../lib/auth-client';
+import { useApp } from '../context/AppContext';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { DriverStatus } from '../types';
 
 export const EditarMotorista: React.FC = () => {
@@ -213,44 +217,34 @@ export const EditarMotorista: React.FC = () => {
 
     return (
         <div key="editar-motorista-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate(`/admin/motoristas/${id}`)}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel do Motorista</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            EDITAR <span className="text-primary italic">MOTORISTA</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Atualize as qualificações e dados operacionais do colaborador
-                        </p>
+            {/* Header Module */}
+            <PageHeader
+                title="Editar Registro"
+                subtitle={`Atualizando credenciais de: ${nome || '...'}`}
+                suffix="MOTORISTA"
+                icon={User}
+                backLink={`/admin/motoristas/${id}`}
+                backLabel="Painel do Motorista"
+                rightElement={
+                    <div className="flex items-center gap-3">
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate(`/admin/motoristas/${id}`)}
+                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        >
+                            Descartar
+                        </Button>
+                        <Button
+                            onClick={handleSalvar}
+                            disabled={isLoading}
+                            className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                            {isLoading ? 'Sincronizando...' : 'Salvar Alterações'}
+                        </Button>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate(`/admin/motoristas/${id}`)}
-                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        onClick={handleSalvar}
-                        disabled={isLoading}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                        {isLoading ? 'Sincronizando...' : 'Atualizar Registro'}
-                    </Button>
-                </div>
-            </div>
+                }
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
@@ -276,14 +270,11 @@ export const EditarMotorista: React.FC = () => {
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Dados Pessoais */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <User size={14} className="text-primary" />
-                                Identificação e Perfil
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Identificação e Perfil"
+                        icon={User}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nome Completo *</label>
                                 <input
@@ -324,17 +315,14 @@ export const EditarMotorista: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Endereço */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <MapPin size={14} className="text-primary" />
-                                Residência e Localização
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Residência e Localização"
+                        icon={MapPin}
+                    >
+                        <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="space-y-1.5 md:col-span-1">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">CEP</label>
@@ -378,7 +366,7 @@ export const EditarMotorista: React.FC = () => {
                                         value={estado}
                                         onChange={(e) => setEstado(e.target.value.toUpperCase())}
                                         maxLength={2}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none font-sans"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -392,17 +380,14 @@ export const EditarMotorista: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Escalas e Gestão */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Briefcase size={14} className="text-primary" />
-                                Gestão e Disponibilidade
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Gestão e Disponibilidade"
+                        icon={Briefcase}
+                    >
+                        <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Admissão</label>
@@ -472,20 +457,17 @@ export const EditarMotorista: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
                 </div>
 
                 {/* Coluna Lateral */}
                 <div className="space-y-8">
                     {/* Habilitação */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Habilitação (CNH)
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Habilitação (CNH)"
+                        icon={FileText}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nº Registro CNH *</label>
                                 <input
@@ -529,17 +511,14 @@ export const EditarMotorista: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Internacional */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Globe size={14} className="text-primary" />
-                                Passaporte (Opcional)
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Passaporte (Opcional)"
+                        icon={Globe}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nº Passaporte</label>
                                 <input
@@ -558,17 +537,14 @@ export const EditarMotorista: React.FC = () => {
                                 />
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Observações */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Observações Internas
-                            </h3>
-                        </div>
-                        <div className="p-8">
+                    <FormSection
+                        title="Observações Internas"
+                        icon={FileText}
+                    >
+                        <div className="p-2">
                             <textarea
                                 value={observacoes}
                                 onChange={(e) => setObservacoes(e.target.value)}
@@ -576,7 +552,7 @@ export const EditarMotorista: React.FC = () => {
                                 className="w-full p-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
                             />
                         </div>
-                    </Card>
+                    </FormSection>
                 </div>
             </div>
         </div>

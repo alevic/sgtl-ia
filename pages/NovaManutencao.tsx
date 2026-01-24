@@ -11,6 +11,12 @@ import {
     CheckCircle
 } from 'lucide-react';
 import { DatePicker } from '../components/Form/DatePicker';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { AlertCircle, Loader } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { cn } from '../lib/utils';
 import {
     IManutencao,
     TipoManutencao,
@@ -367,7 +373,7 @@ export const NovaManutencao: React.FC = () => {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 relative">
+        <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Modal de Confirmação Financeira */}
             <ModalConfirmacao
                 isOpen={showFinancialModal}
@@ -381,34 +387,38 @@ export const NovaManutencao: React.FC = () => {
                 variant="success"
             />
 
-            <div className="flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/admin/manutencao')}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-                >
-                    <ArrowLeft size={24} className="text-slate-600 dark:text-slate-400" />
-                </button>
-                <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
-                        {isEditing ? 'Editar Manutenção' : 'Nova Manutenção'}
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400">Agendar ou registrar manutenção de veículo</p>
-                </div>
-            </div>
+            <PageHeader
+                title={isEditing ? 'Editar Manutenção' : 'Nova Manutenção'}
+                subtitle="Agendar ou registrar manutenção de veículo"
+                backLink="/admin/manutencao"
+                backText="Voltar para Manutenções"
+                rightElement={
+                    <Button
+                        onClick={(e) => handleSubmit(e as any)}
+                        disabled={loading}
+                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                        {loading ? (
+                            <Loader className="w-4 h-4 animate-spin mr-2" />
+                        ) : (
+                            <Save className="w-4 h-4 mr-2" />
+                        )}
+                        {loading ? 'Processando...' : isEditing ? 'Atualizar Manutenção' : 'Salvar Manutenção'}
+                    </Button>
+                }
+            />
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Dados do Veículo e Tipo */}
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <Wrench size={20} className="text-blue-500" />
-                            Dados Principais
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormSection
+                        title="Dados Principais"
+                        icon={Wrench}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 mb-2 block">
                                     Veículo
                                 </label>
                                 <SeletorVeiculo
@@ -418,14 +428,14 @@ export const NovaManutencao: React.FC = () => {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Tipo de Manutenção
                                 </label>
                                 <select
                                     name="tipo"
                                     required
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     onChange={handleInputChange}
                                     value={formData.tipo}
                                 >
@@ -437,14 +447,14 @@ export const NovaManutencao: React.FC = () => {
                                 </select>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Status
                                 </label>
                                 <select
                                     name="status"
                                     required
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     onChange={handleInputChange}
                                     value={formData.status}
                                 >
@@ -456,115 +466,111 @@ export const NovaManutencao: React.FC = () => {
                                 </select>
                             </div>
                         </div>
-                    </div>
+                    </FormSection>
 
                     {/* Detalhes e Custos */}
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <FileText size={20} className="text-blue-500" />
-                            Detalhes do Serviço
-                        </h2>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <FormSection
+                        title="Detalhes do Serviço"
+                        icon={FileText}
+                    >
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Descrição do Serviço
                                 </label>
                                 <textarea
                                     name="descricao"
                                     required
                                     rows={3}
-                                    className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                    className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
                                     placeholder="Descreva o serviço a ser realizado..."
                                     onChange={handleInputChange}
                                     value={formData.descricao || ''}
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                         Oficina / Fornecedor
                                     </label>
                                     <input
                                         type="text"
                                         name="oficina"
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                         onChange={handleInputChange}
                                         value={formData.oficina || ''}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                         Responsável
                                     </label>
                                     <input
                                         type="text"
                                         name="responsavel"
-                                        className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                         onChange={handleInputChange}
                                         value={formData.responsavel || ''}
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-border/50">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                         Custo Peças ({formData.moeda})
                                     </label>
-                                    <div className="relative">
-                                        <DollarSign size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                                    <div className="relative group">
+                                        <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                         <input
                                             type="number"
                                             name="custo_pecas"
                                             step="0.01"
-                                            className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                            className="w-full h-14 pl-10 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                             onChange={handleNumberChange}
                                             value={formData.custo_pecas}
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                         Custo Mão de Obra ({formData.moeda})
                                     </label>
-                                    <div className="relative">
-                                        <DollarSign size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                                    <div className="relative group">
+                                        <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                         <input
                                             type="number"
                                             name="custo_mao_de_obra"
                                             step="0.01"
-                                            className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                                            className="w-full h-14 pl-10 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                             onChange={handleNumberChange}
                                             value={formData.custo_mao_de_obra}
                                         />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                         Total Estimado
                                     </label>
-                                    <div className="px-4 py-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-800 dark:text-white font-bold">
+                                    <div className="h-14 flex items-center px-4 bg-muted/60 dark:bg-muted/20 border border-border/50 rounded-xl text-foreground font-black tracking-tight text-lg">
                                         {formData.moeda} {((Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </FormSection>
                 </div>
 
                 {/* Coluna Lateral */}
                 <div className="space-y-6">
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
-                        <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                            <Calendar size={20} className="text-blue-500" />
-                            Datas
-                        </h2>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    <FormSection
+                        title="Agendamento"
+                        icon={Calendar}
+                    >
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Data Agendada
                                 </label>
                                 <DatePicker
@@ -573,8 +579,8 @@ export const NovaManutencao: React.FC = () => {
                                     required={true}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Data Início (Real)
                                 </label>
                                 <DatePicker
@@ -582,8 +588,8 @@ export const NovaManutencao: React.FC = () => {
                                     onChange={(val) => setFormData(prev => ({ ...prev, data_inicio: val }))}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Data Conclusão
                                 </label>
                                 <DatePicker
@@ -592,32 +598,17 @@ export const NovaManutencao: React.FC = () => {
                                 />
                             </div>
                         </div>
-                    </div>
+                    </FormSection>
 
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-3xl p-6 border border-blue-100 dark:border-blue-800">
-                        <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2 flex items-center gap-2">
-                            <AlertTriangle size={18} />
-                            Atenção
+                    <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10">
+                        <h3 className="text-[12px] font-black uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
+                            <AlertTriangle size={14} />
+                            Diretriz Operacional
                         </h3>
-                        <p className="text-sm text-blue-600 dark:text-blue-400">
+                        <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
                             Ao iniciar uma manutenção (Status: Em Andamento), o veículo ficará indisponível para novas viagens até a conclusão do serviço.
                         </p>
                     </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loading ? (
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                <Save size={20} />
-                                Salvar Manutenção
-                            </>
-                        )}
-                    </button>
                 </div>
             </form>
         </div >

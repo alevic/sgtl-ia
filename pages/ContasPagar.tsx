@@ -1,12 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, AlertCircle, Check, X, Download
+    ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, AlertCircle, Check, X, Download, CreditCard
 } from 'lucide-react';
 import { ITransacao, StatusTransacao, CategoriaDespesa, Moeda, CentroCusto, TipoTransacao } from '../types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
+import { cn } from '../lib/utils';
+import { Card, CardContent } from '../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
 
 export const ContasPagar: React.FC = () => {
     const navigate = useNavigate();
@@ -44,7 +52,7 @@ export const ContasPagar: React.FC = () => {
 
     const contasFiltradas = useMemo(() => {
         return transacoes
-            .filter(t => t.tipo === TipoTransacao.DESPESA)
+            .filter(t => t.tipo === TipoTransacao.EXPENSE)
             .filter(conta => {
                 const matchBusca = busca === '' ||
                     conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
@@ -59,13 +67,13 @@ export const ContasPagar: React.FC = () => {
     }, [transacoes, busca, filtroStatus, filtroCategoria, filtroCentroCusto]);
 
     const resumo = useMemo(() => {
-        const despesas = transacoes.filter(t => t.tipo === TipoTransacao.DESPESA);
+        const despesas = transacoes.filter(t => t.tipo === TipoTransacao.EXPENSE);
         const total = despesas.reduce((sum, c) => sum + Number(c.valor), 0);
         const pago = despesas
-            .filter(c => c.status === StatusTransacao.PAGA)
+            .filter(c => c.status === StatusTransacao.PAID)
             .reduce((sum, c) => sum + Number(c.valor), 0);
         const pendente = total - pago;
-        const vencidas = despesas.filter(c => c.status === StatusTransacao.VENCIDA).length;
+        const vencidas = despesas.filter(c => c.status === StatusTransacao.OVERDUE).length;
 
         return { total, pago, pendente, vencidas };
     }, [transacoes]);
@@ -80,11 +88,11 @@ export const ContasPagar: React.FC = () => {
 
     const getStatusBadge = (status: StatusTransacao) => {
         const styles = {
-            [StatusTransacao.PAGA]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-            [StatusTransacao.PENDENTE]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-            [StatusTransacao.VENCIDA]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-            [StatusTransacao.CANCELADA]: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
-            [StatusTransacao.PARCIALMENTE_PAGA]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+            [StatusTransacao.PAID]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+            [StatusTransacao.PENDING]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+            [StatusTransacao.OVERDUE]: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+            [StatusTransacao.CANCELLED]: 'bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400',
+            [StatusTransacao.PARTIALLY_PAID]: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
         };
 
         return (
@@ -103,121 +111,94 @@ export const ContasPagar: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate('/admin/financeiro')}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+            {/* Header Module */}
+            <PageHeader
+                title="Contas a Pagar"
+                subtitle="Gestão estratégica de passivos, fornecedores e fluxo de saída"
+                icon={CreditCard}
+                backLink="/admin/financeiro"
+                backLabel="Painel Financeiro"
+                rightElement={
+                    <Button
+                        onClick={() => navigate('/admin/financeiro/transacoes/nova', { state: { tipo: TipoTransacao.EXPENSE } })}
+                        className="h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
-                        <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Contas a Pagar</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Gerenciamento de despesas e fornecedores</p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => navigate('/admin/financeiro/transacoes/nova', { state: { tipo: TipoTransacao.DESPESA } })}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                >
-                    <Plus size={18} />
-                    Nova Despesa
-                </button>
+                        <Plus size={20} className="mr-2" strokeWidth={3} />
+                        Nova Despesa
+                    </Button>
+                }
+            />
+
+            {/* Dashboard KPIs Container */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <DashboardCard
+                    title="Total a Pagar"
+                    value={formatCurrency(resumo.total)}
+                    icon={DollarSign}
+                    variant="amber"
+                />
+                <DashboardCard
+                    title="Liquidado"
+                    value={formatCurrency(resumo.pago)}
+                    icon={Check}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Pendente"
+                    value={formatCurrency(resumo.pendente)}
+                    icon={Calendar}
+                    variant="indigo"
+                />
+                <DashboardCard
+                    title="Vencidas"
+                    value={resumo.vencidas.toString()}
+                    icon={AlertCircle}
+                    variant="rose"
+                    trend={resumo.vencidas > 0 ? "Ação imediata necessária" : "Tudo em dia"}
+                />
             </div>
 
-            {/* Cards de Resumo */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Total a Pagar</span>
-                        <DollarSign size={18} className="text-red-600 dark:text-red-400" />
-                    </div>
-                    <p className="text-xl font-bold text-slate-800 dark:text-white">
-                        {formatCurrency(resumo.total)}
-                    </p>
+            {/* Filters Module */}
+            <ListFilterSection>
+                <div className="relative flex-1 group">
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input
+                        placeholder="Buscar por fornecedor, descrição ou documento..."
+                        value={busca}
+                        onChange={e => setBusca(e.target.value)}
+                        className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                    />
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Já Pago</span>
-                        <Check size={18} className="text-green-600 dark:text-green-400" />
-                    </div>
-                    <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                        {formatCurrency(resumo.pago)}
-                    </p>
+                <div className="flex flex-wrap gap-4 items-center">
+                    <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
+                        <SelectTrigger className="w-[180px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
+                            <SelectValue placeholder="STATUS" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODAS">TODOS OS STATUS</SelectItem>
+                            <SelectItem value={StatusTransacao.PENDING}>PENDENTE</SelectItem>
+                            <SelectItem value={StatusTransacao.PAID}>PAGA</SelectItem>
+                            <SelectItem value={StatusTransacao.OVERDUE}>VENCIDA</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={filtroCategoria} onValueChange={(v: any) => setFiltroCategoria(v)}>
+                        <SelectTrigger className="w-[200px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
+                            <SelectValue placeholder="CATEGORIA" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODAS">TODAS CATEGORIAS</SelectItem>
+                            <SelectItem value={CategoriaDespesa.COMBUSTIVEL}>COMBUSTÍVEL</SelectItem>
+                            <SelectItem value={CategoriaDespesa.MANUTENCAO}>MANUTENÇÃO</SelectItem>
+                            <SelectItem value={CategoriaDespesa.PECAS}>PEÇAS</SelectItem>
+                            <SelectItem value={CategoriaDespesa.SALARIOS}>SALÁRIOS</SelectItem>
+                            <SelectItem value={CategoriaDespesa.SEGURO}>SEGURO</SelectItem>
+                            <SelectItem value={CategoriaDespesa.OUTROS}>OUTROS</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Pendente</span>
-                        <Calendar size={18} className="text-yellow-600 dark:text-yellow-400" />
-                    </div>
-                    <p className="text-xl font-bold text-yellow-600 dark:text-yellow-400">
-                        {formatCurrency(resumo.pendente)}
-                    </p>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Vencidas</span>
-                        <AlertCircle size={18} className="text-red-600 dark:text-red-400" />
-                    </div>
-                    <p className="text-xl font-bold text-red-600 dark:text-red-400">
-                        {resumo.vencidas}
-                    </p>
-                </div>
-            </div>
-
-            {/* Filtros e Busca */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {/* Busca */}
-                    <div className="md:col-span-2">
-                        <div className="relative">
-                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Buscar por fornecedor, descrição ou documento..."
-                                value={busca}
-                                onChange={e => setBusca(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Filtro Status */}
-                    <div>
-                        <select
-                            value={filtroStatus}
-                            onChange={e => setFiltroStatus(e.target.value as StatusTransacao | 'TODAS')}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODAS">Todos os Status</option>
-                            <option value={StatusTransacao.PENDENTE}>Pendente</option>
-                            <option value={StatusTransacao.PAGA}>Paga</option>
-                            <option value={StatusTransacao.VENCIDA}>Vencida</option>
-                        </select>
-                    </div>
-
-                    {/* Filtro Categoria */}
-                    <div>
-                        <select
-                            value={filtroCategoria}
-                            onChange={e => setFiltroCategoria(e.target.value as CategoriaDespesa | 'TODAS')}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="TODAS">Todas Categorias</option>
-                            <option value={CategoriaDespesa.COMBUSTIVEL}>Combustível</option>
-                            <option value={CategoriaDespesa.MANUTENCAO}>Manutenção</option>
-                            <option value={CategoriaDespesa.PECAS}>Peças</option>
-                            <option value={CategoriaDespesa.SALARIOS}>Salários</option>
-                            <option value={CategoriaDespesa.SEGURO}>Seguro</option>
-                            <option value={CategoriaDespesa.OUTROS}>Outros</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
+            </ListFilterSection>
 
             {/* Lista de Contas */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
@@ -252,9 +233,9 @@ export const ContasPagar: React.FC = () => {
                                                 {conta.descricao}
                                             </h3>
                                             {getStatusBadge(conta.status)}
-                                            {isVencendo(conta.data_vencimento) && conta.status === StatusTransacao.PENDENTE && (
-                                                <span className="px-2 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 rounded text-xs font-semibold">
-                                                    VENCE EM BREVE
+                                            {isVencendo(conta.data_vencimento) && conta.status === StatusTransacao.PENDING && (
+                                                <span className="px-2 py-0.5 bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded text-[10px] font-black uppercase tracking-widest">
+                                                    CRÍTICO: VENCE HOJE
                                                 </span>
                                             )}
                                         </div>

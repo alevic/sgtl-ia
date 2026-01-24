@@ -12,6 +12,9 @@ import { authClient } from '../lib/auth-client';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { cn } from '../lib/utils';
+import { Input } from '../components/ui/input';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -54,45 +57,59 @@ const SettingField: React.FC<ISettingFieldProps> = ({
     };
 
     return (
-        <div className="space-y-1">
+        <div className="space-y-2">
             <div className="flex justify-between items-baseline">
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">{label}</label>
-                <code className="text-[12px] text-slate-400 bg-slate-50 dark:bg-slate-900 px-1 rounded">{k}</code>
+                <label className="text-label-caps ml-1">{label}</label>
+                <code className="text-section-description bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">
+                    {k}
+                </code>
             </div>
-            {description && <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{description}</p>}
+            {description && <p className="text-[11px] font-medium text-muted-foreground/80 leading-relaxed mb-2 px-1">{description}</p>}
 
             {type === 'textarea' ? (
                 <textarea
                     value={value}
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none"
+                    className="w-full p-4 bg-muted/40 border border-border/50 rounded-xl font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none h-28"
                 />
             ) : type === 'select' ? (
-                <select
-                    value={value}
-                    onChange={(e) => handleChange(e.target.value)}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
+                <div className="relative group">
+                    <select
+                        value={value}
+                        onChange={(e) => handleChange(e.target.value)}
+                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer text-sm"
+                    >
+                        {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                    </select>
+                    <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-muted-foreground pointer-events-none group-hover:text-primary transition-colors" />
+                </div>
             ) : type === 'checkbox' ? (
-                <label className="relative inline-flex items-center cursor-pointer mt-1">
-                    <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={value === 'true'}
-                        onChange={(e) => handleChange(e.target.checked ? 'true' : 'false')}
-                    />
-                    <div className={`w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-${themeColor}-300 dark:peer-focus:ring-${themeColor}-800 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-${themeColor}-600`}></div>
-                </label>
+                <div className="flex items-center gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            className="sr-only peer"
+                            checked={value === 'true'}
+                            onChange={(e) => handleChange(e.target.checked ? 'true' : 'false')}
+                        />
+                        <div className={cn(
+                            "w-11 h-6 bg-muted-foreground/20 rounded-full peer transition-all",
+                            "after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all",
+                            "peer-checked:after:translate-x-full peer-checked:bg-emerald-500 shadow-inner"
+                        )} />
+                    </label>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground">
+                        {value === 'true' ? 'ATIVADO' : 'DESATIVADO'}
+                    </span>
+                </div>
             ) : (
-                <input
+                <Input
                     type={type}
                     value={value}
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                    className="h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                 />
             )}
         </div>
@@ -410,53 +427,41 @@ export const Configuracoes: React.FC = () => {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel Administrativo</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            CONFIGURAÇÕES DO <span className="text-primary italic">SISTEMA</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Ajustes globais, políticas de segurança e integração de infraestrutura técnica
-                        </p>
+            {/* Header Module */}
+            <PageHeader
+                title="Configurações do Sistema"
+                subtitle="Ajustes globais, políticas de segurança e integração de infraestrutura técnica"
+                icon={Settings2}
+                backLink="/admin"
+                backLabel="Painel Administrativo"
+                rightElement={
+                    <div className="flex items-center gap-3">
+                        <div className="relative group flex-1 md:w-64">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
+                            <Input
+                                placeholder="Localizar parâmetro..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="h-14 pl-12 bg-card/50 backdrop-blur-sm border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20 text-[12px] tracking-tight"
+                            />
+                        </div>
+                        <Button
+                            onClick={() => setIsModalOpen(true)}
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            <Plus size={16} className="mr-2" strokeWidth={3} />
+                            Novo Parâmetro
+                        </Button>
                     </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="relative group flex-1 md:w-64">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
-                        <input
-                            type="text"
-                            placeholder="Localizar parâmetro..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-14 pl-12 pr-4 bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-[12px] tracking-tight"
-                        />
-                    </div>
-                    <Button
-                        onClick={() => setIsModalOpen(true)}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        <Plus size={16} className="mr-2" />
-                        Novo Parâmetro
-                    </Button>
-                </div>
-            </div>
+                }
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 overflow-hidden">
                 {/* Sidebar Premium */}
                 <div className="lg:col-span-1 space-y-4 overflow-hidden flex flex-col">
                     <Card className="flex-1 shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden p-3 flex flex-col">
                         <div className="p-4 border-b border-border/50 mb-2">
-                            <span className="text-[12px] font-black text-muted-foreground uppercase tracking-[0.2em]">Arquitetura de Dados</span>
+                            <span className="text-section-header">Arquitetura de Dados</span>
                         </div>
                         <div className="flex-1 overflow-y-auto scroller-hidden space-y-1">
                             {groups.map(group => (
@@ -468,7 +473,7 @@ export const Configuracoes: React.FC = () => {
                                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                                         }`}
                                 >
-                                    <span className="text-[12px] font-black uppercase tracking-widest">{group}</span>
+                                    <span className="text-label-caps">{group}</span>
                                     {selectedGroup === group && !searchQuery && <ChevronRight size={14} />}
                                 </button>
                             ))}
@@ -476,7 +481,7 @@ export const Configuracoes: React.FC = () => {
                     </Card>
 
                     <Card className="p-8 bg-primary/5 border-dashed border-primary/20 rounded-3xl">
-                        <h4 className="text-[12px] font-black uppercase tracking-widest text-primary mb-2">Segurança de Rede</h4>
+                        <h4 className="text-section-header text-primary mb-2">Segurança de Rede</h4>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             <span className="text-[12px] font-bold text-muted-foreground">NODES OPERACIONAIS</span>
@@ -506,9 +511,9 @@ export const Configuracoes: React.FC = () => {
 
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
+                                <h2 className="text-section-header flex items-center gap-3">
                                     {searchQuery ? `Resultados: "${searchQuery}"` : selectedGroup}
-                                    <span className="text-[12px] font-bold text-muted-foreground normal-case opacity-60">
+                                    <span className="text-section-description normal-case opacity-60">
                                         {filteredParameters.length} parâmetros técnicos
                                     </span>
                                 </h2>
@@ -532,8 +537,8 @@ export const Configuracoes: React.FC = () => {
                                     <Card key={param.id} className="group/card shadow-xl shadow-muted/10 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl p-8 hover:border-primary/40 transition-all">
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="space-y-1">
-                                                <h4 className="font-black text-xs uppercase tracking-tight text-foreground">{meta?.label || param.key}</h4>
-                                                <code className="inline-block text-[9px] font-black bg-muted/50 px-2 py-0.5 rounded-lg text-primary tracking-widest uppercase">
+                                                <h4 className="text-section-header">{meta?.label || param.key}</h4>
+                                                <code className="inline-block text-section-description bg-muted/50 px-2 py-0.5 rounded-lg text-primary">
                                                     {param.key}
                                                 </code>
                                             </div>
@@ -545,7 +550,7 @@ export const Configuracoes: React.FC = () => {
                                             </button>
                                         </div>
 
-                                        <p className="text-[12px] font-medium text-muted-foreground leading-relaxed uppercase tracking-wide mb-6">
+                                        <p className="text-section-description mb-6">
                                             {meta?.description || param.description || 'CONFORME PROTOCOLO PADRÃO'}
                                         </p>
 

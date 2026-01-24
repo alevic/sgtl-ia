@@ -7,7 +7,9 @@ import { routesService } from '../services/routesService';
 import { ArrowLeft, Save, Route, Loader, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { CardContent } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
 
 export const NovaRota: React.FC = () => {
@@ -131,47 +133,35 @@ export const NovaRota: React.FC = () => {
     return (
         <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin/rotas')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel de Rotas</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            {isEdicao ? 'EDITAR' : 'NOVA'} <span className="text-primary italic">ROTA</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            {isEdicao ? 'Atualize as paradas e horários da rota selecionada' : 'A Rota é a espinha dorsal de suas viagens operacionais'}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate('/admin/rotas')}
-                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        onClick={handleSalvar}
-                        disabled={saving}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        {saving ? (
-                            <Loader className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                            <Save className="w-4 h-4 mr-2" />
-                        )}
-                        {saving ? 'Gravando...' : 'Salvar Rota'}
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title={isEdicao ? 'Editar Rota' : 'Nova Rota'}
+                subtitle={isEdicao ? 'Atualize as paradas e horários da rota selecionada' : 'A Rota é a espinha dorsal de suas viagens operacionais'}
+                backLink="/admin/rotas"
+                backText="Painel de Rotas"
+                rightElement={
+                    <>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate('/admin/rotas')}
+                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSalvar}
+                            disabled={saving}
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            {saving ? (
+                                <Loader className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                                <Save className="w-4 h-4 mr-2" />
+                            )}
+                            {saving ? 'Gravando...' : 'Salvar Rota'}
+                        </Button>
+                    </>
+                }
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
@@ -196,14 +186,11 @@ export const NovaRota: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Configurações Estruturais (1/4) */}
                 <div className="lg:col-span-1 space-y-8">
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Route size={14} className="text-primary" />
-                                Estrutura da Rota
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-8">
+                    <FormSection
+                        title="Estrutura da Rota"
+                        icon={Route}
+                    >
+                        <div className="space-y-8">
                             {/* Nome da Rota */}
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Codificação / Nome</label>
@@ -212,7 +199,7 @@ export const NovaRota: React.FC = () => {
                                     value={nomeRota}
                                     onChange={(e) => setNomeRota(e.target.value)}
                                     placeholder="Ex: SP-RJ EXPRESS"
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
                                 />
                             </div>
 
@@ -244,15 +231,15 @@ export const NovaRota: React.FC = () => {
                             {/* Distância */}
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Extensão (KM)</label>
-                                <div className="relative">
+                                <div className="relative group">
                                     <input
                                         type="number"
                                         value={distanciaTotal}
                                         onChange={(e) => setDistanciaTotal(e.target.value === '' ? '' : Number(e.target.value))}
                                         placeholder="0"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm"
+                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
                                     />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-black text-muted-foreground uppercase">quilômetros</span>
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-black text-muted-foreground uppercase group-focus-within:text-primary transition-colors">km</span>
                                 </div>
                             </div>
 
@@ -290,26 +277,23 @@ export const NovaRota: React.FC = () => {
                                     </span>
                                 </label>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </FormSection>
                 </div>
 
                 {/* Editor de Rota (3/4) */}
                 <div className="lg:col-span-3">
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Route size={14} className="text-primary" />
-                                Mapeamento de Pontos e Paradas
-                            </h3>
-                            <div className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[12px] font-black text-primary uppercase tracking-widest">
+                    <FormSection
+                        title="Mapeamento de Pontos e Paradas"
+                        icon={Route}
+                        rightElement={
+                            <div className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black text-primary uppercase tracking-widest">
                                 {rota.pontos.length} PONTOS CONFIGURADOS
                             </div>
-                        </div>
-                        <CardContent className="p-8">
-                            <EditorRota rota={rota} onChange={setRota} />
-                        </CardContent>
-                    </Card>
+                        }
+                    >
+                        <EditorRota rota={rota} onChange={setRota} />
+                    </FormSection>
                 </div>
             </div>
         </div>

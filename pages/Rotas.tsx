@@ -44,6 +44,9 @@ import {
 } from "../components/ui/dropdown-menu";
 import { Card, CardContent } from "../components/ui/card";
 import { Separator } from "../components/ui/separator";
+import { PageHeader } from "../components/Layout/PageHeader";
+import { DashboardCard } from "../components/Layout/DashboardCard";
+import { ListFilterSection } from "../components/Layout/ListFilterSection";
 import { cn } from "../lib/utils";
 
 export const Rotas: React.FC = () => {
@@ -142,131 +145,90 @@ export const Rotas: React.FC = () => {
     return (
         <div key="rotas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Executive Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-2xl">
-                            <MapPinned size={24} className="text-primary" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
-                            Gerenciamento de <span className="text-primary">Rotas</span>
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-0">
-                        Configuração de itinerários e pontos de parada
-                    </p>
-                </div>
-                <Button onClick={handleNovaRota} className="h-14 px-6 rounded-2xl font-semibold gap-2 shadow-lg shadow-primary/20">
-                    <Plus size={20} strokeWidth={2.5} />
-                    NOVA ROTA
-                </Button>
-            </div>
+            <PageHeader
+                title="Gerenciamento de Rotas"
+                subtitle="Configuração de itinerários e pontos de parada"
+                icon={MapPinned}
+                rightElement={
+                    <Button onClick={handleNovaRota} className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                        <Plus size={20} strokeWidth={2.5} />
+                        NOVA ROTA
+                    </Button>
+                }
+            />
 
 
             {/* Executive KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Total de Rotas</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-foreground">{rotas.length}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-primary/10 text-primary transition-transform group-hover:scale-110 duration-500">
-                                <RouteIcon size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Rotas Ativas</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-emerald-600">{rotas.filter(r => r.ativa).length}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-110 duration-500">
-                                <MapPin size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Rotas de Ida</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-blue-600">{rotas.filter(r => r.tipo_rota === RouteType.OUTBOUND).length}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 transition-transform group-hover:scale-110 duration-500">
-                                <MapPinned size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Rotas de Volta</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-orange-600">{rotas.filter(r => r.tipo_rota === RouteType.INBOUND).length}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-600 transition-transform group-hover:scale-110 duration-500">
-                                <Gauge size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <DashboardCard
+                    title="Total de Rotas"
+                    value={rotas.length}
+                    icon={RouteIcon}
+                    variant="primary"
+                />
+                <DashboardCard
+                    title="Rotas Ativas"
+                    value={rotas.filter(r => r.ativa).length}
+                    icon={MapPin}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Rotas de Ida"
+                    value={rotas.filter(r => r.tipo_rota === RouteType.OUTBOUND).length}
+                    icon={MapPinned}
+                    variant="blue"
+                />
+                <DashboardCard
+                    title="Rotas de Volta"
+                    value={rotas.filter(r => r.tipo_rota === RouteType.INBOUND).length}
+                    icon={Gauge}
+                    variant="amber"
+                />
             </div>
 
             {/* Executive Filters Module */}
-            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Busca */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Rota</label>
-                        <div className="relative group flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
-                            <Input
-                                placeholder="Nome ou ponto de parada..."
-                                className="pl-12 h-14 bg-muted/40 border-input rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
-                                value={busca}
-                                onChange={(e) => setBusca(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Tipo de Rota */}
-                    <div className="space-y-1.5">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Tipo de Rota</label>
-                        <Select value={filtroTipo} onValueChange={(v) => setFiltroTipo(v as any)}>
-                            <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-2xl font-bold">
-                                <SelectValue placeholder="Tipo de Rota" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
-                                <SelectItem value="TODOS">Todos os Tipos</SelectItem>
-                                <SelectItem value={RouteType.OUTBOUND}>Ida (Outbound)</SelectItem>
-                                <SelectItem value={RouteType.INBOUND}>Volta (Inbound)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Status Tabs */}
-                    <div className="space-y-1.5">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Visibilidade</label>
-                        <Tabs value={statusTab} onValueChange={(v: any) => setStatusTab(v)} className="w-full">
-                            <TabsList className="bg-muted/40 p-1.5 rounded-2xl h-14 flex w-full border border-border/50">
-                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl px-4 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODAS</TabsTrigger>
-                                <TabsTrigger value="ATIVA" className="flex-1 rounded-xl px-4 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVAS</TabsTrigger>
-                                <TabsTrigger value="INATIVA" className="flex-1 rounded-xl px-4 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">INATIVAS</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
+            <ListFilterSection className="lg:grid-cols-3">
+                {/* Busca */}
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Buscar Rota</label>
+                    <div className="relative group flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                        <Input
+                            placeholder="Nome ou ponto de parada..."
+                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                        />
                     </div>
                 </div>
-            </div>
+
+                {/* Tipo de Rota */}
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Tipo de Rota</label>
+                    <Select value={filtroTipo} onValueChange={(v) => setFiltroTipo(v as any)}>
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold">
+                            <SelectValue placeholder="Tipo de Rota" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                            <SelectItem value="TODOS">Todos os Tipos</SelectItem>
+                            <SelectItem value={RouteType.OUTBOUND}>Ida (Outbound)</SelectItem>
+                            <SelectItem value={RouteType.INBOUND}>Volta (Inbound)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Status Tabs */}
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Visibilidade</label>
+                    <Tabs value={statusTab} onValueChange={(v: any) => setStatusTab(v)} className="w-full">
+                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODAS</TabsTrigger>
+                            <TabsTrigger value="ATIVA" className="flex-1 rounded-xl px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVAS</TabsTrigger>
+                            <TabsTrigger value="INATIVA" className="flex-1 rounded-xl px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">INATIVAS</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+            </ListFilterSection>
 
             {/* Executive Table Module */}
             <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">

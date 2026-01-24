@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
+import { RefreshCw, CheckCircle, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { ImportadorExtrato } from '../components/Financeiro/ImportadorExtrato';
 import { ConciliacaoCard } from '../components/Financeiro/ConciliacaoCard';
 import { findMatches } from '../utils/conciliacaoMatcher';
 import { IExtratoBancario, ITransacaoBancaria, ITransacao, TipoTransacao, StatusTransacao, Moeda, CentroCusto } from '../types';
+import { authClient } from '../lib/auth-client';
+import { useApp } from '../context/AppContext';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { cn } from '../lib/utils';
+import { Card, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { CheckCircle2 } from 'lucide-react';
 
 // Mock data para simular transações do sistema (em produção viria da API/Store)
 const MOCK_SISTEMA_TRANSACOES: ITransacao[] = [
@@ -127,33 +133,26 @@ export const ConciliacaoBancaria: React.FC = () => {
                     <AlertDescription>{success}</AlertDescription>
                 </Alert>
             )}
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate('/admin/financeiro')}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Conciliação Bancária</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Importe seu extrato e concilie com o sistema</p>
-                    </div>
-                </div>
-                {extrato && (
-                    <div className="flex gap-4 text-sm">
-                        <div className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg flex items-center gap-2">
-                            <CheckCircle size={16} />
-                            <span>{conciliadosCount} Conciliados</span>
+            {/* Header Module */}
+            <PageHeader
+                title="Conciliação Bancária"
+                subtitle="Sincronismo estratégico entre movimentações bancárias e registros operacionais"
+                icon={RefreshCw}
+                backLink="/admin/financeiro"
+                backLabel="Painel Financeiro"
+                rightElement={extrato && (
+                    <div className="flex gap-4">
+                        <div className="px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-2xl flex items-center gap-2 animate-in zoom-in-95">
+                            <CheckCircle2 size={16} strokeWidth={3} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">{conciliadosCount} CONCILIADOS</span>
                         </div>
-                        <div className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg flex items-center gap-2">
-                            <AlertCircle size={16} />
-                            <span>{pendentes.length} Pendentes</span>
+                        <div className="px-6 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 rounded-2xl flex items-center gap-2 animate-in zoom-in-95">
+                            <AlertCircle size={16} strokeWidth={3} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">{pendentes.length} PENDENTES</span>
                         </div>
                     </div>
                 )}
-            </div>
+            />
 
             {/* Importador ou Lista */}
             {!extrato ? (
@@ -162,30 +161,47 @@ export const ConciliacaoBancaria: React.FC = () => {
                 </div>
             ) : (
                 <div className="space-y-6">
-                    {/* Resumo do Extrato */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex justify-between items-center">
-                        <div>
-                            <h3 className="font-semibold text-slate-800 dark:text-white">{extrato.banco}</h3>
-                            <p className="text-sm text-slate-500">Ag: {extrato.agencia} | CC: {extrato.conta}</p>
+                    {/* Executive Summary Card */}
+                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div className="flex items-center gap-6">
+                                <div className="p-4 bg-primary/10 rounded-2xl text-primary">
+                                    <RefreshCw size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-foreground uppercase tracking-tight">{extrato.banco}</h3>
+                                    <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">AG: {extrato.agencia} | CC: {extrato.conta}</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-12">
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Saldo Final Extrato</p>
+                                    <p className="text-2xl font-black text-foreground tracking-tight">
+                                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(extrato.saldo_final)}
+                                    </p>
+                                </div>
+
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setExtrato(null)}
+                                    className="h-14 px-6 rounded-2xl border-border/40 hover:bg-muted/50 text-muted-foreground transition-all"
+                                >
+                                    <RefreshCw size={18} className="mr-2" />
+                                    Trocar Arquivo
+                                </Button>
+                            </div>
                         </div>
-                        <div className="text-right">
-                            <p className="text-sm text-slate-500">Saldo Final</p>
-                            <p className="text-xl font-bold text-slate-800 dark:text-white">
-                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(extrato.saldo_final)}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setExtrato(null)}
-                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500"
-                            title="Trocar Arquivo"
-                        >
-                            <RefreshCw size={20} />
-                        </button>
-                    </div>
+                    </Card>
 
                     {/* Lista de Transações */}
                     <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-slate-800 dark:text-white">Transações Pendentes</h2>
+                        <h2 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
+                            Transações Pendentes
+                            <span className="text-[12px] font-bold text-muted-foreground normal-case opacity-60">
+                                {pendentes.length} registros aguardando ação
+                            </span>
+                        </h2>
                         {pendentes.length === 0 ? (
                             <div className="text-center py-10 text-slate-500">
                                 <CheckCircle size={48} className="mx-auto mb-4 text-green-500" />

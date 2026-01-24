@@ -9,7 +9,14 @@ import {
 } from '../types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
-import { DatePicker } from '../components/Form/DatePicker';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
+import { cn } from '../lib/utils';
+import { Card, CardContent } from '../components/ui/card';
+import { Input } from '../components/ui/input';
+import { Button } from '../components/ui/button';
+import { Layers } from 'lucide-react';
 
 export const CentrosCusto: React.FC = () => {
     const navigate = useNavigate();
@@ -96,74 +103,68 @@ export const CentrosCusto: React.FC = () => {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate('/admin/financeiro')}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                    >
-                        <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Análise de Centros de Custo</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Visão detalhada de custos e despesas</p>
+            {/* Header Module */}
+            <PageHeader
+                title="Gestão de Custos"
+                subtitle="Análise estratégica de rentabilidade por centros de responsabilidade e classificações"
+                icon={PieChart}
+                backLink="/admin/financeiro"
+                backLabel="Painel Financeiro"
+                rightElement={
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 bg-muted/40 p-1.5 rounded-xl border border-border/50">
+                            <Input
+                                type="date"
+                                value={periodoInicio}
+                                onChange={e => setPeriodoInicio(e.target.value)}
+                                className="h-10 bg-transparent border-none focus-visible:ring-0 text-[10px] font-black uppercase tracking-widest px-4 w-36"
+                            />
+                            <span className="text-muted-foreground font-black">→</span>
+                            <Input
+                                type="date"
+                                value={periodoFim}
+                                onChange={e => setPeriodoFim(e.target.value)}
+                                className="h-10 bg-transparent border-none focus-visible:ring-0 text-[10px] font-black uppercase tracking-widest px-4 w-36"
+                            />
+                        </div>
+                        <Button
+                            variant="outline"
+                            onClick={() => { }}
+                            className="h-14 w-14 rounded-xl border-border/40 hover:bg-muted/50"
+                        >
+                            <Download size={20} />
+                        </Button>
                     </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700 min-w-[300px]">
-                        <DatePicker
-                            value={periodoInicio}
-                            onChange={setPeriodoInicio}
-                            className="bg-transparent border-none focus:ring-0 text-sm py-1"
-                        />
-                        <span className="text-slate-400">-</span>
-                        <DatePicker
-                            value={periodoFim}
-                            onChange={setPeriodoFim}
-                            className="bg-transparent border-none focus:ring-0 text-sm py-1"
-                        />
-                    </div>
-                    <button className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                        <Download size={20} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                </div>
-            </div>
+                }
+            />
 
-            {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Receita Total</span>
-                        <TrendingUp size={20} className="text-green-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(kpis.receitas)}</p>
-                </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Despesa Total</span>
-                        <TrendingDown size={20} className="text-red-500" />
-                    </div>
-                    <p className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(kpis.despesas)}</p>
-                </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Resultado</span>
-                        <DollarSign size={20} className={kpis.resultado >= 0 ? "text-green-500" : "text-red-500"} />
-                    </div>
-                    <p className={`text-2xl font-bold ${kpis.resultado >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {formatCurrency(kpis.resultado)}
-                    </p>
-                </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Margem</span>
-                        <PieChart size={20} className="text-blue-500" />
-                    </div>
-                    <p className={`text-2xl font-bold ${kpis.margem >= 0 ? "text-blue-600" : "text-red-600"}`}>
-                        {formatPercent(kpis.margem)}
-                    </p>
-                </div>
+            {/* Dashboard KPIs Container */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <DashboardCard
+                    title="Volume Receita"
+                    value={formatCurrency(kpis.receitas)}
+                    icon={TrendingUp}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Volume Despesa"
+                    value={formatCurrency(kpis.despesas)}
+                    icon={TrendingDown}
+                    variant="rose"
+                />
+                <DashboardCard
+                    title="EBITDA / Resultado"
+                    value={formatCurrency(kpis.resultado)}
+                    icon={DollarSign}
+                    variant={kpis.resultado >= 0 ? "indigo" : "amber"}
+                />
+                <DashboardCard
+                    title="Margem Operacional"
+                    value={formatPercent(kpis.margem)}
+                    icon={PieChart}
+                    variant="slate"
+                    trend={kpis.margem > 20 ? "Nível de excelência" : "Abaixo da meta"}
+                />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

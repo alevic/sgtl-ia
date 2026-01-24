@@ -21,6 +21,9 @@ import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Progress } from "../components/ui/progress";
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
 import { cn } from "../lib/utils";
 import { VehicleActions } from '../components/Frota/VehicleActions';
 
@@ -177,111 +180,101 @@ export const Frota: React.FC = () => {
     return (
         <div key="frota-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Section */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-xl">
-                            <Bus className="text-primary w-6 h-6" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
-                            Gestão de <span className="text-primary">Frota</span>
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-1">Controle operacional e manutenção preventiva</p>
-                </div>
-                <Link to="/admin/frota/novo">
-                    <Button className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
-                        <Plus size={20} className="mr-2" strokeWidth={3} />
-                        NOVO VEÍCULO
-                    </Button>
-                </Link>
-            </div>
+            <PageHeader
+                title="Gestão de Frota"
+                subtitle="Controle operacional e manutenção preventiva"
+                icon={Bus}
+                rightElement={
+                    <Link to="/admin/frota/novo">
+                        <Button className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
+                            <Plus size={20} className="mr-2" strokeWidth={3} />
+                            NOVO VEÍCULO
+                        </Button>
+                    </Link>
+                }
+            />
 
             {/* Premium Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                    { label: 'Total de Veículos', value: totalVeiculos, icon: Bus, color: 'primary' },
-                    { label: 'Frotas Ativas', value: veiculosAtivos, icon: CheckCircle, color: 'emerald' },
-                    { label: 'Em Operação', value: veiculosEmViagem, icon: TrendingUp, color: 'blue' },
-                    { label: 'Manutenção', value: veiculosManutencao, icon: Wrench, color: 'amber' }
-                ].map((stat, i) => (
-                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                        <CardContent className="p-6">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                                    <p className="text-3xl font-semibold tracking-tighter">{stat.value}</p>
-                                </div>
-                                <div className={cn(
-                                    "p-3 rounded-xl transition-transform group-hover:scale-110 duration-500",
-                                    stat.color === 'primary' ? "bg-primary/10 text-primary" :
-                                        stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
-                                            stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
-                                                "bg-amber-500/10 text-amber-600"
-                                )}>
-                                    <stat.icon size={20} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                <DashboardCard
+                    title="Total de Veículos"
+                    value={totalVeiculos}
+                    icon={Bus}
+                    variant="primary"
+                />
+                <DashboardCard
+                    title="Frotas Ativas"
+                    value={veiculosAtivos}
+                    icon={CheckCircle}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Em Operação"
+                    value={veiculosEmViagem}
+                    icon={TrendingUp}
+                    variant="blue"
+                />
+                <DashboardCard
+                    title="Manutenção"
+                    value={veiculosManutencao}
+                    icon={Wrench}
+                    variant="amber"
+                />
             </div>
 
             {/* Filters Module */}
-            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Busca */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Veículo</label>
-                        <div className="relative group flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors group-focus-within:text-primary" />
-                            <Input
-                                placeholder="Placa ou modelo..."
-                                value={busca}
-                                onChange={(e) => setBusca(e.target.value)}
-                                className="pl-11 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Status Tabs */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status Operacional</label>
-                        <Tabs value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)} className="w-full">
-                            <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                                <TabsTrigger value={VeiculoStatus.ACTIVE} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVOS</TabsTrigger>
-                                <TabsTrigger value={VeiculoStatus.IN_TRANSIT} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">EM VIAGEM</TabsTrigger>
-                                <TabsTrigger value={VeiculoStatus.MAINTENANCE} className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">MANUTENÇÃO</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
-                    </div>
-
-                    {/* Tipo Tabs */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria</label>
-                        <Tabs value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)} className="w-full">
-                            <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                                <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background transition-all">TODOS</TabsTrigger>
-                                <TabsTrigger value="ONIBUS" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background transition-all">ÔNIBUS</TabsTrigger>
-                                <TabsTrigger value="CAMINHAO" className="flex-1 rounded-xl font-bold text-[12px] data-[state=active]:bg-background transition-all">CAMINHÕES</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
+            <ListFilterSection className="lg:grid-cols-3">
+                {/* Busca */}
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-label-caps ml-1">Buscar Veículo</label>
+                    <div className="relative group flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors group-focus-within:text-primary" />
+                        <Input
+                            placeholder="Placa ou modelo..."
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                            className="pl-11 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                        />
                     </div>
                 </div>
-            </div>
+
+                {/* Status Tabs */}
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-label-caps ml-1">Status Operacional</label>
+                    <Tabs value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)} className="w-full">
+                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value={VeiculoStatus.ACTIVE} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVOS</TabsTrigger>
+                            <TabsTrigger value={VeiculoStatus.IN_TRANSIT} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">VIAGEM</TabsTrigger>
+                            <TabsTrigger value={VeiculoStatus.MAINTENANCE} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-amber-600">MANUT.</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+
+                {/* Tipo Tabs */}
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-label-caps ml-1">Categoria</label>
+                    <Tabs value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)} className="w-full">
+                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">TODOS</TabsTrigger>
+                            <TabsTrigger value="ONIBUS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">ÔNIBUS</TabsTrigger>
+                            <TabsTrigger value="CAMINHAO" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">CAMINHÕES</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+            </ListFilterSection>
 
             {/* Vehicles Table Listing */}
             <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
                 <Table>
                     <TableHeader className="bg-muted/30">
                         <TableRow className="hover:bg-transparent border-border/50">
-                            <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Veículo</TableHead>
-                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-center">Tipo</TableHead>
-                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Status</TableHead>
-                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">KMs & Revisão</TableHead>
-                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Motorista Atual</TableHead>
-                            <TableHead className="pr-8 h-14 text-[12px] font-semibold uppercase tracking-widest text-right">Ações</TableHead>
+                            <TableHead className="pl-8 h-14 text-table-head">Veículo</TableHead>
+                            <TableHead className="h-14 text-table-head text-center">Tipo</TableHead>
+                            <TableHead className="h-14 text-table-head">Status</TableHead>
+                            <TableHead className="h-14 text-table-head">KMs & Revisão</TableHead>
+                            <TableHead className="h-14 text-table-head">Motorista Atual</TableHead>
+                            <TableHead className="pr-8 h-14 text-table-head text-right">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, ReservationStatus, ReservationStatusLabel, TripStatus, TripStatusLabel } from '../types';
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
@@ -437,27 +439,14 @@ export const NovaReserva: React.FC = () => {
   }
 
   return (
-    <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
+    <div key="nova-reserva-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
       {/* Header Executivo */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-4">
-          <button
-            onClick={() => navigate('/admin/reservas')}
-            className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-          >
-            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-            <span className="text-[12px] font-black uppercase tracking-widest">Painel de Reservas</span>
-          </button>
-          <div>
-            <h1 className="text-4xl font-black text-foreground tracking-tight">
-              NOVA <span className="text-primary italic">RESERVA</span>
-            </h1>
-            <p className="text-muted-foreground font-medium mt-1">
-              Gerencie a alocação de passageiros e pagamentos no padrão de excelência
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Nova Reserva"
+        subtitle="Gerencie a alocação de passageiros e pagamentos no padrão de excelência"
+        backLink="/admin/reservas"
+        backText="Painel de Reservas"
+      />
 
       {/* Stepper Executivo */}
       <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
@@ -521,21 +510,16 @@ export const NovaReserva: React.FC = () => {
       </Card>
 
       <div className="space-y-6">
-        <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-          <div className="p-8 border-b border-border/50 bg-muted/20">
-            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-              <RefreshCw size={14} className="text-primary" />
-              Seletor de Grade Operacional
-            </h3>
-          </div>
-          <CardContent className="p-8">
-            <SeletorViagem
-              viagens={viagens}
-              viagemSelecionada={viagemSelecionada}
-              onChange={setViagemSelecionada}
-            />
-          </CardContent>
-        </Card>
+        <FormSection
+          title="Seletor de Grade Operacional"
+          icon={RefreshCw}
+        >
+          <SeletorViagem
+            viagens={viagens}
+            viagemSelecionada={viagemSelecionada}
+            onChange={setViagemSelecionada}
+          />
+        </FormSection>
 
         <div className="flex items-center gap-4">
           <Button
@@ -570,41 +554,35 @@ export const NovaReserva: React.FC = () => {
         <ErrorBoundary>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Mapa de Assentos (Left) */}
-            <Card className="lg:col-span-5 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden h-fit sticky top-6">
-              <div className="p-8 border-b border-border/50 bg-muted/20">
-                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                  Mapeamento de Assentos
-                </h3>
-              </div>
-              <CardContent className="p-8">
-                <p className="text-xs font-medium text-muted-foreground mb-6 uppercase tracking-widest">
-                  Selecione as poltronas vinculadas a esta operação
-                </p>
-                {veiculo ? (
-                  loading ? (
-                    <div className="flex justify-center p-8"><Loader className="animate-spin text-primary" /></div>
-                  ) : (
-                    <MapaAssentosReserva
-                      veiculo={veiculo}
-                      assentosReservados={assentosOcupados}
-                      assentosSelecionados={assentosSelecionados}
-                      onSelecionarAssento={handleSelecionarAssento}
-                      precos={viagemSelecionada ? {
-                        'CONVENCIONAL': Number(viagemSelecionada.price_conventional || 0),
-                        'EXECUTIVO': Number(viagemSelecionada.price_executive || 0),
-                        'SEMI_LEITO': Number(viagemSelecionada.price_semi_sleeper || 0),
-                        'LEITO': Number(viagemSelecionada.price_sleeper || 0),
-                        'CAMA': Number(viagemSelecionada.price_bed || 0),
-                        'CAMA_MASTER': Number(viagemSelecionada.price_master_bed || 0),
-                        ... (viagemSelecionada.precos_por_tipo || {})
-                      } : undefined}
-                    />
-                  )
+            <FormSection
+              title="Mapeamento de Assentos"
+              description="Selecione as poltronas vinculadas a esta operação"
+              className="lg:col-span-5 h-fit sticky top-6"
+            >
+              {veiculo ? (
+                loading ? (
+                  <div className="flex justify-center p-8"><Loader className="animate-spin text-primary" /></div>
                 ) : (
-                  <p className="text-muted-foreground italic text-center py-8">Aguardando definição da viagem...</p>
-                )}
-              </CardContent>
-            </Card>
+                  <MapaAssentosReserva
+                    veiculo={veiculo}
+                    assentosReservados={assentosOcupados}
+                    assentosSelecionados={assentosSelecionados}
+                    onSelecionarAssento={handleSelecionarAssento}
+                    precos={viagemSelecionada ? {
+                      'CONVENCIONAL': Number(viagemSelecionada.price_conventional || 0),
+                      'EXECUTIVO': Number(viagemSelecionada.price_executive || 0),
+                      'SEMI_LEITO': Number(viagemSelecionada.price_semi_sleeper || 0),
+                      'LEITO': Number(viagemSelecionada.price_sleeper || 0),
+                      'CAMA': Number(viagemSelecionada.price_bed || 0),
+                      'CAMA_MASTER': Number(viagemSelecionada.price_master_bed || 0),
+                      ... (viagemSelecionada.precos_por_tipo || {})
+                    } : undefined}
+                  />
+                )
+              ) : (
+                <p className="text-muted-foreground italic text-center py-8">Aguardando definição da viagem...</p>
+              )}
+            </FormSection>
 
             {/* Lista de Passageiros (Right) */}
             <div className="lg:col-span-7 space-y-6">
@@ -772,83 +750,81 @@ export const NovaReserva: React.FC = () => {
           <div className="space-y-8 animate-in slide-in-from-bottom-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Resumo da Viagem */}
-              <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                <div className="p-8 border-b border-border/50 bg-muted/20">
-                  <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">Resumo Operacional</h3>
-                </div>
-                <CardContent className="p-8 space-y-6">
-                  {viagemSelecionada && (
-                    <>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                            <Check size={20} />
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Viagem Selecionada</p>
-                            <p className="font-black text-foreground">{viagemSelecionada.titulo || viagemSelecionada.route_name}</p>
-                          </div>
+              <FormSection
+                title="Resumo Operacional"
+                className="lg:col-span-1"
+              >
+                {viagemSelecionada && (
+                  <>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                          <Check size={20} />
                         </div>
-
-                        <div className="grid grid-cols-2 gap-8 ml-13">
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Origem</p>
-                            <p className="font-bold text-foreground">{viagemSelecionada.origem || viagemSelecionada.origin_city}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Destino</p>
-                            <p className="font-bold text-foreground">{viagemSelecionada.destino || viagemSelecionada.destination_city}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Data Partida</p>
-                            <p className="font-bold text-foreground">
-                              {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
-                                ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleDateString('pt-BR')
-                                : 'Definir'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Horário</p>
-                            <p className="font-bold text-foreground">
-                              {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
-                                ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
-                                : '00:00'}
-                            </p>
-                          </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Viagem Selecionada</p>
+                          <p className="font-black text-foreground">{viagemSelecionada.titulo || viagemSelecionada.route_name}</p>
                         </div>
                       </div>
 
-                      <div className="pt-6 border-t border-border/50">
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Passageiros Selecionados</h4>
-                          <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-widest border border-primary/20">
-                            {assentosSelecionados.length} Assentos
-                          </span>
+                      <div className="grid grid-cols-2 gap-8 ml-13">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Origem</p>
+                          <p className="font-bold text-foreground">{viagemSelecionada.origem || viagemSelecionada.origin_city}</p>
                         </div>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                          {assentosSelecionados.map((seat, index) => {
-                            const p = passageirosMap[seat.numero];
-                            return (
-                              <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl border border-border/30 group hover:border-primary/30 transition-colors">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-[12px] font-black text-primary group-hover:scale-110 transition-transform">
-                                    {seat.numero}
-                                  </div>
-                                  <div>
-                                    <p className="text-[12px] font-bold text-foreground truncate max-w-[150px]">{p?.nome || 'Pendente'}</p>
-                                    <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{seat.tipo.replace('_', ' ')}</p>
-                                  </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Destino</p>
+                          <p className="font-bold text-foreground">{viagemSelecionada.destino || viagemSelecionada.destination_city}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Data Partida</p>
+                          <p className="font-bold text-foreground">
+                            {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
+                              ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleDateString('pt-BR')
+                              : 'Definir'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">Horário</p>
+                          <p className="font-bold text-foreground">
+                            {(viagemSelecionada.departure_date || viagemSelecionada.data_partida)
+                              ? new Date(viagemSelecionada.departure_date || viagemSelecionada.data_partida!).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                              : '00:00'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-border/50">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Passageiros Selecionados</h4>
+                        <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-full uppercase tracking-widest border border-primary/20">
+                          {assentosSelecionados.length} Assentos
+                        </span>
+                      </div>
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                        {assentosSelecionados.map((seat, index) => {
+                          const p = passageirosMap[seat.numero];
+                          return (
+                            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl border border-border/30 group hover:border-primary/30 transition-colors">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-[12px] font-black text-primary group-hover:scale-110 transition-transform">
+                                  {seat.numero}
                                 </div>
-                                <span className="text-[12px] font-black text-primary">R$ {seat.valor.toFixed(2)}</span>
+                                <div>
+                                  <p className="text-[12px] font-bold text-foreground truncate max-w-[150px]">{p?.nome || 'Pendente'}</p>
+                                  <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">{seat.tipo.replace('_', ' ')}</p>
+                                </div>
                               </div>
-                            );
-                          })}
-                        </div>
+                              <span className="text-[12px] font-black text-primary">R$ {seat.valor.toFixed(2)}</span>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </>
-                  )}
-                </CardContent>
-              </Card>
+                    </div>
+                  </>
+                )}
+              </FormSection>
 
               {/* Pagamento e Finalização */}
               <div className="space-y-8">

@@ -28,6 +28,9 @@ import {
 } from "../components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { AlertTriangle } from 'lucide-react';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
 import { cn } from '../lib/utils';
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -151,117 +154,76 @@ export const Fretamento: React.FC = () => {
                 </Alert>
             )}
             {/* Executive Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-xl">
-                            <Building2 size={24} className="text-primary" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
-                            Fretamento <span className="text-primary">B2B</span>
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-0">
-                        Gestão corporativa de aluguel de frota
-                    </p>
-                </div>
-                <Button onClick={() => navigate('/admin/fretamento/novo')} className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
-                    <Plus size={20} strokeWidth={2.5} />
-                    NOVA SOLICITAÇÃO
-                </Button>
-            </div>
+            <PageHeader
+                title="Fretamento B2B"
+                subtitle="Gestão corporativa de aluguel de frota"
+                icon={Building2}
+                rightElement={
+                    <Button onClick={() => navigate('/admin/fretamento/novo')} className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                        <Plus size={20} strokeWidth={2.5} />
+                        NOVA SOLICITAÇÃO
+                    </Button>
+                }
+            />
 
             {/* Executive KPI Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Total de Solicitações</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-foreground">{totalSolicitacoes}</p>
-                            </div>
-                            <div className="p-3 rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-110 duration-500">
-                                <FileText size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Orçamentos Pendentes</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-amber-600">{orcamentosPendentes}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-600 transition-transform group-hover:scale-110 duration-500">
-                                <Clock size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Contratos Ativos</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-emerald-600">{contratosAtivos}</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-600 transition-transform group-hover:scale-110 duration-500">
-                                <CheckCircle size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                    <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Receita Projetada</p>
-                                <p className="text-3xl font-semibold tracking-tighter text-blue-600">R$ {(receitaProjetada / 1000).toFixed(0)}k</p>
-                            </div>
-                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-600 transition-transform group-hover:scale-110 duration-500">
-                                <TrendingUp size={20} strokeWidth={2.5} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                <DashboardCard
+                    title="Total de Solicitações"
+                    value={totalSolicitacoes}
+                    icon={FileText}
+                    variant="primary"
+                />
+                <DashboardCard
+                    title="Orçamentos Pendentes"
+                    value={orcamentosPendentes}
+                    icon={Clock}
+                    variant="amber"
+                />
+                <DashboardCard
+                    title="Contratos Ativos"
+                    value={contratosAtivos}
+                    icon={CheckCircle}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Receita Projetada"
+                    value={`R$ ${(receitaProjetada / 1000).toFixed(0)}k`}
+                    icon={TrendingUp}
+                    variant="blue"
+                />
             </div>
 
             {/* Executive Filters Module */}
-            <div className="bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Busca */}
-                    <div className="space-y-1.5 flex flex-col">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Solicitação</label>
-                        <div className="relative group flex-1">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
-                            <Input
-                                placeholder="Cliente, origem ou destino..."
-                                className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
-                                value={busca}
-                                onChange={(e) => setBusca(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Status Tabs */}
-                    <div className="space-y-1.5">
-                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status da Solicitação</label>
-                        <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
-                            <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                                <TabsTrigger value="todos" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                                <TabsTrigger value="solicitacao" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">SOLICITAÇÃO</TabsTrigger>
-                                <TabsTrigger value="orcamento" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">ORÇAMENTO</TabsTrigger>
-                                <TabsTrigger value="confirmado" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">CONFIRMADO</TabsTrigger>
-                                <TabsTrigger value="andamento" className="flex-1 rounded-xl px-2 font-semibold text-[12px] data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">EM ANDAMENTO</TabsTrigger>
-                            </TabsList>
-                        </Tabs>
+            <ListFilterSection>
+                {/* Busca */}
+                <div className="space-y-1.5 flex flex-col lg:col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Buscar Solicitação</label>
+                    <div className="relative group flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                        <Input
+                            placeholder="Cliente, origem ou destino..."
+                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            value={busca}
+                            onChange={(e) => setBusca(e.target.value)}
+                        />
                     </div>
                 </div>
-            </div>
+
+                {/* Status Tabs */}
+                <div className="space-y-1.5 flex flex-col lg:col-span-2">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Status da Solicitação</label>
+                    <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
+                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="todos" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value="solicitacao" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">SOLICIT.</TabsTrigger>
+                            <TabsTrigger value="orcamento" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">ORÇAM.</TabsTrigger>
+                            <TabsTrigger value="confirmado" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">CONFIRM.</TabsTrigger>
+                            <TabsTrigger value="andamento" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">ATIVO</TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+                </div>
+            </ListFilterSection>
 
             {/* Executive Table Module */}
             {fretamentosFiltrados.length === 0 ? (

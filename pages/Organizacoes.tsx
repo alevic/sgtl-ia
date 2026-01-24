@@ -6,6 +6,7 @@ import { TeamManagement } from '../components/TeamManagement';
 import { useApp } from '../context/AppContext';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
 
 interface OrganizationDetails {
     id: string;
@@ -144,42 +145,36 @@ export const Organizacoes: React.FC = () => {
         }
     };
 
-    // Helper to update local state
     const updateDetailField = (field: keyof OrganizationDetails, value: string) => {
         if (orgDetails) {
             setOrgDetails({ ...orgDetails, [field]: value });
         }
     };
 
-    const themeColor = 'blue';
-
     if (selectedOrgId && orgDetails) {
-        return (
-            <div className="space-y-6 animate-in fade-in duration-300">
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => {
-                            setSelectedOrgId(null);
-                            setOrgDetails(null);
-                            fetchOrgs(); // Refresh list
-                        }}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
-                    >
-                        <ArrowLeft size={24} className="text-slate-600 dark:text-slate-400" />
-                    </button>
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{orgDetails.name}</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Gerenciando organização</p>
-                    </div>
-                </div>
+        const themeColor = 'blue';
 
-                {/* Detail Tabs Standardized */}
-                <div className="flex gap-2 p-1 bg-muted/40 backdrop-blur-sm border border-border/40 rounded-2xl w-fit">
+        return (
+            <div className="p-8 space-y-8 animate-in fade-in duration-300">
+                <PageHeader
+                    title={orgDetails.name}
+                    subtitle="Gerenciando detalhes e equipe da organização"
+                    icon={Building2}
+                    backLink="#"
+                    onClickBack={() => {
+                        setSelectedOrgId(null);
+                        setOrgDetails(null);
+                        fetchOrgs();
+                    }}
+                    backLabel="Voltar para Lista"
+                />
+
+                <div className="flex gap-2 p-1.5 bg-muted/40 backdrop-blur-sm border border-border/40 rounded-2xl w-fit">
                     <button
                         onClick={() => setActiveDetailTab('geral')}
-                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-semibold uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'geral'
-                            ? 'bg-card text-primary shadow-lg shadow-muted/20'
-                            : 'text-muted-foreground hover:text-foreground'
+                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-black uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'geral'
+                            ? 'bg-background text-primary shadow-lg shadow-muted/20'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                             }`}
                     >
                         <Building2 size={14} />
@@ -187,9 +182,9 @@ export const Organizacoes: React.FC = () => {
                     </button>
                     <button
                         onClick={() => setActiveDetailTab('equipe')}
-                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-semibold uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'equipe'
-                            ? 'bg-card text-primary shadow-lg shadow-muted/20'
-                            : 'text-muted-foreground hover:text-foreground'
+                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-black uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'equipe'
+                            ? 'bg-background text-primary shadow-lg shadow-muted/20'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                             }`}
                     >
                         <Users size={14} />
@@ -269,9 +264,9 @@ export const Organizacoes: React.FC = () => {
                                             <Button
                                                 type="submit"
                                                 disabled={isSaving}
-                                                className="h-14 rounded-2xl px-10 bg-primary font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                                className="h-14 rounded-2xl px-10 bg-primary font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
                                             >
-                                                {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save className="mr-2" size={16} />}
+                                                {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save className="mr-2" size={16} strokeWidth={3} />}
                                                 Sincronizar Dados
                                             </Button>
                                         </div>
@@ -316,9 +311,8 @@ export const Organizacoes: React.FC = () => {
                                 <button
                                     onClick={async () => {
                                         if (!window.confirm('CUIDADO: Esta ação excluirá permanentemente a organização e todos os dados vinculados.')) return;
-                                        // delete logic
                                     }}
-                                    className="w-full h-14 flex items-center justify-center gap-2 text-destructive font-semibold uppercase text-[12px] tracking-widest hover:bg-destructive shadow-sm hover:text-white transition-all rounded-[2.3rem]"
+                                    className="w-full h-14 flex items-center justify-center gap-2 text-destructive font-black uppercase text-[12px] tracking-widest hover:bg-destructive shadow-sm hover:text-white transition-all rounded-[2.3rem]"
                                 >
                                     <Trash2 size={16} />
                                     Rescindir Organização
@@ -335,36 +329,21 @@ export const Organizacoes: React.FC = () => {
         );
     }
 
-    // List View Standardized
     return (
         <div key="organizacoes-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            {/* Header Corporativo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-semibold uppercase tracking-widest">Controle Administrativo</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-semibold text-foreground tracking-tight">
-                            MULTIGESTÃO DE <span className="text-primary italic">ORGANIZAÇÕES</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Administre e configure múltiplas entidades empresariais e suas permissões
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <PageHeader
+                title="Multigestão de Organizações"
+                subtitle="Administre e configure múltiplas entidades empresariais e suas permissões"
+                icon={Building2}
+                backLink="/admin"
+                backLabel="Controle Administrativo"
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Create Organization Form */}
                 <div className="lg:col-span-1">
                     <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden sticky top-6">
                         <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h2 className="text-[12px] font-semibold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                            <h2 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Plus size={14} className="text-primary" />
                                 Adicionar Nova Organização
                             </h2>
@@ -400,7 +379,7 @@ export const Organizacoes: React.FC = () => {
                                 <Button
                                     type="submit"
                                     disabled={isCreating}
-                                    className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                    className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
                                 >
                                     {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Processar Criação'}
                                 </Button>
@@ -409,23 +388,22 @@ export const Organizacoes: React.FC = () => {
                     </Card>
                 </div>
 
-                {/* List Organizations */}
                 <div className="lg:col-span-2 space-y-4">
-                    <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <Building2 size={20} className="text-slate-600 dark:text-slate-400" />
-                        Suas Empresas
+                    <h2 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2 ml-4">
+                        <Building2 size={16} className="text-primary" />
+                        Sincronização de Entidades
                     </h2>
 
                     {isLoading ? (
-                        <div className="flex justify-center p-8">
-                            <Loader2 className="animate-spin text-slate-400" size={24} />
+                        <div className="flex justify-center p-20">
+                            <Loader2 className="animate-spin text-primary" size={40} strokeWidth={3} />
                         </div>
                     ) : orgs.length === 0 ? (
-                        <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-                            <p className="text-slate-500 dark:text-slate-400">Nenhuma organização encontrada.</p>
+                        <div className="p-20 text-center bg-card/50 backdrop-blur-sm rounded-[2.5rem] border border-dashed border-border/60">
+                            <p className="text-muted-foreground font-bold text-sm">Nenhuma organização encontrada.</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {orgs.map((org) => (
                                 <Card
                                     key={org.id}
@@ -433,21 +411,21 @@ export const Organizacoes: React.FC = () => {
                                     className="group shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] p-8 hover:border-primary/40 cursor-pointer transition-all hover:bg-muted/20"
                                 >
                                     <div className="flex items-start justify-between mb-6">
-                                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-semibold text-2xl group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
+                                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
                                             {org.name.charAt(0)}
                                         </div>
-                                        <span className="px-3 py-1 bg-green-500/10 text-green-500 text-[12px] font-semibold uppercase tracking-widest rounded-full border border-green-500/20">
+                                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
                                             ATIVO
                                         </span>
                                     </div>
                                     <div>
                                         <h3 className="font-black text-lg uppercase tracking-tight text-foreground">{org.name}</h3>
-                                        <p className="text-[12px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-1">{org.slug}</p>
+                                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mt-1">{org.slug}</p>
                                     </div>
 
-                                    <div className="mt-8 flex items-center text-[12px] font-semibold uppercase tracking-widest text-primary gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                        Painel Operacional
-                                        <ArrowLeft className="rotate-180 w-4 h-4" strokeWidth={3} />
+                                    <div className="mt-8 flex items-center text-[10px] font-black uppercase tracking-widest text-primary gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                        Explorar Entidade
+                                        <ArrowLeft className="rotate-180 w-4 h-4 shadow-xl" strokeWidth={3} />
                                     </div>
                                 </Card>
                             ))}
@@ -455,6 +433,18 @@ export const Organizacoes: React.FC = () => {
                     )}
                 </div>
             </div>
+            {error && (
+                <div className="fixed bottom-8 right-8 bg-rose-500 text-white px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-right-4 font-bold text-sm flex items-center gap-3">
+                    <AlertCircle size={20} />
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div className="fixed bottom-8 right-8 bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-right-4 font-bold text-sm flex items-center gap-3">
+                    <CheckCircle size={20} />
+                    {success}
+                </div>
+            )}
         </div>
     );
 };

@@ -31,35 +31,50 @@ Defina as interfaces TypeScript de entrada e saída da API.
 
 ## 2. System Prompts Sugeridos
 
-Ao iniciar uma sessão na IDE, utilize um "System Prompt" ou arquivo `.cursorrules` na raiz:
+Ao iniciar uma sessão na IDE, utilize um "System Prompt" ou instruções de contexto na raíz:
 
 ```markdown
-# .cursorrules
-
 Vocé é um Engenheiro Sênior Fullstack trabalhando no SGTL v2.1.
 
 ## Contexto
 1.  **Multi-Tenancy:** O app tem dois contextos: 'TURISMO' e 'EXPRESS'. Sempre verifique `currentContext` antes de renderizar menus ou dados.
-2.  **Estilo:** Use Tailwind CSS. Cores: Blue para Turismo, Orange para Express.
-3.  **Stack:** React, Vite, Lucide Icons, Recharts.
+2.  **Estilo:** Use Tailwind CSS e o padrão "Executive Elite" (Dark/Glassmorphism).
+3.  **Stack:** React, Vite, Lucide Icons, Recharts, Radix UI (shadcn).
 
 ## Regras de Código
-*   Sempre use interfaces do arquivo `types.ts`.
-*   Não invente dados, use os mocks em `services/api.ts`.
-*   Componentes devem ser pequenos e funcionais.
+*   Sempre use `PageHeader` para títulos e `DashboardCard` para métricas nas listas/detalhes.
+*   Arredondamentos principais: Containers `rounded-[2.5rem]`, Elementos `rounded-2xl`.
+*   Altura padrão de botões e inputs de formulário principais: `h-14`.
+*   Use as interfaces de `types.ts` e serviços de `services/`.
+*   Componentes devem ser funcionais e seguir a estética visual consolidada.
 ```
 
 ## 3. Alterações Sugeridas no PRD Original
 
 Para a IA processar melhor seu documento original:
 
-1.  **Desambiguação de Termos:** O termo "Cliente" é usado tanto para o passageiro B2C quanto para a empresa contratante B2B.
-    *   *Sugestão:* No PRD, diferencie explicitamente `ClienteFinal` (Passageiro) de `ClienteCorporativo` (Fretamento).
-2.  **Fluxos de Estado Explícitos:**
-    *   Descreva as transições de status da Reserva como uma máquina de estados: `PENDENTE -> PAGO -> CONFIRMADA -> (CANCELADA | FINALIZADA)`. Isso ajuda a IA a evitar transições ilegais no código.
-3.  **Validações em Pseudo-código:**
-    *   Na seção de endpoints, ao invés de apenas texto ("Verificar se assento está livre"), forneça um pequeno pseudo-código da lógica. A IA traduzirá isso para Python/JS perfeitamente.
+1.  **Desambiguação de Termos:** No PRD, diferencie explicitamente `ClienteFinal` (Passageiro) de `ClienteCorporativo`.
+2.  **Fluxos de Estado:** Descreva transições como `PENDENTE -> PAGO -> CONFIRMADA -> (CANCELADA | FINALIZADA)`.
+3.  **Lógica:** Forneça pseudo-código para validações críticas (ex: regras de cancelamento).
+
+## 4. Padrão Visual "Executive Elite" (Design System)
+
+Para manter a consistência premium estabelecida, siga estas diretrizes em todas as novas telas:
+
+### A. Componentes Fundamentais
+*   **`PageHeader`**: Use em **todas** as páginas. Parâmetros: `title`, `suffix`, `icon`, `backLink`, `backLabel`.
+*   **`DashboardCard`**: Use para KPIs e métricas no topo de páginas de listagem e detalhes.
+*   **`Card` & `CardContent`**: Conteúdo sempre dentro de cards com fundo `bg-card/50` e `backdrop-blur-sm`.
+
+### B. Tokens de Design
+*   **Arredondamento**: Containers principais `rounded-[2.5rem]`, elementos internos `rounded-2xl`.
+*   **Interações**: Altura padrão `h-14` para botões e inputs principais. Fonte `font-bold` em inputs.
+
+### C. Arquétipos de Layout
+*   **Listagens**: `PageHeader` -> Grid de `DashboardCard` -> `Card` com Tabela.
+*   **Detalhes**: `PageHeader` -> Grid de `DashboardCard` -> `Card` com `Tabs`.
+*   **Edição**: `PageHeader` -> Layout em colunas (Principal 2/3, Lateral 1/3) usando `Card`s.
 
 ---
 
-**Nota:** O código gerado neste projeto já segue estas práticas, utilizando `types.ts` como contrato central e separando contextos visualmente.
+**Nota:** O código gerado já segue estas práticas. Consulte `walkthrough_mass_refactor_phase3.md` para as últimas atualizações de UI.

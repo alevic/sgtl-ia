@@ -26,7 +26,9 @@ import {
 } from "../components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { CardContent } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -323,47 +325,35 @@ export const NovaViagem: React.FC = () => {
     return (
         <div key="nova-viagem-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin/viagens')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-semibold uppercase tracking-widest">Voltar para Viagens</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-semibold text-foreground tracking-tight">
-                            {isEdicao ? 'EDITAR' : 'NOVA'} <span className="text-primary italic">VIAGEM</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            {isEdicao ? 'Atualize os detalhes da viagem selecionada' : 'Planeje e cadastre uma nova viagem na grade'}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate('/admin/viagens')}
-                        className="h-14 rounded-xl px-6 font-semibold uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        onClick={handleSalvar}
-                        disabled={saving}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        {saving ? (
-                            <Loader className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                            <Save className="w-4 h-4 mr-2" />
-                        )}
-                        {saving ? 'Salvando...' : 'Salvar Viagem'}
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title={`${isEdicao ? 'Editar' : 'Nova'} Viagem`}
+                subtitle={isEdicao ? 'Atualize os detalhes da viagem selecionada' : 'Planeje e cadastre uma nova viagem na grade'}
+                backLink="/admin/viagens"
+                backText="Voltar para Viagens"
+                rightElement={
+                    <>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate('/admin/viagens')}
+                            className="h-14 rounded-xl px-6 font-semibold uppercase text-[12px] tracking-widest"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSalvar}
+                            disabled={saving}
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            {saving ? (
+                                <Loader className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                                <Save className="w-4 h-4 mr-2" />
+                            )}
+                            {saving ? 'Salvando...' : 'Salvar Viagem'}
+                        </Button>
+                    </>
+                }
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
@@ -389,365 +379,330 @@ export const NovaViagem: React.FC = () => {
                 {/* Coluna Principal (2/3) */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Informações Básicas */}
-                    <Card className="relative z-10 focus-within:z-20 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-3xl">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Bus size={14} className="text-primary" />
-                                Identificação da Viagem
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Título Público da Viagem</label>
-                                    <input
-                                        type="text"
-                                        value={titulo}
-                                        onChange={(e) => setTitulo(e.target.value)}
-                                        placeholder="Ex: Excursão de Final de Ano - Litoral Norte"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Tags Operacionais</label>
-                                    <SeletorTags
-                                        selectedTags={tags}
-                                        onChange={setTags}
-                                    />
-                                </div>
+                    <FormSection
+                        title="Identificação da Viagem"
+                        icon={Bus}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Título Público da Viagem</label>
+                                <input
+                                    type="text"
+                                    value={titulo}
+                                    onChange={(e) => setTitulo(e.target.value)}
+                                    placeholder="Ex: Excursão de Final de Ano - Litoral Norte"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
+                                />
                             </div>
-                        </CardContent>
-                    </Card>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Tags Operacionais</label>
+                                <SeletorTags
+                                    selectedTags={tags}
+                                    onChange={setTags}
+                                />
+                            </div>
+                        </div>
+                    </FormSection>
 
                     {/* Seleção de Rotas */}
-                    <Card className="relative z-0 focus-within:z-10 shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-[2.5rem]">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Route size={14} className="text-primary" />
-                                Planejamento do Trajeto
-                            </h3>
+                    <FormSection
+                        title="Planejamento do Trajeto"
+                        icon={Route}
+                    >
+                        <div className="space-y-4">
+                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                Rota de IDA (Obrigatória se não houver Volta)
+                            </label>
+                            <SeletorRota
+                                rotas={rotas}
+                                tipoFiltro={RouteType.OUTBOUND}
+                                rotaSelecionada={rotaIdaSelecionada}
+                                onChange={setRotaIdaSelecionada}
+                            />
                         </div>
-                        <CardContent className="p-8 space-y-8">
-                            <div className="space-y-4">
-                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                    Rota de IDA (Obrigatória se não houver Volta)
-                                </label>
-                                <SeletorRota
-                                    rotas={rotas}
-                                    tipoFiltro={RouteType.OUTBOUND}
-                                    rotaSelecionada={rotaIdaSelecionada}
-                                    onChange={setRotaIdaSelecionada}
-                                />
-                            </div>
 
-                            <div className="space-y-4 pt-4 border-t border-border/50">
-                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
-                                    Rota de VOLTA (Opcional)
-                                </label>
-                                <SeletorRota
-                                    rotas={rotas}
-                                    tipoFiltro={RouteType.INBOUND}
-                                    rotaSelecionada={rotaVoltaSelecionada}
-                                    onChange={setRotaVoltaSelecionada}
-                                />
-                            </div>
+                        <div className="space-y-4 pt-4 border-t border-border/50">
+                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                                Rota de VOLTA (Opcional)
+                            </label>
+                            <SeletorRota
+                                rotas={rotas}
+                                tipoFiltro={RouteType.INBOUND}
+                                rotaSelecionada={rotaVoltaSelecionada}
+                                onChange={setRotaVoltaSelecionada}
+                            />
+                        </div>
 
-                            {!rotaIdaSelecionada && !rotaVoltaSelecionada && (
-                                <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
-                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-amber-600 text-center">
-                                        ⚠️ Selecione pelo menos uma rota para prosseguir
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                        {!rotaIdaSelecionada && !rotaVoltaSelecionada && (
+                            <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20">
+                                <p className="text-[12px] font-semibold uppercase tracking-widest text-amber-600 text-center">
+                                    ⚠️ Selecione pelo menos uma rota para prosseguir
+                                </p>
+                            </div>
+                        )}
+                    </FormSection>
 
                     {/* Cronograma */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 rounded-t-3xl">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Calendar size={14} className="text-primary" />
-                                Cronograma de Execução
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Partida Oficial</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
-                                            <DatePicker value={dataPartida} onChange={setDataPartida} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>
-                                            <TimePicker value={horaPartida} onChange={setHoraPartida} />
-                                        </div>
+                    <FormSection
+                        title="Cronograma de Execução"
+                        icon={Calendar}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Partida Oficial</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
+                                        <DatePicker value={dataPartida} onChange={setDataPartida} />
                                     </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Chegada Prevista</h4>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
-                                            <DatePicker value={dataChegada} onChange={setDataChegada} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>
-                                            <TimePicker value={horaChegada} onChange={setHoraChegada} />
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>
+                                        <TimePicker value={horaPartida} onChange={setHoraPartida} />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Itinerário Estimado Visual */}
-                            {(rotaIdaSelecionada && dataPartida && horaPartida) && (
-                                <div className="mt-8 pt-8 border-t border-border/50">
-                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
-                                        <Clock size={14} />
-                                        Previsão de Passagem pelo Itinerário
-                                    </h4>
-                                    <div className="space-y-0">
-                                        {(() => {
-                                            const startDT = new Date(`${dataPartida}T${horaPartida}`);
-                                            const durationMin = rotaIdaSelecionada.duracao_estimada_minutos || 0;
-                                            const arrivalDT = new Date(startDT.getTime() + durationMin * 60000);
+                            <div className="space-y-4">
+                                <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Chegada Prevista</h4>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
+                                        <DatePicker value={dataChegada} onChange={setDataChegada} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>
+                                        <TimePicker value={horaChegada} onChange={setHoraChegada} />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                                            return (
-                                                <div className="relative pl-12 space-y-10 border-l-2 border-dashed border-border/50 ml-4 py-2">
-                                                    {/* Origem */}
-                                                    <div className="relative">
-                                                        <div className="absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[12px] font-semibold shadow-lg shadow-primary/20">
-                                                            P
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[12px] font-semibold uppercase tracking-widest">{rotaIdaSelecionada.cidade_origem}</div>
-                                                            <div className="text-xs font-medium text-muted-foreground mt-0.5">Partida em {startDT.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                                        </div>
+                        {/* Itinerário Estimado Visual */}
+                        {(rotaIdaSelecionada && dataPartida && horaPartida) && (
+                            <div className="mt-8 pt-8 border-t border-border/50">
+                                <h4 className="text-[12px] font-semibold uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
+                                    <Clock size={14} />
+                                    Previsão de Passagem pelo Itinerário
+                                </h4>
+                                <div className="space-y-0">
+                                    {(() => {
+                                        const startDT = new Date(`${dataPartida}T${horaPartida}`);
+                                        const durationMin = rotaIdaSelecionada.duracao_estimada_minutos || 0;
+                                        const arrivalDT = new Date(startDT.getTime() + durationMin * 60000);
+
+                                        return (
+                                            <div className="relative pl-12 space-y-10 border-l-2 border-dashed border-border/50 ml-4 py-2">
+                                                {/* Origem */}
+                                                <div className="relative">
+                                                    <div className="absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-[12px] font-semibold shadow-lg shadow-primary/20">
+                                                        P
                                                     </div>
-
-                                                    {/* Destino */}
-                                                    <div className="relative">
-                                                        <div className="absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full bg-destructive flex items-center justify-center text-white text-[12px] font-semibold shadow-lg shadow-destructive/20">
-                                                            C
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-[12px] font-semibold uppercase tracking-widest">{rotaIdaSelecionada.cidade_destino}</div>
-                                                            <div className="text-xs font-medium text-muted-foreground mt-0.5">Chegada estimada: {arrivalDT.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                                        </div>
+                                                    <div>
+                                                        <div className="text-[12px] font-semibold uppercase tracking-widest">{rotaIdaSelecionada.cidade_origem}</div>
+                                                        <div className="text-xs font-medium text-muted-foreground mt-0.5">Partida em {startDT.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                                     </div>
                                                 </div>
-                                            );
-                                        })()}
-                                    </div>
+
+                                                {/* Destino */}
+                                                <div className="relative">
+                                                    <div className="absolute -left-[3.1rem] top-0 w-8 h-8 rounded-full bg-destructive flex items-center justify-center text-white text-[12px] font-semibold shadow-lg shadow-destructive/20">
+                                                        C
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[12px] font-semibold uppercase tracking-widest">{rotaIdaSelecionada.cidade_destino}</div>
+                                                        <div className="text-xs font-medium text-muted-foreground mt-0.5">Chegada estimada: {arrivalDT.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                            </div>
+                        )}
+                    </FormSection>
 
                     {/* Mídia e Detalhes */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Image size={14} className="text-primary" />
-                                Galeria e Conteúdo Público
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Capa da Viagem</label>
-                                    <div className="flex flex-col gap-4">
-                                        {imagemCapa ? (
-                                            <div className="relative aspect-video rounded-xl overflow-hidden border border-border/50 group">
-                                                <img src={imagemCapa} alt="Capa" className="w-full h-full object-cover" />
-                                                <button
-                                                    onClick={() => setImagemCapa('')}
-                                                    className="absolute top-2 right-2 bg-destructive text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X size={14} />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="aspect-video rounded-xl bg-muted/40 border border-dashed border-border/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
-                                                <Image size={32} strokeWidth={1.5} />
-                                                <span className="text-[12px] font-semibold uppercase tracking-widest">Sem Imagem</span>
-                                            </div>
-                                        )}
-                                        <Button
-                                            variant="outline"
-                                            className="h-14 rounded-xl relative overflow-hidden text-[12px] font-semibold uppercase"
-                                        >
-                                            Selecionar Capa
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={handleImageUpload}
-                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                            />
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Galeria</label>
-                                        {galeria.length > 0 && (
+                    <FormSection
+                        title="Galeria e Conteúdo Público"
+                        icon={Image}
+                    >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Capa da Viagem</label>
+                                <div className="flex flex-col gap-4">
+                                    {imagemCapa ? (
+                                        <div className="relative aspect-video rounded-xl overflow-hidden border border-border/50 group">
+                                            <img src={imagemCapa} alt="Capa" className="w-full h-full object-cover" />
                                             <button
-                                                onClick={() => setShowGalleryClearConfirm(true)}
-                                                className="text-[12px] font-semibold uppercase text-destructive hover:underline"
+                                                onClick={() => setImagemCapa('')}
+                                                className="absolute top-2 right-2 bg-destructive text-white p-2 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
-                                                Limpar Tudo
+                                                <X size={14} />
                                             </button>
-                                        )}
-                                    </div>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {galeria.map((img, idx) => (
-                                            <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border/50 group">
-                                                <img src={img} alt={`Galeria ${idx}`} className="w-full h-full object-cover" />
-                                                <button
-                                                    onClick={() => setGaleria(prev => prev.filter((_, i) => i !== idx))}
-                                                    className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <X size={10} />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        <label className="aspect-square rounded-xl border border-dashed border-border/50 bg-muted/20 flex items-center justify-center cursor-pointer hover:bg-muted/40 transition-colors">
-                                            <Plus size={16} className="text-muted-foreground" />
-                                            <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" />
-                                        </label>
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <div className="aspect-video rounded-xl bg-muted/40 border border-dashed border-border/50 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                                            <Image size={32} strokeWidth={1.5} />
+                                            <span className="text-[12px] font-semibold uppercase tracking-widest">Sem Imagem</span>
+                                        </div>
+                                    )}
+                                    <Button
+                                        variant="outline"
+                                        className="h-14 rounded-xl relative overflow-hidden text-[12px] font-semibold uppercase"
+                                    >
+                                        Selecionar Capa
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleImageUpload}
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                        />
+                                    </Button>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-border/50">
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Limite de Bagagem</label>
-                                    <input
-                                        type="text"
-                                        value={limiteBagagem}
-                                        onChange={(e) => setLimiteBagagem(e.target.value)}
-                                        placeholder="Ex: 1 mala 23kg + 1 mão"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
-                                    />
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Galeria</label>
+                                    {galeria.length > 0 && (
+                                        <button
+                                            onClick={() => setShowGalleryClearConfirm(true)}
+                                            className="text-[12px] font-semibold uppercase text-destructive hover:underline"
+                                        >
+                                            Limpar Tudo
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Alertas para Passageiros</label>
-                                    <input
-                                        type="text"
-                                        value={alertas}
-                                        onChange={(e) => setAlertas(e.target.value)}
-                                        placeholder="Avisos importantes..."
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
-                                    />
+                                <div className="grid grid-cols-4 gap-2">
+                                    {galeria.map((img, idx) => (
+                                        <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border border-border/50 group">
+                                            <img src={img} alt={`Galeria ${idx}`} className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={() => setGaleria(prev => prev.filter((_, i) => i !== idx))}
+                                                className="absolute top-1 right-1 bg-black/50 text-white p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X size={10} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    <label className="aspect-square rounded-xl border border-dashed border-border/50 bg-muted/20 flex items-center justify-center cursor-pointer hover:bg-muted/40 transition-colors">
+                                        <Plus size={16} className="text-muted-foreground" />
+                                        <input type="file" accept="image/*" multiple onChange={handleGalleryUpload} className="hidden" />
+                                    </label>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 border-t border-border/50">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Limite de Bagagem</label>
+                                <input
+                                    type="text"
+                                    value={limiteBagagem}
+                                    onChange={(e) => setLimiteBagagem(e.target.value)}
+                                    placeholder="Ex: 1 mala 23kg + 1 mão"
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Alertas para Passageiros</label>
+                                <input
+                                    type="text"
+                                    value={alertas}
+                                    onChange={(e) => setAlertas(e.target.value)}
+                                    placeholder="Avisos importantes..."
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-xs"
+                                />
+                            </div>
+                        </div>
+                    </FormSection>
                 </div>
 
                 {/* Coluna Lateral (1/3) */}
                 <div className="space-y-8">
                     {/* Alocação de Recursos */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Bus size={14} className="text-primary" />
-                                Alocação de Veículo
-                            </h3>
+                    <FormSection
+                        title="Alocação de Veículo"
+                        icon={Bus}
+                    >
+                        <div className="space-y-2">
+                            <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Veículo Operante</label>
+                            <select
+                                value={veiculoId}
+                                onChange={(e) => setVeiculoId(e.target.value)}
+                                className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest outline-none appearance-none"
+                            >
+                                <option value="">NÃO ATRIBUÍDO</option>
+                                {veiculos.map((v) => (
+                                    <option key={v.id} value={v.id}>{v.placa} - {v.modelo}</option>
+                                ))}
+                            </select>
                         </div>
-                        <CardContent className="p-8 space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Veículo Operante</label>
-                                <select
-                                    value={veiculoId}
-                                    onChange={(e) => setVeiculoId(e.target.value)}
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-semibold uppercase text-[12px] tracking-widest"
-                                >
-                                    <option value="">NÃO ATRIBUÍDO</option>
-                                    {veiculos.map((v) => (
-                                        <option key={v.id} value={v.id}>{v.placa} - {v.modelo}</option>
-                                    ))}
-                                </select>
-                            </div>
 
-                            {veiculoId && tiposAssento.length > 0 && (
-                                <div className="pt-6 border-t border-border/50 space-y-4">
-                                    <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                                        <DollarSign size={12} className="text-emerald-500" />
-                                        Tarifários da Viagem
-                                    </h4>
-                                    <div className="space-y-2">
-                                        {tiposAssento.map((tipo) => (
-                                            <div key={tipo} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/50">
-                                                <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{tipo?.replace('_', ' ')}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[12px] font-semibold text-muted-foreground">{moeda}</span>
-                                                    <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        value={precosPorTipo[tipo as string] || ''}
-                                                        onChange={(e) => handlePrecoChange(tipo as string, e.target.value)}
-                                                        className="w-20 bg-transparent border-none text-right font-bold text-sm focus:ring-0 p-0"
-                                                        placeholder="0,00"
-                                                    />
-                                                </div>
+                        {veiculoId && tiposAssento.length > 0 && (
+                            <div className="pt-6 border-t border-border/50 space-y-4">
+                                <h4 className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                                    <DollarSign size={12} className="text-emerald-500" />
+                                    Tarifários da Viagem
+                                </h4>
+                                <div className="space-y-2">
+                                    {tiposAssento.map((tipo) => (
+                                        <div key={tipo} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/50">
+                                            <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{tipo?.replace('_', ' ')}</span>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[12px] font-semibold text-muted-foreground">{moeda}</span>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={precosPorTipo[tipo as string] || ''}
+                                                    onChange={(e) => handlePrecoChange(tipo as string, e.target.value)}
+                                                    className="w-20 bg-transparent border-none text-right font-bold text-sm focus:ring-0 p-0 outline-none"
+                                                    placeholder="0,00"
+                                                />
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            )}
+                            </div>
+                        )}
 
-                            {!veiculoId && (
-                                <div className="p-4 rounded-xl bg-muted/20 border border-dashed border-border/50">
-                                    <p className="text-[12px] font-medium text-muted-foreground italic text-center leading-relaxed">
-                                        Selecione um veículo para habilitar a definição dos preços por categoria de assento.
-                                    </p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                        {!veiculoId && (
+                            <div className="p-4 rounded-xl bg-muted/20 border border-dashed border-border/50">
+                                <p className="text-[12px] font-medium text-muted-foreground italic text-center leading-relaxed">
+                                    Selecione um veículo para habilitar a definição dos preços por categoria de assento.
+                                </p>
+                            </div>
+                        )}
+                    </FormSection>
 
                     {/* Tripulação */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Users size={14} className="text-primary" />
-                                Tripulação Responsável
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <SeletorMotoristaMultiplo
-                                motoristas={motoristas}
-                                selecionados={motoristaIds}
-                                onChange={setMotoristaIds}
-                                maxHeight="300px"
-                            />
-                        </CardContent>
-                    </Card>
+                    <FormSection
+                        title="Tripulação Responsável"
+                        icon={Users}
+                    >
+                        <SeletorMotoristaMultiplo
+                            motoristas={motoristas}
+                            selecionados={motoristaIds}
+                            onChange={setMotoristaIds}
+                            maxHeight="300px"
+                        />
+                    </FormSection>
 
                     {/* Notas Internas */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Clock size={14} className="text-primary" />
-                                Observações do Operador
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                rows={4}
-                                placeholder="Notas internas para controle operacional..."
-                                className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none"
-                            />
-                        </CardContent>
-                    </Card>
+                    <FormSection
+                        title="Observações do Operador"
+                        icon={Clock}
+                    >
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            rows={4}
+                            placeholder="Notas internas para controle operacional..."
+                            className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
+                        />
+                    </FormSection>
                 </div>
             </div>
             <AlertDialog open={showGalleryClearConfirm} onOpenChange={setShowGalleryClearConfirm}>

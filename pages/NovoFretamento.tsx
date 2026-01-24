@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota, ICliente } from '../types';
-import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock, Mail, Users, Loader } from 'lucide-react';
+import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock, Mail, Users } from 'lucide-react';
 import { SeletorRota } from '../components/Rotas/SeletorRota';
 import { SeletorCliente, ClienteFretamento } from '../components/Selectors/SeletorCliente';
 import { chartersService } from '../services/chartersService';
@@ -11,9 +11,11 @@ import { driversService } from '../services/driversService';
 import { routesService } from '../services/routesService';
 import { DatePicker } from '../components/Form/DatePicker';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
+import { CardContent } from '../components/ui/card';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
 
 export const NovoFretamento: React.FC = () => {
@@ -223,77 +225,60 @@ export const NovoFretamento: React.FC = () => {
     return (
         <div key="novo-fretamento-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
                     <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Erro</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
+                    <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Incidente no Registro</AlertTitle>
+                    <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
                 </Alert>
             )}
             {success && (
-                <Alert className="border-emerald-500 text-emerald-600 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <AlertTitle>Sucesso</AlertTitle>
-                    <AlertDescription>{success}</AlertDescription>
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                    <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
+                    <AlertDescription className="text-xs font-medium text-emerald-600/80">{success}</AlertDescription>
                 </Alert>
             )}
 
             {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate('/admin/fretamento')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">Painel de Fretamento</span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            NOVO <span className="text-primary italic">FRETAMENTO</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            Registre uma nova solicitação de aluguel de frota para cliente corporativo
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate('/admin/fretamento')}
-                        className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
-                    >
-                        Cancelar
-                    </Button>
-                    <Button
-                        onClick={handleSalvar}
-                        disabled={saving}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    >
-                        {saving ? (
-                            <Loader className="w-4 h-4 animate-spin mr-2" />
-                        ) : (
-                            <Save className="w-4 h-4 mr-2" />
-                        )}
-                        {saving ? 'Processando...' : 'Criar Fretamento'}
-                    </Button>
-                </div>
-            </div>
+            <PageHeader
+                title="Novo Fretamento"
+                subtitle="Registre uma nova solicitação de aluguel de frota para cliente corporativo"
+                backLink="/admin/fretamento"
+                backText="Painel de Fretamento"
+                rightElement={
+                    <>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate('/admin/fretamento')}
+                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleSalvar}
+                            disabled={saving}
+                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            {saving ? (
+                                <Loader className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                                <Save className="w-4 h-4 mr-2" />
+                            )}
+                            {saving ? 'Processando...' : 'Criar Fretamento'}
+                        </Button>
+                    </>
+                }
+            />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Coluna Principal */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Cliente Corporativo */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-lg font-black tracking-tight flex items-center gap-3">
-                                <div className="p-2 bg-blue-500/10 rounded-xl text-blue-600">
-                                    <Building2 size={18} strokeWidth={2.5} />
-                                </div>
-                                Cliente Corporativo
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-6">
+                    <FormSection
+                        title="Cliente Corporativo"
+                        icon={Building2}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Selecionar Cliente</label>
                                 <SeletorCliente
@@ -334,19 +319,14 @@ export const NovoFretamento: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                    </Card>
+                    </FormSection>
 
                     {/* Rota e Localização */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-lg font-black tracking-tight flex items-center gap-3">
-                                <div className="p-2 bg-red-500/10 rounded-xl text-red-600">
-                                    <MapPin size={18} strokeWidth={2.5} />
-                                </div>
-                                Rota e Itinerário
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-8">
+                    <FormSection
+                        title="Rota e Itinerário"
+                        icon={MapPin}
+                    >
+                        <div className="space-y-8">
                             {/* Sentido da Viagem */}
                             <div className="space-y-3">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Tipo de Trajeto</label>
@@ -469,20 +449,17 @@ export const NovoFretamento: React.FC = () => {
                                 </div>
                             )}
                         </div>
-                    </Card>
+                    </FormSection>
                 </div>
 
                 {/* Coluna Lateral (1/3) */}
                 <div className="space-y-8">
                     {/* Configurações do Serviço */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Bus size={14} className="text-primary" />
-                                Configurações do Serviço
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-6">
+                    <FormSection
+                        title="Configurações do Serviço"
+                        icon={Bus}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Modalidade de Fretamento</label>
                                 <div className="grid grid-cols-2 gap-2">
@@ -509,8 +486,8 @@ export const NovoFretamento: React.FC = () => {
 
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Lotação Prevista (Pax)</label>
-                                <div className="relative">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                                <div className="relative group">
+                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={16} />
                                     <input
                                         type="number"
                                         min="1"
@@ -521,108 +498,99 @@ export const NovoFretamento: React.FC = () => {
                                     />
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </FormSection>
 
                     {/* Recursos Operacionais */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Users size={14} className="text-primary" />
-                                Alocação de Recursos
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-6">
+                    <FormSection
+                        title="Alocação de Recursos"
+                        icon={Users}
+                    >
+                        <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Veículo Designado</label>
-                                <select
-                                    value={veiculoId}
-                                    onChange={(e) => setVeiculoId(e.target.value)}
-                                    className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
-                                >
-                                    <option value="">AGUARDANDO ATRIBUIÇÃO</option>
-                                    {veiculos.map((veiculo) => (
-                                        <option key={veiculo.id} value={veiculo.id}>
-                                            {veiculo.placa} - {veiculo.modelo}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        value={veiculoId}
+                                        onChange={(e) => setVeiculoId(e.target.value)}
+                                        className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                                    >
+                                        <option value="">AGUARDANDO ATRIBUIÇÃO</option>
+                                        {veiculos.map((veiculo) => (
+                                            <option key={veiculo.id} value={veiculo.id}>
+                                                {veiculo.placa} - {veiculo.modelo}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Condutor Principal</label>
-                                <select
-                                    value={motoristaId}
-                                    onChange={(e) => setMotoristaId(e.target.value)}
-                                    className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20"
-                                >
-                                    <option value="">AGUARDANDO ATRIBUIÇÃO</option>
-                                    {motoristas.map((motorista) => (
-                                        <option key={motorista.id} value={motorista.id}>
-                                            {motorista.nome.toUpperCase()}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        value={motoristaId}
+                                        onChange={(e) => setMotoristaId(e.target.value)}
+                                        className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                                    >
+                                        <option value="">AGUARDANDO ATRIBUIÇÃO</option>
+                                        {motoristas.map((motorista) => (
+                                            <option key={motorista.id} value={motorista.id}>
+                                                {motorista.nome.toUpperCase()}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </FormSection>
 
                     {/* Datas do Evento */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Calendar size={14} className="text-primary" />
-                                Cronograma da Operação
-                            </h3>
-                        </div>
-                        <CardContent className="p-8 space-y-6">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Início do Serviço</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <DatePicker value={dataInicio} onChange={setDataInicio} />
-                                        <input
-                                            type="time"
-                                            value={horaInicio}
-                                            onChange={(e) => setHoraInicio(e.target.value)}
-                                            className="h-14 px-3 bg-muted/20 border-border/50 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Término Previsto</label>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <DatePicker value={dataFim} onChange={setDataFim} />
-                                        <input
-                                            type="time"
-                                            value={horaFim}
-                                            onChange={(e) => setHoraFim(e.target.value)}
-                                            className="h-14 px-3 bg-muted/20 border-border/50 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
-                                        />
-                                    </div>
+                    <FormSection
+                        title="Cronograma da Operação"
+                        icon={Calendar}
+                    >
+                        <div className="space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Início do Serviço</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <DatePicker value={dataInicio} onChange={setDataInicio} />
+                                    <input
+                                        type="time"
+                                        value={horaInicio}
+                                        onChange={(e) => setHoraInicio(e.target.value)}
+                                        className="h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                                    />
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Término Previsto</label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <DatePicker value={dataFim} onChange={setDataFim} />
+                                    <input
+                                        type="time"
+                                        value={horaFim}
+                                        onChange={(e) => setHoraFim(e.target.value)}
+                                        className="h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </FormSection>
 
                     {/* Notas e Observações */}
-                    <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <FileText size={14} className="text-primary" />
-                                Detalhamento Adicional
-                            </h3>
-                        </div>
-                        <CardContent className="p-8">
-                            <textarea
-                                value={observacoes}
-                                onChange={(e) => setObservacoes(e.target.value)}
-                                rows={4}
-                                placeholder="Descreva particularidades do serviço, paradas extras ou exigências especiais do cliente..."
-                                className="w-full p-4 bg-muted/40 border-border/50 rounded-2xl font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
-                            />
-                        </CardContent>
-                    </Card>
+                    <FormSection
+                        title="Detalhamento Adicional"
+                        icon={FileText}
+                    >
+                        <textarea
+                            value={observacoes}
+                            onChange={(e) => setObservacoes(e.target.value)}
+                            rows={4}
+                            placeholder="Descreva particularidades do serviço, paradas extras ou exigências especiais do cliente..."
+                            className="w-full p-4 bg-muted/40 border-border/50 rounded-2xl font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
+                        />
+                    </FormSection>
                 </div>
             </div>
         </div>

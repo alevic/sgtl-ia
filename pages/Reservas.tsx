@@ -66,6 +66,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Separator } from "../components/ui/separator";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/Textarea";
+import { PageHeader } from "../components/Layout/PageHeader";
+import { DashboardCard } from "../components/Layout/DashboardCard";
+import { ListFilterSection } from "../components/Layout/ListFilterSection";
 import { cn } from "../lib/utils";
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
@@ -403,83 +406,73 @@ export const Reservas: React.FC = () => {
     return (
         <div key="reservas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Module */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 bg-primary/10 rounded-xl">
-                            <Ticket size={24} className="text-primary" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-semibold tracking-tighter text-foreground">
-                            Gestão de <span className="text-primary">Reservas</span>
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-1">
-                        Acompanhe passagens, pagamentos e embarques em tempo real.
-                    </p>
-                </div>
-                <Button
-                    onClick={() => navigate('/admin/reservas/nova')}
-                    className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
-                >
-                    <Plus size={20} className="mr-2" strokeWidth={3} />
-                    NOVA RESERVA
-                </Button>
-            </div>
+            <PageHeader
+                title="Gestão de Reservas"
+                subtitle="Acompanhe passagens, pagamentos e embarques em tempo real"
+                icon={Ticket}
+                rightElement={
+                    <Button
+                        onClick={() => navigate('/admin/reservas/nova')}
+                        className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                    >
+                        <Plus size={20} className="mr-2" strokeWidth={3} />
+                        NOVA RESERVA
+                    </Button>
+                }
+            />
 
             {/* Quick Stats Overlay */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                    { label: 'Total Reservas', value: reservas.length, icon: Inbox, color: 'blue' },
-                    { label: 'Aguardando', value: reservas.filter(r => r.status === ReservationStatus.PENDING).length, icon: Clock, color: 'amber' },
-                    { label: 'Confirmadas', value: reservas.filter(r => r.status === ReservationStatus.CONFIRMED).length, icon: ShieldCheck, color: 'emerald' },
-                    { label: 'Valor Total', value: `R$ ${reservas.reduce((acc, r) => acc + (Number(r.valor_total || r.price || 0)), 0).toLocaleString()}`, icon: Wallet, color: 'indigo' },
-                ].map((stat, i) => (
-                    <Card key={i} className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-3xl">
-                        <CardContent className="p-6">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-1">
-                                    <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                                    <p className="text-3xl font-semibold tracking-tighter text-foreground">{stat.value}</p>
-                                </div>
-                                <div className={cn(
-                                    "p-3 rounded-xl transition-transform group-hover:scale-110 duration-500",
-                                    stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
-                                        stat.color === 'amber' ? "bg-amber-500/10 text-amber-600" :
-                                            stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
-                                                "bg-indigo-500/10 text-indigo-600"
-                                )}>
-                                    <stat.icon size={20} strokeWidth={2.5} />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                <DashboardCard
+                    title="Total Reservas"
+                    value={reservas.length}
+                    icon={Inbox}
+                    variant="primary"
+                />
+                <DashboardCard
+                    title="Aguardando"
+                    value={reservas.filter(r => r.status === ReservationStatus.PENDING).length}
+                    icon={Clock}
+                    variant="amber"
+                />
+                <DashboardCard
+                    title="Confirmadas"
+                    value={reservas.filter(r => r.status === ReservationStatus.CONFIRMED).length}
+                    icon={ShieldCheck}
+                    variant="emerald"
+                />
+                <DashboardCard
+                    title="Valor Total"
+                    value={`R$ ${reservas.reduce((acc, r) => acc + (Number(r.valor_total || r.price || 0)), 0).toLocaleString()}`}
+                    icon={Wallet}
+                    variant="blue"
+                />
             </div>
 
             {/* Filters Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10">
+            <ListFilterSection className="lg:grid-cols-4">
                 {/* Busca */}
-                <div className="space-y-1.5">
-                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Buscar Reserva</label>
-                    <div className="relative group">
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Buscar Reserva</label>
+                    <div className="relative group flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 group-focus-within:text-primary transition-colors" size={18} />
                         <Input
-                            placeholder="Código, passageiro ou doc..."
+                            placeholder="Código ou passageiro..."
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
-                            className="h-14 pl-12 pr-4 bg-muted/40 border-border rounded-xl focus-visible:ring-primary/20 font-bold"
+                            className="h-14 pl-12 pr-4 bg-muted/40 border-input rounded-xl focus-visible:ring-primary/20 font-bold"
                         />
                     </div>
                 </div>
 
                 {/* Veículo */}
-                <div className="space-y-1.5">
-                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Veículo</label>
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Veículo</label>
                     <Select value={filtroVeiculo} onValueChange={(v) => setFiltroVeiculo(v)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-xl font-bold shadow-none focus:ring-primary/20">
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold shadow-none focus:ring-primary/20">
                             <div className="flex items-center">
                                 <Bus size={16} className="mr-2 text-muted-foreground" />
-                                <SelectValue placeholder="Todos os veículos" />
+                                <SelectValue placeholder="Todos" />
                             </div>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl">
@@ -494,13 +487,13 @@ export const Reservas: React.FC = () => {
                 </div>
 
                 {/* Viagem */}
-                <div className="space-y-1.5">
-                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Viagem / Rota</label>
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Viagem / Rota</label>
                     <Select value={filtroViagem} onValueChange={(v) => setFiltroViagem(v)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-border rounded-xl font-bold shadow-none focus:ring-primary/20">
+                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold shadow-none focus:ring-primary/20">
                             <div className="flex items-center">
                                 <Calendar size={16} className="mr-2 text-muted-foreground" />
-                                <SelectValue placeholder="Todas as viagens" />
+                                <SelectValue placeholder="Todas" />
                             </div>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
@@ -515,19 +508,19 @@ export const Reservas: React.FC = () => {
                 </div>
 
                 {/* Status */}
-                <div className="space-y-1.5">
-                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Status da Reserva</label>
+                <div className="space-y-1.5 flex flex-col">
+                    <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Status da Reserva</label>
                     <Popover open={isStatusDropdownOpen} onOpenChange={setIsStatusDropdownOpen}>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="h-14 w-full bg-muted/40 border-border rounded-xl font-bold justify-between hover:bg-muted/60"
+                                className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold justify-between hover:bg-muted/60"
                             >
                                 <div className="flex items-center gap-2">
                                     <Filter size={16} strokeWidth={2.5} />
                                     <span className="truncate">
                                         {filtroStatus.length === 0
-                                            ? 'Todos os Status'
+                                            ? 'Todos Status'
                                             : `${filtroStatus.length} selecionado(s)`}
                                     </span>
                                 </div>
@@ -575,7 +568,7 @@ export const Reservas: React.FC = () => {
                         </PopoverContent>
                     </Popover>
                 </div>
-            </div>
+            </ListFilterSection>
 
 
             {/* Table Module */}

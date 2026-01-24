@@ -13,6 +13,9 @@ import {
     LineChart, Line, PieChart as RechartsPie, Pie, Cell, AreaChart, Area
 } from 'recharts';
 import { DatePicker } from '../components/Form/DatePicker';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { ListFilterSection } from '../components/Layout/ListFilterSection';
 import { cn } from '../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
@@ -152,38 +155,29 @@ export const Relatorios: React.FC = () => {
     return (
         <div key="relatorios-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Module */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-3">
-
-                        <div className="p-2.5 bg-primary/10 rounded-2xl">
-                            <BarChartIcon size={24} className="text-primary" strokeWidth={2.5} />
-                        </div>
-                        <h1 className="text-4xl font-black tracking-tighter text-foreground">
-                            Relatórios & <span className="text-primary">Análises</span>
-                        </h1>
+            {/* Header Module */}
+            <PageHeader
+                title="Relatórios & Análises"
+                subtitle={`Visão estratégica: ${currentContext === EmpresaContexto.TURISMO ? 'Turismo B2C' : 'Logística Express'}`}
+                icon={BarChartIcon}
+                rightElement={
+                    <div className="flex gap-2 items-center bg-card/50 backdrop-blur-sm p-1.5 rounded-xl border border-border/40 shadow-xl shadow-muted/10 h-14">
+                        <DatePicker
+                            value={periodoInicio}
+                            onChange={setPeriodoInicio}
+                            showIcon={false}
+                            className="!bg-transparent !border-none text-xs font-black !p-2 !h-auto w-24 uppercase tracking-tighter"
+                        />
+                        <Separator orientation="vertical" className="h-4 bg-border/50" />
+                        <DatePicker
+                            value={periodoFim}
+                            onChange={setPeriodoFim}
+                            showIcon={false}
+                            className="!bg-transparent !border-none text-xs font-black !p-2 !h-auto w-24 uppercase tracking-tighter"
+                        />
                     </div>
-                    <p className="text-muted-foreground font-medium text-sm ml-14">
-                        Visão estratégica: {currentContext === EmpresaContexto.TURISMO ? 'Turismo B2C' : 'Logística Express'}
-                    </p>
-                </div>
-
-                <div className="flex gap-2 items-center bg-card/50 backdrop-blur-sm p-1.5 rounded-2xl border border-border/40 shadow-xl shadow-muted/10 h-14">
-                    <DatePicker
-                        value={periodoInicio}
-                        onChange={setPeriodoInicio}
-                        showIcon={false}
-                        className="!bg-transparent !border-none text-xs font-black !p-2 !h-auto w-24 uppercase tracking-tighter"
-                    />
-                    <Separator orientation="vertical" className="h-4 bg-border/50" />
-                    <DatePicker
-                        value={periodoFim}
-                        onChange={setPeriodoFim}
-                        showIcon={false}
-                        className="!bg-transparent !border-none text-xs font-black !p-2 !h-auto w-24 uppercase tracking-tighter"
-                    />
-                </div>
-            </div>
+                }
+            />
 
             {/* Standardized Tabs */}
             <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
@@ -206,43 +200,33 @@ export const Relatorios: React.FC = () => {
                     <TabsContent value="gerencial" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Executive KPI Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            {[
-                                { label: 'Receita Total', value: formatCurrency(analiseFinanceira.receitas), icon: DollarSign, color: 'emerald', trend: '+12.5% vs mês anterior' },
-                                { label: 'Lucro Líquido', value: formatCurrency(analiseFinanceira.lucroLiquido), icon: Activity, color: analiseFinanceira.lucroLiquido >= 0 ? 'blue' : 'rose', trend: `Margem: ${formatPercentage(analiseFinanceira.margemLucro)}` },
-                                { label: currentContext === EmpresaContexto.TURISMO ? 'Taxa de Ocupação' : 'Entregas no Prazo', value: currentContext === EmpresaContexto.TURISMO ? '78.5%' : '92.3%', icon: TrendingUp, color: 'indigo', progress: currentContext === EmpresaContexto.TURISMO ? 78.5 : 92.3 },
-                                { label: 'Frota Ativa', value: '8/10', icon: Bus, color: 'amber', trend: '2 em manutenção' }
-                            ].map((stat, i) => (
-                                <Card key={i} className="border-none shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-colors rounded-[2rem]">
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-start">
-                                            <div className="space-y-1">
-                                                <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">{stat.label}</p>
-                                                <p className="text-2xl font-black tracking-tighter text-foreground">{stat.value}</p>
-                                                {stat.trend && (
-                                                    <p className={cn("text-[12px] font-bold", stat.trend.includes('-') ? "text-rose-500" : "text-emerald-500")}>
-                                                        {stat.trend}
-                                                    </p>
-                                                )}
-                                                {stat.progress && (
-                                                    <div className="w-24 bg-muted rounded-full h-1 mt-2">
-                                                        <div className="bg-primary h-1 rounded-full transition-all" style={{ width: `${stat.progress}%` }} />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className={cn(
-                                                "p-3 rounded-2xl transition-transform group-hover:scale-110 duration-500",
-                                                stat.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
-                                                    stat.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
-                                                        stat.color === 'indigo' ? "bg-indigo-500/10 text-indigo-600" :
-                                                            stat.color === 'rose' ? "bg-rose-500/10 text-rose-600" :
-                                                                "bg-amber-500/10 text-amber-600"
-                                            )}>
-                                                <stat.icon size={20} strokeWidth={2.5} />
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
+                            <DashboardCard
+                                title="Receita Total"
+                                value={formatCurrency(analiseFinanceira.receitas)}
+                                icon={DollarSign}
+                                variant="emerald"
+                                trend="+12.5% vs mês anterior"
+                            />
+                            <DashboardCard
+                                title="Lucro Líquido"
+                                value={formatCurrency(analiseFinanceira.lucroLiquido)}
+                                icon={Activity}
+                                variant={analiseFinanceira.lucroLiquido >= 0 ? "blue" : "rose"}
+                                subtitle={`Margem: ${formatPercentage(analiseFinanceira.margemLucro)}`}
+                            />
+                            <DashboardCard
+                                title={currentContext === EmpresaContexto.TURISMO ? 'Taxa de Ocupação' : 'Entregas no Prazo'}
+                                value={currentContext === EmpresaContexto.TURISMO ? '78.5%' : '92.3%'}
+                                icon={TrendingUp}
+                                variant="indigo"
+                            />
+                            <DashboardCard
+                                title="Frota Ativa"
+                                value="8/10"
+                                icon={Bus}
+                                variant="amber"
+                                trend="2 em manutenção"
+                            />
                         </div>
 
                         {/* Executive Charts Grid */}
@@ -335,32 +319,32 @@ export const Relatorios: React.FC = () => {
 
                     <TabsContent value="operacional" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Executive Filters Module */}
-                        <div className="flex flex-col xl:flex-row gap-6 items-end xl:items-center justify-between bg-card/50 backdrop-blur-sm p-6 rounded-[2rem] border border-border/40 shadow-xl shadow-muted/10">
-                            <div className="relative w-full xl:w-96 group">
+                        <ListFilterSection>
+                            <div className="relative w-full group">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                                 <Input
                                     placeholder="Buscar por rota, motorista ou ID..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-12 h-14 bg-muted/40 border-none rounded-2xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                                    className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                                 />
                             </div>
 
                             <div className="flex items-center gap-4 w-full md:w-auto">
-                                <Tabs value={statusFilter} onValueChange={setStatusFilter} className="bg-muted/40 p-1 rounded-2xl border border-border/50">
-                                    <TabsList className="bg-transparent h-10 gap-1">
-                                        <TabsTrigger value="todos" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                                        <TabsTrigger value="ativo" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">EM ANDAMENTO</TabsTrigger>
-                                        <TabsTrigger value="pendente" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">PENDENTE</TabsTrigger>
-                                        <TabsTrigger value="concluido" className="rounded-xl font-bold text-xs px-4 data-[state=active]:bg-background data-[state=active]:shadow-sm">CONCLUÍDO</TabsTrigger>
+                                <Tabs value={statusFilter} onValueChange={setStatusFilter} className="bg-muted/40 p-1.5 rounded-xl border border-border/50 flex-1 h-14">
+                                    <TabsList className="bg-transparent h-full w-full gap-1">
+                                        <TabsTrigger value="todos" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                                        <TabsTrigger value="ativo" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ANDAMENTO</TabsTrigger>
+                                        <TabsTrigger value="pendente" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">PENDENTE</TabsTrigger>
+                                        <TabsTrigger value="concluido" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">CONCLUÍDO</TabsTrigger>
                                     </TabsList>
                                 </Tabs>
-                                <Button className="h-14 px-6 rounded-2xl font-black gap-2 shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white">
+                                <Button className="h-14 px-6 rounded-xl font-black gap-2 shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white">
                                     <FileText size={18} strokeWidth={2.5} />
                                     MANIFESTO
                                 </Button>
                             </div>
-                        </div>
+                        </ListFilterSection>
 
                         {/* Executive Table Module */}
                         <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">

@@ -8,12 +8,14 @@ import {
     ShieldCheck, History, Clock, Star, CheckCircle2, Loader2,
     Mail, CreditCard, Award, MapPinned, Info, ChevronRight, Hash
 } from 'lucide-react';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { DashboardCard } from '../components/Layout/DashboardCard';
+import { cn } from '../lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { cn } from '../lib/utils';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -160,103 +162,74 @@ export const MotoristaDetalhes: React.FC = () => {
             {/* Premium Header Container */}
             <div className="flex flex-col gap-10">
                 {/* Top Nav & Actions */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div className="flex items-center gap-6 group">
-                        <button
-                            onClick={() => navigate('/admin/motoristas')}
-                            className="w-14 h-14 rounded-2xl bg-card border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group"
-                        >
-                            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                        </button>
-                        <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <Badge className={cn(
-                                    "px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border-none",
-                                    motorista.status === DriverStatus.AVAILABLE ? 'bg-emerald-500/10 text-emerald-600' :
-                                        motorista.status === DriverStatus.IN_TRANSIT ? 'bg-blue-500/10 text-blue-600' :
-                                            motorista.status === DriverStatus.ON_LEAVE ? 'bg-amber-500/10 text-amber-600' :
-                                                'bg-rose-500/10 text-rose-600'
-                                )}>
-                                    {motorista.status}
-                                </Badge>
-                                <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-[0.2em]">ID: {motorista.id?.slice(0, 8)}</span>
-                            </div>
-                            <h1 className="text-4xl font-black text-foreground tracking-tight uppercase">{motorista.nome}</h1>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-4 w-full md:w-auto">
-                        <Button
-                            variant="outline"
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="flex-1 md:flex-none h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] border-border/50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all duration-300"
-                        >
-                            <Trash2 size={18} className="mr-2" />
-                            {isDeleting ? 'Processando...' : 'Excluir'}
-                        </Button>
-                        <Link to={`/admin/motoristas/${id}/editar`} className="flex-1 md:flex-none">
-                            <Button className="w-full h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] bg-primary text-primary-foreground shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300">
-                                <Edit size={18} className="mr-2" />
-                                Editar Cadastro
+                {/* Header Module */}
+                <PageHeader
+                    title={motorista.nome}
+                    subtitle={`Contratado em ${formatDate(motorista.data_contratacao)} • ID #${motorista.id?.slice(0, 8)}`}
+                    suffix="MOTORISTA"
+                    icon={User}
+                    backLink="/admin/motoristas"
+                    backLabel="Gestão de Operadores"
+                    rightElement={
+                        <div className="flex items-center gap-3">
+                            <Badge className={cn(
+                                "px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border-none mr-4",
+                                motorista.status === DriverStatus.AVAILABLE ? 'bg-emerald-500/10 text-emerald-600' :
+                                    motorista.status === DriverStatus.IN_TRANSIT ? 'bg-blue-500/10 text-blue-600' :
+                                        motorista.status === DriverStatus.ON_LEAVE ? 'bg-amber-500/10 text-amber-600' :
+                                            'bg-rose-500/10 text-rose-600'
+                            )}>
+                                {motorista.status}
+                            </Badge>
+                            <Button
+                                variant="outline"
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-widest border-border/50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all duration-300"
+                            >
+                                <Trash2 size={18} className="mr-2" />
+                                {isDeleting ? 'Excluindo...' : 'Excluir'}
                             </Button>
-                        </Link>
-                    </div>
-                </div>
+                            <Link to={`/admin/motoristas/${id}/editar`}>
+                                <Button className="h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300">
+                                    <Edit size={18} className="mr-2" />
+                                    Editar Registro
+                                </Button>
+                            </Link>
+                        </div>
+                    }
+                />
 
                 {/* Hero Stats Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
-                        <div className="relative z-10 flex flex-col gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <CreditCard size={24} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Categoria CNH</p>
-                                <p className="text-3xl font-black text-foreground tracking-tighter uppercase">{motorista.categoria_cnh || '--'}</p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
-                        <div className="relative z-10 flex flex-col gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <Calendar size={24} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Contratado em</p>
-                                <p className="text-2xl font-black text-foreground tracking-tighter uppercase">{formatDate(motorista.data_contratacao)}</p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
-                        <div className="relative z-10 flex flex-col gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <Globe size={24} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Rota Internacional</p>
-                                <p className="text-3xl font-black text-foreground tracking-tighter uppercase">{motorista.disponivel_internacional ? 'APTO' : 'INAPTO'}</p>
-                            </div>
-                        </div>
-                    </Card>
-
-                    <Card className="p-8 bg-card border border-border/50 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 group relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -translate-y-12 translate-x-12 group-hover:scale-150 transition-transform duration-700" />
-                        <div className="relative z-10 flex flex-col gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <Award size={24} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Total de Viagens</p>
-                                <p className="text-3xl font-black text-foreground tracking-tighter uppercase">{motorista.viagens_internacionais || '0'}</p>
-                            </div>
-                        </div>
-                    </Card>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <DashboardCard
+                        title="Categoria CNH"
+                        value={motorista.categoria_cnh || '--'}
+                        icon={CreditCard}
+                        variant="indigo"
+                        footer="Qualificação técnica"
+                    />
+                    <DashboardCard
+                        title="Contratado em"
+                        value={formatDate(motorista.data_contratacao)}
+                        icon={Calendar}
+                        variant="indigo"
+                        footer="Tempo de casa"
+                    />
+                    <DashboardCard
+                        title="Rota Internacional"
+                        value={motorista.disponivel_internacional ? 'APTO' : 'INAPTO'}
+                        icon={Globe}
+                        variant="indigo"
+                        footer="Alcance operacional"
+                    />
+                    <DashboardCard
+                        title="Total de Viagens"
+                        value={motorista.viagens_internacionais || '0'}
+                        icon={Award}
+                        variant="indigo"
+                        footer="Experiência acumulada"
+                    />
                 </div>
             </div>
 
@@ -293,26 +266,26 @@ export const MotoristaDetalhes: React.FC = () => {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 animate-in fade-in duration-700">
                                 <div className="space-y-10 focus-visible:outline-none">
                                     <div className="space-y-6">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <User size={16} className="text-primary" /> Identificação & Status
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail Corporativo</p>
+                                                <p className="text-label-caps">E-mail Corporativo</p>
                                                 <p className="text-base font-bold text-foreground">{motorista.email || '-'}</p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telefone de Contato</p>
+                                                <p className="text-label-caps">Telefone de Contato</p>
                                                 <p className="text-base font-bold text-foreground">{motorista.telefone || '-'}</p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data de Admissão</p>
+                                                <p className="text-label-caps">Data de Admissão</p>
                                                 <p className="text-base font-bold text-foreground">
                                                     {motorista.data_contratacao ? formatDate(motorista.data_contratacao) : '-'}
                                                 </p>
                                             </div>
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Capacitação Operacional</p>
+                                                <p className="text-label-caps">Capacitação Operacional</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <Badge className="bg-purple-500/10 text-purple-600 border-none font-black uppercase text-[10px] tracking-widest px-3">
                                                         CAT. {motorista.categoria_cnh || 'N/A'}
@@ -323,23 +296,23 @@ export const MotoristaDetalhes: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-6">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <MapPinned size={16} className="text-primary" /> Endereço Residencial
                                         </h3>
                                         <div className="space-y-6 bg-card p-8 rounded-[2rem] border border-border/50 shadow-sm">
                                             <div className="space-y-1">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Logradouro / Complemento</p>
+                                                <p className="text-label-caps">Logradouro / Complemento</p>
                                                 <p className="text-base font-bold text-foreground">{motorista.endereco || '-'}</p>
                                             </div>
                                             <div className="grid grid-cols-2 gap-6">
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cidade / UF</p>
+                                                    <p className="text-label-caps">Cidade / UF</p>
                                                     <p className="text-sm font-bold text-foreground">
                                                         {motorista.cidade || '-'}{motorista.estado ? ` - ${motorista.estado}` : ''}
                                                     </p>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">País de Origem</p>
+                                                    <p className="text-label-caps">País de Origem</p>
                                                     <p className="text-sm font-bold text-foreground">{motorista.pais || '-'}</p>
                                                 </div>
                                             </div>
@@ -349,7 +322,7 @@ export const MotoristaDetalhes: React.FC = () => {
 
                                 <div className="space-y-10">
                                     <div className="space-y-6">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <Award size={16} className="text-primary" /> Qualificações & Competências
                                         </h3>
                                         <div className="space-y-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
@@ -359,7 +332,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                                         <Globe size={18} />
                                                     </div>
                                                     <div>
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Operação Internacional</p>
+                                                        <p className="text-label-caps">Operação Internacional</p>
                                                         <p className="text-sm font-black text-foreground">{motorista.disponivel_internacional ? 'HABILITADO' : 'NÃO HABILITADO'}</p>
                                                     </div>
                                                 </div>
@@ -375,7 +348,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                                     <Briefcase size={18} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Roteiros Realizados</p>
+                                                    <p className="text-label-caps">Roteiros Realizados</p>
                                                     <p className="text-sm font-black text-foreground">{motorista.viagens_internacionais || 0} Viagens Internacionais</p>
                                                 </div>
                                             </div>
@@ -383,7 +356,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <h3 className="text-section-header flex items-center gap-2">
                                             <Info size={16} className="text-primary" /> Observações Internas
                                         </h3>
                                         <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
@@ -419,13 +392,13 @@ export const MotoristaDetalhes: React.FC = () => {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Número do Registro</p>
+                                                <p className="text-label-caps">Número do Registro</p>
                                                 <p className="text-3xl font-black text-foreground tracking-widest font-mono">{motorista.cnh}</p>
                                             </div>
 
                                             <div className="flex items-center justify-between pt-8 border-t border-border/50">
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Expiração do Documento</p>
+                                                    <p className="text-label-caps">Expiração do Documento</p>
                                                     <div className="flex items-center gap-2">
                                                         <div className={cn(
                                                             "w-2 h-2 rounded-full",
@@ -466,14 +439,14 @@ export const MotoristaDetalhes: React.FC = () => {
                                                         <Globe size={24} />
                                                     </div>
                                                     <div>
-                                                        <h4 className="text-lg font-black text-foreground tracking-tight uppercase">Passaporte</h4>
-                                                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Documentação Internacional</p>
+                                                        <h4 className="text-section-header">Passaporte</h4>
+                                                        <p className="text-section-description">Documentação Internacional</p>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-2">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Número do Documento</p>
+                                                <p className="text-label-caps">Número do Documento</p>
                                                 <p className="text-3xl font-black text-foreground tracking-widest font-mono">
                                                     {motorista.passaporte || 'NÃO REGISTRADO'}
                                                 </p>
@@ -482,7 +455,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                             <div className="flex items-center justify-between pt-8 border-t border-border/50">
                                                 {passaporteValidade ? (
                                                     <div className="space-y-1">
-                                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Validade do Visto/Registro</p>
+                                                        <p className="text-label-caps">Validade do Visto/Registro</p>
                                                         <div className="flex items-center gap-2">
                                                             <div className={cn(
                                                                 "w-2 h-2 rounded-full",
@@ -517,7 +490,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                     <History size={48} />
                                 </div>
                                 <div className="text-center space-y-2">
-                                    <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Registro de Operações</h3>
+                                    <h3 className="text-section-header">Registro de Operações</h3>
                                     <p className="text-muted-foreground text-sm max-w-sm mx-auto font-medium">
                                         O histórico detalhado de viagens e checkpoints para este motorista está sendo processado e estará disponível em breve.
                                     </p>

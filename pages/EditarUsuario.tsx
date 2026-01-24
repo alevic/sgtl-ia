@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, User, Lock, Settings, Activity, Shield } from 'lucide-react';
+import { PageHeader } from '../components/Layout/PageHeader';
+import { FormSection } from '../components/Layout/FormSection';
+import { cn } from '../lib/utils';
 import { UserForm } from '../components/User/UserForm';
 import { useApp } from '../context/AppContext';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, User, Lock, Settings, Activity, Shield } from 'lucide-react';
 
 type TabType = 'perfil' | 'seguranca' | 'preferencias' | 'atividades';
 
@@ -73,28 +75,15 @@ export const EditarUsuario: React.FC = () => {
 
     return (
         <div key="editar-usuario-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
-            {/* Header Executivo */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-4">
-                    <button
-                        onClick={() => navigate(isOwnProfile ? '/admin/dashboard' : '/admin/usuarios')}
-                        className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-                    >
-                        <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-1" />
-                        <span className="text-[12px] font-black uppercase tracking-widest">
-                            {isOwnProfile ? 'Painel Principal' : 'Gestão de Operadores'}
-                        </span>
-                    </button>
-                    <div>
-                        <h1 className="text-4xl font-black text-foreground tracking-tight">
-                            {isOwnProfile ? 'MEU' : 'EDITAR'} <span className="text-primary italic">{isOwnProfile ? 'PERFIL' : 'OPERADOR'}</span>
-                        </h1>
-                        <p className="text-muted-foreground font-medium mt-1">
-                            {isOwnProfile ? 'Configurações de identidade, segurança e preferências operacionais' : 'Sincronização de credenciais e permissões do sistema'}
-                        </p>
-                    </div>
-                </div>
-            </div>
+            {/* Header Module */}
+            <PageHeader
+                title={isOwnProfile ? "Meu Perfil" : "Configurações de Operador"}
+                subtitle={isOwnProfile ? "Gestão de identidade, segurança e preferências" : "Sincronização de credenciais e permissões"}
+                suffix={isOwnProfile ? "PROFILE" : "OPERATOR"}
+                icon={User}
+                backLink={isOwnProfile ? "/admin/dashboard" : "/admin/usuarios"}
+                backLabel={isOwnProfile ? "Painel Principal" : "Gestão de Operadores"}
+            />
 
             {error && (
                 <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300">
@@ -153,14 +142,11 @@ export const EditarUsuario: React.FC = () => {
                 )}
 
                 {activeTab === 'seguranca' && (
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
-                            <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                <Lock size={14} className="text-primary" />
-                                Protocolos de Segurança
-                            </h3>
-                        </div>
-                        <div className="p-8 space-y-8">
+                    <FormSection
+                        title="Protocolos de Segurança"
+                        icon={Lock}
+                    >
+                        <div className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-6">
                                     <div className="space-y-1.5">
@@ -204,16 +190,16 @@ export const EditarUsuario: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                    </FormSection>
                 )}
 
                 {activeTab === 'preferencias' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                            <div className="p-8 border-b border-border/50 bg-muted/20">
-                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground">Centro de Notificações</h3>
-                            </div>
-                            <div className="p-8 space-y-4">
+                        <FormSection
+                            title="Centro de Notificações"
+                            icon={Settings}
+                        >
+                            <div className="space-y-4">
                                 {[
                                     { label: 'Alertas de Email', desc: 'Relatórios diários e alertas críticos' },
                                     { label: 'Notificações Push', desc: 'Alertas instantâneos no navegador' },
@@ -228,7 +214,7 @@ export const EditarUsuario: React.FC = () => {
                                     </label>
                                 ))}
                             </div>
-                        </Card>
+                        </FormSection>
 
                         <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden flex flex-col items-center justify-center p-8 text-center space-y-6">
                             <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center">
@@ -244,14 +230,16 @@ export const EditarUsuario: React.FC = () => {
                 )}
 
                 {activeTab === 'atividades' && (
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-20 flex flex-col items-center justify-center space-y-6 text-center">
+                    <FormSection
+                        title="Timeline de Operações"
+                        icon={Activity}
+                    >
+                        <div className="py-20 flex flex-col items-center justify-center space-y-6 text-center">
                             <div className="w-24 h-24 bg-muted/40 rounded-[2.5rem] flex items-center justify-center text-muted-foreground/30">
                                 <Activity size={48} strokeWidth={1} />
                             </div>
                             <div className="max-w-sm">
-                                <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-foreground">Timeline de Operações</h3>
-                                <p className="text-[9px] font-bold text-muted-foreground mt-2 uppercase leading-relaxed">
+                                <p className="text-[11px] font-bold text-muted-foreground uppercase leading-relaxed">
                                     O histórico detalhado de interações deste operador está sendo indexado para o novo módulo de auditoria.
                                 </p>
                             </div>
@@ -259,7 +247,7 @@ export const EditarUsuario: React.FC = () => {
                                 Sincronizar Timeline
                             </Button>
                         </div>
-                    </Card>
+                    </FormSection>
                 )}
             </div>
         </div>
