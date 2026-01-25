@@ -159,20 +159,24 @@ export const ContasPagar: React.FC = () => {
             </div>
 
             {/* Filters Module */}
-            <ListFilterSection>
-                <div className="relative flex-1 group">
-                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input
-                        placeholder="Buscar por fornecedor, descrição ou documento..."
-                        value={busca}
-                        onChange={e => setBusca(e.target.value)}
-                        className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
-                    />
+            <ListFilterSection gridClassName="lg:grid-cols-4">
+                <div className="lg:col-span-2 space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Pesquisar</label>
+                    <div className="relative group">
+                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input
+                            placeholder="Fornecedor, descrição ou documento..."
+                            value={busca}
+                            onChange={e => setBusca(e.target.value)}
+                            className="pl-12 h-14 bg-muted/20 border-border/50 rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                        />
+                    </div>
                 </div>
 
-                <div className="flex flex-wrap gap-4 items-center">
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Status</label>
                     <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
-                        <SelectTrigger className="w-[180px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-xs uppercase tracking-widest">
                             <SelectValue placeholder="STATUS" />
                         </SelectTrigger>
                         <SelectContent>
@@ -182,9 +186,12 @@ export const ContasPagar: React.FC = () => {
                             <SelectItem value={StatusTransacao.OVERDUE}>VENCIDA</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
 
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Categoria</label>
                     <Select value={filtroCategoria} onValueChange={(v: any) => setFiltroCategoria(v)}>
-                        <SelectTrigger className="w-[200px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-xs uppercase tracking-widest">
                             <SelectValue placeholder="CATEGORIA" />
                         </SelectTrigger>
                         <SelectContent>
@@ -199,7 +206,6 @@ export const ContasPagar: React.FC = () => {
                     </Select>
                 </div>
             </ListFilterSection>
-
             {/* Lista de Contas */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">

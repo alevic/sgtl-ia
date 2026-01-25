@@ -4,18 +4,20 @@ import { cn } from '../../lib/utils';
 interface ListFilterSectionProps {
     children: React.ReactNode;
     className?: string;
+    gridClassName?: string;
 }
 
 export const ListFilterSection: React.FC<ListFilterSectionProps> = ({
     children,
-    className
+    className,
+    gridClassName
 }) => {
     return (
         <div className={cn(
             "bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10",
             className
         )}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6", gridClassName)}>
                 {children}
             </div>
         </div>

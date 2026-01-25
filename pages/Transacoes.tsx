@@ -220,94 +220,102 @@ export const Transacoes: React.FC = () => {
             </div>
 
             {/* Filters Module */}
-            <ListFilterSection>
-                <div className="space-y-4 w-full">
-                    <div className="flex flex-col lg:flex-row gap-4">
-                        <div className="relative flex-1 group">
-                            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                            <Input
-                                placeholder="Buscar por descrição, ID ou documento..."
-                                value={busca}
-                                onChange={e => setBusca(e.target.value)}
-                                className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
-                            />
-                        </div>
-
-                        <div className="flex flex-wrap gap-3">
-                            <Select value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)}>
-                                <SelectTrigger className="w-[160px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
-                                    <SelectValue placeholder="TIPO" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="TODAS">TODOS OS TIPOS</SelectItem>
-                                    <SelectItem value={TipoTransacao.INCOME}>RECEITA</SelectItem>
-                                    <SelectItem value={TipoTransacao.EXPENSE}>DESPESA</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
-                                <SelectTrigger className="w-[180px] h-14 bg-card/50 border-input rounded-xl font-bold text-xs uppercase tracking-widest">
-                                    <SelectValue placeholder="STATUS" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="TODAS">TODOS OS STATUS</SelectItem>
-                                    <SelectItem value={StatusTransacao.PAID}>PAGA / RECEBIDA</SelectItem>
-                                    <SelectItem value={StatusTransacao.PENDING}>PENDENTE</SelectItem>
-                                    <SelectItem value={StatusTransacao.OVERDUE}>VENCIDA</SelectItem>
-                                    <SelectItem value={StatusTransacao.PARTIALLY_PAID}>PARCIAL</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-4 items-center pt-2 border-t border-border/40">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Período:</span>
-                            <Input
-                                type="date"
-                                value={dataInicio}
-                                onChange={e => setDataInicio(e.target.value)}
-                                className="w-40 h-10 bg-muted/20 border-input rounded-lg text-xs font-bold"
-                            />
-                            <span className="text-muted-foreground">→</span>
-                            <Input
-                                type="date"
-                                value={dataFim}
-                                onChange={e => setDataFim(e.target.value)}
-                                className="w-40 h-10 bg-muted/20 border-input rounded-lg text-xs font-bold"
-                            />
-                        </div>
-
-                        <div className="h-6 w-px bg-border/40 mx-2" />
-
-                        <Select value={filtroCentroCusto} onValueChange={(v: any) => setFiltroCentroCusto(v)}>
-                            <SelectTrigger className="w-[180px] h-10 bg-card/30 border-input rounded-lg font-bold text-[10px] uppercase tracking-widest">
-                                <SelectValue placeholder="CENTRO CUSTO" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="TODOS">TODOS C. CUSTO</SelectItem>
-                                <SelectItem value={CentroCusto.ESTOQUE}>ESTOQUE</SelectItem>
-                                <SelectItem value={CentroCusto.VENDAS}>VENDAS</SelectItem>
-                                <SelectItem value={CentroCusto.ADMINISTRATIVO}>ADMINISTRATIVO</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <Select value={filtroClassificacao} onValueChange={(v: any) => setFiltroClassificacao(v)}>
-                            <SelectTrigger className="w-[180px] h-10 bg-card/30 border-input rounded-lg font-bold text-[10px] uppercase tracking-widest">
-                                <SelectValue placeholder="CLASSIFICAÇÃO" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="TODAS">TODAS CLASSIF.</SelectItem>
-                                <SelectItem value={ClassificacaoContabil.CUSTO_FIXO}>CUSTO FIXO</SelectItem>
-                                <SelectItem value={ClassificacaoContabil.CUSTO_VARIAVEL}>CUSTO VARIÁVEL</SelectItem>
-                                <SelectItem value={ClassificacaoContabil.DESPESA_FIXA}>DESPESA FIXA</SelectItem>
-                                <SelectItem value={ClassificacaoContabil.DESPESA_VARIAVEL}>DESPESA VARIÁVEL</SelectItem>
-                            </SelectContent>
-                        </Select>
+            <ListFilterSection gridClassName="lg:grid-cols-4">
+                {/* Row 1: Busca e Filtros Principais */}
+                <div className="lg:col-span-2 space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Pesquisar</label>
+                    <div className="relative group">
+                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                        <Input
+                            placeholder="Descrição, ID ou documento..."
+                            value={busca}
+                            onChange={e => setBusca(e.target.value)}
+                            className="pl-12 h-14 bg-muted/20 border-border/50 rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                        />
                     </div>
                 </div>
-            </ListFilterSection>
 
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo</label>
+                    <Select value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)}>
+                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                            <SelectValue placeholder="TIPO" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODAS">TODOS OS TIPOS</SelectItem>
+                            <SelectItem value={TipoTransacao.INCOME}>RECEITA</SelectItem>
+                            <SelectItem value={TipoTransacao.EXPENSE}>DESPESA</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Status</label>
+                    <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
+                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                            <SelectValue placeholder="STATUS" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODAS">TODOS OS STATUS</SelectItem>
+                            <SelectItem value={StatusTransacao.PAID}>PAGA / RECEBIDA</SelectItem>
+                            <SelectItem value={StatusTransacao.PENDING}>PENDENTE</SelectItem>
+                            <SelectItem value={StatusTransacao.OVERDUE}>VENCIDA</SelectItem>
+                            <SelectItem value={StatusTransacao.PARTIALLY_PAID}>PARCIAL</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Row 2: Período e Filtros de Negócio */}
+                <div className="lg:col-span-2 space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Período de Emissão</label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                            type="date"
+                            value={dataInicio}
+                            onChange={e => setDataInicio(e.target.value)}
+                            className="flex-1 h-14 bg-muted/20 border-border/50 rounded-xl text-xs font-bold"
+                        />
+                        <span className="text-muted-foreground font-black">→</span>
+                        <Input
+                            type="date"
+                            value={dataFim}
+                            onChange={e => setDataFim(e.target.value)}
+                            className="flex-1 h-14 bg-muted/20 border-border/50 rounded-xl text-xs font-bold"
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Centro de Custo</label>
+                    <Select value={filtroCentroCusto} onValueChange={(v: any) => setFiltroCentroCusto(v)}>
+                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                            <SelectValue placeholder="CENTRO CUSTO" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODOS">TODOS C. CUSTO</SelectItem>
+                            <SelectItem value={CentroCusto.ESTOQUE}>ESTOQUE</SelectItem>
+                            <SelectItem value={CentroCusto.VENDAS}>VENDAS</SelectItem>
+                            <SelectItem value={CentroCusto.ADMINISTRATIVO}>ADMINISTRATIVO</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Classificação</label>
+                    <Select value={filtroClassificacao} onValueChange={(v: any) => setFiltroClassificacao(v)}>
+                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                            <SelectValue placeholder="CLASSIFICAÇÃO" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODAS">TODAS CLASSIF.</SelectItem>
+                            <SelectItem value={ClassificacaoContabil.CUSTO_FIXO}>CUSTO FIXO</SelectItem>
+                            <SelectItem value={ClassificacaoContabil.CUSTO_VARIAVEL}>CUSTO VARIÁVEL</SelectItem>
+                            <SelectItem value={ClassificacaoContabil.DESPESA_FIXA}>DESPESA FIXA</SelectItem>
+                            <SelectItem value={ClassificacaoContabil.DESPESA_VARIAVEL}>DESPESA VARIÁVEL</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </ListFilterSection>
             {/* Lista de Transações */}
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">

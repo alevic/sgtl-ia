@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, ReservationStatusLabel, TipoInteracao, TipoInteracaoLabel } from '../types';
 import { useAppContext } from '../context/AppContext';
 import { DatePicker } from '../components/Form/DatePicker';
@@ -95,6 +95,7 @@ const MOCK_NOTAS: INota[] = [
 
 export const ClienteDetalhes: React.FC = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const { user } = useAppContext();
     const [activeTab, setActiveTab] = useState<'perfil' | 'historico' | 'interacoes' | 'notas'>('perfil');
     const [cliente, setCliente] = useState<ICliente | null>(null);
@@ -106,12 +107,10 @@ export const ClienteDetalhes: React.FC = () => {
     // Modal states
     const [showInteractionModal, setShowInteractionModal] = useState(false);
     const [showNoteModal, setShowNoteModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
 
     // New item states
     const [newInteraction, setNewInteraction] = useState({ tipo: TipoInteracao.PHONE, descricao: '' });
     const [newNote, setNewNote] = useState({ titulo: '', conteudo: '', importante: false });
-    const [editFormData, setEditFormData] = useState<Partial<ICliente>>({});
 
     const getTipoIcon = (tipo: TipoInteracao) => {
         switch (tipo) {
@@ -202,41 +201,6 @@ export const ClienteDetalhes: React.FC = () => {
         }
     };
 
-    const handleEditClick = () => {
-        if (cliente) {
-            setEditFormData({
-                ...cliente,
-                // Ensure dates are formatted for input type="date"
-                data_nascimento: cliente.data_nascimento ? new Date(cliente.data_nascimento).toISOString().split('T')[0] : ''
-            });
-            setShowEditModal(true);
-        }
-    };
-
-    const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setEditFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSaveEdit = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/clients/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(editFormData)
-            });
-
-            if (response.ok) {
-                const updatedClient = await response.json();
-                setCliente(updatedClient);
-                setShowEditModal(false);
-            } else {
-                console.error('Failed to update client');
-            }
-        } catch (error) {
-            console.error('Error updating client:', error);
-        }
-    };
 
     if (isLoading) {
         return <div className="p-8 text-center">Carregando...</div>;
@@ -274,11 +238,11 @@ export const ClienteDetalhes: React.FC = () => {
                         )}
                         <Button
                             variant="outline"
-                            onClick={handleEditClick}
+                            onClick={() => navigate(`/admin/clientes/${id}/editar`)}
                             className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
                         >
                             <Edit size={16} className="mr-2" />
-                            Editar Castro
+                            Editar Cadastro
                         </Button>
                         <Button
                             variant="secondary"

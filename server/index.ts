@@ -636,6 +636,28 @@ app.get("/api/finance/transactions", authorize(['admin', 'financeiro']), async (
     }
 });
 
+app.get("/api/finance/transactions/:id", authorize(['admin', 'financeiro']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const result = await pool.query(
+            "SELECT * FROM transaction WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Transaction not found" });
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error("Error fetching transaction:", error);
+        res.status(500).json({ error: "Failed to fetch transaction" });
+    }
+});
+
 app.post("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
     try {
         const session = (req as any).session;

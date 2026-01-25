@@ -77,7 +77,7 @@ export const NovaManutencao: React.FC = () => {
                                 id: maintenanceData.vehicle_id,
                                 placa: maintenanceData.placa,
                                 modelo: maintenanceData.modelo,
-                                tipo: maintenanceData.tipo
+                                tipo: maintenanceData.vehicle_type
                             });
                         }
 
@@ -106,7 +106,6 @@ export const NovaManutencao: React.FC = () => {
             }
         };
 
-        fetchData();
         fetchData();
     }, [id, isEditing, navigate]);
 
@@ -173,7 +172,8 @@ export const NovaManutencao: React.FC = () => {
         confirmText: '',
         cancelText: '',
         onConfirm: () => { },
-        onCancel: () => { }
+        onCancel: () => { },
+        hideConfirmButton: false
     });
 
     const executeSave = async () => {
@@ -212,7 +212,6 @@ export const NovaManutencao: React.FC = () => {
                 // Scenario: Create Transaction (Only if NO transaction exists)
                 if (custoTotal > 0 && !transactionInfo) {
                     const placa = selectedVehicleDetails ? selectedVehicleDetails.placa : 'Veículo';
-                    // We don't rely on state for the callback to avoid stale closures
 
                     setFinancialModalContent({
                         title: 'Lançar Despesa',
@@ -220,24 +219,26 @@ export const NovaManutencao: React.FC = () => {
                             <div className="space-y-2">
                                 <p>Manutenção salva com sucesso!</p>
                                 <p>
-                                    Deseja lançar o custo total de <strong>{formData.moeda} {custoTotal.toFixed(2)}</strong> no módulo Financeiro agora?
+                                    Deseja lançar o custo total de <strong>{formData.moeda} {custoTotal.toFixed(2)}</strong> no módulo Financeiro agora para detalhar o pagamento?
                                 </p>
                             </div>
                         ),
                         confirmText: 'Sim, lançar despesa',
                         cancelText: 'Não, apenas salvar',
                         onConfirm: () => {
+                            setShowFinancialModal(false);
                             navigate('/admin/financeiro/transacoes/nova', {
                                 state: {
                                     valor: custoTotal,
-                                    descricao: `Manutenção ${placa || 'Veículo'} - ${formData.tipo}`,
+                                    descricao: `Manutenção ${placa} - ${formData.tipo}`,
                                     categoria_despesa: 'MANUTENCAO',
                                     centro_custo: 'VENDAS', // Custo Variável
                                     manutencao_id: savedData.id
                                 }
                             });
                         },
-                        onCancel: handleSkipFinance
+                        onCancel: handleSkipFinance,
+                        hideConfirmButton: false
                     });
                     setShowFinancialModal(true);
                     setLoading(false);
@@ -253,6 +254,78 @@ export const NovaManutencao: React.FC = () => {
         } catch (error) {
             console.error('Error saving maintenance:', error);
             alert('Erro ao salvar manutenção.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCancelAndRelaunch = async () => {
+        if (!transactionInfo) return;
+
+        setLoading(true);
+        setShowFinancialModal(false);
+
+        try {
+            // 1. Fetch full transaction data to preserve fields during PUT
+            const transRes = await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions/${transactionInfo.id}`, { credentials: 'include' });
+            if (!transRes.ok) throw new Error('Não foi possível carregar os dados da transação anterior.');
+            const fullTrans = await transRes.json();
+
+            // 2. Save maintenance (direct API call to avoid executeSave redirection logic)
+            const saveUrl = isEditing
+                ? `${import.meta.env.VITE_API_URL}/api/maintenance/${id}`
+                : `${import.meta.env.VITE_API_URL}/api/maintenance`;
+
+            const payload = { ...formData, vehicle_id: formData.veiculo_id };
+            const saveResponse = await fetch(saveUrl, {
+                method: isEditing ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                credentials: 'include'
+            });
+            if (!saveResponse.ok) throw new Error('Falha ao salvar manutenção');
+            const savedData = await saveResponse.json();
+
+            // 3. Cancel old transaction (Soft delete/Audit friendly)
+            await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions/${transactionInfo.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tipo: fullTrans.type,
+                    descricao: fullTrans.description,
+                    valor: fullTrans.amount,
+                    moeda: fullTrans.currency,
+                    data_emissao: fullTrans.date,
+                    data_vencimento: fullTrans.due_date,
+                    data_pagamento: fullTrans.payment_date,
+                    status: 'CANCELLED',
+                    forma_pagamento: fullTrans.payment_method,
+                    categoria_despesa: fullTrans.type === 'EXPENSE' ? fullTrans.category : undefined,
+                    categoria_receita: fullTrans.type === 'INCOME' ? fullTrans.category : undefined,
+                    centro_custo: fullTrans.cost_center,
+                    classificacao_contabil: fullTrans.accounting_classification,
+                    numero_documento: fullTrans.document_number,
+                    observacoes: (fullTrans.notes || '') + '\n[Cancelada devido a alteração de custo na manutenção]'
+                }),
+                credentials: 'include'
+            });
+
+            // 4. Redirect to NEW transaction form
+            const currentCusto = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
+            const placa = selectedVehicleDetails ? selectedVehicleDetails.placa : 'Veículo';
+
+            navigate('/admin/financeiro/transacoes/nova', {
+                state: {
+                    valor: currentCusto,
+                    descricao: `Manutenção ${placa} - ${formData.tipo}`,
+                    categoria_despesa: 'MANUTENCAO',
+                    centro_custo: 'VENDAS',
+                    manutencao_id: savedData.id
+                }
+            });
+        } catch (error: any) {
+            console.error('Erro no fluxo auditável:', error);
+            alert(error.message || 'Erro ao processar alteração financeira.');
         } finally {
             setLoading(false);
         }
@@ -318,7 +391,6 @@ export const NovaManutencao: React.FC = () => {
 
             // Scenario 3: General Update (Value/Date)
             else {
-                // Check if financial relevant data changed
                 const originalCusto = (Number(originalData?.custo_pecas) || 0) + (Number(originalData?.custo_mao_de_obra) || 0);
                 const currentCusto = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
 
@@ -326,8 +398,7 @@ export const NovaManutencao: React.FC = () => {
                     Math.abs(originalCusto - currentCusto) > 0.01 ||
                     originalData?.data_agendada !== formData.data_agendada ||
                     originalData?.tipo !== formData.tipo ||
-                    originalData?.veiculo_id !== formData.veiculo_id ||
-                    originalData?.status !== formData.status;
+                    originalData?.veiculo_id !== formData.veiculo_id;
 
                 if (!hasFinancialChanges) {
                     executeSave();
@@ -335,24 +406,56 @@ export const NovaManutencao: React.FC = () => {
                 }
 
                 setFinancialModalContent({
-                    title: 'Atualizar Financeiro',
+                    title: 'Alteração de Custo',
                     message: (
-                        <div className="space-y-2">
-                            <p>
-                                Esta manutenção possui uma transação financeira vinculada.
-                                Os dados financeiros serão atualizados para refletir esta manutenção.
-                            </p>
-                            <div className="bg-slate-100 dark:bg-slate-700 p-3 rounded-md">
-                                <p><strong>Novo Valor:</strong> {formData.moeda} {custoTotal.toFixed(2)}</p>
-                                <p><strong>Nova Data:</strong> {formData.data_agendada?.split('-').reverse().join('/')}</p>
+                        <div className="space-y-4 pt-2">
+                            <Alert variant="default" className="bg-amber-50 dark:bg-amber-900/10 border-amber-200">
+                                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                <AlertDescription className="text-xs text-amber-800 dark:text-amber-300">
+                                    O valor da manutenção foi alterado. Como deseja tratar o registro financeiro atual para manter a auditoria?
+                                </AlertDescription>
+                            </Alert>
+
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                                <div className="text-xs text-slate-500 uppercase font-bold">Resumo</div>
+                                <div className="flex gap-4">
+                                    <span className="text-sm line-through text-slate-400">{formData.moeda} {originalCusto.toFixed(2)}</span>
+                                    <span className="text-sm font-black text-slate-900 dark:text-slate-100">{formData.moeda} {currentCusto.toFixed(2)}</span>
+                                </div>
                             </div>
-                            <p>Deseja confirmar a atualização?</p>
+
+                            <div className="grid grid-cols-1 gap-3">
+                                <button
+                                    onClick={handleCancelAndRelaunch}
+                                    className="flex flex-col items-start p-3 text-left border-2 border-blue-100 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 dark:border-blue-900/20 dark:hover:border-blue-700 dark:bg-blue-900/10 dark:hover:bg-blue-900/20 rounded-xl transition-all group"
+                                >
+                                    <span className="text-sm font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                                        <CheckCircle size={16} /> Cancelar e Relançar (Recomendado)
+                                    </span>
+                                    <span className="text-[10px] text-blue-600/70 dark:text-blue-500/70 mt-1 uppercase leading-tight font-medium">
+                                        Marca o lançamento antigo como CANCELADO e redireciona para um novo formulário. Mantém o histórico limpo para auditoria.
+                                    </span>
+                                </button>
+
+                                <button
+                                    onClick={executeSave}
+                                    className="flex flex-col items-start p-3 text-left border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-600 dark:bg-slate-800/50 dark:hover:bg-slate-800 rounded-xl transition-all"
+                                >
+                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                                        <Loader className="animate-spin group-hover:block hidden" size={14} /> Apenas Corrigir Existente
+                                    </span>
+                                    <span className="text-[10px] text-slate-500 mt-1 uppercase leading-tight font-medium outline-offset-1">
+                                        Apenas atualiza o valor do registro que já existe no financeiro. Indicado para correções simples de digitação.
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     ),
-                    confirmText: 'Sim, atualizar',
-                    cancelText: 'Voltar',
-                    onConfirm: executeSave,
-                    onCancel: () => setShowFinancialModal(false)
+                    confirmText: '', // Using custom buttons
+                    cancelText: 'Voltar e Revisar',
+                    onConfirm: () => { },
+                    onCancel: () => setShowFinancialModal(false),
+                    hideConfirmButton: true
                 });
                 setShowFinancialModal(true);
                 return;
@@ -384,7 +487,8 @@ export const NovaManutencao: React.FC = () => {
                 confirmText={financialModalContent.confirmText}
                 cancelText={financialModalContent.cancelText}
                 icon={<DollarSign size={32} />}
-                variant="success"
+                type="success"
+                hideConfirmButton={(financialModalContent as any).hideConfirmButton}
             />
 
             <PageHeader
@@ -464,6 +568,20 @@ export const NovaManutencao: React.FC = () => {
                                         </option>
                                     ))}
                                 </select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
+                                    KM Atual do Veículo
+                                </label>
+                                <input
+                                    type="number"
+                                    name="km_veiculo"
+                                    required
+                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    onChange={handleNumberChange}
+                                    value={formData.km_veiculo || 0}
+                                />
                             </div>
                         </div>
                     </FormSection>

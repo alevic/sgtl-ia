@@ -9,7 +9,9 @@ interface ModalConfirmacaoProps {
     message: string;
     confirmText?: string;
     cancelText?: string;
-    type?: 'danger' | 'warning' | 'info';
+    type?: 'danger' | 'warning' | 'info' | 'success';
+    hideConfirmButton?: boolean;
+    icon?: React.ReactNode;
 }
 
 export const ModalConfirmacao: React.FC<ModalConfirmacaoProps> = ({
@@ -20,7 +22,9 @@ export const ModalConfirmacao: React.FC<ModalConfirmacaoProps> = ({
     message,
     confirmText = 'Confirmar',
     cancelText = 'Cancelar',
-    type = 'warning'
+    type = 'warning',
+    hideConfirmButton = false,
+    icon
 }) => {
     if (!isOpen) return null;
 
@@ -28,18 +32,28 @@ export const ModalConfirmacao: React.FC<ModalConfirmacaoProps> = ({
         switch (type) {
             case 'danger':
                 return {
-                    icon: <AlertTriangle className="text-red-600" size={48} />,
+                    icon: icon || <AlertTriangle className="text-red-600" size={48} />,
                     confirmButton: 'bg-red-600 hover:bg-red-700'
                 };
             case 'warning':
                 return {
-                    icon: <AlertTriangle className="text-orange-600" size={48} />,
+                    icon: icon || <AlertTriangle className="text-orange-600" size={48} />,
                     confirmButton: 'bg-orange-600 hover:bg-orange-700'
                 };
             case 'info':
                 return {
-                    icon: <AlertTriangle className="text-blue-600" size={48} />,
+                    icon: icon || <AlertTriangle className="text-blue-600" size={48} />,
                     confirmButton: 'bg-blue-600 hover:bg-blue-700'
+                };
+            case 'success':
+                return {
+                    icon: icon || <AlertTriangle className="text-green-600" size={48} />,
+                    confirmButton: 'bg-green-600 hover:bg-green-700'
+                };
+            default:
+                return {
+                    icon: icon || <AlertTriangle className="text-slate-600" size={48} />,
+                    confirmButton: 'bg-slate-600 hover:bg-slate-700'
                 };
         }
     };
@@ -76,15 +90,16 @@ export const ModalConfirmacao: React.FC<ModalConfirmacaoProps> = ({
                         >
                             {cancelText}
                         </button>
-                        <button
-                            onClick={() => {
-                                onConfirm();
-                                onClose();
-                            }}
-                            className={`px-4 py-2 text-white rounded-lg font-medium transition-colors ${styles.confirmButton}`}
-                        >
-                            {confirmText}
-                        </button>
+                        {!hideConfirmButton && (
+                            <button
+                                onClick={() => {
+                                    onConfirm();
+                                }}
+                                className={`px-4 py-2 text-white rounded-lg font-medium transition-colors ${styles?.confirmButton || 'bg-primary'}`}
+                            >
+                                {confirmText}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

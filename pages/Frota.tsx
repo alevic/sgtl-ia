@@ -223,7 +223,7 @@ export const Frota: React.FC = () => {
             </div>
 
             {/* Filters Module */}
-            <ListFilterSection className="lg:grid-cols-3">
+            <ListFilterSection gridClassName="lg:grid-cols-3">
                 {/* Busca */}
                 <div className="space-y-1.5 flex flex-col">
                     <label className="text-label-caps ml-1">Buscar Veículo</label>

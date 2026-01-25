@@ -4,21 +4,11 @@ import { isValidDateISO } from "../utils/validation";
 
 const router = express.Router();
 
-// Middleware to check authorization is handled in index.ts before mounting or we need to apply it here?
-// In index.ts: app.use("/api/clients", clientsRouter);
-// It seems index.ts doesn't apply auth middleware globally to the router, but per route.
-// However, looking at index.ts, it uses `authorize` middleware wrapper.
-// I need to import `authorize` or replicate it.
-// Since `authorize` is defined in index.ts and not exported, I might need to move it to a shared file or redefine it.
-// For now, I'll assume I need to handle auth.
-// Actually, let's check if I can export `authorize` from a middleware file.
-// It's not exported. I'll create a middleware file or just copy the logic.
-// To be safe and consistent, I'll check if there is a middleware file.
-// I didn't see one in the file list.
-// I will replicate the auth logic using `auth.api.getSession`.
-
 import { auth } from "../auth";
-import { StatusManutencao, StatusTransacao, VeiculoStatus } from "../../types";
+import {
+    StatusManutencao, StatusTransacao, VeiculoStatus,
+    TipoTransacao, CategoriaDespesa, CentroCusto, ClassificacaoContabil
+} from "../../types";
 
 const authorize = (allowedRoles: string[]) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -83,7 +73,7 @@ router.get("/:id", authorize(['admin', 'operacional', 'financeiro']), async (req
         const { id } = req.params;
 
         const result = await pool.query(
-            `SELECT m.*, v.placa, v.modelo, v.tipo, t.id as transaction_id, t.status as transaction_status
+            `SELECT m.*, v.placa, v.modelo, v.tipo as vehicle_type, t.id as transaction_id, t.status as transaction_status
              FROM maintenance m
              JOIN vehicle v ON m.vehicle_id = v.id
              LEFT JOIN transaction t ON t.maintenance_id = m.id
@@ -129,13 +119,25 @@ router.post("/", authorize(['admin', 'operacional']), async (req, res) => {
             ]
         );
 
-        // Update vehicle status if maintenance is in progress
+        // Update vehicle status and KM if maintenance is in progress or completed
         if (status === StatusManutencao.IN_PROGRESS || status === 'EM_ANDAMENTO') {
             await pool.query(
-                `UPDATE vehicle SET status = $1 WHERE id = $2 AND organization_id = $3`,
-                [VeiculoStatus.MAINTENANCE, vehicle_id, orgId]
+                `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
+                [VeiculoStatus.MAINTENANCE, km_veiculo || 0, vehicle_id, orgId]
+            );
+        } else if (status === StatusManutencao.COMPLETED || status === 'CONCLUIDA') {
+            await pool.query(
+                `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
+                [VeiculoStatus.ACTIVE, km_veiculo || 0, vehicle_id, orgId]
+            );
+        } else {
+            // Even if scheduled, update KM if provided
+            await pool.query(
+                `UPDATE vehicle SET km_atual = GREATEST(km_atual, $1) WHERE id = $2 AND organization_id = $3`,
+                [km_veiculo || 0, vehicle_id, orgId]
             );
         }
+
 
         res.json(result.rows[0]);
     } catch (error) {
@@ -182,8 +184,7 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
             ]
         );
 
-        // Update transaction amount/description if it exists and is not cancelled/paid (optional logic, but good for consistency)
-        // Only update if maintenance is NOT cancelled
+        // Update transaction amount/description if it exists and is not cancelled/paid
         if (status !== StatusManutencao.CANCELLED && status !== 'CANCELADA') {
             const custoTotal = (Number(custo_pecas) || 0) + (Number(custo_mao_de_obra) || 0);
             if (custoTotal > 0) {
@@ -198,17 +199,17 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
             }
         }
 
-        // Update vehicle status logic
+        // Update vehicle status and KM logic
         if (status === StatusManutencao.IN_PROGRESS || status === 'EM_ANDAMENTO') {
             await pool.query(
-                `UPDATE vehicle SET status = $1 WHERE id = $2 AND organization_id = $3`,
-                [VeiculoStatus.MAINTENANCE, vehicle_id, orgId]
+                `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
+                [VeiculoStatus.MAINTENANCE, km_veiculo || 0, vehicle_id, orgId]
             );
         } else if (status === StatusManutencao.COMPLETED || status === 'CONCLUIDA') {
-            // Optionally set back to ATIVO
+            // Set back to ATIVO and update KM
             await pool.query(
-                `UPDATE vehicle SET status = $1 WHERE id = $2 AND organization_id = $3 AND (status = $4 OR status = 'MANUTENCAO')`,
-                [VeiculoStatus.ACTIVE, vehicle_id, orgId, VeiculoStatus.MAINTENANCE]
+                `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
+                [VeiculoStatus.ACTIVE, km_veiculo || 0, vehicle_id, orgId]
             );
 
             // Update linked transaction to PAID if it is PENDING
@@ -222,6 +223,12 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
             await pool.query(
                 `UPDATE transaction SET status = $1 WHERE maintenance_id = $2 AND organization_id = $3`,
                 [StatusTransacao.CANCELLED, id, orgId]
+            );
+        } else {
+            // For other statuses (like SCHEDULED), still update KM if it's higher
+            await pool.query(
+                `UPDATE vehicle SET km_atual = GREATEST(km_atual, $1) WHERE id = $2 AND organization_id = $3`,
+                [km_veiculo || 0, vehicle_id, orgId]
             );
         }
 
