@@ -2,12 +2,12 @@
     "name": "sgtl-ia-server",
     "version": "1.0.0",
     "description": "Backend server for SGTL-IA",
-    "main": "index.ts",
+    "main": "src/index.ts",
     "type": "module",
     "scripts": {
-        "start": "tsx index.ts",
-        "dev": "tsx watch index.ts",
-        "migrate": "npx @better-auth/cli migrate --yes && tsx setup-db.ts"
+        "start": "tsx src/index.ts",
+        "dev": "tsx watch src/index.ts",
+        "migrate": "npx @better-auth/cli migrate --yes && tsx src/db/setup.ts"
     },
     "dependencies": {
         "@types/bcrypt": "^6.0.0",
