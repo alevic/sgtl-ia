@@ -61,9 +61,9 @@ function Calendar({
                 },
                 // CUSTOM CAPTION IMPLEMENTATION for guaranteed Dropdowns
                 Caption: (props) => {
-                    const { goToMonth } = useNavigation();
+                    const { goToMonth, dayPickerProps } = useDayPicker();
+                    const { startMonth, endMonth } = dayPickerProps;
                     const currentMonth = props.calendarMonth.date;
-                    const { startMonth, endMonth } = useDayPicker().dayPickerProps; // Access limits from context
 
                     // Safe defaults if props are not passed
                     const currentYear = currentMonth?.getFullYear() || new Date().getFullYear();
