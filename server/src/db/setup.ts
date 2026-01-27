@@ -99,13 +99,31 @@ export async function setupDb() {
                 "expiresAt" TIMESTAMP NOT NULL,
                 "inviterId" TEXT NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
             );
+
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                "userId" TEXT REFERENCES "user"(id) ON DELETE SET NULL,
+                organization_id TEXT,
+                action TEXT NOT NULL,
+                entity TEXT NOT NULL,
+                entity_id TEXT,
+                old_data TEXT,
+                new_data TEXT,
+                ip_address TEXT,
+                user_agent TEXT,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+            );
         `);
+
 
         // Create indexes separately to ensure IF NOT EXISTS works properly
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_session_user ON session("userId");`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_account_user ON account("userId");`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_member_org ON member("organizationId");`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_member_user ON member("userId");`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs("userId");`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);`);
+
 
         console.log("Better Auth tables created successfully.");
 
@@ -1196,6 +1214,14 @@ export async function setupDb() {
         await pool.query(`
             INSERT INTO system_parameters (organization_id, key, value, description)
             SELECT id, 'system_timezone', 'America/Sao_Paulo', 'Fuso horário padrão para datas e horários.'
+            FROM "organization"
+            ON CONFLICT (organization_id, key) DO NOTHING;
+        `);
+
+        // Seed audit log retention (default 90 days)
+        await pool.query(`
+            INSERT INTO system_parameters (organization_id, key, value, description)
+            SELECT id, 'system_audit_retention_days', '90', 'Dias para manter logs de auditoria (0 = para sempre).'
             FROM "organization"
             ON CONFLICT (organization_id, key) DO NOTHING;
         `);

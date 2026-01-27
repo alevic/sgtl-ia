@@ -9,6 +9,8 @@ import {
     StatusManutencao, StatusTransacao, VeiculoStatus,
     TipoTransacao, CategoriaDespesa, CentroCusto, ClassificacaoContabil
 } from "../types.js";
+import { AuditService } from "../services/auditService.js";
+
 
 const authorize = (allowedRoles: string[]) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -139,7 +141,22 @@ router.post("/", authorize(['admin', 'operacional']), async (req, res) => {
         }
 
 
-        res.json(result.rows[0]);
+        const newMaintenance = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: userId as string,
+            organizationId: orgId as string,
+            action: 'MAINTENANCE_CREATE',
+            entity: 'maintenance',
+            entityId: newMaintenance.id,
+            newData: newMaintenance,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newMaintenance);
+
     } catch (error) {
         console.error("Error creating maintenance:", error);
         res.status(500).json({ error: "Failed to create maintenance" });
@@ -160,13 +177,15 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
         } = req.body;
 
         const check = await pool.query(
-            "SELECT id FROM maintenance WHERE id = $1 AND organization_id = $2",
+            "SELECT * FROM maintenance WHERE id = $1 AND organization_id = $2",
             [id, orgId]
         );
 
         if (check.rows.length === 0) {
             return res.status(404).json({ error: "Maintenance not found" });
         }
+
+        const oldMaintenance = check.rows[0];
 
         const result = await pool.query(
             `UPDATE maintenance SET
@@ -232,7 +251,23 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
             );
         }
 
-        res.json(result.rows[0]);
+        const updatedMaintenance = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'MAINTENANCE_UPDATE',
+            entity: 'maintenance',
+            entityId: updatedMaintenance.id,
+            oldData: oldMaintenance,
+            newData: updatedMaintenance,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedMaintenance);
+
     } catch (error) {
         console.error("Error updating maintenance:", error);
         res.status(500).json({ error: "Failed to update maintenance" });
@@ -256,7 +291,19 @@ router.delete("/:id", authorize(['admin', 'operacional']), async (req, res) => {
         }
 
         await pool.query("DELETE FROM maintenance WHERE id = $1", [id]);
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'MAINTENANCE_DELETE',
+            entity: 'maintenance',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error deleting maintenance:", error);
         res.status(500).json({ error: "Failed to delete maintenance" });

@@ -26,6 +26,7 @@ import publicRouter from "./routes/public.js";
 import passwordRecoveryRouter from "./routes/passwordRecovery.js";
 import usernameRouter from "./routes/username.js";
 import usernameRecoveryRouter from "./routes/usernameRecovery.js";
+import auditRouter from "./routes/audit.js";
 
 import { setupDb } from "./db/setup.js";
 
@@ -43,6 +44,16 @@ app.use(cors({
     origin: config.clientUrls,
     credentials: true,
 }));
+
+import { AuditService } from "./services/auditService.js";
+AuditService.logEvent({
+    action: 'SYSTEM_STARTUP',
+    entity: 'system',
+    newData: { status: 'online', timestamp: new Date().toISOString() },
+    ipAddress: '127.0.0.1',
+    userAgent: 'Server'
+}).catch(console.error);
+
 
 app.use(express.json({ limit: '50mb' }));
 
@@ -210,8 +221,24 @@ app.post("/api/users", authorize(['admin']), async (req, res) => {
             );
         }
 
+        const newUserResult = await pool.query('SELECT * FROM "user" WHERE id = $1', [userId]);
+        const newUser = newUserResult.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: (req as any).session.session.activeOrganizationId as string,
+            action: 'USER_CREATE',
+            entity: 'user',
+            entityId: userId,
+            newData: newUser,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         console.log(`[ADMIN] User created: ${username} (ID: ${userId})`);
         res.json({ success: true, userId });
+
     } catch (error: any) {
         console.error("Error creating user:", error);
         res.status(500).json({ error: error.message || "Erro ao criar usuário" });
@@ -253,8 +280,24 @@ app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
             );
         }
 
+        const updatedUserRes = await pool.query('SELECT * FROM "user" WHERE id = $1', [id]);
+        const updatedUser = updatedUserRes.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: (req as any).session.session.activeOrganizationId as string,
+            action: 'USER_UPDATE',
+            entity: 'user',
+            entityId: id,
+            newData: updatedUser,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         console.log(`[ADMIN] User updated: ${id} (Username: ${username})`);
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error updating user:", error);
         res.status(500).json({ error: "Erro ao atualizar usuário" });
@@ -401,7 +444,23 @@ app.put("/api/profile", async (req, res) => {
 
         console.log(`✅ Profile updated: ${session.user.id}`);
 
+        const updatedProfileRes = await pool.query('SELECT * FROM "user" WHERE id = $1', [session.user.id]);
+        const updatedProfile = updatedProfileRes.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: (session.session as any).activeOrganizationId as string,
+            action: 'USER_UPDATE',
+            entity: 'user',
+            entityId: session.user.id,
+            newData: updatedProfile,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error updating profile:", error);
         res.status(500).json({ error: "Erro ao atualizar perfil" });
@@ -529,7 +588,19 @@ app.delete("/api/users/:id", authorize(['admin']), async (req, res) => {
     const { id } = req.params;
     try {
         await pool.query('DELETE FROM "user" WHERE id = $1', [id]);
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: (req as any).session.session.activeOrganizationId as string,
+            action: 'USER_DELETE',
+            entity: 'user',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error deleting user:", error);
         res.status(500).json({ error: "Failed to delete user" });
@@ -541,7 +612,23 @@ app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
     const { name, role } = req.body;
     try {
         await pool.query('UPDATE "user" SET name = $1, role = $2 WHERE id = $3', [name, role, id]);
+        const updatedUserRes = await pool.query('SELECT * FROM "user" WHERE id = $1', [id]);
+        const updatedUser = updatedUserRes.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: (req as any).session.session.activeOrganizationId as string,
+            action: 'USER_UPDATE',
+            entity: 'user',
+            entityId: id,
+            newData: updatedUser,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error updating user:", error);
         res.status(500).json({ error: "Failed to update user" });
@@ -569,6 +656,8 @@ app.use("/api/parcels", parcelsRouter);
 
 // Charters
 app.use("/api/charters", chartersRouter);
+app.use("/api/admin/audit-logs", auditRouter);
+
 
 // Public Routes (Portal)
 app.use("/api/public", publicRouter);
@@ -890,7 +979,20 @@ app.post("/api/fleet/vehicles", authorize(['admin', 'operacional']), async (req,
             }
         }
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: userId as string,
+            organizationId: orgId as string,
+            action: 'VEHICLE_CREATE',
+            entity: 'vehicle',
+            entityId: createdVehicle.id,
+            newData: createdVehicle,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json(createdVehicle);
+
     } catch (error) {
         console.error("Error creating vehicle:", error);
         res.status(500).json({ error: "Failed to create vehicle" });
@@ -902,16 +1004,20 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
     try {
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
+        const userId = session.user.id;
+
         const { id } = req.params;
 
         const check = await pool.query(
-            "SELECT id FROM vehicle WHERE id = $1 AND organization_id = $2",
+            "SELECT * FROM vehicle WHERE id = $1 AND organization_id = $2",
             [id, orgId]
         );
 
         if (check.rows.length === 0) {
             return res.status(404).json({ error: "Vehicle not found" });
         }
+
+        const oldVehicle = check.rows[0];
 
         const {
             placa, modelo, tipo, status, ano, km_atual, proxima_revisao_km,
@@ -952,7 +1058,23 @@ app.put("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async (r
             }
         }
 
-        res.json(result.rows[0]);
+        const updatedVehicle = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: userId as string,
+            organizationId: orgId as string,
+            action: 'VEHICLE_UPDATE',
+            entity: 'vehicle',
+            entityId: updatedVehicle.id,
+            oldData: oldVehicle,
+            newData: updatedVehicle,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedVehicle);
+
     } catch (error) {
         console.error("Error updating vehicle:", error);
         res.status(500).json({ error: "Failed to update vehicle" });
@@ -977,7 +1099,19 @@ app.delete("/api/fleet/vehicles/:id", authorize(['admin', 'operacional']), async
 
         await pool.query("DELETE FROM vehicle WHERE id = $1 AND organization_id = $2", [id, orgId]);
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'VEHICLE_DELETE',
+            entity: 'vehicle',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error deleting vehicle:", error);
         res.status(500).json({ error: "Failed to delete vehicle" });
@@ -1145,6 +1279,18 @@ app.post("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']), a
                 [id]
             );
 
+            // Audit Log
+            AuditService.logEvent({
+                userId: session.user.id,
+                organizationId: orgId as string,
+                action: 'SEAT_MAP_UPDATE',
+                entity: 'vehicle_seats',
+                entityId: id,
+                newData: { seatCount: processedIds.size, warnings },
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent')
+            }).catch(console.error);
+
             res.json({
                 seats: result.rows,
                 warnings: warnings
@@ -1195,7 +1341,21 @@ app.put("/api/fleet/vehicles/:vehicleId/seats/:seatId", authorize(['admin', 'ope
             return res.status(404).json({ error: "Seat not found" });
         }
 
-        res.json(result.rows[0]);
+        const updatedSeat = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'SEAT_UPDATE',
+            entity: 'seat',
+            entityId: seatId,
+            newData: updatedSeat,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedSeat);
     } catch (error) {
         console.error("Error updating seat:", error);
         res.status(500).json({ error: "Failed to update seat" });
@@ -1224,6 +1384,17 @@ app.delete("/api/fleet/vehicles/:id/seats", authorize(['admin', 'operacional']),
             "UPDATE vehicle SET mapa_configurado = false WHERE id = $1",
             [id]
         );
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'SEAT_MAP_DELETE',
+            entity: 'vehicle_seats',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
 
         res.json({ success: true });
     } catch (error) {
@@ -1317,7 +1488,22 @@ app.post("/api/fleet/drivers", authorize(['admin', 'operacional']), async (req, 
             ]
         );
 
-        res.json(result.rows[0]);
+        const newDriver = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: userId as string,
+            organizationId: orgId as string,
+            action: 'DRIVER_CREATE',
+            entity: 'driver',
+            entityId: newDriver.id,
+            newData: newDriver,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newDriver);
+
     } catch (error) {
         console.error("Error creating driver:", error);
         res.status(500).json({ error: "Failed to create driver" });
@@ -1332,13 +1518,15 @@ app.put("/api/fleet/drivers/:id", authorize(['admin', 'operacional']), async (re
         const { id } = req.params;
 
         const check = await pool.query(
-            "SELECT id FROM driver WHERE id = $1 AND organization_id = $2",
+            "SELECT * FROM driver WHERE id = $1 AND organization_id = $2",
             [id, orgId]
         );
 
         if (check.rows.length === 0) {
             return res.status(404).json({ error: "Driver not found" });
         }
+
+        const oldDriver = check.rows[0];
 
         const {
             nome, cnh, categoria_cnh, validade_cnh, passaporte, validade_passaporte,
@@ -1366,7 +1554,23 @@ app.put("/api/fleet/drivers/:id", authorize(['admin', 'operacional']), async (re
             ]
         );
 
-        res.json(result.rows[0]);
+        const updatedDriver = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'DRIVER_UPDATE',
+            entity: 'driver',
+            entityId: updatedDriver.id,
+            oldData: oldDriver,
+            newData: updatedDriver,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedDriver);
+
     } catch (error) {
         console.error("Error updating driver:", error);
         res.status(500).json({ error: "Failed to update driver" });
@@ -1391,7 +1595,19 @@ app.delete("/api/fleet/drivers/:id", authorize(['admin', 'operacional']), async 
 
         await pool.query("DELETE FROM driver WHERE id = $1 AND organization_id = $2", [id, orgId]);
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'DRIVER_DELETE',
+            entity: 'driver',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error deleting driver:", error);
         res.status(500).json({ error: "Failed to delete driver" });
@@ -1480,6 +1696,18 @@ app.post("/api/organization/members", authorize(['admin']), async (req, res) => 
             [memberId, userId, orgId, role || 'user']
         );
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'MEMBER_ADD',
+            entity: 'member',
+            entityId: userId,
+            newData: { role: role || 'user' },
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
     } catch (error) {
         console.error("Error adding member:", error);
@@ -1504,6 +1732,17 @@ app.delete("/api/organization/members/:userId", authorize(['admin']), async (req
             [userId, orgId]
         );
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'MEMBER_REMOVE',
+            entity: 'member',
+            entityId: userId,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
     } catch (error) {
         console.error("Error removing member:", error);
@@ -1523,6 +1762,18 @@ app.put("/api/organization/members/:userId", authorize(['admin']), async (req, r
             'UPDATE "member" SET role = $1 WHERE "userId" = $2 AND "organizationId" = $3',
             [role, userId, orgId]
         );
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'MEMBER_ROLE_UPDATE',
+            entity: 'member',
+            entityId: userId,
+            newData: { role },
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
 
         res.json({ success: true });
     } catch (error) {
@@ -1595,6 +1846,18 @@ app.put("/api/organization/:id/details", authorize(['admin', 'user']), async (re
                 updated_at = NOW()`,
             [id, legal_name, cnpj, address, contact_email, phone, website]
         );
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: id,
+            action: 'COMPANY_UPDATE',
+            entity: 'company',
+            entityId: id,
+            newData: { legal_name, cnpj, address, contact_email, phone, website },
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
 
         res.json({ success: true });
     } catch (error) {
@@ -1675,7 +1938,21 @@ app.post("/api/organization/:id/parameters", authorize(['admin', 'operacional'])
             [id, key, value, description, group_name || null]
         );
 
-        res.json(result.rows[0]);
+        const savedParam = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: id,
+            action: 'PARAM_UPDATE',
+            entity: 'system_parameter',
+            entityId: savedParam.id,
+            newData: savedParam,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(savedParam);
     } catch (error) {
         console.error("Error upserting system parameter:", error);
         res.status(500).json({ error: "Failed to save system parameter" });
@@ -1719,6 +1996,18 @@ app.post("/api/organization/:id/parameters/batch", authorize(['admin', 'operacio
         }
 
         await client.query('COMMIT');
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: id,
+            action: 'PARAM_BATCH_UPDATE',
+            entity: 'system_parameter',
+            entityId: 'multiple',
+            newData: results,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json(results);
     } catch (error) {
         await client.query('ROLLBACK');
@@ -1747,6 +2036,17 @@ app.delete("/api/organization/:id/parameters/:paramId", authorize(['admin']), as
         if (result.rows.length === 0) {
             return res.status(404).json({ error: "Parameter not found" });
         }
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: id,
+            action: 'PARAM_DELETE',
+            entity: 'system_parameter',
+            entityId: paramId,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
 
         res.json({ success: true });
     } catch (error) {

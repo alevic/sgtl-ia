@@ -98,3 +98,18 @@ export const invitation = pgTable("invitation", {
     expiresAt: timestamp("expiresAt").notNull(),
     inviterId: text("inviterId").notNull().references(() => user.id, { onDelete: 'cascade' }),
 });
+
+export const auditLogs = pgTable("audit_logs", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("userId").references(() => user.id, { onDelete: 'set null' }),
+    organization_id: text("organization_id"),
+    action: text("action").notNull(), // 'CREATE', 'UPDATE', 'DELETE', 'LOGIN', etc.
+    entity: text("entity").notNull(), // 'parcel_orders', 'clients', 'user', etc.
+    entity_id: text("entity_id"),
+    old_data: text("old_data"),
+    new_data: text("new_data"),
+    ip_address: text("ip_address"),
+    user_agent: text("user_agent"),
+    created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+

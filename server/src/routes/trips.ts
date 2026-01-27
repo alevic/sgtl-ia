@@ -3,6 +3,7 @@ import { pool } from "../auth.js";
 import { auth } from "../auth.js";
 import { authorize } from "../middleware.js";
 import { TripStatus, RouteType } from "../types.js";
+import { AuditService } from "../services/auditService.js";
 
 const router = express.Router();
 
@@ -82,7 +83,22 @@ router.post("/routes", authorize(['admin', 'operacional']), async (req, res) => 
             ]
         );
 
-        res.json(result.rows[0]);
+        const newRoute = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'ROUTE_CREATE',
+            entity: 'route',
+            entityId: newRoute.id,
+            newData: newRoute,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newRoute);
+
     } catch (error) {
         console.error("Error creating route:", error);
         res.status(500).json({ error: "Failed to create route" });
@@ -95,6 +111,17 @@ router.put("/routes/:id", authorize(['admin', 'operacional']), async (req, res) 
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
+
+        const check = await pool.query(
+            "SELECT * FROM routes WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Route not found" });
+        }
+
+        const oldRoute = check.rows[0];
 
         const {
             name, origin_city, origin_state, destination_city, destination_state,
@@ -128,7 +155,23 @@ router.put("/routes/:id", authorize(['admin', 'operacional']), async (req, res) 
             return res.status(404).json({ error: "Route not found" });
         }
 
-        res.json(result.rows[0]);
+        const updatedRoute = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'ROUTE_UPDATE',
+            entity: 'route',
+            entityId: updatedRoute.id,
+            oldData: oldRoute,
+            newData: updatedRoute,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedRoute);
+
     } catch (error) {
         console.error("Error updating route:", error);
         res.status(500).json({ error: "Failed to update route" });
@@ -161,7 +204,19 @@ router.delete("/routes/:id", authorize(['admin', 'operacional']), async (req, re
             return res.status(404).json({ error: "Route not found" });
         }
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'ROUTE_DELETE',
+            entity: 'route',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error deleting route:", error);
         res.status(500).json({ error: "Failed to delete route" });
@@ -268,7 +323,22 @@ router.post("/trips/tags", authorize(['admin', 'operacional']), async (req, res)
             [nome, cor || null, orgId]
         );
 
-        res.json(result.rows[0]);
+        const newTag = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'TAG_CREATE',
+            entity: 'trip_tag',
+            entityId: newTag.id,
+            newData: newTag,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newTag);
+
     } catch (error) {
         console.error("Error creating tag:", error);
         res.status(500).json({ error: "Failed to create tag" });
@@ -283,6 +353,17 @@ router.put("/trips/tags/:id", authorize(['admin', 'operacional']), async (req, r
         const { id } = req.params;
         const { nome, cor } = req.body;
 
+        const check = await pool.query(
+            "SELECT * FROM trip_tags WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Tag not found" });
+        }
+
+        const oldTag = check.rows[0];
+
         const result = await pool.query(
             `UPDATE trip_tags SET 
                 nome = COALESCE($1, nome),
@@ -296,7 +377,23 @@ router.put("/trips/tags/:id", authorize(['admin', 'operacional']), async (req, r
             return res.status(404).json({ error: "Tag not found" });
         }
 
-        res.json(result.rows[0]);
+        const updatedTag = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'TAG_UPDATE',
+            entity: 'trip_tag',
+            entityId: updatedTag.id,
+            oldData: oldTag,
+            newData: updatedTag,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedTag);
+
     } catch (error) {
         console.error("Error updating tag:", error);
         res.status(500).json({ error: "Failed to update tag" });
@@ -319,7 +416,19 @@ router.delete("/trips/tags/:id", authorize(['admin', 'operacional']), async (req
             return res.status(404).json({ error: "Tag not found" });
         }
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'TAG_DELETE',
+            entity: 'trip_tag',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error deleting tag:", error);
         res.status(500).json({ error: "Failed to delete tag" });
@@ -399,7 +508,22 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
             ]
         );
 
-        res.json(result.rows[0]);
+        const newTrip = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'TRIP_CREATE',
+            entity: 'trip',
+            entityId: newTrip.id,
+            newData: newTrip,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newTrip);
+
     } catch (error) {
         console.error("Error creating trip:", error);
         res.status(500).json({ error: "Failed to create trip" });
@@ -412,6 +536,17 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
+
+        const check = await pool.query(
+            "SELECT * FROM trips WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Trip not found" });
+        }
+
+        const oldTrip = check.rows[0];
 
         const {
             return_route_id, vehicle_id, driver_id,
@@ -466,7 +601,23 @@ router.put("/trips/:id", authorize(['admin', 'operacional']), async (req, res) =
             return res.status(404).json({ error: "Trip not found" });
         }
 
-        res.json(result.rows[0]);
+        const updatedTrip = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'TRIP_UPDATE',
+            entity: 'trip',
+            entityId: updatedTrip.id,
+            oldData: oldTrip,
+            newData: updatedTrip,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedTrip);
+
     } catch (error) {
         console.error("Error updating trip:", error);
         res.status(500).json({ error: "Failed to update trip" });
@@ -489,7 +640,19 @@ router.delete("/trips/:id", authorize(['admin', 'operacional']), async (req, res
             return res.status(404).json({ error: "Trip not found" });
         }
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'TRIP_DELETE',
+            entity: 'trip',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error("Error deleting trip:", error);
         res.status(500).json({ error: "Failed to delete trip" });

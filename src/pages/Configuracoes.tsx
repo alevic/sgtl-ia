@@ -137,6 +137,7 @@ const PARAM_METADATA: Record<string, IParameterMetadata> = {
     'system_timezone': { label: 'Fuso Horário', group: 'Sistema', type: 'text', description: 'Fuso horário padrão para datas e horários.' },
     'system_language': { label: 'Idioma', group: 'Sistema', type: 'select', description: 'Idioma principal da interface.', options: [{ label: 'Português (Brasil)', value: 'pt-BR' }, { label: 'English (US)', value: 'en-US' }] },
     'system_date_format': { label: 'Formato de Data', group: 'Sistema', type: 'text', description: 'Formato de exibição de datas.' },
+    'system_audit_retention_days': { label: 'Retenção de Auditoria (Dias)', group: 'Sistema', type: 'number', description: 'Dias para manter logs de auditoria (0 = para sempre).' },
 
     // Viagens
     'trip_auto_complete_safety_margin_hours': { label: 'Margem de conclusão (horas)', group: 'Viagens', type: 'number', description: 'Horas após a partida para marcar viagem como concluída (fallback).', contexts: [EmpresaContexto.TURISMO] },

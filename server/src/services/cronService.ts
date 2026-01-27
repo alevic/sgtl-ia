@@ -118,7 +118,6 @@ export const initCronJobs = () => {
             if ((cleanupResult.rowCount ?? 0) > 0) {
                 console.log(`✅ [CRON] Deactivated ${cleanupResult.rowCount} already completed trips.`);
             }
-
         } catch (error) {
             console.error('❌ [CRON] Error in Trip Lifecycle job:', error);
         } finally {
@@ -126,5 +125,30 @@ export const initCronJobs = () => {
         }
     });
 
-    console.log('✅ Cron Jobs Scheduled: [Reservations, Trip Lifecycle (Start/Complete)]');
+    // Job: Audit Log Cleanup (Daily at 01:00 AM)
+    cron.schedule('0 1 * * *', async () => {
+        console.log('⏰ Running Cron: Audit Log Cleanup');
+        const client = await pool.connect();
+        try {
+            // This query deletes logs for each organization based on its specific retention policy
+            const query = `
+                DELETE FROM audit_logs al
+                USING organization o
+                LEFT JOIN system_parameters sp ON sp.organization_id = o.id AND sp.key = 'system_audit_retention_days'
+                WHERE al.organization_id = o.id
+                  AND COALESCE(sp.value, '90')::integer > 0
+                  AND al.created_at < NOW() - (COALESCE(sp.value, '90') || ' days')::INTERVAL
+            `;
+            const result = await client.query(query);
+            if ((result.rowCount ?? 0) > 0) {
+                console.log(`✅ [CRON] Deleted ${result.rowCount} old audit logs.`);
+            }
+        } catch (error) {
+            console.error('❌ [CRON] Error running audit log cleanup job:', error);
+        } finally {
+            client.release();
+        }
+    });
+
+    console.log('✅ Cron Jobs Scheduled: [Reservations, Trip Lifecycle, Audit Cleanup]');
 };

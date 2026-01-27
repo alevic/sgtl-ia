@@ -2,6 +2,8 @@ import express from "express";
 import { pool } from "../auth.js";
 import { auth } from "../auth.js";
 import { FretamentoStatus } from "../types.js";
+import { AuditService } from "../services/auditService.js";
+
 
 const router = express.Router();
 
@@ -140,7 +142,22 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
             ]
         );
 
-        res.json(result.rows[0]);
+        const newCharter = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: userId as string,
+            organizationId: orgId as string,
+            action: 'CHARTER_CREATE',
+            entity: 'charter_request',
+            entityId: newCharter.id,
+            newData: newCharter,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newCharter);
+
     } catch (error) {
         console.error("Error creating charter request:", error);
         res.status(500).json({ error: "Failed to create charter request" });
@@ -170,7 +187,22 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
             return res.status(404).json({ error: "Charter request not found" });
         }
 
-        res.json(result.rows[0]);
+        const updatedCharter = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'CHARTER_UPDATE',
+            entity: 'charter_request',
+            entityId: updatedCharter.id,
+            newData: updatedCharter,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedCharter);
+
     } catch (error) {
         console.error("Error updating charter request:", error);
         res.status(500).json({ error: "Failed to update charter request" });

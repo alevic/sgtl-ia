@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, Settings,
   Bus, Ticket, Truck, Package, MapPin,
   TrendingUp, Wrench, CreditCard, Database,
-  Building2, FileText, ChevronRight
+  Building2, FileText, ChevronRight, Activity
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { authClient } from '../../lib/auth-client';
@@ -130,6 +130,7 @@ export const Sidebar: React.FC = () => {
             <SidebarItem icon={Users} label="Usuários" to="/admin/usuarios" activeColor={themeColor} />
             <SidebarItem icon={Building2} label="Organizações" to="/admin/organizacoes" activeColor={themeColor} />
             <SidebarItem icon={Database} label="Cadastros" to="/admin/cadastros-auxiliares" activeColor={themeColor} />
+            <SidebarItem icon={Activity} label="Atividades" to="/admin/atividades" activeColor={themeColor} />
             <SidebarItem icon={Settings} label="Configurações" to="/admin/configuracoes" activeColor={themeColor} />
           </>
         )}

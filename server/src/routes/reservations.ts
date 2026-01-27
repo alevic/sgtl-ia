@@ -143,6 +143,8 @@ router.get("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
     }
 });
 
+import { AuditService } from "../services/auditService.js";
+
 // POST create reservation
 router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res) => {
     try {
@@ -251,7 +253,22 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
             }
         }
 
-        res.json(result.rows[0]);
+        const newReservation = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: userId as string,
+            organizationId: orgId as string,
+            action: 'RESERVATION_CREATE',
+            entity: 'reservation',
+            entityId: newReservation.id,
+            newData: newReservation,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newReservation);
+
     } catch (error) {
         console.error("Error creating reservation:", error);
         res.status(500).json({ error: "Failed to create reservation" });
@@ -306,11 +323,74 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
             );
         }
 
-        res.json(result.rows[0]);
+        const updatedReservation = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'RESERVATION_UPDATE',
+            entity: 'reservation',
+            entityId: updatedReservation.id,
+            newData: updatedReservation,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedReservation);
+
     } catch (error) {
         console.error("Error updating reservation:", error);
         res.status(500).json({ error: "Failed to update reservation" });
     }
 });
 
+// DELETE reservation
+router.delete("/:id", authorize(['admin', 'operacional']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        // Check if it exists
+        const check = await pool.query(
+            "SELECT id, trip_id, status FROM reservations WHERE id = $1 AND organization_id = $2",
+            [id, orgId]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: "Reservation not found" });
+        }
+
+        const reservation = check.rows[0];
+
+        // If not cancelled, add back the seat
+        if (reservation.status !== ReservationStatus.CANCELLED) {
+            await pool.query(
+                "UPDATE trips SET seats_available = seats_available + 1 WHERE id = $1",
+                [reservation.trip_id]
+            );
+        }
+
+        await pool.query("DELETE FROM reservations WHERE id = $1", [id]);
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'RESERVATION_DELETE',
+            entity: 'reservation',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting reservation:", error);
+        res.status(500).json({ error: "Failed to delete reservation" });
+    }
+});
+
 export default router;
+

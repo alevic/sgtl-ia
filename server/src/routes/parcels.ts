@@ -6,7 +6,10 @@ import { EncomendaStatus } from "../types.js";
 
 const router = express.Router();
 
+import { AuditService } from "../services/auditService.js";
+
 // Helper for authorization
+
 const authorize = (allowedRoles: string[]) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
@@ -102,6 +105,7 @@ router.get("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
         }
 
         res.json(result.rows[0]);
+
     } catch (error) {
         console.error("Error fetching parcel:", error);
         res.status(500).json({ error: "Failed to fetch parcel" });
@@ -148,7 +152,22 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
             ]
         );
 
-        res.json(result.rows[0]);
+        const newParcelItem = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'PARCEL_CREATE',
+            entity: 'parcel',
+            entityId: newParcelItem.id,
+            newData: newParcelItem,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(newParcelItem);
+
     } catch (error) {
         console.error("Error creating parcel:", error);
         res.status(500).json({ error: "Failed to create parcel" });
@@ -178,11 +197,61 @@ router.put("/:id", authorize(['admin', 'operacional', 'vendas']), async (req, re
             return res.status(404).json({ error: "Parcel not found" });
         }
 
-        res.json(result.rows[0]);
+        const updatedParcelItem = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'PARCEL_UPDATE',
+            entity: 'parcel',
+            entityId: updatedParcelItem.id,
+            newData: updatedParcelItem,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedParcelItem);
+
     } catch (error) {
         console.error("Error updating parcel:", error);
         res.status(500).json({ error: "Failed to update parcel" });
     }
 });
 
+// DELETE parcel
+router.delete("/:id", authorize(['admin', 'operacional']), async (req, res) => {
+    try {
+        const session = (req as any).session;
+        const orgId = session.session.activeOrganizationId;
+        const { id } = req.params;
+
+        const result = await pool.query(
+            "DELETE FROM parcel_orders WHERE id = $1 AND organization_id = $2 RETURNING id",
+            [id, orgId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Parcel not found" });
+        }
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: session.user.id,
+            organizationId: orgId as string,
+            action: 'PARCEL_DELETE',
+            entity: 'parcel',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Error deleting parcel:", error);
+        res.status(500).json({ error: "Failed to delete parcel" });
+    }
+});
+
 export default router;
+

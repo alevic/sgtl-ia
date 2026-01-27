@@ -1,6 +1,7 @@
 import express from "express";
 import { pool, auth } from "../auth.js";
 import { TripStatus, ReservationStatus, FretamentoStatus, EncomendaStatus } from "../types.js";
+import { AuditService } from "../services/auditService.js";
 
 const router = express.Router();
 
@@ -481,8 +482,21 @@ router.post("/client/signup", async (req, res) => {
             ]
         );
 
+        // Audit Log
+        AuditService.logEvent({
+            userId: userId,
+            organizationId: organization_id as string,
+            action: 'USER_CREATE',
+            entity: 'user',
+            entityId: userId,
+            newData: { username, email, name, role: 'client' },
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         console.log(`[CLIENT SIGNUP] Success: ${username} (${email})`);
         res.json({ success: true, user: authResponse.user, session: authResponse.session });
+
 
     } catch (error: any) {
         console.error("Error signing up client:", error);

@@ -1,6 +1,7 @@
 import express from 'express';
 import { pool, auth } from '../auth.js';
 import { ReservationStatus } from '../types.js';
+import { AuditService } from '../services/auditService.js';
 
 const router = express.Router();
 
@@ -164,7 +165,22 @@ router.post('/', authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 segmento, observacoes
             ]
         );
-        res.status(201).json(result.rows[0]);
+        const newClient = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'CLIENT_CREATE',
+            entity: 'client',
+            entityId: newClient.id,
+            newData: newClient,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.status(201).json(newClient);
+
     } catch (error) {
         console.error('Error creating client:', error);
         res.status(500).json({ error: 'Failed to create client' });
@@ -183,6 +199,17 @@ router.put('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
     } = req.body;
 
     try {
+        const check = await pool.query(
+            "SELECT * FROM clients WHERE id = $1",
+            [id]
+        );
+
+        if (check.rows.length === 0) {
+            return res.status(404).json({ error: 'Client not found or outside organization' });
+        }
+
+        const oldClient = check.rows[0];
+
         const result = await pool.query(
             `UPDATE clients SET
                 nome = COALESCE($1, nome),
@@ -211,7 +238,23 @@ router.put('/:id', authorize(['admin', 'operacional', 'vendas', 'financeiro']), 
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Client not found or outside organization' });
         }
-        res.json(result.rows[0]);
+        const updatedClient = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'CLIENT_UPDATE',
+            entity: 'client',
+            entityId: updatedClient.id,
+            oldData: oldClient,
+            newData: updatedClient,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.json(updatedClient);
+
     } catch (error) {
         console.error('Error updating client:', error);
         res.status(500).json({ error: 'Failed to update client' });
@@ -227,7 +270,19 @@ router.delete('/:id', authorize(['admin']), async (req, res) => {
         if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Client not found' });
         }
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'CLIENT_DELETE',
+            entity: 'client',
+            entityId: id,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
         res.json({ success: true });
+
     } catch (error) {
         console.error('Error deleting client:', error);
         res.status(500).json({ error: 'Failed to delete client' });
@@ -264,7 +319,22 @@ router.post('/:id/interactions', authorize(['admin', 'operacional', 'vendas']), 
             RETURNING *`,
             [id, tipo, descricao, usuario_responsavel, orgId]
         );
-        res.status(201).json(result.rows[0]);
+        const newInteraction = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'INTERACTION_CREATE',
+            entity: 'client_interaction',
+            entityId: newInteraction.id,
+            newData: newInteraction,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.status(201).json(newInteraction);
+
     } catch (error) {
         console.error('Error adding interaction:', error);
         res.status(500).json({ error: 'Failed to add interaction' });
@@ -301,7 +371,22 @@ router.post('/:id/notes', authorize(['admin', 'operacional', 'vendas']), async (
             RETURNING *`,
             [id, titulo, conteudo, criado_por, importante, orgId]
         );
-        res.status(201).json(result.rows[0]);
+        const newNote = result.rows[0];
+
+        // Audit Log
+        AuditService.logEvent({
+            userId: (req as any).session.user.id,
+            organizationId: orgId as string,
+            action: 'NOTE_CREATE',
+            entity: 'client_note',
+            entityId: newNote.id,
+            newData: newNote,
+            ipAddress: req.ip,
+            userAgent: req.get('user-agent')
+        }).catch(console.error);
+
+        res.status(201).json(newNote);
+
     } catch (error) {
         console.error('Error adding note:', error);
         res.status(500).json({ error: 'Failed to add note' });
