@@ -7,7 +7,7 @@ import {
     X, Loader, AlertTriangle, CheckCircle2
 } from 'lucide-react';
 import { IVeiculoFeature } from '../types';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { PageHeader } from '../components/Layout/PageHeader';
@@ -420,7 +420,7 @@ export const EditarVeiculo: React.FC = () => {
                                 <Calendar size={12} className="text-purple-500" />
                                 Última Revisão
                             </label>
-                            <DatePicker
+                            <SwissDatePicker
                                 value={ultimaRevisao}
                                 onChange={setUltimaRevisao}
                                 placeholder="DD/MM/AAAA"

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { VeiculoStatus } from '../types';
 import { ArrowLeft, Save, Bus, Truck, FileText, Gauge, Calendar, Wrench, Plus, Trash2, Image, Upload, X, Loader } from 'lucide-react';
 import { IVeiculoFeature } from '../types';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
 import { CardContent } from '../components/ui/card';
@@ -329,7 +329,7 @@ export const NovoVeiculo: React.FC = () => {
                                     <Calendar size={10} className="text-primary" />
                                     Data da Última Revisão
                                 </label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={ultimaRevisao}
                                     onChange={setUltimaRevisao}
                                     placeholder="DD/MM/AAAA"

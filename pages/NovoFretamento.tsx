@@ -9,7 +9,7 @@ import { clientsService } from '../services/clientsService';
 import { vehiclesService } from '../services/vehiclesService';
 import { driversService } from '../services/driversService';
 import { routesService } from '../services/routesService';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { AlertCircle, CheckCircle2, Loader } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -554,7 +554,7 @@ export const NovoFretamento: React.FC = () => {
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Início do Serviço</label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <DatePicker value={dataInicio} onChange={setDataInicio} />
+                                    <SwissDatePicker value={dataInicio} onChange={setDataInicio} />
                                     <input
                                         type="time"
                                         value={horaInicio}
@@ -566,7 +566,7 @@ export const NovoFretamento: React.FC = () => {
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Término Previsto</label>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <DatePicker value={dataFim} onChange={setDataFim} />
+                                    <SwissDatePicker value={dataFim} onChange={setDataFim} />
                                     <input
                                         type="time"
                                         value={horaFim}

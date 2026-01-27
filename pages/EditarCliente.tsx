@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { TipoDocumento } from '../types';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar, MessageSquare, Loader } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { PhoneInput } from '../components/Form/PhoneInput';
 import { DocumentInput } from '../components/Form/DocumentInput';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
@@ -235,7 +235,7 @@ export const EditarCliente: React.FC = () => {
 
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Nascimento</label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={formData.data_nascimento}
                                     onChange={(val) => setFormData(prev => ({ ...prev, data_nascimento: val }))}
                                     placeholder="DD/MM/AAAA"

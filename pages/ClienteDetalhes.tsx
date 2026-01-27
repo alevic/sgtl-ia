@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, ReservationStatusLabel, TipoInteracao, TipoInteracaoLabel } from '../types';
 import { useAppContext } from '../context/AppContext';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import {
     ArrowLeft, User, Mail, Phone, MapPin, Calendar, DollarSign,
     FileText, MessageSquare, History, Star, Edit, Plus, Check, X,

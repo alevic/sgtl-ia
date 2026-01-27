@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase, CheckCircle2, Loader, AlertCircle } from 'lucide-react';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from '../components/ui/button';
 import { CardContent } from '../components/ui/card';
@@ -296,7 +296,7 @@ export const NovoMotorista: React.FC = () => {
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Validade *
                                 </label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={validadeCnh}
                                     onChange={setValidadeCnh}
                                     required={true}
@@ -350,7 +350,7 @@ export const NovoMotorista: React.FC = () => {
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                         Validade do Passaporte
                                     </label>
-                                    <DatePicker
+                                    <SwissDatePicker
                                         value={validadePassaporte}
                                         onChange={setValidadePassaporte}
                                         disabled={!passaporte}
@@ -393,7 +393,7 @@ export const NovoMotorista: React.FC = () => {
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Data de Admissão
                                 </label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={dataAdmissao}
                                     onChange={setDataAdmissao}
                                 />

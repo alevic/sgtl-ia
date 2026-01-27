@@ -10,7 +10,7 @@ import {
     AlertTriangle,
     CheckCircle
 } from 'lucide-react';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { FormSection } from '../components/Layout/FormSection';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
@@ -691,7 +691,7 @@ export const NovaManutencao: React.FC = () => {
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Data Agendada
                                 </label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={formData.data_agendada || ''}
                                     onChange={(val) => setFormData(prev => ({ ...prev, data_agendada: val }))}
                                     required={true}
@@ -701,7 +701,7 @@ export const NovaManutencao: React.FC = () => {
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Data Início (Real)
                                 </label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={formData.data_inicio || ''}
                                     onChange={(val) => setFormData(prev => ({ ...prev, data_inicio: val }))}
                                 />
@@ -710,7 +710,7 @@ export const NovaManutencao: React.FC = () => {
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                     Data Conclusão
                                 </label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={formData.data_conclusao || ''}
                                     onChange={(val) => setFormData(prev => ({ ...prev, data_conclusao: val }))}
                                 />

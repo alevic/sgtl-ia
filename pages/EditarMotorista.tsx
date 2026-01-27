@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save, User, FileText, Globe, AlertTriangle, Phone, MapPin, Calendar, Briefcase, Loader, CheckCircle2, Mail, CheckCircle } from 'lucide-react';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { PageHeader } from '../components/Layout/PageHeader';
@@ -391,7 +391,7 @@ export const EditarMotorista: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Admissão</label>
-                                    <DatePicker
+                                    <SwissDatePicker
                                         value={dataAdmissao}
                                         onChange={setDataAdmissao}
                                         placeholder="DD/MM/AAAA"
@@ -493,7 +493,7 @@ export const EditarMotorista: React.FC = () => {
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Vencimento</label>
-                                    <DatePicker
+                                    <SwissDatePicker
                                         value={validadeCnh}
                                         onChange={setValidadeCnh}
                                     />
@@ -530,7 +530,7 @@ export const EditarMotorista: React.FC = () => {
                             </div>
                             <div className="space-y-1.5">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Vencimento</label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={validadePassaporte}
                                     onChange={setValidadePassaporte}
                                     disabled={!passaporte}

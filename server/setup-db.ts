@@ -1,4 +1,4 @@
-import { auth } from "./auth";
+import { auth } from "./auth.js";
 import pg from "pg";
 import dotenv from "dotenv";
 
@@ -1165,7 +1165,7 @@ export async function setupDb() {
             console.log("  ✅ Added unique constraint to system_parameters");
         } catch (e: any) {
             // Ignore if 'relation "system_parameters_organization_id_key_key" already exists'
-            if (e.code !== '42710' && !e.message?.includes('already exists')) {
+            if (e.code !== '42710' && e.code !== '42P07' && !e.message?.includes('already exists')) {
                 console.error("  ⚠️ Unique constraint check failed:", e.message);
             }
         }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Loader2, Camera, Upload, Trash2 } from 'lucide-react';
 import { PhoneInput } from '../Form/PhoneInput';
 import { CPFInput } from '../Form/CPFInput';
-import { DatePicker } from '../Form/DatePicker';
+import { SwissDatePicker } from '../Form/SwissDatePicker';
 
 interface UserProfileFormProps {
     userId: string;
@@ -380,7 +380,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                 {/* Birth Date */}
                 <div>
                     {console.log('📅 Rendering DatePicker with birthDate:', birthDate)}
-                    <DatePicker
+                    <SwissDatePicker
                         value={birthDate}
                         onChange={setBirthDate}
                         label="Data de Nascimento"

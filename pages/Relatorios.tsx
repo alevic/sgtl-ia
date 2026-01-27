@@ -12,7 +12,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart as RechartsPie, Pie, Cell, AreaChart, Area
 } from 'recharts';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { DashboardCard } from '../components/Layout/DashboardCard';
 import { ListFilterSection } from '../components/Layout/ListFilterSection';
@@ -162,14 +162,14 @@ export const Relatorios: React.FC = () => {
                 icon={BarChartIcon}
                 rightElement={
                     <div className="flex gap-2 items-center bg-card   p-1.5 rounded-sm border border-border/40 shadow-xl shadow-muted/10 h-14">
-                        <DatePicker
+                        <SwissDatePicker
                             value={periodoInicio}
                             onChange={setPeriodoInicio}
                             showIcon={false}
                             className="!bg-transparent !border-none text-xs font-black !p-2 !h-auto w-24 uppercase tracking-tighter"
                         />
                         <Separator orientation="vertical" className="h-4 bg-border/50" />
-                        <DatePicker
+                        <SwissDatePicker
                             value={periodoFim}
                             onChange={setPeriodoFim}
                             showIcon={false}

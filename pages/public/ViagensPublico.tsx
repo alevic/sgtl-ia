@@ -8,7 +8,7 @@ import {
 import { tripsService } from '../../services/tripsService';
 import { publicService } from '../../services/publicService';
 import { IViagem, ITag, TripStatus } from '../../types';
-import { DatePicker } from '../../components/Form/DatePicker';
+import { SwissDatePicker } from '../../components/Form/SwissDatePicker';
 
 
 
@@ -211,7 +211,7 @@ export const ViagensPublico: React.FC = () => {
 
                         {/* Data */}
                         <div className="relative">
-                            <DatePicker
+                            <SwissDatePicker
                                 value={filtroData}
                                 onChange={setFiltroData}
                                 placeholder="Data"

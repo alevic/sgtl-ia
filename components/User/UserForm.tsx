@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Loader2, Camera, Trash2, Lock, Shield, AlertTriangle, CheckCircle2, Phone, CreditCard, Calendar, FileText } from 'lucide-react';
 import { PhoneInput } from '../Form/PhoneInput';
 import { DocumentInput } from '../Form/DocumentInput';
-import { DatePicker } from '../Form/DatePicker';
+import { SwissDatePicker } from '../Form/SwissDatePicker';
 import { UsernameInput } from '../Form/UsernameInput';
 import { TipoDocumento } from '../../types';
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
@@ -455,7 +455,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Nascimento</label>
-                                    <DatePicker value={birthDate} onChange={setBirthDate} />
+                                    <SwissDatePicker value={birthDate} onChange={setBirthDate} />
                                 </div>
                             </div>
 

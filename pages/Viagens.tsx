@@ -11,7 +11,7 @@ import {
     MapPinned, Gauge, Settings2, CalendarArrowDown, ChevronLeft
 } from 'lucide-react';
 import { PassengerListModal } from '../components/PassengerListModal';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "../components/ui/table";
@@ -358,7 +358,7 @@ export const Viagens: React.FC = () => {
                 {/* Data de Partida */}
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Data de Partida</label>
-                    <DatePicker
+                    <SwissDatePicker
                         value={filtroDataPartida}
                         onChange={setFiltroDataPartida}
                         placeholder="Qualquer data"

@@ -7,7 +7,7 @@ import {
 } from '../types';
 import { getSugestaoClassificacao } from '../utils/classificacaoContabil';
 import { authClient } from '../lib/auth-client';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
 import { CardContent } from "../components/ui/card";
@@ -431,7 +431,7 @@ export const NovaTransacao: React.FC = () => {
                         <div className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Emissão *</label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={dataEmissao}
                                     onChange={setDataEmissao}
                                     required={true}
@@ -440,7 +440,7 @@ export const NovaTransacao: React.FC = () => {
 
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Vencimento Efetivo *</label>
-                                <DatePicker
+                                <SwissDatePicker
                                     value={dataVencimento}
                                     onChange={setDataVencimento}
                                     required={true}

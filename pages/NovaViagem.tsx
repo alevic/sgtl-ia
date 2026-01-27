@@ -12,7 +12,7 @@ import { SeletorTags } from '../components/Selectors/SeletorTags';
 import { routesService } from '../services/routesService';
 import { vehiclesService } from '../services/vehiclesService';
 import { driversService } from '../services/driversService';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { TimePicker } from '../components/Form/TimePicker';
 import {
     AlertDialog,
@@ -455,7 +455,7 @@ export const NovaViagem: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
-                                        <DatePicker value={dataPartida} onChange={setDataPartida} />
+                                        <SwissDatePicker value={dataPartida} onChange={setDataPartida} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>
@@ -469,7 +469,7 @@ export const NovaViagem: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data</label>
-                                        <DatePicker value={dataChegada} onChange={setDataChegada} />
+                                        <SwissDatePicker value={dataChegada} onChange={setDataChegada} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Horário</label>

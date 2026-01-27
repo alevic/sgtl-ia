@@ -23,7 +23,7 @@ interface DatePickerProps {
     containerClassName?: string;
 }
 
-export const DatePicker: React.FC<DatePickerProps> = ({
+export const DatePicker: React.FC<SwissDatePickerProps> = ({
     value,
     onChange,
     label,

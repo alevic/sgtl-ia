@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Mail, Loader2, Camera, Upload, Trash2 } from 'lucide-react';
 import { PhoneInput } from '../Form/PhoneInput';
 import { DocumentInput } from '../Form/DocumentInput';
-import { DatePicker } from '../Form/DatePicker';
+import { SwissDatePicker } from '../Form/SwissDatePicker';
 import { TipoDocumento } from '../../types';
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
@@ -331,7 +331,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
 
                 {/* Data de Nascimento */}
                 <div>
-                    <DatePicker value={birthDate} onChange={setBirthDate} label="Data de Nascimento" />
+                    <SwissDatePicker value={birthDate} onChange={setBirthDate} label="Data de Nascimento" />
                 </div>
 
                 {/* Role (if allowed) */}

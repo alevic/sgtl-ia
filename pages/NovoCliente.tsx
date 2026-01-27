@@ -4,7 +4,7 @@ import { TipoDocumento } from '../types';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar, Globe, Briefcase, Loader } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
 import { locationService, IState, ICity } from '../services/locationService';
-import { DatePicker } from '../components/Form/DatePicker';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { PhoneInput } from '../components/Form/PhoneInput';
 import { DocumentInput } from '../components/Form/DocumentInput';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
@@ -244,7 +244,7 @@ export const NovoCliente: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Data de Nascimento</label>
-                                    <DatePicker value={dataNascimento} onChange={setDataNascimento} />
+                                    <SwissDatePicker value={dataNascimento} onChange={setDataNascimento} />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Nacionalidade</label>

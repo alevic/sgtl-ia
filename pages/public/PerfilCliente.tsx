@@ -6,7 +6,7 @@ import { authClient } from '../../lib/auth-client';
 import { publicService } from '../../services/publicService';
 import { PhoneInput } from '../../components/Form/PhoneInput';
 import { DocumentInput } from '../../components/Form/DocumentInput';
-import { DatePicker } from '../../components/Form/DatePicker';
+import { SwissDatePicker } from '../../components/Form/SwissDatePicker';
 import { TipoDocumento } from '../../types';
 
 export const PerfilCliente: React.FC = () => {
@@ -291,7 +291,7 @@ export const PerfilCliente: React.FC = () => {
 
                         {/* Data de Nascimento */}
                         <div>
-                            <DatePicker value={birthDate} onChange={setBirthDate} label="Data de Nascimento" />
+                            <SwissDatePicker value={birthDate} onChange={setBirthDate} label="Data de Nascimento" />
                         </div>
                     </div>
 
