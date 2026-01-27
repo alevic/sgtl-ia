@@ -1,0 +1,197 @@
+app/components/PassengerListModal.tsx(65,32): error TS2339: Property 'seat_number' does not exist on type 'IReserva'.
+app/components/PassengerListModal.tsx(65,59): error TS2339: Property 'seat_number' does not exist on type 'IReserva'.
+app/components/PassengerListModal.tsx(67,19): error TS2339: Property 'passenger_name' does not exist on type 'IReserva'.
+app/components/PassengerListModal.tsx(144,60): error TS2339: Property 'passenger_name' does not exist on type 'IReserva'.
+app/components/PassengerListModal.tsx(145,60): error TS2339: Property 'passenger_document' does not exist on type 'IReserva'.
+app/components/PassengerListModal.tsx(147,68): error TS2339: Property 'passenger_document' does not exist on type 'IReserva'.
+app/components/PassengerListModal.tsx(155,68): error TS2339: Property 'seat_number' does not exist on type 'IReserva'.
+app/components/Rotas/EditorRota.tsx(117,86): error TS2367: This comparison appears to be unintentional because the types 'RouteType' and '"IDA"' have no overlap.
+app/components/Rotas/SeletorPontoRota.tsx(393,33): error TS2322: Type '{ value: string; onChange: (val: string) => void; disabled: boolean; showIcon: false; className: string; }' is not assignable to type 'IntrinsicAttributes & TimePickerProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TimePickerProps'.
+app/components/Rotas/SeletorPontoRota.tsx(411,29): error TS2322: Type '{ value: string; onChange: (val: string) => void; disabled: boolean; showIcon: false; className: string; }' is not assignable to type 'IntrinsicAttributes & TimePickerProps'.
+  Property 'disabled' does not exist on type 'IntrinsicAttributes & TimePickerProps'.
+app/components/Rotas/VisualizadorRota.tsx(101,82): error TS2367: This comparison appears to be unintentional because the types 'RouteType' and '"IDA"' have no overlap.
+app/components/Selectors/SeletorViagem.tsx(74,46): error TS2367: This comparison appears to be unintentional because the types 'TripStatus' and '"AGENDADA"' have no overlap.
+app/components/Selectors/SeletorViagem.tsx(75,48): error TS2367: This comparison appears to be unintentional because the types 'TripStatus' and '"CONFIRMADA"' have no overlap.
+app/components/Selectors/SeletorViagem.tsx(75,77): error TS2367: This comparison appears to be unintentional because the types 'TripStatus' and '"CONFIRMED"' have no overlap.
+app/components/Selectors/SeletorViagem.tsx(86,13): error TS2367: This comparison appears to be unintentional because the types 'TripStatus' and '"AGENDADA"' have no overlap.
+app/components/Selectors/SeletorViagem.tsx(86,40): error TS2367: This comparison appears to be unintentional because the types 'TripStatus' and '"CONFIRMADA"' have no overlap.
+app/components/Selectors/SeletorViagem.tsx(87,41): error TS2367: This comparison appears to be unintentional because the types 'TripStatus.BOARDING | TripStatus.IN_TRANSIT | TripStatus.COMPLETED | TripStatus.CANCELLED | TripStatus.DELAYED' and '"CONFIRMED"' have no overlap.
+app/components/Selectors/SeletorViagem.tsx(189,57): error TS2339: Property 'trip_type' does not exist on type 'IViagem'.
+app/components/Selectors/SeletorViagem.tsx(191,65): error TS2339: Property 'trip_type' does not exist on type 'IViagem'.
+app/components/User/UserProfileForm.tsx(319,22): error TS2739: Type '{ value: string; onChange: Dispatch<SetStateAction<string>>; required: true; }' is missing the following properties from type 'PhoneInputProps': countryCode, onCountryCodeChange
+app/components/User/UserProfileForm_OLD.tsx(382,21): error TS2322: Type 'void' is not assignable to type 'ReactNode'.
+app/components/Veiculos/MapaAssentos.tsx(284,45): error TS2339: Property 'BLOQUEADO' does not exist on type 'typeof AssentoStatus'.
+app/components/Veiculos/MapaAssentos.tsx(285,75): error TS2339: Property 'LIVRE' does not exist on type 'typeof AssentoStatus'.
+app/components/Veiculos/MapaAssentos.tsx(382,66): error TS2367: This comparison appears to be unintentional because the types 'AssentoStatus' and '"BLOQUEADO"' have no overlap.
+app/components/Veiculos/MapaAssentosReserva.tsx(47,46): error TS2339: Property 'BLOQUEADO' does not exist on type 'typeof AssentoStatus'.
+app/components/Veiculos/MapaAssentosReserva.tsx(63,46): error TS2339: Property 'BLOQUEADO' does not exist on type 'typeof AssentoStatus'.
+app/routes/admin.activities._index.tsx(32,13): error TS2339: Property 'activities' does not exist on type '{}'.
+app/routes/admin.charter.$id.edit.tsx(54,13): error TS2339: Property 'charter' does not exist on type '{}'.
+app/routes/admin.charter.$id.edit.tsx(54,22): error TS2339: Property 'clients' does not exist on type '{}'.
+app/routes/admin.charter.$id.edit.tsx(54,31): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.charter.$id.edit.tsx(54,41): error TS2339: Property 'drivers' does not exist on type '{}'.
+app/routes/admin.charter.$id.edit.tsx(54,50): error TS2339: Property 'routes' does not exist on type '{}'.
+app/routes/admin.charter._index.tsx(88,13): error TS2339: Property 'charters' does not exist on type '{}'.
+app/routes/admin.charter.new.tsx(57,13): error TS2339: Property 'clients' does not exist on type '{}'.
+app/routes/admin.charter.new.tsx(57,22): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.charter.new.tsx(57,32): error TS2339: Property 'drivers' does not exist on type '{}'.
+app/routes/admin.charter.new.tsx(57,41): error TS2339: Property 'routes' does not exist on type '{}'.
+app/routes/admin.clients.$id.edit.tsx(56,13): error TS2339: Property 'client' does not exist on type '{}'.
+app/routes/admin.clients.$id.tsx(67,43): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { type: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<...>; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'user_responsible' does not exist in type '{ type: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<...>; }'.
+  Overload 2 of 2, '(values: { type: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<...>; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'client_id' does not exist in type '{ type: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<...>; }[]'.
+app/routes/admin.clients.$id.tsx(80,36): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { title: string | SQL<unknown> | Placeholder<string, any>; content: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<...>; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'is_important' does not exist in type '{ title: string | SQL<unknown> | Placeholder<string, any>; content: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<...>; }'.
+  Overload 2 of 2, '(values: { title: string | SQL<unknown> | Placeholder<string, any>; content: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<...>; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'client_id' does not exist in type '{ title: string | SQL<unknown> | Placeholder<string, any>; content: string | SQL<unknown> | Placeholder<string, any>; client_id: string | SQL<unknown> | Placeholder<...>; }[]'.
+app/routes/admin.clients.$id.tsx(94,13): error TS2339: Property 'client' does not exist on type '{}'.
+app/routes/admin.clients.$id.tsx(121,130): error TS2322: Type '"indigo"' is not assignable to type '"blue" | "purple" | "primary" | "emerald" | "amber" | "rose"'.
+app/routes/admin.clients._index.tsx(94,13): error TS2339: Property 'clients' does not exist on type '{}'.
+app/routes/admin.clients.new.tsx(57,13): error TS2339: Property 'states' does not exist on type '{}'.
+app/routes/admin.dashboard.tsx(157,11): error TS2339: Property 'counts' does not exist on type '{}'.
+app/routes/admin.documents._index.tsx(41,13): error TS2339: Property 'documents' does not exist on type '{}'.
+app/routes/admin.drivers._index.tsx(81,13): error TS2339: Property 'drivers' does not exist on type '{}'.
+app/routes/admin.drivers.new.tsx(28,38): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { nome: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; cnh: string | SQL<unknown> | Placeholder<...>; categoria_cnh: string | ... 1 more ... | Placeholder<...>; validade_cnh: string | ... 1 more ... | Placeholder<...>; data_contratacao: string | ... 1 more ... | Placeholder<...>; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'status' does not exist in type '{ nome: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; cnh: string | SQL<unknown> | Placeholder<...>; categoria_cnh: string | ... 1 more ... | Placeholder<...>; validade_cnh: string | ... 1 more ... | Placeholder<...>; data_contratacao: string | ....'.
+  Overload 2 of 2, '(values: { nome: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; cnh: string | SQL<unknown> | Placeholder<...>; categoria_cnh: string | ... 1 more ... | Placeholder<...>; validade_cnh: string | ... 1 more ... | Placeholder<...>; data_contratacao: string | ... 1 more ... | Placeholder<...>; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'nome' does not exist in type '{ nome: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; cnh: string | SQL<unknown> | Placeholder<...>; categoria_cnh: string | ... 1 more ... | Placeholder<...>; validade_cnh: string | ... 1 more ... | Placeholder<...>; data_contratacao: string | ....'.
+app/routes/admin.drivers.new.tsx(68,26): error TS2339: Property 'error' does not exist on type '{}'.
+app/routes/admin.drivers.new.tsx(72,83): error TS2339: Property 'error' does not exist on type '{}'.
+app/routes/admin.fleet._index.tsx(86,13): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.maintenance.$id.edit.tsx(56,45): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '{ tipo?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; organization_id?: string | SQL<unknown> | PgColumn<...>; placa?: string | ... 1 more ... | PgColumn<...>; modelo?: string | ... 1 more ... | PgColumn<...>; proxima_revisao_km?: number | ... 1 more ... | PgColumn<...>; ano?: ...'.
+app/routes/admin.maintenance.$id.edit.tsx(63,13): error TS2339: Property 'maintenance' does not exist on type '{}'.
+app/routes/admin.maintenance.$id.edit.tsx(63,26): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.maintenance._index.tsx(124,13): error TS2339: Property 'maintenances' does not exist on type '{}'.
+app/routes/admin.maintenance._index.tsx(251,120): error TS2322: Type '{ manutencao: any; onUpdate: () => void | Promise<void>; }' is not assignable to type 'IntrinsicAttributes & MaintenanceActionsProps'.
+  Property 'onUpdate' does not exist on type 'IntrinsicAttributes & MaintenanceActionsProps'.
+app/routes/admin.maintenance.new.tsx(34,64): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { type: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<string, any>; km_veiculo: number | SQL<unknown> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; vehicleId: string | ... 1 more ... | Placeholder<...>; scheduledDate: string | ... 1 more ... | Placeholder<...>; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, but 'vehicle_id' does not exist in type '{ type: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<string, any>; km_veiculo: number | SQL<unknown> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; vehicleId: string | ... 1 more ... | Placeholder<...>; scheduledDate: string | .....'. Did you mean to write 'vehicleId'?
+  Overload 2 of 2, '(values: { type: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<string, any>; km_veiculo: number | SQL<unknown> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; vehicleId: string | ... 1 more ... | Placeholder<...>; scheduledDate: string | ... 1 more ... | Placeholder<...>; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'organization_id' does not exist in type '{ type: string | SQL<unknown> | Placeholder<string, any>; description: string | SQL<unknown> | Placeholder<string, any>; km_veiculo: number | SQL<unknown> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; vehicleId: string | ... 1 more ... | Placeholder<...>; scheduledDate: string | .....'.
+app/routes/admin.maintenance.new.tsx(52,45): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '{ tipo?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; organization_id?: string | SQL<unknown> | PgColumn<...>; placa?: string | ... 1 more ... | PgColumn<...>; modelo?: string | ... 1 more ... | PgColumn<...>; proxima_revisao_km?: number | ... 1 more ... | PgColumn<...>; ano?: ...'.
+app/routes/admin.maintenance.new.tsx(60,13): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.organizations._index.tsx(69,13): error TS2339: Property 'organizations' does not exist on type '{}'.
+app/routes/admin.organizations._index.tsx(87,21): error TS2322: Type '{ title: any; subtitle: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; onClickBack: () => void; backLabel: string; }' is not assignable to type 'IntrinsicAttributes & PageHeaderProps'.
+  Property 'onClickBack' does not exist on type 'IntrinsicAttributes & PageHeaderProps'.
+app/routes/admin.parcels.$id.edit.tsx(51,13): error TS2339: Property 'parcel' does not exist on type '{}'.
+app/routes/admin.parcels.$id.edit.tsx(51,21): error TS2339: Property 'trips' does not exist on type '{}'.
+app/routes/admin.parcels.$id.edit.tsx(51,28): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.parcels._index.tsx(92,13): error TS2339: Property 'parcels' does not exist on type '{}'.
+app/routes/admin.parcels._index.tsx(182,240): error TS2304: Cannot find name 'FileText'.
+app/routes/admin.parcels.new.tsx(56,13): error TS2339: Property 'trips' does not exist on type '{}'.
+app/routes/admin.parcels.new.tsx(56,20): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.reports._index.tsx(35,51): error TS2339: Property 'valor' does not exist on type 'PgTableWithColumns<{ name: "transaction"; schema: undefined; columns: { id: PgColumn<{ name: "id"; tableName: "transaction"; dataType: "string"; columnType: "PgUUID"; data: string; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 17 more ...; updatedAt: PgCo...'.
+app/routes/admin.reports._index.tsx(36,57): error TS2339: Property 'tipo' does not exist on type 'PgTableWithColumns<{ name: "transaction"; schema: undefined; columns: { id: PgColumn<{ name: "id"; tableName: "transaction"; dataType: "string"; columnType: "PgUUID"; data: string; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 17 more ...; updatedAt: PgCo...'.
+app/routes/admin.reports._index.tsx(39,51): error TS2339: Property 'valor' does not exist on type 'PgTableWithColumns<{ name: "transaction"; schema: undefined; columns: { id: PgColumn<{ name: "id"; tableName: "transaction"; dataType: "string"; columnType: "PgUUID"; data: string; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 17 more ...; updatedAt: PgCo...'.
+app/routes/admin.reports._index.tsx(40,57): error TS2339: Property 'tipo' does not exist on type 'PgTableWithColumns<{ name: "transaction"; schema: undefined; columns: { id: PgColumn<{ name: "id"; tableName: "transaction"; dataType: "string"; columnType: "PgUUID"; data: string; driverParam: string; notNull: true; hasDefault: true; ... 6 more ...; generated: undefined; }, {}, {}>; ... 17 more ...; updatedAt: PgCo...'.
+app/routes/admin.reports._index.tsx(57,13): error TS2339: Property 'stats' does not exist on type '{}'.
+app/routes/admin.reports._index.tsx(57,20): error TS2339: Property 'recentTransactions' does not exist on type '{}'.
+app/routes/admin.reports._index.tsx(93,151): error TS2322: Type '{ title: string; value: string; icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>; variant: "blue" | "rose"; subtitle: string; }' is not assignable to type 'IntrinsicAttributes & DashboardCardProps'.
+  Property 'subtitle' does not exist on type 'IntrinsicAttributes & DashboardCardProps'.
+app/routes/admin.reports._index.tsx(95,97): error TS2322: Type '"indigo"' is not assignable to type '"blue" | "purple" | "primary" | "emerald" | "amber" | "rose"'.
+app/routes/admin.reservations.$id.tsx(50,13): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '{ trip_id?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; passenger_name?: string | SQL<unknown> | PgColumn<...>; seat_number?: string | ... 1 more ... | PgColumn<...>; organization_id?: string | ... 1 more ... | PgColumn<...>; total_price?: string | ... 1 more ... | PgColumn<.....'.
+app/routes/admin.reservations.$id.tsx(60,13): error TS2339: Property 'reservation' does not exist on type '{}'.
+app/routes/admin.reservations._index.tsx(86,13): error TS2353: Object literal may only specify known properties, and 'status' does not exist in type '{ trip_id?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; passenger_name?: string | SQL<unknown> | PgColumn<...>; seat_number?: string | ... 1 more ... | PgColumn<...>; organization_id?: string | ... 1 more ... | PgColumn<...>; total_price?: string | ... 1 more ... | PgColumn<.....'.
+app/routes/admin.reservations._index.tsx(114,13): error TS2339: Property 'reservations' does not exist on type '{}'.
+app/routes/admin.reservations._index.tsx(114,48): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.reservations._index.tsx(114,58): error TS2339: Property 'trips' does not exist on type '{}'.
+app/routes/admin.reservations.new.tsx(50,62): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { trip_id: string | SQL<unknown> | Placeholder<string, any>; passenger_name: string | SQL<unknown> | Placeholder<string, any>; seat_number: string | SQL<...> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; total_price: string | ... 1 more ... | Placeholder<...>; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'client_id' does not exist in type '{ trip_id: string | SQL<unknown> | Placeholder<string, any>; passenger_name: string | SQL<unknown> | Placeholder<string, any>; seat_number: string | SQL<...> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; total_price: string | ... 1 more ... | Placeholder<...>; }'.
+  Overload 2 of 2, '(values: { trip_id: string | SQL<unknown> | Placeholder<string, any>; passenger_name: string | SQL<unknown> | Placeholder<string, any>; seat_number: string | SQL<...> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; total_price: string | ... 1 more ... | Placeholder<...>; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'organization_id' does not exist in type '{ trip_id: string | SQL<unknown> | Placeholder<string, any>; passenger_name: string | SQL<unknown> | Placeholder<string, any>; seat_number: string | SQL<...> | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; total_price: string | ... 1 more ... | Placeholder<...>; }[]'.
+app/routes/admin.reservations.new.tsx(64,45): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { date: string | SQL<unknown> | Placeholder<string, any>; status: string | SQL<unknown> | Placeholder<string, any>; type: string | SQL<unknown> | Placeholder<string, any>; description: string | ... 1 more ... | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; amount: string | ... 1 more ... | Placeholder<...>; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'payment_method' does not exist in type '{ date: string | SQL<unknown> | Placeholder<string, any>; status: string | SQL<unknown> | Placeholder<string, any>; type: string | SQL<unknown> | Placeholder<string, any>; description: string | ... 1 more ... | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; amount: string | ... 1 more...'.
+  Overload 2 of 2, '(values: { date: string | SQL<unknown> | Placeholder<string, any>; status: string | SQL<unknown> | Placeholder<string, any>; type: string | SQL<unknown> | Placeholder<string, any>; description: string | ... 1 more ... | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; amount: string | ... 1 more ... | Placeholder<...>; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'organization_id' does not exist in type '{ date: string | SQL<unknown> | Placeholder<string, any>; status: string | SQL<unknown> | Placeholder<string, any>; type: string | SQL<unknown> | Placeholder<string, any>; description: string | ... 1 more ... | Placeholder<...>; organization_id: string | ... 1 more ... | Placeholder<...>; amount: string | ... 1 more...'.
+app/routes/admin.reservations.new.tsx(86,11): error TS2339: Property 'trips' does not exist on type '{}'.
+app/routes/admin.reservations.new.tsx(86,18): error TS2339: Property 'clients' does not exist on type '{}'.
+app/routes/admin.reservations.new.tsx(86,27): error TS2339: Property 'vehicles' does not exist on type '{}'.
+app/routes/admin.reservations.new.tsx(150,35): error TS2304: Cannot find name 'cn'.
+app/routes/admin.reservations.new.tsx(215,20): error TS2304: Cannot find name 'cn'.
+app/routes/admin.routes.$id.edit.tsx(44,17): error TS2353: Object literal may only specify known properties, and 'distance_km' does not exist in type '{ name?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; organization_id?: string | SQL<unknown> | PgColumn<...>; origin_city?: string | ... 1 more ... | PgColumn<...>; destination_city?: string | ... 1 more ... | PgColumn<...>; origin_state?: string | ... 1 more ... | PgColumn<.....'.
+app/routes/admin.routes.$id.edit.tsx(63,13): error TS2339: Property 'initialRota' does not exist on type '{}'.
+app/routes/admin.routes.$id.edit.tsx(63,26): error TS2339: Property 'isEdicao' does not exist on type '{}'.
+app/routes/admin.routes.$id.edit.tsx(70,32): error TS2339: Property 'error' does not exist on type '{}'.
+app/routes/admin.routes._index.tsx(74,13): error TS2353: Object literal may only specify known properties, and 'ativa' does not exist in type '{ name?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; organization_id?: string | SQL<unknown> | PgColumn<...>; origin_city?: string | ... 1 more ... | PgColumn<...>; destination_city?: string | ... 1 more ... | PgColumn<...>; origin_state?: string | ... 1 more ... | PgColumn<.....'.
+app/routes/admin.routes._index.tsx(84,13): error TS2339: Property 'routes' does not exist on type '{}'.
+app/routes/admin.routes._index.tsx(147,45): error TS2322: Type 'Dispatch<SetStateAction<"TODOS" | "ATIVA" | "INATIVA">>' is not assignable to type '(value: string) => void'.
+  Types of parameters 'value' and 'value' are incompatible.
+    Type 'string' is not assignable to type 'SetStateAction<"TODOS" | "ATIVA" | "INATIVA">'.
+app/routes/admin.routes.new.tsx(13,10): error TS2300: Duplicate identifier 'criarRotaVazia'.
+app/routes/admin.routes.new.tsx(15,10): error TS2300: Duplicate identifier 'criarRotaVazia'.
+app/routes/admin.routes.new.tsx(51,21): error TS2353: Object literal may only specify known properties, and 'distance_km' does not exist in type '{ name?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; organization_id?: string | SQL<unknown> | PgColumn<...>; origin_city?: string | ... 1 more ... | PgColumn<...>; destination_city?: string | ... 1 more ... | PgColumn<...>; origin_state?: string | ... 1 more ... | PgColumn<.....'.
+app/routes/admin.routes.new.tsx(60,46): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { name: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; origin_city: string | SQL<...> | Placeholder<...>; destination_city: string | ... 1 more ... | Placeholder<...>; origin_state: string | ... 1 more ... | Placeholder<...>; destination_state: string | ... 1 more ... | Placeholder<...>; }): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'distance_km' does not exist in type '{ name: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; origin_city: string | SQL<...> | Placeholder<...>; destination_city: string | ... 1 more ... | Placeholder<...>; origin_state: string | ... 1 more ... | Placeholder<...>; destination_state: st...'.
+  Overload 2 of 2, '(values: { name: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; origin_city: string | SQL<...> | Placeholder<...>; destination_city: string | ... 1 more ... | Placeholder<...>; origin_state: string | ... 1 more ... | Placeholder<...>; destination_state: string | ... 1 more ... | Placeholder<...>; }[]): PgInsertBase<...>', gave the following error.
+    Object literal may only specify known properties, and 'name' does not exist in type '{ name: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; origin_city: string | SQL<...> | Placeholder<...>; destination_city: string | ... 1 more ... | Placeholder<...>; origin_state: string | ... 1 more ... | Placeholder<...>; destination_state: st...'.
+app/routes/admin.routes.new.tsx(85,13): error TS2339: Property 'initialRota' does not exist on type '{}'.
+app/routes/admin.routes.new.tsx(85,26): error TS2339: Property 'isEdicao' does not exist on type '{}'.
+app/routes/admin.routes.new.tsx(92,32): error TS2339: Property 'error' does not exist on type '{}'.
+app/routes/admin.settings._index.tsx(51,17): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(value: { key: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; }): PgInsertBase<PgTableWithColumns<{ name: "system_parameters"; schema: undefined; columns: { ...; }; dialect: "pg"; }>, PostgresJsQueryResultHKT, undefined, false, never>', gave the following error.
+    Object literal may only specify known properties, and 'id' does not exist in type '{ key: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; }'.
+  Overload 2 of 2, '(values: { key: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; }[]): PgInsertBase<PgTableWithColumns<{ name: "system_parameters"; schema: undefined; columns: { ...; }; dialect: "pg"; }>, PostgresJsQueryResultHKT, undefined, false, never>', gave the following error.
+    Object literal may only specify known properties, and 'id' does not exist in type '{ key: string | SQL<unknown> | Placeholder<string, any>; organization_id: string | SQL<unknown> | Placeholder<string, any>; }[]'.
+app/routes/admin.settings._index.tsx(59,24): error TS2353: Object literal may only specify known properties, and 'value' does not exist in type 'PgUpdateSetSource<PgTableWithColumns<{ name: "system_parameters"; schema: undefined; columns: { id: PgColumn<{ name: "id"; tableName: "system_parameters"; dataType: "string"; columnType: "PgUUID"; data: string; driverParam: string; notNull: true; ... 7 more ...; generated: undefined; }, {}, {}>; ... 4 more ...; upda...'.
+app/routes/admin.settings._index.tsx(127,13): error TS2339: Property 'parameters' does not exist on type '{}'.
+app/routes/admin.transactions.$id.tsx(50,13): error TS2353: Object literal may only specify known properties, and 'updatedAt' does not exist in type '{ date?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; status?: string | SQL<unknown> | PgColumn<ColumnBaseConfig<ColumnDataType, string>, {}, {}>; type?: string | ... 1 more ... | PgColumn<...>; description?: string | ... 1 more ... | PgColumn<...>; organization_id?: string | ....'.
+app/routes/admin.transactions.$id.tsx(59,13): error TS2339: Property 'transaction' does not exist on type '{}'.
+app/routes/admin.trips.$id.tsx(49,13): error TS2339: Property 'trip' does not exist on type '{}'.
+app/routes/admin.trips.$id.tsx(49,19): error TS2339: Property 'revenue' does not exist on type '{}'.
+app/routes/admin.trips.$id.tsx(74,98): error TS2304: Cannot find name 'DollarSign'.
+app/routes/admin.trips._index.tsx(111,13): error TS2339: Property 'trips' does not exist on type '{}'.
+app/routes/admin.trips.new.tsx(95,13): error TS2339: Property 'rotas' does not exist on type '{}'.
+app/routes/admin.trips.new.tsx(95,20): error TS2339: Property 'veiculos' does not exist on type '{}'.
+app/routes/admin.trips.new.tsx(95,30): error TS2339: Property 'motoristas' does not exist on type '{}'.
+app/routes/admin.trips.new.tsx(95,42): error TS2339: Property 'initialViagem' does not exist on type '{}'.
+app/routes/admin.trips.new.tsx(95,57): error TS2339: Property 'isEdicao' does not exist on type '{}'.
+app/routes/admin.trips.new.tsx(162,26): error TS2339: Property 'error' does not exist on type '{}'.
+app/routes/admin.trips.new.tsx(166,83): error TS2339: Property 'error' does not exist on type '{}'.
+app/routes/admin.users._index.tsx(78,13): error TS2339: Property 'users' does not exist on type '{}'.
+app/routes/admin.vehicles.$id.tsx(58,13): error TS2339: Property 'vehicle' does not exist on type '{}'.
+app/routes/admin.vehicles.$id.tsx(83,83): error TS2322: Type '"indigo" | "emerald"' is not assignable to type '"blue" | "purple" | "primary" | "emerald" | "amber" | "rose"'.
+  Type '"indigo"' is not assignable to type '"blue" | "purple" | "primary" | "emerald" | "amber" | "rose"'.
+app/routes/api.admin.organizations.ts(22,36): error TS2367: This comparison appears to be unintentional because the types '"POST"' and '"DELETE"' have no overlap.
+app/routes/api.parcels.ts(90,33): error TS2339: Property 'PENDING' does not exist on type 'typeof EncomendaStatus'.
+app/routes/public/ViagemDetalhesPublico.tsx(257,55): error TS2339: Property 'origin_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(258,57): error TS2339: Property 'origin_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(258,110): error TS2339: Property 'origin_state' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(259,77): error TS2339: Property 'origin_state' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(260,84): error TS2339: Property 'origin_state' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(277,55): error TS2339: Property 'destination_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(278,57): error TS2339: Property 'destination_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(278,120): error TS2339: Property 'destination_state' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(279,82): error TS2339: Property 'destination_state' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(280,89): error TS2339: Property 'destination_state' does not exist on type 'IViagem'.
+app/routes/public/ViagemDetalhesPublico.tsx(422,62): error TS2339: Property 'ano' does not exist on type 'IVeiculo'.
+app/routes/public/ViagemDetalhesPublico.tsx(424,74): error TS2339: Property 'ano' does not exist on type 'IVeiculo'.
+app/routes/public/ViagemDetalhesPublico.tsx(445,51): error TS2339: Property 'imagem' does not exist on type 'IVeiculo'.
+app/routes/public/ViagemDetalhesPublico.tsx(445,70): error TS2339: Property 'galeria' does not exist on type 'IVeiculo'.
+app/routes/public/ViagemDetalhesPublico.tsx(445,89): error TS2339: Property 'galeria' does not exist on type 'IVeiculo'.
+app/routes/public/ViagemDetalhesPublico.tsx(447,58): error TS2339: Property 'imagem' does not exist on type 'IVeiculo'.
+app/routes/public/ViagemDetalhesPublico.tsx(449,70): error TS2339: Property 'imagem' does not exist on type 'IVeiculo'.
+app/routes/public/ViagemDetalhesPublico.tsx(454,58): error TS2339: Property 'galeria' does not exist on type 'IVeiculo'.
+app/routes/public/ViagensPublico.tsx(366,67): error TS2339: Property 'origin_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(367,69): error TS2339: Property 'origin_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(367,122): error TS2339: Property 'origin_state' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(368,88): error TS2339: Property 'origin_state' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(369,96): error TS2339: Property 'origin_state' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(382,67): error TS2339: Property 'destination_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(383,69): error TS2339: Property 'destination_neighborhood' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(383,132): error TS2339: Property 'destination_state' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(384,93): error TS2339: Property 'destination_state' does not exist on type 'IViagem'.
+app/routes/public/ViagensPublico.tsx(385,101): error TS2339: Property 'destination_state' does not exist on type 'IViagem'.
+app/utils/conciliacaoMatcher.ts(20,80): error TS2339: Property 'RECEITA' does not exist on type 'typeof TipoTransacao'.
+app/utils/conciliacaoMatcher.ts(21,79): error TS2339: Property 'DESPESA' does not exist on type 'typeof TipoTransacao'.
+app/utils/conciliacaoMatcher.ts(62,42): error TS2339: Property 'data_pagamento' does not exist on type 'ITransacao'.
+app/utils/ofxParser.ts(63,17): error TS2322: Type '"PENDENTE"' is not assignable to type '"PENDING" | "RECONCILED" | "IGNORED"'.
+index.tsx(3,17): error TS2307: Cannot find module './App' or its corresponding type declarations.
