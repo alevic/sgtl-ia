@@ -99,13 +99,13 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                         placeholder="Buscar por origem, destino ou título..."
                         value={busca}
                         onChange={e => setBusca(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
                 <div className="flex gap-2">
                     <button
                         onClick={() => setFiltroStatus('TODOS')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filtroStatus === 'TODOS'
+                        className={`px-3 py-1.5 rounded-sm text-sm font-medium transition-colors ${filtroStatus === 'TODOS'
                             ? 'bg-blue-600 text-white'
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
@@ -113,7 +113,7 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                     </button>
                     <button
                         onClick={() => setFiltroStatus('AGENDADA')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filtroStatus === 'AGENDADA'
+                        className={`px-3 py-1.5 rounded-sm text-sm font-medium transition-colors ${filtroStatus === 'AGENDADA'
                             ? 'bg-yellow-600 text-white'
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
@@ -121,7 +121,7 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                     </button>
                     <button
                         onClick={() => setFiltroStatus('CONFIRMADA')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${filtroStatus === 'CONFIRMADA'
+                        className={`px-3 py-1.5 rounded-sm text-sm font-medium transition-colors ${filtroStatus === 'CONFIRMADA'
                             ? 'bg-green-600 text-white'
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
                     >
@@ -132,7 +132,7 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
 
             {/* Viagem Selecionada */}
             {viagemSelecionada && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 rounded-lg p-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 rounded-sm p-4">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wide">Viagem Selecionada</span>
                         <Check size={20} className="text-blue-600 dark:text-blue-400" />
@@ -175,7 +175,7 @@ export const SeletorViagem: React.FC<SeletorViagemProps> = ({
                             <div
                                 key={viagem.id}
                                 onClick={() => onChange(viagem)}
-                                className={`cursor-pointer bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 
+                                className={`cursor-pointer bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 
                                 shadow-sm hover:shadow-md hover:border-blue-500 dark:hover:border-blue-500 transition-all overflow-hidden group`}
                             >
                                 <div className="p-4">

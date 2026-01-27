@@ -3,9 +3,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 import { EmpresaContexto } from '../../types';
 import {
-  LayoutDashboard, Users, UserPlus, Settings, LogOut, Menu, X, Bus,
-  Calendar, DollarSign, FileText, User, ChevronRight, Building2,
-  Ticket, Truck, Package, MapPin, TrendingUp, Wrench, CreditCard, Database
+  LayoutDashboard, Users, Settings,
+  Bus, Ticket, Truck, Package, MapPin,
+  TrendingUp, Wrench, CreditCard, Database,
+  Building2, FileText, ChevronRight
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { authClient } from '../../lib/auth-client';
@@ -14,43 +15,32 @@ const SidebarItem: React.FC<{ icon: React.ElementType; label: string; to: string
   const location = useLocation();
   const active = location.pathname === to;
 
-  const colorStyles: Record<string, string> = {
-    blue: "text-primary bg-primary/10 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)] hover:bg-primary/20",
-    orange: "text-orange-600 bg-orange-500/10 shadow-[0_0_15px_-3px_rgba(234,88,12,0.3)] hover:bg-orange-500/20"
-  };
-
-  const activeClass = colorStyles[activeColor] || "bg-accent text-accent-foreground";
-
+  // Swiss Logistics: Sharp, High Contrast, Left Indicator
   return (
     <Link
       to={to}
       className={cn(
-        "flex items-center gap-3 px-4 py-2.5 mx-3 rounded-xl cursor-pointer transition-all duration-300 group mb-1 relative overflow-hidden",
+        "flex items-center gap-3 px-4 py-2 mx-2 rounded-sm cursor-pointer transition-all duration-200 group relative mb-0.5",
         active
-          ? activeClass
-          : "text-muted-foreground/70 hover:bg-accent/40 hover:text-foreground hover:translate-x-1"
+          ? "bg-secondary text-primary font-bold"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
+      {/* Sharp Left Active Indicator */}
       {active && (
-        <span className={cn(
-          "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full",
-          activeColor === 'blue' ? "bg-primary" : "bg-orange-600"
-        )} />
+        <span className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
       )}
+
       <Icon
         size={18}
         className={cn(
-          "transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
-          active ? "stroke-[2.5px]" : "opacity-70 group-hover:opacity-100"
+          "transition-all duration-200",
+          active ? "text-primary stroke-[2.5px]" : "group-hover:text-foreground"
         )}
       />
-      <span className={cn(
-        "text-sm font-bold tracking-tight transition-colors",
-        active ? "font-black" : "font-semibold"
-      )}>
+      <span className="text-sm tracking-tight uppercase">
         {label}
       </span>
-      {!active && <ChevronRight size={14} className="ml-auto opacity-0 -translate-x-2 group-hover:opacity-40 group-hover:translate-x-0 transition-all duration-300" />}
     </Link>
   );
 };
@@ -60,7 +50,6 @@ export const Sidebar: React.FC = () => {
   const { data: session } = authClient.useSession();
   const userRole = session?.user?.role || 'user';
 
-  // Dynamic color based on context (Blue for Turismo, Orange for Express)
   const themeColor = currentContext === EmpresaContexto.TURISMO ? 'blue' : 'orange';
 
   if (!isSidebarOpen) return null;
@@ -68,30 +57,32 @@ export const Sidebar: React.FC = () => {
   const canAccess = (roles: string[]) => roles.includes(userRole);
 
   return (
-    <div className="w-64 h-screen bg-card/95 backdrop-blur-xl border-r border-border/50 flex flex-col sticky top-0 left-0 shrink-0 transition-all duration-300 z-50 shadow-2xl shadow-black/5">
-      <div className="h-20 flex items-center px-6 mb-6">
+    // SOLID BACKGROUND - NO BLUR - SHARP BORDER
+    <div className="w-64 h-screen bg-card border-r border-border flex flex-col sticky top-0 left-0 shrink-0 z-50">
+
+      {/* LOGO AREA - INDUSTRIAL HEADER */}
+      <div className="h-16 flex items-center px-6 border-b border-border bg-muted">
         <div className={cn(
-          "w-11 h-11 rounded-2xl flex items-center justify-center text-white font-black mr-3 shadow-2xl transition-all duration-500 hover:scale-110 hover:rotate-6 active:scale-95 group",
-          currentContext === EmpresaContexto.TURISMO
-            ? 'bg-gradient-to-br from-primary to-blue-700 shadow-primary/40'
-            : 'bg-gradient-to-br from-orange-500 to-orange-700 shadow-orange-600/40'
+          "w-8 h-8 flex items-center justify-center text-primary-foreground font-black mr-3 rounded-none shadow-none",
+          "bg-primary" // Solid Signal Color
         )}>
-          <Bus size={24} strokeWidth={2.5} className="group-hover:animate-bounce" />
+          <Bus size={18} strokeWidth={3} />
         </div>
-        <div className="flex flex-col">
-          <span className="font-black text-foreground text-lg leading-tight uppercase tracking-tighter">
+        <div className="flex flex-col justify-center">
+          <span className="font-black text-foreground text-base leading-none tracking-widest uppercase">
             {systemSettings.system_name || 'SGTL'}
           </span>
-          <span className="text-[12px] font-bold text-muted-foreground/60 tracking-[0.2em] -mt-1 uppercase">
-            {systemSettings.system_display_version || 'v2.2'}
+          <span className="text-[10px] font-bold text-muted-foreground tracking-[0.2em] uppercase mt-0.5">
+            LOGISTICS v2.2
           </span>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-4 space-y-1">
+      <div className="flex-1 overflow-y-auto py-4 space-y-0.5">
         <SidebarItem icon={LayoutDashboard} label="Dashboard" to="/admin/dashboard" activeColor={themeColor} />
-        <div className="mt-2 px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
-          Principal
+
+        <div className="mt-4 mb-2 px-6 text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">
+          Operação {currentContext === EmpresaContexto.TURISMO ? 'Turismo' : 'Express'}
         </div>
 
         {/* Context: JJê Turismo */}
@@ -99,7 +90,7 @@ export const Sidebar: React.FC = () => {
           <>
             <SidebarItem icon={Bus} label="Viagens" to="/admin/viagens" activeColor={themeColor} />
             <SidebarItem icon={Ticket} label="Reservas" to="/admin/reservas" activeColor={themeColor} />
-            <SidebarItem icon={Users} label="Fretamento B2B" to="/admin/fretamento" activeColor={themeColor} />
+            <SidebarItem icon={Users} label="Fretamento" to="/admin/fretamento" activeColor={themeColor} />
             <SidebarItem icon={MapPin} label="Rotas" to="/admin/rotas" activeColor={themeColor} />
           </>
         )}
@@ -112,18 +103,19 @@ export const Sidebar: React.FC = () => {
           </>
         )}
 
-        <div className="my-4 mx-6 border-t border-slate-100 dark:border-slate-700"></div>
-        <div className="px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
-          Operacional
+        <div className="my-4 mx-6 border-t border-border"></div>
+        <div className="mb-2 px-6 text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">
+          Gerenciamento
         </div>
-        <SidebarItem icon={Users} label="Clientes (CRM)" to="/admin/clientes" activeColor={themeColor} />
+
+        <SidebarItem icon={Users} label="Clientes" to="/admin/clientes" activeColor={themeColor} />
         <SidebarItem icon={currentContext === EmpresaContexto.TURISMO ? Bus : Truck} label="Frota" to="/admin/frota" activeColor={themeColor} />
         <SidebarItem icon={Users} label="Motoristas" to="/admin/motoristas" activeColor={themeColor} />
         <SidebarItem icon={Wrench} label="Manutenção" to="/admin/manutencao" activeColor={themeColor} />
 
-        <div className="my-4 mx-6 border-t border-slate-100 dark:border-slate-700"></div>
-        <div className="px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-wider">
-          Gestão
+        <div className="my-4 mx-6 border-t border-border"></div>
+        <div className="mb-2 px-6 text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">
+          Admin
         </div>
 
         {canAccess(['admin', 'financeiro']) && (
@@ -137,7 +129,7 @@ export const Sidebar: React.FC = () => {
           <>
             <SidebarItem icon={Users} label="Usuários" to="/admin/usuarios" activeColor={themeColor} />
             <SidebarItem icon={Building2} label="Organizações" to="/admin/organizacoes" activeColor={themeColor} />
-            <SidebarItem icon={Database} label="Cadastros Auxiliares" to="/admin/cadastros-auxiliares" activeColor={themeColor} />
+            <SidebarItem icon={Database} label="Cadastros" to="/admin/cadastros-auxiliares" activeColor={themeColor} />
             <SidebarItem icon={Settings} label="Configurações" to="/admin/configuracoes" activeColor={themeColor} />
           </>
         )}

@@ -42,50 +42,72 @@
 }
 
 :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Swiss Logistics - Concrete Base */
+    --background: 220 10% 98%;   /* Concrete White */
+    --foreground: 220 10% 10%;   /* Asphalt Black */
+    
+    --card: 0 0% 100%;           /* Pure White */
+    --card-foreground: 220 10% 10%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 220 10% 10%;
+    
+    /* Primary (Signal Color) - Default: International Orange */
+    --primary: 25 100% 50%;      
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 220 5% 90%;     /* Light Grey Structure */
+    --secondary-foreground: 220 10% 10%;
+    
+    --muted: 220 10% 94%;
+    --muted-foreground: 220 5% 45%;
+    
+    --accent: 220 10% 90%;       /* Interaction Grey */
+    --accent-foreground: 220 10% 10%;
+    
+    --destructive: 0 85% 60%;    /* Alert Red */
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 32% 85%;
-    --input: 214.3 32% 85%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.75rem;
-    --radius-3xl: 1.5rem;
-    --radius-xl: 0.75rem;
+
+    --border: 220 10% 85%;       /* Precise Grey Border */
+    --input: 220 10% 85%;
+    --ring: 25 100% 50%;         /* Focus Ring = Signal */
+    
+    /* Precious Geometry */
+    --radius: 2px;
+    --radius-3xl: 4px;           /* Reduced from 1.5rem to maintain sharpness */
+    --radius-xl: 3px;
 }
 
 .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    /* Swiss Logistics - Dark Mode (Asphalt & Night) */
+    --background: 220 10% 8%;    /* Deep Asphalt */
+    --foreground: 220 10% 90%;   /* Off-White Text */
+    
+    --card: 220 10% 12%;         /* Darker Asphalt */
+    --card-foreground: 220 10% 90%;
+    
+    --popover: 220 10% 12%;
+    --popover-foreground: 220 10% 90%;
+    
+    /* Primary maintains high visibility */
+    --primary: 25 100% 55%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 220 10% 18%;
+    --secondary-foreground: 220 10% 90%;
+    
+    --muted: 220 10% 16%;
+    --muted-foreground: 220 5% 60%;
+    
+    --accent: 220 10% 18%;
+    --accent-foreground: 220 10% 90%;
+    
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 25%;
-    --input: 217.2 32.6% 25%;
-    --ring: 224.3 76.3% 48%;
+    
+    --border: 220 10% 20%;       /* Subtle Dark Border */
+    --input: 220 10% 20%;
+    --ring: 25 100% 55%;
 }
 
 @layer base {

@@ -39,7 +39,7 @@ const flattenActions = (actions: ActionItem[] | ActionGroup[]): ActionItem[] => 
 
 // Color classes for inline buttons (colored background style like Viagens/Reservas)
 const getInlineButtonClasses = (color: ActionItem['color'] = 'slate', disabled?: boolean) => {
-    const baseClasses = 'p-2 rounded-lg transition-colors';
+    const baseClasses = 'p-2 rounded-sm transition-colors';
     const disabledClasses = disabled ? 'opacity-50 cursor-not-allowed' : '';
 
     const colorMap: Record<string, string> = {
@@ -190,7 +190,7 @@ export const ResponsiveActions: React.FC<ResponsiveActionsProps> = ({ actions })
                         e.stopPropagation();
                         setShowMenu(!showMenu);
                     }}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-sm transition-colors"
                 >
                     <MoreVertical size={18} className="text-slate-600 dark:text-slate-400" />
                 </button>
@@ -208,7 +208,7 @@ export const ResponsiveActions: React.FC<ResponsiveActionsProps> = ({ actions })
                         />
 
                         {/* Dropdown Menu */}
-                        <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-20 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
+                        <div className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-800 rounded-sm shadow-lg border border-slate-200 dark:border-slate-700 z-20 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
                             {renderMenuContent()}
                         </div>
                     </>

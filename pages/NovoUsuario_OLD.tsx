@@ -70,14 +70,14 @@ export const NovoUsuario: React.FC = () => {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin/usuarios')}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm transition-colors"
                 >
                     <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </button>
                 <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Novo Usuário</h1>
             </div>
 
-            <div className="max-w-2xl bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
+            <div className="max-w-2xl bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-8">
                 <form onSubmit={handleSignup} className="space-y-6">
                     {/* Nome Completo */}
                     <div>
@@ -88,7 +88,7 @@ export const NovoUsuario: React.FC = () => {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                             placeholder="Nome do usuário"
                             required
                         />
@@ -122,7 +122,7 @@ export const NovoUsuario: React.FC = () => {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                 placeholder="email@empresa.com"
                             />
                         </div>
@@ -153,7 +153,7 @@ export const NovoUsuario: React.FC = () => {
                             <select
                                 value={role}
                                 onChange={(e) => setRole(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white appearance-none"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white appearance-none"
                             >
                                 <option value={UserRole.USER}>Usuário Padrão</option>
                                 <option value={UserRole.ADMIN}>Administrador</option>
@@ -171,14 +171,14 @@ export const NovoUsuario: React.FC = () => {
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white resize-none"
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white resize-none"
                             placeholder="Observações sobre o usuário..."
                             rows={3}
                         />
                     </div>
 
                     {/* Ativo */}
-                    <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                    <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 rounded-sm">
                         <input
                             type="checkbox"
                             id="isActive"
@@ -202,7 +202,7 @@ export const NovoUsuario: React.FC = () => {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                 placeholder="••••••••"
                                 required
                                 minLength={8}
@@ -212,7 +212,7 @@ export const NovoUsuario: React.FC = () => {
                     </div>
 
                     {error && (
-                        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg">
+                        <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-sm">
                             {error}
                         </div>
                     )}
@@ -221,7 +221,7 @@ export const NovoUsuario: React.FC = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-sm shadow-lg shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isLoading ? <Loader2 className="animate-spin" size={20} /> : <><Save size={20} /> Criar Usuário</>}
                         </button>

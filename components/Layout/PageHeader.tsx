@@ -39,7 +39,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
                 )}
                 <div className="flex items-center gap-4">
                     {Icon && (
-                        <div className="p-3 bg-primary/10 rounded-2xl text-primary hidden md:flex animate-in zoom-in-95 duration-500">
+                        <div className="p-3 bg-primary/10 rounded-sm text-primary hidden md:flex animate-in zoom-in-95 duration-500">
                             <Icon size={24} />
                         </div>
                     )}

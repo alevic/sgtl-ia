@@ -46,7 +46,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
     const config = configs[status] || configs[FretamentoStatus.REQUEST];
 
     return (
-        <Badge className={cn('rounded-lg font-bold px-2 py-0.5', config.className)}>
+        <Badge className={cn('rounded-sm font-bold px-2 py-0.5', config.className)}>
             {config.label}
         </Badge>
     );
@@ -159,7 +159,7 @@ export const Fretamento: React.FC = () => {
                 subtitle="Gestão corporativa de aluguel de frota"
                 icon={Building2}
                 rightElement={
-                    <Button onClick={() => navigate('/admin/fretamento/novo')} className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                    <Button onClick={() => navigate('/admin/fretamento/novo')} className="h-14 px-6 rounded-sm font-semibold gap-2 shadow-lg shadow-primary/20">
                         <Plus size={20} strokeWidth={2.5} />
                         NOVA SOLICITAÇÃO
                     </Button>
@@ -203,7 +203,7 @@ export const Fretamento: React.FC = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                         <Input
                             placeholder="Cliente, origem ou destino..."
-                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
                         />
@@ -214,12 +214,12 @@ export const Fretamento: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col lg:col-span-2">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Status da Solicitação</label>
                     <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
-                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                            <TabsTrigger value="todos" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                            <TabsTrigger value="solicitacao" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">SOLICIT.</TabsTrigger>
-                            <TabsTrigger value="orcamento" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">ORÇAM.</TabsTrigger>
-                            <TabsTrigger value="confirmado" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">CONFIRM.</TabsTrigger>
-                            <TabsTrigger value="andamento" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">ATIVO</TabsTrigger>
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="todos" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value="solicitacao" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">SOLICIT.</TabsTrigger>
+                            <TabsTrigger value="orcamento" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">ORÇAM.</TabsTrigger>
+                            <TabsTrigger value="confirmado" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">CONFIRM.</TabsTrigger>
+                            <TabsTrigger value="andamento" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm whitespace-nowrap">ATIVO</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
@@ -227,15 +227,15 @@ export const Fretamento: React.FC = () => {
 
             {/* Executive Table Module */}
             {fretamentosFiltrados.length === 0 ? (
-                <div className="bg-card/40 backdrop-blur-md rounded-xl border border-dashed border-border p-12 text-center">
+                <div className="bg-card   rounded-sm border border-dashed border-border p-12 text-center">
                     <Bus size={48} className="mx-auto text-muted-foreground/30 mb-4" />
                     <h3 className="text-lg font-bold tracking-tight mb-2">Nenhuma solicitação encontrada</h3>
                     <p className="text-muted-foreground font-medium mb-6">Tente ajustar seus filtros ou crie uma nova solicitação.</p>
                 </div>
             ) : (
-                <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
+                <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-sm bg-card  ">
                     <Table>
-                        <TableHeader className="bg-muted/30">
+                        <TableHeader className="bg-muted">
                             <TableRow className="hover:bg-transparent border-border/50">
                                 <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Cliente</TableHead>
                                 <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Rota</TableHead>
@@ -255,7 +255,7 @@ export const Fretamento: React.FC = () => {
                                 const valorTotal = fretamento.quote_price || fretamento.valor_total || 0;
 
                                 return (
-                                    <TableRow key={fretamento.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                    <TableRow key={fretamento.id} className="group hover:bg-muted border-border/30 transition-colors">
                                         <TableCell className="pl-8 py-5">
                                             <div className="space-y-1">
                                                 <div className="font-semibold text-base group-hover:text-primary transition-colors">
@@ -296,36 +296,36 @@ export const Fretamento: React.FC = () => {
                                             <div className="flex justify-end gap-2">
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary">
+                                                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-sm hover:bg-primary/10 hover:text-primary">
                                                             <MoreHorizontal size={18} strokeWidth={2.5} />
                                                         </Button>
                                                     </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-2xl border-none bg-card/95 backdrop-blur-md p-2">
+                                                    <DropdownMenuContent align="end" className="w-56 rounded-sm shadow-2xl border-none bg-card   p-2">
                                                         <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground/60 px-3 py-2">Ações Rápidas</DropdownMenuLabel>
-                                                        <DropdownMenuItem className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
+                                                        <DropdownMenuItem className="rounded-sm h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
                                                             <FileText size={16} strokeWidth={2.5} />
                                                             Ver Detalhes
                                                         </DropdownMenuItem>
                                                         {(fretamento.status === FretamentoStatus.REQUEST || fretamento.status === 'PENDING') && (
-                                                            <DropdownMenuItem className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
+                                                            <DropdownMenuItem className="rounded-sm h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
                                                                 <DollarSign size={16} strokeWidth={2.5} />
                                                                 Enviar Orçamento
                                                             </DropdownMenuItem>
                                                         )}
                                                         {fretamento.status === FretamentoStatus.QUOTED && (
-                                                            <DropdownMenuItem className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
+                                                            <DropdownMenuItem className="rounded-sm h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
                                                                 <CheckCircle size={16} strokeWidth={2.5} />
                                                                 Confirmar Fretamento
                                                             </DropdownMenuItem>
                                                         )}
-                                                        <DropdownMenuItem className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
+                                                        <DropdownMenuItem className="rounded-sm h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3">
                                                             <Edit size={16} strokeWidth={2.5} />
                                                             Editar
                                                         </DropdownMenuItem>
                                                         <DropdownMenuSeparator className="bg-border/40 my-1" />
                                                         <DropdownMenuItem
                                                             onClick={() => setItemToDelete(fretamento.id)}
-                                                            className="rounded-xl h-10 gap-3 font-bold cursor-pointer text-destructive focus:text-destructive-foreground focus:bg-destructive px-3"
+                                                            className="rounded-sm h-10 gap-3 font-bold cursor-pointer text-destructive focus:text-destructive-foreground focus:bg-destructive px-3"
                                                         >
                                                             <Trash2 size={16} strokeWidth={2.5} />
                                                             Excluir
@@ -342,7 +342,7 @@ export const Fretamento: React.FC = () => {
                 </Card>
             )}
             <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
-                <AlertDialogContent className="rounded-3xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                <AlertDialogContent className="rounded-sm border-none shadow-2xl bg-card  ">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-2xl font-semibold tracking-tighter">Confirmar Exclusão</AlertDialogTitle>
                         <AlertDialogDescription className="font-medium text-muted-foreground">
@@ -350,10 +350,10 @@ export const Fretamento: React.FC = () => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="gap-3">
-                        <AlertDialogCancel className="rounded-xl font-bold border-none bg-muted hover:bg-muted/80">Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-sm font-bold border-none bg-muted hover:bg-muted">Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => itemToDelete && handleDelete(itemToDelete)}
-                            className="rounded-xl font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="rounded-sm font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             EXCLUIR SOLICITAÇÃO
                         </AlertDialogAction>

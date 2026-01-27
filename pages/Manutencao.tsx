@@ -118,7 +118,7 @@ export const Manutencao: React.FC = () => {
         const Icon = config.icon;
 
         return (
-            <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-lg", config.className.replace('border-', '').replace(/[\w-]+-500\/20/, '').trim())}>
+            <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-sm", config.className.replace('border-', '').replace(/[\w-]+-500\/20/, '').trim())}>
                 <Icon size={12} strokeWidth={2.5} />
                 {config.label}
             </Badge>
@@ -208,7 +208,7 @@ export const Manutencao: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => navigate('/admin/manutencao/nova')}
-                        className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                        className="h-14 px-6 rounded-sm font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                     >
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         NOVA MANUTENÇÃO
@@ -255,7 +255,7 @@ export const Manutencao: React.FC = () => {
                             placeholder="Descrição, oficina ou placa..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                         />
                     </div>
                 </div>
@@ -264,20 +264,20 @@ export const Manutencao: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col lg:col-span-2">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Status da Manutenção</label>
                     <Tabs value={filterStatus} onValueChange={(v: any) => setFilterStatus(v)} className="w-full">
-                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                            <TabsTrigger value={StatusManutencao.SCHEDULED} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Agendadas</TabsTrigger>
-                            <TabsTrigger value={StatusManutencao.IN_PROGRESS} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Oficina</TabsTrigger>
-                            <TabsTrigger value={StatusManutencao.COMPLETED} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Concluídas</TabsTrigger>
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value={StatusManutencao.SCHEDULED} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Agendadas</TabsTrigger>
+                            <TabsTrigger value={StatusManutencao.IN_PROGRESS} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Oficina</TabsTrigger>
+                            <TabsTrigger value={StatusManutencao.COMPLETED} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">Concluídas</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
             </ListFilterSection>
 
             {/* Maintenances Table */}
-            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card  ">
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
                             <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Veículo</TableHead>
                             <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Descrição / Tipo</TableHead>
@@ -298,10 +298,10 @@ export const Manutencao: React.FC = () => {
                             </TableRow>
                         ) : (
                             filteredMaintenances.map((manutencao) => (
-                                <TableRow key={manutencao.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                <TableRow key={manutencao.id} className="group hover:bg-muted border-border/30 transition-colors">
                                     <TableCell className="pl-8 py-5">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-14 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110">
+                                            <div className="w-12 h-14 rounded-sm bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110">
                                                 <WrenchIcon size={22} />
                                             </div>
                                             <div className="flex flex-col">

@@ -164,7 +164,7 @@ export const ViagensPublico: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto px-4 py-6">
             {/* Hero Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 md:p-12 mb-8 text-white shadow-xl shadow-blue-500/20">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-sm p-6 md:p-12 mb-8 text-white shadow-xl shadow-blue-500/20">
                 <div className="max-w-5xl mx-auto">
                     <div className="mb-10 text-center md:text-left">
                         <h1 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">
@@ -183,7 +183,7 @@ export const ViagensPublico: React.FC = () => {
                             <select
                                 value={filtroOrigem}
                                 onChange={(e) => setFiltroOrigem(e.target.value)}
-                                className="w-full pl-10 pr-8 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm appearance-none cursor-pointer shadow-sm border border-white/20 transition-all hover:bg-white"
+                                className="w-full pl-10 pr-8 py-4 rounded-sm bg-white/95   text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm appearance-none cursor-pointer shadow-sm border border-white/20 transition-all hover:bg-white"
                             >
                                 <option value="">Origem (embarque)</option>
                                 {cidadesEmbarque.map(cidade => (
@@ -199,7 +199,7 @@ export const ViagensPublico: React.FC = () => {
                             <select
                                 value={filtroDestino}
                                 onChange={(e) => setFiltroDestino(e.target.value)}
-                                className="w-full pl-10 pr-8 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm appearance-none cursor-pointer shadow-sm border border-white/20 transition-all hover:bg-white"
+                                className="w-full pl-10 pr-8 py-4 rounded-sm bg-white/95   text-slate-800 focus:ring-4 focus:ring-white/20 outline-none text-sm appearance-none cursor-pointer shadow-sm border border-white/20 transition-all hover:bg-white"
                             >
                                 <option value="">Destino</option>
                                 {cidadesDestino.map(cidade => (
@@ -216,7 +216,7 @@ export const ViagensPublico: React.FC = () => {
                                 onChange={setFiltroData}
                                 placeholder="Data"
                                 showIcon={true}
-                                className="!pl-10 !py-4 !rounded-2xl !bg-white/95 !backdrop-blur-sm !text-slate-800 !shadow-sm !border-white/20 !h-auto focus:ring-4 focus:ring-white/20"
+                                className="!pl-10 !py-4 !rounded-sm !bg-white/95 !  !text-slate-800 !shadow-sm !border-white/20 !h-auto focus:ring-4 focus:ring-white/20"
                                 containerClassName="h-full"
                             />
                         </div>
@@ -229,7 +229,7 @@ export const ViagensPublico: React.FC = () => {
                                 placeholder="Buscar..."
                                 value={busca}
                                 onChange={(e) => setBusca(e.target.value)}
-                                className="w-full pl-10 pr-4 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-slate-800 placeholder-slate-400 focus:ring-4 focus:ring-white/20 outline-none text-sm shadow-sm border border-white/20 transition-all hover:bg-white"
+                                className="w-full pl-10 pr-4 py-4 rounded-sm bg-white/95   text-slate-800 placeholder-slate-400 focus:ring-4 focus:ring-white/20 outline-none text-sm shadow-sm border border-white/20 transition-all hover:bg-white"
                             />
                         </div>
                     </div>
@@ -288,7 +288,7 @@ export const ViagensPublico: React.FC = () => {
                     <Loader className="animate-spin text-blue-600" size={32} />
                 </div>
             ) : viagensFiltradas.length === 0 ? (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-12 text-center border border-slate-200 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-800 rounded-sm p-12 text-center border border-slate-200 dark:border-slate-700">
                     <Bus size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
                     <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">
                         Nenhuma viagem encontrada
@@ -303,7 +303,7 @@ export const ViagensPublico: React.FC = () => {
                         <Link
                             key={viagem.id}
                             to={`/viagens/${viagem.id}`}
-                            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 md:p-6 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 transition-all group"
+                            className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-4 md:p-6 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 transition-all group"
                         >
                             <div className="flex flex-col md:flex-row md:items-center gap-4">
                                 {/* Cover Image */}
@@ -312,10 +312,10 @@ export const ViagensPublico: React.FC = () => {
                                         <img
                                             src={viagem.cover_image}
                                             alt={viagem.title || 'Viagem'}
-                                            className="w-full md:w-32 h-24 object-cover rounded-xl"
+                                            className="w-full md:w-32 h-24 object-cover rounded-sm"
                                         />
                                     ) : (
-                                        <div className="w-full md:w-32 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <div className="w-full md:w-32 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-sm flex items-center justify-center">
                                             <Bus size={32} className="text-white opacity-50" />
                                         </div>
                                     )}
@@ -426,7 +426,7 @@ export const ViagensPublico: React.FC = () => {
                                             R$ {viagem.price_conventional ? Number(viagem.price_conventional).toFixed(0) : '0'}
                                         </p>
                                     </div>
-                                    <div className="px-4 py-2 bg-blue-600 group-hover:bg-blue-500 text-white rounded-lg font-semibold text-sm transition-colors flex items-center gap-1">
+                                    <div className="px-4 py-2 bg-blue-600 group-hover:bg-blue-500 text-white rounded-sm font-semibold text-sm transition-colors flex items-center gap-1">
                                         Ver Detalhes
                                         <ChevronRight size={16} />
                                     </div>

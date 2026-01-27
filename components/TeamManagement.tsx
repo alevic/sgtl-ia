@@ -122,7 +122,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
     return (
         <div className="space-y-8 max-w-3xl">
             {/* Add Member Form */}
-            <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-sm border border-slate-200 dark:border-slate-700">
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
                     <Users size={20} className={`text-${themeColor}-600`} />
                     Adicionar Membro à Equipe
@@ -142,7 +142,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
                                     }}
                                     onFocus={() => setShowResults(true)}
                                     placeholder="Buscar por nome ou email..."
-                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 outline-none"
                                     required
                                     autoComplete="off"
                                 />
@@ -155,7 +155,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
 
                             {/* Search Results Dropdown */}
                             {showResults && searchResults.length > 0 && (
-                                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm shadow-lg max-h-60 overflow-y-auto">
                                     {searchResults.map((user) => (
                                         <button
                                             key={user.id}
@@ -179,7 +179,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
                         <select
                             value={newMemberRole}
                             onChange={(e) => setNewMemberRole(e.target.value)}
-                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 outline-none"
                         >
                             <option value="user">Usuário</option>
                             <option value="operacional">Operacional</option>
@@ -190,7 +190,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
                     <button
                         type="submit"
                         disabled={isAdding}
-                        className={`px-6 py-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white font-medium rounded-lg transition-colors disabled:opacity-70 h-[42px]`}
+                        className={`px-6 py-2 bg-${themeColor}-600 hover:bg-${themeColor}-700 text-white font-medium rounded-sm transition-colors disabled:opacity-70 h-[42px]`}
                     >
                         {isAdding ? 'Adicionando...' : 'Adicionar'}
                     </button>
@@ -202,7 +202,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({ themeColor, cont
             {/* Members List */}
             <div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Membros Atuais</h3>
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
                             <tr>

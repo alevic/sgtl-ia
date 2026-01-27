@@ -54,7 +54,7 @@ export const GeminiInsights: React.FC<GeminiInsightsProps> = ({ context, dataSum
   };
 
   return (
-    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 p-6 rounded-xl border border-indigo-100 dark:border-indigo-900 relative overflow-hidden">
+    <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-950/40 p-6 rounded-sm border border-indigo-100 dark:border-indigo-900 relative overflow-hidden">
       <div className="absolute top-0 right-0 p-4 opacity-10">
         <Sparkles size={100} className="text-indigo-900 dark:text-white" />
       </div>
@@ -68,14 +68,14 @@ export const GeminiInsights: React.FC<GeminiInsightsProps> = ({ context, dataSum
           <button 
             onClick={generateInsight}
             disabled={loading}
-            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-white dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-lg border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-800 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-white dark:bg-indigo-900 text-indigo-600 dark:text-indigo-300 rounded-sm border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-800 disabled:opacity-50 transition-colors"
           >
             <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
             {loading ? 'Analisando...' : 'Gerar Análise'}
           </button>
         </div>
 
-        <div className="bg-white/60 dark:bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/50 dark:border-white/10 min-h-[100px]">
+        <div className="bg-white/60 dark:bg-black/20   rounded-sm p-4 border border-white/50 dark:border-white/10 min-h-[100px]">
           {error ? (
             <div className="text-red-500 dark:text-red-400 flex items-center gap-2 text-sm">
               <AlertCircle size={16} /> {error}

@@ -186,7 +186,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Cover Image Banner */}
                     {viagem.cover_image && (
-                        <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700">
+                        <div className="rounded-sm overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700">
                             <img
                                 src={viagem.cover_image}
                                 alt={viagem.title || 'Viagem'}
@@ -196,7 +196,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                     )}
 
                     {/* Trip Header */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                         <div className="flex flex-col gap-4">
                             <div>
                                 <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -232,7 +232,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
 
                             {/* Alertas - Showing inline if exists */}
                             {viagem.alerts && (
-                                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/30 p-4 flex items-start gap-3">
+                                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-sm border border-amber-100 dark:border-amber-800/30 p-4 flex items-start gap-3">
                                     <AlertTriangle size={20} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                                     <p className="text-amber-700 dark:text-amber-400 text-sm font-medium leading-relaxed">
                                         {viagem.alerts}
@@ -242,7 +242,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                         </div>
 
                         {/* Route Path */}
-                        <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl my-6 border border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-sm my-6 border border-slate-100 dark:border-slate-800">
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 text-green-600 mb-1">
                                     <MapPin size={16} />
@@ -287,7 +287,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                         {/* Date & Time Grid */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-sm flex items-center justify-center">
                                     <Calendar size={20} className="text-blue-600" />
                                 </div>
                                 <div>
@@ -298,7 +298,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-sm flex items-center justify-center">
                                     <Clock size={20} className="text-blue-600" />
                                 </div>
                                 <div>
@@ -309,7 +309,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-sm flex items-center justify-center">
                                     <Users size={20} className="text-blue-600" />
                                 </div>
                                 <div>
@@ -320,7 +320,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-sm flex items-center justify-center">
                                     <DollarSign size={20} className="text-green-600" />
                                 </div>
                                 <div>
@@ -335,7 +335,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
 
                     {/* Baggage Limit if exists */}
                     {viagem.baggage_limit && (
-                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-2xl border border-blue-100 dark:border-blue-800/30 p-4 flex items-center gap-3">
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-sm border border-blue-100 dark:border-blue-800/30 p-4 flex items-center gap-3">
                             <Briefcase size={20} className="text-blue-600 shrink-0" />
                             <div>
                                 <p className="text-xs font-bold text-blue-800/60 uppercase tracking-wider">Limite de Bagagens</p>
@@ -346,13 +346,13 @@ export const ViagemDetalhesPublico: React.FC = () => {
 
                     {/* Price Table - Collapsible Section */}
                     {Object.keys(precos).length > 0 && (
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                             <button
                                 onClick={() => setPrecosAbertos(!precosAbertos)}
                                 className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 rounded-sm flex items-center justify-center">
                                         <DollarSign size={20} className="text-green-600" />
                                     </div>
                                     <h2 className="text-lg font-bold text-slate-800 dark:text-white">Tabela de Preços</h2>
@@ -368,7 +368,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                         {Object.entries(precos).map(([tipo, valor]) => {
                                             const Icon = SEAT_ICONS[tipo] || Circle;
                                             return (
-                                                <div key={tipo} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                                <div key={tipo} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-slate-100 dark:border-slate-800">
                                                     <div className="flex items-center gap-2">
                                                         <Icon size={16} className="text-slate-400" />
                                                         <span className="text-sm font-bold text-slate-500 dark:text-slate-400 capitalize">
@@ -389,13 +389,13 @@ export const ViagemDetalhesPublico: React.FC = () => {
 
                     {/* Vehicle Gallery - Collapsible Section */}
                     {veiculo && (
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+                        <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
                             <button
                                 onClick={() => setVeiculoAberto(!veiculoAberto)}
                                 className="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                                    <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-sm flex items-center justify-center">
                                         <Bus size={20} className="text-blue-600" />
                                     </div>
                                     <h2 className="text-lg font-bold text-slate-800 dark:text-white">Conheça nosso veículo</h2>
@@ -408,7 +408,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                             {veiculoAberto && (
                                 <div className="p-5 pt-0 border-t border-slate-100 dark:border-slate-700">
                                     <div className="space-y-6 mt-4">
-                                        <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-slate-100 dark:border-slate-800">
                                             <div>
                                                 <p className="text-lg font-bold text-slate-800 dark:text-white leading-tight">
                                                     {veiculo.modelo || 'Ônibus'}
@@ -433,7 +433,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                                 <h4 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Comodidades</h4>
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                     {veiculo.features.map((feature, idx) => (
-                                                        <div key={idx} className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/30 rounded-lg text-sm text-slate-700 dark:text-slate-300">
+                                                        <div key={idx} className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/30 rounded-sm text-sm text-slate-700 dark:text-slate-300">
                                                             <Check size={16} className="text-green-500 flex-shrink-0" />
                                                             <span>{feature.label}</span>
                                                         </div>
@@ -448,7 +448,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                                     <img
                                                         src={veiculo.imagem}
                                                         alt={veiculo.modelo || 'Veículo'}
-                                                        className="flex-shrink-0 w-64 h-40 object-cover rounded-xl shadow-md border-2 border-white dark:border-slate-800"
+                                                        className="flex-shrink-0 w-64 h-40 object-cover rounded-sm shadow-md border-2 border-white dark:border-slate-800"
                                                     />
                                                 )}
                                                 {veiculo.galeria?.map((img, idx) => (
@@ -456,12 +456,12 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                                         key={idx}
                                                         src={img}
                                                         alt={`Foto ${idx + 1}`}
-                                                        className="flex-shrink-0 w-64 h-40 object-cover rounded-xl shadow-md border-2 border-white dark:border-slate-800"
+                                                        className="flex-shrink-0 w-64 h-40 object-cover rounded-sm shadow-md border-2 border-white dark:border-slate-800"
                                                     />
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="text-center py-6 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-sm italic">
+                                            <div className="text-center py-6 bg-slate-50 dark:bg-slate-900/30 rounded-sm border border-dashed border-slate-200 dark:border-slate-700 text-slate-400 text-sm italic">
                                                 Galeria de fotos em breve
                                             </div>
                                         )}
@@ -472,7 +472,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                     )}
 
                     {/* Seat Map - The CORE interactive part */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-bold text-slate-800 dark:text-white">
                                 Escolha seu assento
@@ -480,7 +480,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                         </div>
 
                         {!veiculo || !veiculo.mapa_assentos || veiculo.mapa_assentos.length === 0 ? (
-                            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                            <div className="text-center py-10 bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-dashed border-slate-200 dark:border-slate-700">
                                 <AlertCircle size={40} className="mx-auto text-amber-500 mb-3" />
                                 <p className="font-bold text-slate-800 dark:text-white">Mapa indisponível</p>
                                 <p className="text-sm text-slate-500 mt-1 max-w-[200px] mx-auto">
@@ -504,7 +504,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                 {/* Sidebar - Summary Stickiness */}
                 <div className="lg:col-span-1">
                     <div className="sticky top-6 space-y-4">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-blue-600/20 dark:border-blue-500/10 p-6 shadow-lg">
+                        <div className="bg-white dark:bg-slate-800 rounded-sm border-2 border-blue-600/20 dark:border-blue-500/10 p-6 shadow-lg">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 pb-4 border-b border-slate-100 dark:border-slate-700">
                                 Resumo da Reserva
                             </h3>
@@ -513,7 +513,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                 <>
                                     <div className="space-y-3 mb-8">
                                         {assentosSelecionados.map(assento => (
-                                            <div key={assento.numero} className="group flex justify-between items-center p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                                            <div key={assento.numero} className="group flex justify-between items-center p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-sm transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20">
                                                 <div>
                                                     <p className="font-bold text-slate-800 dark:text-white">
                                                         Assento {assento.numero}
@@ -521,7 +521,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                                     <p className="text-[12px] font-bold text-blue-500 uppercase tracking-widest">{assento.tipo}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <span className="font-bold text-slate-800 dark:text-white px-2 py-1 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+                                                    <span className="font-bold text-slate-800 dark:text-white px-2 py-1 bg-white dark:bg-slate-800 rounded-sm shadow-sm border border-slate-100 dark:border-slate-700">
                                                         R$ {assento.valor.toFixed(2)}
                                                     </span>
                                                 </div>
@@ -540,12 +540,12 @@ export const ViagemDetalhesPublico: React.FC = () => {
 
                                     <button
                                         onClick={handleReservar}
-                                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transform active:scale-[0.98] transition-all"
+                                        className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-sm font-bold shadow-lg shadow-blue-500/30 transform active:scale-[0.98] transition-all"
                                     >
                                         Continuar Reserva
                                     </button>
 
-                                    <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
+                                    <div className="mt-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-slate-100 dark:border-slate-800 text-center">
                                         <p className="text-[12px] text-slate-500 font-bold uppercase tracking-wider">
                                             Ambiente 100% Seguro
                                         </p>
@@ -553,7 +553,7 @@ export const ViagemDetalhesPublico: React.FC = () => {
                                 </>
                             ) : (
                                 <div className="text-center py-12 px-4">
-                                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-slate-200 dark:border-slate-700">
+                                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-900 rounded-sm flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-slate-200 dark:border-slate-700">
                                         <Bus size={32} className="text-slate-300 dark:text-slate-600" />
                                     </div>
                                     <p className="font-bold text-slate-800 dark:text-white mb-2">Seu carrinho está vazio</p>

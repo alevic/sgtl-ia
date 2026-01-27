@@ -63,11 +63,11 @@ export const DashboardCliente: React.FC = () => {
     if (error) {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 text-center">
-                <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-2xl border border-red-100 dark:border-red-800 max-w-sm">
+                <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-sm border border-red-100 dark:border-red-800 max-w-sm">
                     <p className="text-red-600 dark:text-red-400 font-bold mb-4">{error}</p>
                     <button
                         onClick={fetchDashboardData}
-                        className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 transition"
+                        className="bg-red-600 text-white px-6 py-2 rounded-sm font-bold hover:bg-red-700 transition"
                     >
                         Tentar Novamente
                     </button>
@@ -95,7 +95,7 @@ export const DashboardCliente: React.FC = () => {
             <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-4 sticky top-0 z-10">
                 <div className="flex items-center justify-between max-w-lg mx-auto">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <div className="w-8 h-8 bg-blue-600 rounded-sm flex items-center justify-center">
                             <span className="text-white text-xs font-bold">JJ</span>
                         </div>
                         <span className="font-bold text-slate-800 dark:text-white">Olá, {profile?.nome?.split(' ')[0]}</span>
@@ -113,7 +113,7 @@ export const DashboardCliente: React.FC = () => {
             <main className="flex-1 max-w-lg mx-auto w-full p-4 space-y-6 pb-24">
 
                 {/* Balance Card */}
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-6 text-white shadow-xl shadow-blue-500/20">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-sm p-6 text-white shadow-xl shadow-blue-500/20">
                     <p className="text-blue-100 text-sm font-medium">Seu saldo de créditos</p>
                     <h2 className="text-3xl font-bold mt-1">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(profile?.saldo_creditos || 0)}
@@ -135,7 +135,7 @@ export const DashboardCliente: React.FC = () => {
                 {nextTrip ? (
                     <div
                         onClick={() => navigate(`/cliente/reservas/${nextTrip.id}`)}
-                        className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer active:scale-[0.98] transition-all"
+                        className="bg-white dark:bg-slate-800 rounded-sm p-4 border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer active:scale-[0.98] transition-all"
                     >
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex flex-col gap-1">
@@ -202,7 +202,7 @@ export const DashboardCliente: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm p-8 border border-dashed border-slate-300 dark:border-slate-700 text-center">
                         <Calendar className="mx-auto text-slate-300 mb-2" size={32} />
                         <p className="text-slate-500 text-sm italic">Nenhuma viagem agendada no momento.</p>
                         <button
@@ -223,11 +223,11 @@ export const DashboardCliente: React.FC = () => {
                 {latestParcel ? (
                     <div
                         onClick={() => navigate(`/cliente/encomendas/${latestParcel.id}`)}
-                        className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 cursor-pointer active:scale-[0.98] transition-all"
+                        className="bg-white dark:bg-slate-800 rounded-sm p-4 border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 cursor-pointer active:scale-[0.98] transition-all"
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center">
+                                <div className="w-10 h-10 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-sm flex items-center justify-center">
                                     <Package size={20} />
                                 </div>
                                 <div>
@@ -251,7 +251,7 @@ export const DashboardCliente: React.FC = () => {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-dashed border-slate-300 dark:border-slate-700 text-center">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm p-8 border border-dashed border-slate-300 dark:border-slate-700 text-center">
                         <Package className="mx-auto text-slate-300 mb-2" size={32} />
                         <p className="text-slate-500 text-sm italic">Nenhum pacote encontrado.</p>
                     </div>
@@ -263,15 +263,15 @@ export const DashboardCliente: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4">
                     <button
                         onClick={() => navigate('/viagens')}
-                        className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors"
+                        className="bg-white dark:bg-slate-800 p-4 rounded-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors"
                     >
-                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-sm flex items-center justify-center">
                             <Ticket size={24} />
                         </div>
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Nova Viagem</span>
                     </button>
-                    <button className="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors">
-                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center">
+                    <button className="bg-white dark:bg-slate-800 p-4 rounded-sm border border-slate-200 dark:border-slate-700 flex flex-col items-center gap-2 hover:bg-slate-50 transition-colors">
+                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-sm flex items-center justify-center">
                             <Package size={24} />
                         </div>
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Nova Encomenda</span>

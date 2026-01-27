@@ -60,9 +60,9 @@ export const EsqueciSenha: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-            <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
+            <div className="max-w-md w-full bg-white dark:bg-slate-800 rounded-sm shadow-xl p-8 border border-slate-200 dark:border-slate-700">
                 <div className="text-center mb-8">
-                    <div className="w-12 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-12 h-14 bg-blue-100 dark:bg-blue-900/30 rounded-sm flex items-center justify-center mx-auto mb-4">
                         <Mail className="text-blue-600 dark:text-blue-400" size={24} />
                     </div>
                     <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Recuperar Senha</h1>
@@ -73,7 +73,7 @@ export const EsqueciSenha: React.FC = () => {
 
                 {isSuccess ? (
                     <div className="text-center space-y-6">
-                        <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl flex flex-col items-center gap-2">
+                        <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-sm flex flex-col items-center gap-2">
                             <CheckCircle size={32} />
                             <p className="font-medium">Código enviado via WhatsApp!</p>
                         </div>
@@ -82,7 +82,7 @@ export const EsqueciSenha: React.FC = () => {
                         </p>
                         <Link
                             to="/login"
-                            className="block w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-colors"
+                            className="block w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-sm transition-colors"
                         >
                             Voltar para o Login
                         </Link>
@@ -97,7 +97,7 @@ export const EsqueciSenha: React.FC = () => {
                                     type="text"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                     placeholder="seu.username, telefone, CPF ou email"
                                     required
                                 />
@@ -105,7 +105,7 @@ export const EsqueciSenha: React.FC = () => {
                         </div>
 
                         {error && (
-                            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-lg">
+                            <div className="p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm rounded-sm">
                                 {error}
                             </div>
                         )}
@@ -113,7 +113,7 @@ export const EsqueciSenha: React.FC = () => {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-sm shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Enviar Link'}
                         </button>

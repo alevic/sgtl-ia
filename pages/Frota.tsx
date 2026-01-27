@@ -116,7 +116,7 @@ const StatusBadge: React.FC<{ status: VeiculoStatus }> = ({ status }) => {
     const Icon = config.icon || Bus;
 
     return (
-        <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-xl", config.className)}>
+        <Badge variant="outline" className={cn("gap-1.5 font-bold px-2 py-0.5 rounded-sm", config.className)}>
             <Icon size={12} strokeWidth={2.5} />
             {config.label}
         </Badge>
@@ -186,7 +186,7 @@ export const Frota: React.FC = () => {
                 icon={Bus}
                 rightElement={
                     <Link to="/admin/frota/novo">
-                        <Button className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
+                        <Button className="h-14 px-6 rounded-sm font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20">
                             <Plus size={20} className="mr-2" strokeWidth={3} />
                             NOVO VEÍCULO
                         </Button>
@@ -233,7 +233,7 @@ export const Frota: React.FC = () => {
                             placeholder="Placa ou modelo..."
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
-                            className="pl-11 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-11 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                         />
                     </div>
                 </div>
@@ -242,11 +242,11 @@ export const Frota: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col">
                     <label className="text-label-caps ml-1">Status Operacional</label>
                     <Tabs value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)} className="w-full">
-                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                            <TabsTrigger value={VeiculoStatus.ACTIVE} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVOS</TabsTrigger>
-                            <TabsTrigger value={VeiculoStatus.IN_TRANSIT} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">VIAGEM</TabsTrigger>
-                            <TabsTrigger value={VeiculoStatus.MAINTENANCE} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-amber-600">MANUT.</TabsTrigger>
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value={VeiculoStatus.ACTIVE} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVOS</TabsTrigger>
+                            <TabsTrigger value={VeiculoStatus.IN_TRANSIT} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">VIAGEM</TabsTrigger>
+                            <TabsTrigger value={VeiculoStatus.MAINTENANCE} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-amber-600">MANUT.</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
@@ -255,19 +255,19 @@ export const Frota: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col">
                     <label className="text-label-caps ml-1">Categoria</label>
                     <Tabs value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)} className="w-full">
-                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">TODOS</TabsTrigger>
-                            <TabsTrigger value="ONIBUS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">ÔNIBUS</TabsTrigger>
-                            <TabsTrigger value="CAMINHAO" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">CAMINHÕES</TabsTrigger>
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">TODOS</TabsTrigger>
+                            <TabsTrigger value="ONIBUS" className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">ÔNIBUS</TabsTrigger>
+                            <TabsTrigger value="CAMINHAO" className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background transition-all">CAMINHÕES</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
             </ListFilterSection>
 
             {/* Vehicles Table Listing */}
-            <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
+            <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-sm bg-card  ">
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
                             <TableHead className="pl-8 h-14 text-table-head">Veículo</TableHead>
                             <TableHead className="h-14 text-table-head text-center">Tipo</TableHead>
@@ -282,7 +282,7 @@ export const Frota: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={6} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-3 animate-pulse">
-                                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-sm flex items-center justify-center">
                                             <Loader className="w-6 h-6 text-primary animate-spin" />
                                         </div>
                                         <p className="font-semibold text-sm tracking-widest text-muted-foreground uppercase">Carregando frota...</p>
@@ -305,11 +305,11 @@ export const Frota: React.FC = () => {
                                 const alertaManutencao = proximoManutencao <= 5000;
 
                                 return (
-                                    <TableRow key={veiculo.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                    <TableRow key={veiculo.id} className="group hover:bg-muted border-border/30 transition-colors">
                                         <TableCell className="pl-8 py-5">
                                             <div className="flex items-center gap-4">
                                                 <div className={cn(
-                                                    "w-12 h-14 rounded-xl flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110",
+                                                    "w-12 h-14 rounded-sm flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-110",
                                                     veiculo.tipo === 'ONIBUS' ? "bg-gradient-to-br from-blue-500 to-purple-600" : "bg-gradient-to-br from-orange-500 to-red-600 shadow-orange-500/20"
                                                 )}>
                                                     {veiculo.tipo === 'ONIBUS' ? <Bus size={22} /> : <Truck size={22} />}
@@ -321,7 +321,7 @@ export const Frota: React.FC = () => {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center">
-                                            <Badge variant="secondary" className="bg-muted/50 text-[12px] font-semibold rounded-lg">{veiculo.tipo}</Badge>
+                                            <Badge variant="secondary" className="bg-muted text-[12px] font-semibold rounded-sm">{veiculo.tipo}</Badge>
                                         </TableCell>
                                         <TableCell>
                                             <StatusBadge status={veiculo.status} />
@@ -346,7 +346,7 @@ export const Frota: React.FC = () => {
                                         <TableCell>
                                             {veiculo.motorista_atual ? (
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                    <div className="w-7 h-7 rounded-sm bg-primary/10 flex items-center justify-center">
                                                         <User className="text-primary w-4 h-4" />
                                                     </div>
                                                     <span className="text-sm font-bold tracking-tight">{veiculo.motorista_atual}</span>

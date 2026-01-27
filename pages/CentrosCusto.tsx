@@ -112,7 +112,7 @@ export const CentrosCusto: React.FC = () => {
                 backLabel="Painel Financeiro"
                 rightElement={
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 bg-muted/40 p-1.5 rounded-xl border border-border/50">
+                        <div className="flex items-center gap-2 bg-muted p-1.5 rounded-sm border border-border/50">
                             <Input
                                 type="date"
                                 value={periodoInicio}
@@ -130,7 +130,7 @@ export const CentrosCusto: React.FC = () => {
                         <Button
                             variant="outline"
                             onClick={() => { }}
-                            className="h-14 w-14 rounded-xl border-border/40 hover:bg-muted/50"
+                            className="h-14 w-14 rounded-sm border-border/40 hover:bg-muted"
                         >
                             <Download size={20} />
                         </Button>
@@ -169,7 +169,7 @@ export const CentrosCusto: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Por Centro de Custo */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                     <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                         <BarChart3 size={20} className="text-blue-500" />
                         Despesas por Centro de Custo
@@ -195,7 +195,7 @@ export const CentrosCusto: React.FC = () => {
                 </div>
 
                 {/* Por Classificação Contábil */}
-                <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+                <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                     <h2 className="text-lg font-semibold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                         <Filter size={20} className="text-purple-500" />
                         Classificação Contábil
@@ -224,7 +224,7 @@ export const CentrosCusto: React.FC = () => {
             </div>
 
             {/* Explicação Conceitual */}
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-sm p-6">
                 <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-2">Entenda a Classificação</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-blue-700 dark:text-blue-400">
                     <div>

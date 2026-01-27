@@ -69,7 +69,7 @@ export const CPFInput: React.FC<CPFInputProps> = ({ value, onChange, required = 
                     type="text"
                     value={formatCPF(value)}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 h-14 bg-slate-50 dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white ${isValid === false
+                    className={`w-full pl-10 pr-4 h-14 bg-slate-50 dark:bg-slate-900 border rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white ${isValid === false
                         ? 'border-red-300 dark:border-red-700'
                         : isValid === true
                             ? 'border-green-300 dark:border-green-700'

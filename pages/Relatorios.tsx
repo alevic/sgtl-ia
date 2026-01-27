@@ -161,7 +161,7 @@ export const Relatorios: React.FC = () => {
                 subtitle={`Visão estratégica: ${currentContext === EmpresaContexto.TURISMO ? 'Turismo B2C' : 'Logística Express'}`}
                 icon={BarChartIcon}
                 rightElement={
-                    <div className="flex gap-2 items-center bg-card/50 backdrop-blur-sm p-1.5 rounded-xl border border-border/40 shadow-xl shadow-muted/10 h-14">
+                    <div className="flex gap-2 items-center bg-card   p-1.5 rounded-sm border border-border/40 shadow-xl shadow-muted/10 h-14">
                         <DatePicker
                             value={periodoInicio}
                             onChange={setPeriodoInicio}
@@ -181,16 +181,16 @@ export const Relatorios: React.FC = () => {
 
             {/* Standardized Tabs */}
             <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="w-full">
-                <TabsList className="bg-muted/40 p-1.5 rounded-[1.5rem] border border-border/50 h-14 w-full md:w-fit gap-2">
-                    <TabsTrigger value="gerencial" className="rounded-xl px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
+                <TabsList className="bg-muted p-1.5 rounded-[1.5rem] border border-border/50 h-14 w-full md:w-fit gap-2">
+                    <TabsTrigger value="gerencial" className="rounded-sm px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
                         <LayoutDashboard size={16} strokeWidth={2.5} />
                         GERENCIAL
                     </TabsTrigger>
-                    <TabsTrigger value="operacional" className="rounded-xl px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
+                    <TabsTrigger value="operacional" className="rounded-sm px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
                         <List size={16} strokeWidth={2.5} />
                         OPERACIONAL
                     </TabsTrigger>
-                    <TabsTrigger value="financeiro" className="rounded-xl px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
+                    <TabsTrigger value="financeiro" className="rounded-sm px-8 h-11 font-black text-xs data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all gap-2">
                         <DollarSign size={16} strokeWidth={2.5} />
                         FINANCEIRO
                     </TabsTrigger>
@@ -231,10 +231,10 @@ export const Relatorios: React.FC = () => {
 
                         {/* Executive Charts Grid */}
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card   overflow-hidden">
                                 <CardHeader className="p-8 pb-4">
                                     <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
-                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                        <div className="p-2 bg-primary/10 rounded-sm">
                                             <TrendingUp size={18} className="text-primary" />
                                         </div>
                                         {currentContext === EmpresaContexto.TURISMO ? 'Evolução da Ocupação' : 'Volume Transportado (kg)'}
@@ -271,10 +271,10 @@ export const Relatorios: React.FC = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card   overflow-hidden">
                                 <CardHeader className="p-8 pb-4">
                                     <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
-                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                        <div className="p-2 bg-primary/10 rounded-sm">
                                             <PieChart size={18} className="text-primary" />
                                         </div>
                                         {currentContext === EmpresaContexto.TURISMO ? 'Destinos Mais Populares' : 'Status de Entregas'}
@@ -326,20 +326,20 @@ export const Relatorios: React.FC = () => {
                                     placeholder="Buscar por rota, motorista ou ID..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                                    className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                                 />
                             </div>
 
                             <div className="flex items-center gap-4 w-full md:w-auto">
-                                <Tabs value={statusFilter} onValueChange={setStatusFilter} className="bg-muted/40 p-1.5 rounded-xl border border-border/50 flex-1 h-14">
+                                <Tabs value={statusFilter} onValueChange={setStatusFilter} className="bg-muted p-1.5 rounded-sm border border-border/50 flex-1 h-14">
                                     <TabsList className="bg-transparent h-full w-full gap-1">
-                                        <TabsTrigger value="todos" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                                        <TabsTrigger value="ativo" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ANDAMENTO</TabsTrigger>
-                                        <TabsTrigger value="pendente" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">PENDENTE</TabsTrigger>
-                                        <TabsTrigger value="concluido" className="flex-1 rounded-lg font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">CONCLUÍDO</TabsTrigger>
+                                        <TabsTrigger value="todos" className="flex-1 rounded-sm font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                                        <TabsTrigger value="ativo" className="flex-1 rounded-sm font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ANDAMENTO</TabsTrigger>
+                                        <TabsTrigger value="pendente" className="flex-1 rounded-sm font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">PENDENTE</TabsTrigger>
+                                        <TabsTrigger value="concluido" className="flex-1 rounded-sm font-bold text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">CONCLUÍDO</TabsTrigger>
                                     </TabsList>
                                 </Tabs>
-                                <Button className="h-14 px-6 rounded-xl font-black gap-2 shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white">
+                                <Button className="h-14 px-6 rounded-sm font-black gap-2 shadow-lg shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white">
                                     <FileText size={18} strokeWidth={2.5} />
                                     MANIFESTO
                                 </Button>
@@ -347,9 +347,9 @@ export const Relatorios: React.FC = () => {
                         </ListFilterSection>
 
                         {/* Executive Table Module */}
-                        <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+                        <Card className="border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card  ">
                             <Table>
-                                <TableHeader className="bg-muted/30">
+                                <TableHeader className="bg-muted">
                                     <TableRow className="hover:bg-transparent border-border/50">
                                         <TableHead className="pl-8 h-14 text-[12px] font-black uppercase tracking-widest">Identificador</TableHead>
                                         <TableHead className="h-14 text-[12px] font-black uppercase tracking-widest">Rota / Itinerário</TableHead>
@@ -362,7 +362,7 @@ export const Relatorios: React.FC = () => {
                                 <TableBody>
                                     {currentContext === EmpresaContexto.TURISMO ? (
                                         filteredManifestos.map((item) => (
-                                            <TableRow key={item.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                            <TableRow key={item.id} className="group hover:bg-muted border-border/30 transition-colors">
                                                 <TableCell className="pl-8 py-5">
                                                     <span className="font-black text-sm text-foreground">#{item.id}</span>
                                                 </TableCell>
@@ -380,7 +380,7 @@ export const Relatorios: React.FC = () => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline" className={cn(
-                                                        "gap-1.5 font-bold px-2 py-0.5 rounded-lg border-none",
+                                                        "gap-1.5 font-bold px-2 py-0.5 rounded-sm border-none",
                                                         item.status === 'Em Trânsito' ? 'bg-blue-500/10 text-blue-600' :
                                                             item.status === 'Agendado' ? 'bg-muted text-muted-foreground' : 'bg-emerald-500/10 text-emerald-600'
                                                     )}>
@@ -392,7 +392,7 @@ export const Relatorios: React.FC = () => {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="pr-8 text-right">
-                                                    <Button variant="ghost" onClick={() => setSelectedItem(item)} className="h-9 px-4 rounded-xl font-bold text-xs hover:bg-primary/10 hover:text-primary">
+                                                    <Button variant="ghost" onClick={() => setSelectedItem(item)} className="h-9 px-4 rounded-sm font-bold text-xs hover:bg-primary/10 hover:text-primary">
                                                         DETALHES
                                                     </Button>
                                                 </TableCell>
@@ -400,7 +400,7 @@ export const Relatorios: React.FC = () => {
                                         ))
                                     ) : (
                                         filteredEntregas.map((item) => (
-                                            <TableRow key={item.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                            <TableRow key={item.id} className="group hover:bg-muted border-border/30 transition-colors">
                                                 <TableCell className="pl-8 py-5">
                                                     <span className="font-black text-sm text-foreground">#{item.id}</span>
                                                 </TableCell>
@@ -421,7 +421,7 @@ export const Relatorios: React.FC = () => {
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline" className={cn(
-                                                        "gap-1.5 font-bold px-2 py-0.5 rounded-lg border-none",
+                                                        "gap-1.5 font-bold px-2 py-0.5 rounded-sm border-none",
                                                         item.status === 'Em Rota' ? 'bg-blue-500/10 text-blue-600' :
                                                             item.status === 'Concluído' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-amber-500/10 text-amber-600'
                                                     )}>
@@ -433,7 +433,7 @@ export const Relatorios: React.FC = () => {
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="pr-8 text-right">
-                                                    <Button variant="ghost" onClick={() => setSelectedItem(item)} className="h-9 px-4 rounded-xl font-bold text-xs hover:bg-primary/10 hover:text-primary">
+                                                    <Button variant="ghost" onClick={() => setSelectedItem(item)} className="h-9 px-4 rounded-sm font-bold text-xs hover:bg-primary/10 hover:text-primary">
                                                         RASTREAR
                                                     </Button>
                                                 </TableCell>
@@ -446,10 +446,10 @@ export const Relatorios: React.FC = () => {
 
                         {/* Executive Secondary Views */}
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card   overflow-hidden">
                                 <CardHeader className="p-8 pb-4">
                                     <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
-                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                        <div className="p-2 bg-primary/10 rounded-sm">
                                             <Users size={18} className="text-primary" />
                                         </div>
                                         Escala de Motoristas
@@ -461,7 +461,7 @@ export const Relatorios: React.FC = () => {
                                         { nome: 'Carlos Souza', status: 'Folga', destino: '-', retorno: '27/11' },
                                         { nome: 'Ana Lima', status: 'Aguardando', destino: 'Curitiba', retorno: '26/11' },
                                     ].map((mot, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted/20 rounded-[1.5rem] border border-border/30">
+                                        <div key={idx} className="flex items-center justify-between p-4 bg-muted rounded-[1.5rem] border border-border/30">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs">
                                                     {mot.nome.split(' ').map(n => n[0]).join('')}
@@ -473,9 +473,9 @@ export const Relatorios: React.FC = () => {
                                             </div>
                                             <div className="text-right">
                                                 <Badge className={cn(
-                                                    "rounded-lg font-black text-[9px] uppercase tracking-tighter",
+                                                    "rounded-sm font-black text-[9px] uppercase tracking-tighter",
                                                     mot.status === 'Em Viagem' ? 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20' :
-                                                        mot.status === 'Folga' ? 'bg-muted text-muted-foreground hover:bg-muted/80' : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
+                                                        mot.status === 'Folga' ? 'bg-muted text-muted-foreground hover:bg-muted' : 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
                                                 )}>
                                                     {mot.status}
                                                 </Badge>
@@ -486,10 +486,10 @@ export const Relatorios: React.FC = () => {
                                 </CardContent>
                             </Card>
 
-                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                            <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card   overflow-hidden">
                                 <CardHeader className="p-8 pb-4">
                                     <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
-                                        <div className="p-2 bg-primary/10 rounded-xl">
+                                        <div className="p-2 bg-primary/10 rounded-sm">
                                             <AlertTriangle size={18} className="text-primary" />
                                         </div>
                                         Alertas de Manutenção
@@ -497,7 +497,7 @@ export const Relatorios: React.FC = () => {
                                 </CardHeader>
                                 <CardContent className="p-8 pt-0 space-y-4">
                                     <div className="flex items-start gap-4 p-5 bg-rose-500/5 rounded-[1.5rem] border border-rose-500/10 group hover:bg-rose-500/10 transition-colors">
-                                        <div className="p-2.5 bg-rose-500/10 rounded-xl text-rose-600 group-hover:scale-110 transition-transform">
+                                        <div className="p-2.5 bg-rose-500/10 rounded-sm text-rose-600 group-hover:scale-110 transition-transform">
                                             <AlertTriangle size={20} strokeWidth={2.5} />
                                         </div>
                                         <div>
@@ -507,7 +507,7 @@ export const Relatorios: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-start gap-4 p-5 bg-amber-500/5 rounded-[1.5rem] border border-amber-500/10 group hover:bg-amber-500/10 transition-colors">
-                                        <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 group-hover:scale-110 transition-transform">
+                                        <div className="p-2.5 bg-amber-500/10 rounded-sm text-amber-600 group-hover:scale-110 transition-transform">
                                             <Clock size={20} strokeWidth={2.5} />
                                         </div>
                                         <div>
@@ -523,19 +523,19 @@ export const Relatorios: React.FC = () => {
 
                     <TabsContent value="financeiro" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Executive DRE Card */}
-                        <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden">
+                        <Card className="border-none shadow-2xl shadow-muted/20 rounded-[2.5rem] bg-card   overflow-hidden">
                             <CardHeader className="p-8 pb-4 border-b border-border/40">
                                 <div className="flex justify-between items-center">
                                     <div className="space-y-1">
                                         <CardTitle className="text-xl font-black tracking-tight flex items-center gap-3">
-                                            <div className="p-2 bg-primary/10 rounded-xl">
+                                            <div className="p-2 bg-primary/10 rounded-sm">
                                                 <FileText size={18} className="text-primary" />
                                             </div>
                                             Demonstrativo de Resultados (DRE)
                                         </CardTitle>
                                         <CardDescription className="text-[12px] font-bold uppercase tracking-widest text-muted-foreground ml-11">Visão contábil do período selecionado</CardDescription>
                                     </div>
-                                    <Button variant="outline" className="h-10 rounded-xl font-bold text-xs gap-2 border-border/50 bg-background/50">
+                                    <Button variant="outline" className="h-10 rounded-sm font-bold text-xs gap-2 border-border/50 bg-background/50">
                                         <Download size={14} strokeWidth={2.5} />
                                         EXPORTAR PDF
                                     </Button>
@@ -545,7 +545,7 @@ export const Relatorios: React.FC = () => {
                                 <div className="space-y-6">
                                     {/* Receitas Section */}
                                     <div className="space-y-4">
-                                        <div className="flex justify-between items-center p-5 bg-emerald-500/5 rounded-2xl border border-emerald-500/10">
+                                        <div className="flex justify-between items-center p-5 bg-emerald-500/5 rounded-sm border border-emerald-500/10">
                                             <div className="flex items-center gap-3">
                                                 <TrendingUp className="text-emerald-500" size={18} strokeWidth={2.5} />
                                                 <span className="font-black text-sm uppercase tracking-tight text-foreground">Receita Bruta Total</span>
@@ -554,7 +554,7 @@ export const Relatorios: React.FC = () => {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4">
                                             {Object.entries(analiseFinanceira.receitasPorCategoria).map(([cat, val]) => (
-                                                <div key={cat} className="flex justify-between items-center p-3 hover:bg-muted/30 rounded-xl transition-colors">
+                                                <div key={cat} className="flex justify-between items-center p-3 hover:bg-muted rounded-sm transition-colors">
                                                     <span className="text-sm font-bold text-muted-foreground">{cat}</span>
                                                     <span className="text-sm font-black text-foreground">{formatCurrency(val as number)}</span>
                                                 </div>
@@ -566,7 +566,7 @@ export const Relatorios: React.FC = () => {
 
                                     {/* Despesas Section */}
                                     <div className="space-y-4">
-                                        <div className="flex justify-between items-center p-5 bg-rose-500/5 rounded-2xl border border-rose-500/10">
+                                        <div className="flex justify-between items-center p-5 bg-rose-500/5 rounded-sm border border-rose-500/10">
                                             <div className="flex items-center gap-3">
                                                 <TrendingDown className="text-rose-500" size={18} strokeWidth={2.5} />
                                                 <span className="font-black text-sm uppercase tracking-tight text-foreground">Despesas Operacionais</span>
@@ -575,7 +575,7 @@ export const Relatorios: React.FC = () => {
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-2 pl-4">
                                             {Object.entries(analiseFinanceira.despesasPorCategoria).map(([cat, val]) => (
-                                                <div key={cat} className="flex justify-between items-center p-3 hover:bg-muted/30 rounded-xl transition-colors">
+                                                <div key={cat} className="flex justify-between items-center p-3 hover:bg-muted rounded-sm transition-colors">
                                                     <span className="text-sm font-bold text-muted-foreground">{cat}</span>
                                                     <span className="text-sm font-black text-rose-500/80">({formatCurrency(val as number)})</span>
                                                 </div>
@@ -590,7 +590,7 @@ export const Relatorios: React.FC = () => {
                                         </div>
                                         <div className="flex flex-col items-center md:items-end">
                                             <span className={cn(
-                                                "text-4xl font-black tracking-tighter px-6 py-2 rounded-2xl bg-white/20 backdrop-blur-md text-white",
+                                                "text-4xl font-black tracking-tighter px-6 py-2 rounded-sm bg-white/20   text-white",
                                                 analiseFinanceira.lucroLiquido < 0 && "bg-rose-500/40"
                                             )}>
                                                 {formatCurrency(analiseFinanceira.lucroLiquido)}
@@ -607,12 +607,12 @@ export const Relatorios: React.FC = () => {
 
             {/* Modal de Detalhes Premium */}
             <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
-                <DialogContent className="max-w-xl border-none shadow-2xl rounded-[2.5rem] bg-card/95 backdrop-blur-xl animate-in zoom-in-95 duration-300">
+                <DialogContent className="max-w-xl border-none shadow-2xl rounded-[2.5rem] bg-card   animate-in zoom-in-95 duration-300">
                     {selectedItem && (
                         <>
                             <DialogHeader className="p-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-primary/10 rounded-2xl text-primary">
+                                    <div className="p-3 bg-primary/10 rounded-sm text-primary">
                                         <FileText size={24} strokeWidth={2.5} />
                                     </div>
                                     <div>
@@ -635,7 +635,7 @@ export const Relatorios: React.FC = () => {
                                     <div className="space-y-1.5">
                                         <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/60">Status Atual</p>
                                         <Badge className={cn(
-                                            "rounded-lg font-black text-[12px] uppercase",
+                                            "rounded-sm font-black text-[12px] uppercase",
                                             selectedItem.status.includes('Concluído') || selectedItem.status.includes('Sucesso') ?
                                                 "bg-emerald-500/10 text-emerald-600 border-none" : "bg-blue-500/10 text-blue-600 border-none"
                                         )}>
@@ -652,7 +652,7 @@ export const Relatorios: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-5 bg-muted/30 rounded-[1.5rem] border border-border/40 space-y-2">
+                                <div className="p-5 bg-muted rounded-[1.5rem] border border-border/40 space-y-2">
                                     <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">Notas do Sistema</p>
                                     <p className="text-sm font-medium text-muted-foreground leading-relaxed">
                                         {currentContext === EmpresaContexto.TURISMO
@@ -663,10 +663,10 @@ export const Relatorios: React.FC = () => {
                             </div>
 
                             <DialogFooter className="p-6 pt-0 gap-3">
-                                <Button variant="ghost" onClick={() => setSelectedItem(null)} className="rounded-xl font-bold px-6">
+                                <Button variant="ghost" onClick={() => setSelectedItem(null)} className="rounded-sm font-bold px-6">
                                     FECHAR
                                 </Button>
-                                <Button className="rounded-xl font-black px-6 bg-primary shadow-lg shadow-primary/20">
+                                <Button className="rounded-sm font-black px-6 bg-primary shadow-lg shadow-primary/20">
                                     VER RELATÓRIO COMPLETO
                                 </Button>
                             </DialogFooter>

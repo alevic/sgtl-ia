@@ -112,7 +112,7 @@ export const DocumentInput: React.FC<DocumentInputProps> = ({
                     value={documentType}
                     onChange={(e) => onTypeChange(e.target.value as TipoDocumento)}
                     disabled={disabled}
-                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-black uppercase text-[12px] tracking-widest appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:text-white"
+                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-black uppercase text-[12px] tracking-widest appearance-none cursor-pointer focus:ring-2 focus:ring-primary/20 outline-none transition-all dark:text-white"
                 >
                     <option value={TipoDocumento.CPF}>CPF</option>
                     <option value={TipoDocumento.RG}>RG</option>
@@ -138,7 +138,7 @@ export const DocumentInput: React.FC<DocumentInputProps> = ({
                         placeholder={getPlaceholder()}
                         required={required}
                         disabled={disabled}
-                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none dark:text-white"
+                        className="w-full h-14 pl-12 pr-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none dark:text-white"
                     />
                 </div>
             </div>

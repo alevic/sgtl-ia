@@ -115,10 +115,20 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         authClient.organization.list().then(({ data }) => {
           const activeOrg = data?.find(o => o.id === session.session.activeOrganizationId);
           if (activeOrg) {
+
+            // DYNAMIC THEME INJECTION (Swiss Logistics Strategy)
+            const root = document.documentElement;
+
             if (activeOrg.slug.toLowerCase().includes('express')) {
               setCurrentContext(EmpresaContexto.EXPRESS);
+              // Electric Green / Cyber Yellow for Express Logistics
+              root.style.setProperty('--primary', '85 100% 50%');
+              root.style.setProperty('--ring', '85 100% 50%');
             } else {
               setCurrentContext(EmpresaContexto.TURISMO);
+              // International Orange for Turismo (Adventure/Motion)
+              root.style.setProperty('--primary', '25 100% 50%');
+              root.style.setProperty('--ring', '25 100% 50%');
             }
           }
         });
@@ -127,10 +137,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         authClient.organization.list().then(({ data }) => {
           if (data && data.length > 0) {
             const defaultOrg = data.find(o => o.slug.toLowerCase().includes('turismo')) || data[0];
-            console.log("Setting default active organization:", defaultOrg.name);
             authClient.organization.setActive({ organizationId: defaultOrg.id });
-            // Context will be synced in next render or we can set it here if needed, 
-            // but let's rely on the session update or default state.
           }
         });
       }

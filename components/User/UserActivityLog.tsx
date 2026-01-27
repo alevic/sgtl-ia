@@ -48,7 +48,7 @@ export const UserActivityLog: React.FC<UserActivityLogProps> = ({ userId }) => {
     return (
         <div className="space-y-6">
             {/* Filters */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">
                         <div className="relative">
@@ -58,7 +58,7 @@ export const UserActivityLog: React.FC<UserActivityLogProps> = ({ userId }) => {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Buscar atividades..."
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                             />
                         </div>
                     </div>
@@ -66,7 +66,7 @@ export const UserActivityLog: React.FC<UserActivityLogProps> = ({ userId }) => {
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="w-full sm:w-auto px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                            className="w-full sm:w-auto px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                         >
                             <option value="all">Todos os módulos</option>
                             <option value="viagens">Viagens</option>
@@ -79,7 +79,7 @@ export const UserActivityLog: React.FC<UserActivityLogProps> = ({ userId }) => {
             </div>
 
             {/* Activity List */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <Activity size={20} className="text-blue-600" />
                     Histórico de Atividades
@@ -100,7 +100,7 @@ export const UserActivityLog: React.FC<UserActivityLogProps> = ({ userId }) => {
                         {mockActivities.map((activity) => (
                             <div
                                 key={activity.id}
-                                className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+                                className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-sm hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
                             >
                                 <div className="mt-1">
                                     {activity.icon}
@@ -120,7 +120,7 @@ export const UserActivityLog: React.FC<UserActivityLogProps> = ({ userId }) => {
             </div>
 
             {/* Export Data */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-2">
                     Exportar Dados
                 </h3>
@@ -129,7 +129,7 @@ export const UserActivityLog: React.FC<UserActivityLogProps> = ({ userId }) => {
                 </p>
                 <button
                     disabled
-                    className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded-lg font-medium cursor-not-allowed"
+                    className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded-sm font-medium cursor-not-allowed"
                 >
                     Em desenvolvimento
                 </button>

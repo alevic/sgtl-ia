@@ -143,14 +143,14 @@ export const NovaRota: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/admin/rotas')}
-                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
                         >
                             Cancelar
                         </Button>
                         <Button
                             onClick={handleSalvar}
                             disabled={saving}
-                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {saving ? (
                                 <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -164,7 +164,7 @@ export const NovaRota: React.FC = () => {
             />
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-destructive/20 bg-destructive/5  ">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Incidente no Processamento</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -174,7 +174,7 @@ export const NovaRota: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-emerald-500/20 bg-emerald-500/5  ">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -199,7 +199,7 @@ export const NovaRota: React.FC = () => {
                                     value={nomeRota}
                                     onChange={(e) => setNomeRota(e.target.value)}
                                     placeholder="Ex: SP-RJ EXPRESS"
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none"
                                 />
                             </div>
 
@@ -210,7 +210,7 @@ export const NovaRota: React.FC = () => {
                                     <button
                                         onClick={() => handleTipoChange('IDA')}
                                         className={cn(
-                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-sm border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipoRota === 'IDA' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -219,7 +219,7 @@ export const NovaRota: React.FC = () => {
                                     <button
                                         onClick={() => handleTipoChange('VOLTA')}
                                         className={cn(
-                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-sm border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipoRota === 'VOLTA' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -237,7 +237,7 @@ export const NovaRota: React.FC = () => {
                                         value={distanciaTotal}
                                         onChange={(e) => setDistanciaTotal(e.target.value === '' ? '' : Number(e.target.value))}
                                         placeholder="0"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
                                     />
                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-black text-muted-foreground uppercase group-focus-within:text-primary transition-colors">km</span>
                                 </div>
@@ -245,7 +245,7 @@ export const NovaRota: React.FC = () => {
 
                             {/* Duração Estimada */}
                             {rota.duracao_estimada_minutos && rota.duracao_estimada_minutos > 0 && (
-                                <div className="p-6 rounded-3xl bg-primary/5 border border-primary/20 space-y-2">
+                                <div className="p-6 rounded-sm bg-primary/5 border border-primary/20 space-y-2">
                                     <p className="text-[12px] font-black uppercase tracking-widest text-primary/60">Tempo de Percurso</p>
                                     <p className="text-3xl font-black tracking-tighter text-primary">
                                         {Math.floor(rota.duracao_estimada_minutos / 60)}h{' '}

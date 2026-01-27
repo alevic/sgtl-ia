@@ -155,14 +155,14 @@ export const NovoVeiculo: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/admin/frota')}
-                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
                         >
                             Cancelar
                         </Button>
                         <Button
                             onClick={handleSalvar}
                             disabled={isLoading}
-                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isLoading ? (
                                 <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -176,7 +176,7 @@ export const NovoVeiculo: React.FC = () => {
             />
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-destructive/20 bg-destructive/5  ">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro no Cadastro</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -204,7 +204,7 @@ export const NovoVeiculo: React.FC = () => {
                                     onChange={(e) => setPlaca(e.target.value.toUpperCase())}
                                     placeholder="ABC-1234"
                                     maxLength={8}
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                 />
                             </div>
 
@@ -217,7 +217,7 @@ export const NovoVeiculo: React.FC = () => {
                                     value={modelo}
                                     onChange={(e) => setModelo(e.target.value)}
                                     placeholder="Ex: Mercedes-Benz O500"
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                 />
                             </div>
 
@@ -232,7 +232,7 @@ export const NovoVeiculo: React.FC = () => {
                                     placeholder="2023"
                                     min="1990"
                                     max={new Date().getFullYear() + 1}
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                 />
                             </div>
 
@@ -248,7 +248,7 @@ export const NovoVeiculo: React.FC = () => {
                                         onChange={(e) => setCapacidadePassageiros(e.target.value)}
                                         placeholder="46"
                                         min="1"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                     />
                                 </div>
                             ) : (
@@ -264,7 +264,7 @@ export const NovoVeiculo: React.FC = () => {
                                         placeholder="25.5"
                                         step="0.1"
                                         min="0"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                     />
                                 </div>
                             )}
@@ -305,7 +305,7 @@ export const NovoVeiculo: React.FC = () => {
                                     onChange={(e) => setKmAtual(e.target.value)}
                                     placeholder="87500"
                                     min="0"
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                 />
                             </div>
 
@@ -320,7 +320,7 @@ export const NovoVeiculo: React.FC = () => {
                                     onChange={(e) => setProximaRevisaoKm(e.target.value)}
                                     placeholder="95000"
                                     min="0"
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                 />
                             </div>
 
@@ -348,7 +348,7 @@ export const NovoVeiculo: React.FC = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={addFeature}
-                                className="h-8 rounded-xl px-4 font-black uppercase text-[9px] tracking-widest border-primary/20 text-primary hover:bg-primary/5"
+                                className="h-8 rounded-sm px-4 font-black uppercase text-[9px] tracking-widest border-primary/20 text-primary hover:bg-primary/5"
                             >
                                 <Plus size={12} className="mr-1" />
                                 Adicionar
@@ -364,14 +364,14 @@ export const NovoVeiculo: React.FC = () => {
                                             value={feature.category}
                                             onChange={(e) => updateFeature(index, 'category', e.target.value)}
                                             placeholder="Categoria (Ex: Segurança)"
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none"
+                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none"
                                         />
                                         <input
                                             type="text"
                                             value={feature.label}
                                             onChange={(e) => updateFeature(index, 'label', e.target.value)}
                                             placeholder="Item (Ex: Freios ABS e EBS à disco)"
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none"
+                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none"
                                         />
                                     </div>
                                     <Button
@@ -379,14 +379,14 @@ export const NovoVeiculo: React.FC = () => {
                                         variant="ghost"
                                         size="icon"
                                         onClick={() => removeFeature(index)}
-                                        className="h-14 w-12 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                        className="h-14 w-12 rounded-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                                     >
                                         <Trash2 size={18} />
                                     </Button>
                                 </div>
                             ))}
                             {features.length === 0 && (
-                                <div className="text-center py-10 bg-muted/20 rounded-3xl border border-dashed border-border/50">
+                                <div className="text-center py-10 bg-muted rounded-sm border border-dashed border-border/50">
                                     <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">
                                         Nenhuma característica personalizada adicionada
                                     </p>
@@ -406,7 +406,7 @@ export const NovoVeiculo: React.FC = () => {
                                     <img
                                         src={img}
                                         alt={`Foto ${idx + 1}`}
-                                        className="w-full h-full object-cover rounded-xl border border-border/50 shadow-sm transition-transform group-hover:scale-[1.02]"
+                                        className="w-full h-full object-cover rounded-sm border border-border/50 shadow-sm transition-transform group-hover:scale-[1.02]"
                                     />
                                     <button
                                         type="button"
@@ -417,7 +417,7 @@ export const NovoVeiculo: React.FC = () => {
                                     </button>
                                 </div>
                             ))}
-                            <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border/50 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                            <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border/50 rounded-sm cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
                                 <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                                     <Plus size={20} className="text-muted-foreground group-hover:text-primary transition-colors" />
                                 </div>
@@ -450,10 +450,10 @@ export const NovoVeiculo: React.FC = () => {
                                         type="button"
                                         onClick={() => setTipo('ONIBUS')}
                                         className={cn(
-                                            "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all",
+                                            "flex flex-col items-center justify-center gap-2 p-4 rounded-sm border transition-all",
                                             tipo === 'ONIBUS'
                                                 ? "bg-primary/10 border-primary text-primary shadow-sm"
-                                                : "bg-muted/40 border-border/50 text-muted-foreground hover:bg-muted"
+                                                : "bg-muted border-border/50 text-muted-foreground hover:bg-muted"
                                         )}
                                     >
                                         <Bus size={20} />
@@ -463,10 +463,10 @@ export const NovoVeiculo: React.FC = () => {
                                         type="button"
                                         onClick={() => setTipo('CAMINHAO')}
                                         className={cn(
-                                            "flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all",
+                                            "flex flex-col items-center justify-center gap-2 p-4 rounded-sm border transition-all",
                                             tipo === 'CAMINHAO'
                                                 ? "bg-primary/10 border-primary text-primary shadow-sm"
-                                                : "bg-muted/40 border-border/50 text-muted-foreground hover:bg-muted"
+                                                : "bg-muted border-border/50 text-muted-foreground hover:bg-muted"
                                         )}
                                     >
                                         <Truck size={20} />
@@ -482,7 +482,7 @@ export const NovoVeiculo: React.FC = () => {
                                 <select
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value as VeiculoStatus)}
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                 >
                                     <option value={VeiculoStatus.ACTIVE}>Ativo</option>
                                     <option value={VeiculoStatus.MAINTENANCE}>Em Manutenção</option>
@@ -502,20 +502,20 @@ export const NovoVeiculo: React.FC = () => {
                                 <img
                                     src={imagem}
                                     alt="Capa do veículo"
-                                    className="w-full aspect-video object-cover rounded-2xl border border-border/50 shadow-md"
+                                    className="w-full aspect-video object-cover rounded-sm border border-border/50 shadow-md"
                                 />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center gap-2">
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-sm flex items-center justify-center gap-2">
                                     <button
                                         type="button"
                                         onClick={() => setImagem('')}
-                                        className="p-2 bg-destructive text-white rounded-xl hover:scale-110 transition-transform"
+                                        className="p-2 bg-destructive text-white rounded-sm hover:scale-110 transition-transform"
                                     >
                                         <X size={16} />
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border/50 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+                            <label className="flex flex-col items-center justify-center w-full aspect-video border-2 border-dashed border-border/50 rounded-sm cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
                                 <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
                                     <Upload size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
                                 </div>
@@ -540,12 +540,12 @@ export const NovoVeiculo: React.FC = () => {
                             onChange={(e) => setObservacoes(e.target.value)}
                             placeholder="Informações adicionais sobre o veículo..."
                             rows={4}
-                            className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
+                            className="w-full p-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
                         />
                     </FormSection>
 
                     {/* Info Box */}
-                    <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 space-y-3">
+                    <div className="bg-primary/5 border border-primary/10 rounded-sm p-6 space-y-3">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                                 {tipo === 'ONIBUS' ? (

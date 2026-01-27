@@ -225,14 +225,14 @@ export const NovoFretamento: React.FC = () => {
     return (
         <div key="novo-fretamento-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-destructive/20 bg-destructive/5  ">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Incidente no Registro</AlertTitle>
                     <AlertDescription className="text-xs font-medium">{error}</AlertDescription>
                 </Alert>
             )}
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-emerald-500/20 bg-emerald-500/5  ">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">{success}</AlertDescription>
@@ -250,14 +250,14 @@ export const NovoFretamento: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/admin/fretamento')}
-                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
                         >
                             Cancelar
                         </Button>
                         <Button
                             onClick={handleSalvar}
                             disabled={saving}
-                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {saving ? (
                                 <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -289,7 +289,7 @@ export const NovoFretamento: React.FC = () => {
                             </div>
 
                             {clienteSelecionado && (
-                                <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 animate-in zoom-in-95 duration-300">
+                                <div className="bg-primary/5 border border-primary/10 rounded-sm p-6 animate-in zoom-in-95 duration-300">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div className="space-y-1">
                                             <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Contato</p>
@@ -338,7 +338,7 @@ export const NovoFretamento: React.FC = () => {
                                             setRotaVoltaSelecionada(null);
                                         }}
                                         className={cn(
-                                            "flex-1 p-4 rounded-xl border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
+                                            "flex-1 p-4 rounded-sm border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
                                             !temRotaVolta ? "border-primary bg-primary/5 text-primary" : "border-border/50 hover:border-border text-muted-foreground"
                                         )}
                                     >
@@ -347,7 +347,7 @@ export const NovoFretamento: React.FC = () => {
                                     <button
                                         onClick={() => setTemRotaVolta(true)}
                                         className={cn(
-                                            "flex-1 p-4 rounded-xl border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
+                                            "flex-1 p-4 rounded-sm border-2 transition-all font-bold text-sm flex items-center justify-center gap-2",
                                             temRotaVolta ? "border-primary bg-primary/5 text-primary" : "border-border/50 hover:border-border text-muted-foreground"
                                         )}
                                     >
@@ -358,11 +358,11 @@ export const NovoFretamento: React.FC = () => {
 
                             {/* Tabs Simplified */}
                             {temRotaVolta && (
-                                <div className="flex p-1 bg-muted/40 rounded-xl border border-border/50">
+                                <div className="flex p-1 bg-muted rounded-sm border border-border/50">
                                     <button
                                         onClick={() => setAbaRotaAtiva('IDA')}
                                         className={cn(
-                                            "flex-1 py-2.5 rounded-xl font-black text-xs transition-all",
+                                            "flex-1 py-2.5 rounded-sm font-black text-xs transition-all",
                                             abaRotaAtiva === 'IDA' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
                                         )}
                                     >
@@ -371,7 +371,7 @@ export const NovoFretamento: React.FC = () => {
                                     <button
                                         onClick={() => setAbaRotaAtiva('VOLTA')}
                                         className={cn(
-                                            "flex-1 py-2.5 rounded-xl font-black text-xs transition-all",
+                                            "flex-1 py-2.5 rounded-sm font-black text-xs transition-all",
                                             abaRotaAtiva === 'VOLTA' ? "bg-background shadow-sm text-primary" : "text-muted-foreground hover:text-foreground"
                                         )}
                                     >
@@ -405,7 +405,7 @@ export const NovoFretamento: React.FC = () => {
 
                             {/* Resumo visual estilizado */}
                             {resumoViagem && (
-                                <div className="bg-gradient-to-br from-primary/5 to-indigo-500/5 border border-primary/10 rounded-3xl p-8 space-y-6">
+                                <div className="bg-gradient-to-br from-primary/5 to-indigo-500/5 border border-primary/10 rounded-sm p-8 space-y-6">
                                     <div className="flex items-center gap-2 text-primary">
                                         <Route size={18} strokeWidth={2.5} />
                                         <span className="text-xs font-black uppercase tracking-widest">Resumo Operacional</span>
@@ -466,7 +466,7 @@ export const NovoFretamento: React.FC = () => {
                                     <button
                                         onClick={() => setTipo('PONTUAL')}
                                         className={cn(
-                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-sm border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipo === 'PONTUAL' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -475,7 +475,7 @@ export const NovoFretamento: React.FC = () => {
                                     <button
                                         onClick={() => setTipo('RECORRENTE')}
                                         className={cn(
-                                            "h-14 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "h-14 rounded-sm border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             tipo === 'RECORRENTE' ? "border-primary bg-primary/5 text-primary" : "border-border/40 text-muted-foreground hover:border-border"
                                         )}
                                     >
@@ -493,7 +493,7 @@ export const NovoFretamento: React.FC = () => {
                                         min="1"
                                         value={passageiros}
                                         onChange={(e) => setPassageiros(parseInt(e.target.value) || 0)}
-                                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 pl-12 pr-4 bg-muted border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         placeholder="0"
                                     />
                                 </div>
@@ -513,7 +513,7 @@ export const NovoFretamento: React.FC = () => {
                                     <select
                                         value={veiculoId}
                                         onChange={(e) => setVeiculoId(e.target.value)}
-                                        className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                                        className="w-full h-14 px-4 bg-muted border-border/50 rounded-sm font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
                                     >
                                         <option value="">AGUARDANDO ATRIBUIÇÃO</option>
                                         {veiculos.map((veiculo) => (
@@ -531,7 +531,7 @@ export const NovoFretamento: React.FC = () => {
                                     <select
                                         value={motoristaId}
                                         onChange={(e) => setMotoristaId(e.target.value)}
-                                        className="w-full h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
+                                        className="w-full h-14 px-4 bg-muted border-border/50 rounded-sm font-black uppercase text-[12px] tracking-widest outline-none focus:ring-2 focus:ring-primary/20 appearance-none"
                                     >
                                         <option value="">AGUARDANDO ATRIBUIÇÃO</option>
                                         {motoristas.map((motorista) => (
@@ -559,7 +559,7 @@ export const NovoFretamento: React.FC = () => {
                                         type="time"
                                         value={horaInicio}
                                         onChange={(e) => setHoraInicio(e.target.value)}
-                                        className="h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                                        className="h-14 px-4 bg-muted border-border/50 rounded-sm font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
                                     />
                                 </div>
                             </div>
@@ -571,7 +571,7 @@ export const NovoFretamento: React.FC = () => {
                                         type="time"
                                         value={horaFim}
                                         onChange={(e) => setHoraFim(e.target.value)}
-                                        className="h-14 px-4 bg-muted/40 border-border/50 rounded-xl font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                                        className="h-14 px-4 bg-muted border-border/50 rounded-sm font-bold text-xs outline-none focus:ring-2 focus:ring-primary/20"
                                     />
                                 </div>
                             </div>
@@ -588,7 +588,7 @@ export const NovoFretamento: React.FC = () => {
                             onChange={(e) => setObservacoes(e.target.value)}
                             rows={4}
                             placeholder="Descreva particularidades do serviço, paradas extras ou exigências especiais do cliente..."
-                            className="w-full p-4 bg-muted/40 border-border/50 rounded-2xl font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
+                            className="w-full p-4 bg-muted border-border/50 rounded-sm font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
                         />
                     </FormSection>
                 </div>

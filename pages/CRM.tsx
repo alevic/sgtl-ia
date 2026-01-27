@@ -112,7 +112,7 @@ export const CRM: React.FC = () => {
                 subtitle="Gestão de relacionamento e fidelização"
                 icon={Users}
                 rightElement={
-                    <Button asChild className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                    <Button asChild className="h-14 px-6 rounded-sm font-semibold gap-2 shadow-lg shadow-primary/20">
                         <Link to="/admin/clientes/novo">
                             <UserPlus size={20} strokeWidth={2.5} />
                             NOVO CLIENTE
@@ -159,7 +159,7 @@ export const CRM: React.FC = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                         <Input
                             placeholder="Nome, email, documento..."
-                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
                         />
@@ -174,11 +174,11 @@ export const CRM: React.FC = () => {
                         onValueChange={(v) => setFiltroSegmento(v as any)}
                         className="w-full"
                     >
-                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                            <TabsTrigger value="VIP" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-purple-600">VIP</TabsTrigger>
-                            <TabsTrigger value="REGULAR" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-blue-600">REGULAR</TabsTrigger>
-                            <TabsTrigger value="NOVO" className="flex-1 rounded-xl px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-emerald-600">NOVOS</TabsTrigger>
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value="VIP" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-purple-600">VIP</TabsTrigger>
+                            <TabsTrigger value="REGULAR" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-blue-600">REGULAR</TabsTrigger>
+                            <TabsTrigger value="NOVO" className="flex-1 rounded-sm px-2 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-emerald-600">NOVOS</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
@@ -186,9 +186,9 @@ export const CRM: React.FC = () => {
 
 
             {/* Executive Table Module */}
-            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card  ">
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
                             <TableHead className="pl-8 h-14 text-table-head">Cliente</TableHead>
                             <TableHead className="h-14 text-table-head">Contato</TableHead>
@@ -212,7 +212,7 @@ export const CRM: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={6} className="h-96 text-center border-none">
                                     <div className="flex flex-col items-center justify-center gap-4 py-20 grayscale opacity-40">
-                                        <div className="p-6 bg-muted/40 rounded-full">
+                                        <div className="p-6 bg-muted rounded-full">
                                             <Users size={48} />
                                         </div>
                                         <div className="space-y-1">
@@ -224,7 +224,7 @@ export const CRM: React.FC = () => {
                             </TableRow>
                         ) : (
                             clientesFiltrados.map((cliente) => (
-                                <TableRow key={cliente.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                <TableRow key={cliente.id} className="group hover:bg-muted border-border/30 transition-colors">
                                     <TableCell className="pl-8 py-5">
                                         <div className="flex items-center gap-3">
                                             <Avatar className="h-10 w-10 border-2 border-background shadow-sm ring-1 ring-primary/10">

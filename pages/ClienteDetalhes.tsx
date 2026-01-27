@@ -239,7 +239,7 @@ export const ClienteDetalhes: React.FC = () => {
                         <Button
                             variant="outline"
                             onClick={() => navigate(`/admin/clientes/${id}/editar`)}
-                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card hover:bg-card transition-all"
                         >
                             <Edit size={16} className="mr-2" />
                             Editar Cadastro
@@ -247,7 +247,7 @@ export const ClienteDetalhes: React.FC = () => {
                         <Button
                             variant="secondary"
                             onClick={() => setActiveTab('interacoes')}
-                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
                         >
                             <MessageSquare size={16} className="mr-2" />
                             Registrar Contato
@@ -291,16 +291,16 @@ export const ClienteDetalhes: React.FC = () => {
 
             {/* Main Tabs UI */}
             <Tabs defaultValue="perfil" value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
-                <Card className="bg-card/50 border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2rem]">
+                <Card className="bg-card border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2rem]">
                     <div className="px-6 pt-6">
-                        <TabsList className="bg-muted/30 p-1.5 rounded-2xl h-16 flex w-full md:w-fit border border-border/50">
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-16 flex w-full md:w-fit border border-border/50">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 return (
                                     <TabsTrigger
                                         key={tab.id}
                                         value={tab.id}
-                                        className="flex-1 md:px-8 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center justify-center gap-2 transition-all"
+                                        className="flex-1 md:px-8 py-3 rounded-sm font-black uppercase text-[11px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center justify-center gap-2 transition-all"
                                     >
                                         <Icon size={16} />
                                         <span className="hidden sm:inline">{tab.label}</span>
@@ -318,7 +318,7 @@ export const ClienteDetalhes: React.FC = () => {
                                         <h3 className="text-section-header flex items-center gap-2">
                                             <User size={16} className="text-primary" /> Informações do Titular
                                         </h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted p-8 rounded-[2rem] border border-border/30">
                                             <div className="space-y-1">
                                                 <p className="text-label-caps">Endereço de E-mail</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.email || '-'}</p>
@@ -370,7 +370,7 @@ export const ClienteDetalhes: React.FC = () => {
                                         <h3 className="text-section-header flex items-center gap-2">
                                             <MapPin size={16} className="text-primary" /> Localização Residencial
                                         </h3>
-                                        <div className="space-y-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
+                                        <div className="space-y-6 bg-muted p-8 rounded-[2rem] border border-border/30">
                                             <div className="space-y-1">
                                                 <p className="text-label-caps">Logradouro / Complemento</p>
                                                 <p className="text-base font-bold text-foreground">{cliente.endereco || '-'}</p>
@@ -396,7 +396,7 @@ export const ClienteDetalhes: React.FC = () => {
                                         <h3 className="text-section-header flex items-center gap-2">
                                             <MessageSquare size={16} className="text-primary" /> Notas Internas
                                         </h3>
-                                        <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
+                                        <div className="bg-card p-6 rounded-sm border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
                                             "{cliente.observacoes || 'Nenhuma observação registrada para este perfil.'}"
                                         </div>
                                     </div>
@@ -427,7 +427,7 @@ export const ClienteDetalhes: React.FC = () => {
                                 </div>
                                 <div className="grid grid-cols-1 gap-4">
                                     {reservas.length === 0 ? (
-                                        <div className="text-center py-20 bg-muted/5 rounded-[2rem] border border-dashed border-border/50">
+                                        <div className="text-center py-20 bg-muted rounded-[2rem] border border-dashed border-border/50">
                                             <History size={48} className="mx-auto text-muted-foreground/30 mb-6" />
                                             <p className="text-muted-foreground font-medium">Este cliente ainda não realizou viagens.</p>
                                         </div>
@@ -439,7 +439,7 @@ export const ClienteDetalhes: React.FC = () => {
                                             >
                                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                                     <div className="flex items-center gap-5">
-                                                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary font-black">
+                                                        <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center text-primary font-black">
                                                             {reserva.assento_numero || '--'}
                                                         </div>
                                                         <div>
@@ -484,7 +484,7 @@ export const ClienteDetalhes: React.FC = () => {
                                     </div>
                                     <Button
                                         onClick={() => setShowInteractionModal(true)}
-                                        className="h-12 rounded-xl px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                                        className="h-12 rounded-sm px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
                                     >
                                         <Plus size={18} className="mr-2" />
                                         Registrar Contato
@@ -500,7 +500,7 @@ export const ClienteDetalhes: React.FC = () => {
                                                 <select
                                                     value={newInteraction.tipo}
                                                     onChange={(e) => setNewInteraction({ ...newInteraction, tipo: e.target.value as TipoInteracao })}
-                                                    className="w-full h-14 px-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none"
+                                                    className="w-full h-14 px-4 rounded-sm border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none"
                                                 >
                                                     <option value={TipoInteracao.PHONE}>Telefone</option>
                                                     <option value={TipoInteracao.EMAIL}>E-mail</option>
@@ -515,16 +515,16 @@ export const ClienteDetalhes: React.FC = () => {
                                                     type="text"
                                                     value={newInteraction.descricao}
                                                     onChange={(e) => setNewInteraction({ ...newInteraction, descricao: e.target.value })}
-                                                    className="w-full h-14 px-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                                    className="w-full h-14 px-4 rounded-sm border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                                                     placeholder="Descreva brevemente o motivo do contato..."
                                                 />
                                             </div>
                                         </div>
                                         <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/30">
-                                            <Button variant="ghost" onClick={() => setShowInteractionModal(false)} className="h-12 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                                            <Button variant="ghost" onClick={() => setShowInteractionModal(false)} className="h-12 font-black uppercase text-[11px] tracking-widest rounded-sm">
                                                 Descartar
                                             </Button>
-                                            <Button onClick={handleAddInteraction} className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                                            <Button onClick={handleAddInteraction} className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-sm">
                                                 Confirmar Registro
                                             </Button>
                                         </div>
@@ -541,7 +541,7 @@ export const ClienteDetalhes: React.FC = () => {
                                             <div className="bg-card p-6 rounded-[2rem] border border-border/50 hover:border-primary/30 transition-all shadow-sm">
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="p-2.5 bg-muted/30 rounded-xl text-muted-foreground group-hover:text-primary transition-colors">
+                                                        <div className="p-2.5 bg-muted rounded-sm text-muted-foreground group-hover:text-primary transition-colors">
                                                             {getTipoIcon(interacao.tipo)}
                                                         </div>
                                                         <div>
@@ -578,7 +578,7 @@ export const ClienteDetalhes: React.FC = () => {
                                     </div>
                                     <Button
                                         onClick={() => setShowNoteModal(true)}
-                                        className="h-12 rounded-xl px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                                        className="h-12 rounded-sm px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
                                     >
                                         <Plus size={18} className="mr-2" />
                                         Criar Nota
@@ -595,7 +595,7 @@ export const ClienteDetalhes: React.FC = () => {
                                                     type="text"
                                                     value={newNote.titulo}
                                                     onChange={(e) => setNewNote({ ...newNote, titulo: e.target.value })}
-                                                    className="w-full h-14 px-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                                                    className="w-full h-14 px-4 rounded-sm border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
                                                     placeholder="Ponto focal da observação..."
                                                 />
                                             </div>
@@ -604,11 +604,11 @@ export const ClienteDetalhes: React.FC = () => {
                                                 <textarea
                                                     value={newNote.conteudo}
                                                     onChange={(e) => setNewNote({ ...newNote, conteudo: e.target.value })}
-                                                    className="w-full p-4 rounded-2xl border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none min-h-[120px]"
+                                                    className="w-full p-4 rounded-sm border border-border bg-background font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none min-h-[120px]"
                                                     placeholder="Descreva os detalhes importantes..."
                                                 />
                                             </div>
-                                            <div className="flex items-center gap-3 bg-muted/20 p-4 rounded-2xl border border-border/50 w-fit">
+                                            <div className="flex items-center gap-3 bg-muted p-4 rounded-sm border border-border/50 w-fit">
                                                 <input
                                                     type="checkbox"
                                                     id="importante"
@@ -623,10 +623,10 @@ export const ClienteDetalhes: React.FC = () => {
                                             </div>
                                         </div>
                                         <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-border/30">
-                                            <Button variant="ghost" onClick={() => setShowNoteModal(false)} className="h-12 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                                            <Button variant="ghost" onClick={() => setShowNoteModal(false)} className="h-12 font-black uppercase text-[11px] tracking-widest rounded-sm">
                                                 Cancelar
                                             </Button>
-                                            <Button onClick={handleAddNote} className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                                            <Button onClick={handleAddNote} className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-sm">
                                                 Salvar Nota
                                             </Button>
                                         </div>
@@ -647,8 +647,8 @@ export const ClienteDetalhes: React.FC = () => {
                                             <div className="flex justify-between items-start mb-6">
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
-                                                        "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                                                        nota.importante ? "bg-amber-500/20 text-amber-600" : "bg-muted/30 text-muted-foreground group-hover:text-primary"
+                                                        "w-10 h-10 rounded-sm flex items-center justify-center transition-colors",
+                                                        nota.importante ? "bg-amber-500/20 text-amber-600" : "bg-muted text-muted-foreground group-hover:text-primary"
                                                     )}>
                                                         <FileText size={20} />
                                                     </div>
@@ -675,7 +675,7 @@ export const ClienteDetalhes: React.FC = () => {
                                                         {nota.criado_por}
                                                     </span>
                                                 </div>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <Edit size={14} />
                                                 </Button>
                                             </div>

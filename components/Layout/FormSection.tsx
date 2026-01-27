@@ -21,8 +21,8 @@ export const FormSection: React.FC<FormSectionProps> = ({
     footer
 }) => {
     return (
-        <Card className={cn("shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 overflow-hidden", className)}>
-            <div className="p-8 border-b border-border/50 bg-muted/20">
+        <Card className={cn("shadow-xl shadow-muted/20 bg-card   border border-border/40 overflow-hidden", className)}>
+            <div className="p-8 border-b border-border/50 bg-muted">
                 <h3 className="text-section-header flex items-center gap-2">
                     {Icon && <Icon size={14} className="text-primary" />}
                     {title}
@@ -39,7 +39,7 @@ export const FormSection: React.FC<FormSectionProps> = ({
                 </div>
             </CardContent>
             {footer && (
-                <div className="p-8 border-t border-border/40 bg-muted/10">
+                <div className="p-8 border-t border-border/40 bg-muted">
                     {footer}
                 </div>
             )}

@@ -73,16 +73,16 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
         <>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Button variant="ghost" className="h-10 w-10 p-0 rounded-sm hover:bg-primary/10 hover:text-primary transition-colors">
                         <span className="sr-only">Abrir menu</span>
                         <MoreHorizontal className="h-5 w-5" strokeWidth={2.5} />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl shadow-2xl border-none bg-card/95 backdrop-blur-md">
+                <DropdownMenuContent align="end" className="w-56 p-2 rounded-sm shadow-2xl border-none bg-card  ">
                     <DropdownMenuLabel className="text-[12px] font-black uppercase tracking-widest text-muted-foreground px-3 py-2">Operações</DropdownMenuLabel>
                     <DropdownMenuItem
                         onClick={() => navigate('/admin/financeiro/transacoes/nova', { state: transacao })}
-                        className="rounded-xl px-3 py-2.5 font-bold focus:bg-primary focus:text-primary-foreground gap-3"
+                        className="rounded-sm px-3 py-2.5 font-bold focus:bg-primary focus:text-primary-foreground gap-3"
                     >
                         <Edit className="h-4 w-4" />
                         Editar Registro
@@ -94,7 +94,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
                     {!isPaid && (
                         <DropdownMenuItem
                             onClick={() => handleStatusChange(StatusTransacao.PAID)}
-                            className="rounded-xl px-3 py-2.5 font-bold text-emerald-600 focus:bg-emerald-500 focus:text-white gap-3"
+                            className="rounded-sm px-3 py-2.5 font-bold text-emerald-600 focus:bg-emerald-500 focus:text-white gap-3"
                         >
                             <CheckCircle className="h-4 w-4" />
                             Marcar como Paga
@@ -104,7 +104,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
                     {!isPending && (
                         <DropdownMenuItem
                             onClick={() => handleStatusChange(StatusTransacao.PENDING)}
-                            className="rounded-xl px-3 py-2.5 font-bold text-amber-600 focus:bg-amber-500 focus:text-white gap-3"
+                            className="rounded-sm px-3 py-2.5 font-bold text-amber-600 focus:bg-amber-500 focus:text-white gap-3"
                         >
                             <Clock className="h-4 w-4" />
                             Marcar como Pendente
@@ -114,7 +114,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
                     <DropdownMenuSeparator className="bg-border/50 my-2" />
                     <DropdownMenuItem
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="rounded-xl px-3 py-2.5 font-bold text-destructive focus:bg-destructive focus:text-destructive-foreground gap-3"
+                        className="rounded-sm px-3 py-2.5 font-bold text-destructive focus:bg-destructive focus:text-destructive-foreground gap-3"
                     >
                         <Trash2 className="h-4 w-4" />
                         Excluir Transação
@@ -123,7 +123,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
             </DropdownMenu>
 
             <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <DialogContent className="rounded-[2rem] border-none shadow-2xl max-w-sm p-8 bg-card/95 backdrop-blur-md">
+                <DialogContent className="rounded-[2rem] border-none shadow-2xl max-w-sm p-8 bg-card  ">
                     <DialogHeader className="space-y-4">
                         <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
                             <AlertTriangle className="h-8 w-8 text-destructive" strokeWidth={2.5} />
@@ -142,7 +142,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={isDeleting}
-                            className="w-full h-12 rounded-2xl font-black tracking-tighter text-base shadow-lg shadow-destructive/20 active:scale-95 transition-all"
+                            className="w-full h-12 rounded-sm font-black tracking-tighter text-base shadow-lg shadow-destructive/20 active:scale-95 transition-all"
                         >
                             {isDeleting ? (
                                 <>
@@ -157,7 +157,7 @@ export const TransactionActions: React.FC<TransactionActionsProps> = ({ transaca
                             variant="ghost"
                             onClick={() => setShowDeleteConfirm(false)}
                             disabled={isDeleting}
-                            className="w-full h-12 rounded-2xl font-black tracking-tighter text-muted-foreground hover:bg-muted/50 transition-all"
+                            className="w-full h-12 rounded-sm font-black tracking-tighter text-muted-foreground hover:bg-muted transition-all"
                         >
                             CANCELAR
                         </Button>

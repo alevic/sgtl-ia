@@ -104,7 +104,7 @@ export const Encomendas: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => navigate('/admin/encomendas/nova')}
-                        className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20"
+                        className="h-14 px-6 rounded-sm font-semibold gap-2 shadow-lg shadow-primary/20"
                     >
                         <Package size={20} />
                         NOVA ENCOMENDA
@@ -145,12 +145,12 @@ export const Encomendas: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col lg:col-span-2">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Modalidade de Envio</label>
                     <Tabs value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)} className="w-full">
-                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
-                            <TabsTrigger value={TipoEncomenda.BUS_CARGO} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-blue-600 gap-2">
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODOS</TabsTrigger>
+                            <TabsTrigger value={TipoEncomenda.BUS_CARGO} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-blue-600 gap-2">
                                 <Bus size={14} /> ONIBUS
                             </TabsTrigger>
-                            <TabsTrigger value={TipoEncomenda.TRUCK_FREIGHT} className="flex-1 rounded-xl font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-amber-600 gap-2">
+                            <TabsTrigger value={TipoEncomenda.TRUCK_FREIGHT} className="flex-1 rounded-sm font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm text-amber-600 gap-2">
                                 <Truck size={14} /> CAMINHAO
                             </TabsTrigger>
                         </TabsList>
@@ -161,16 +161,16 @@ export const Encomendas: React.FC = () => {
             {/* Lista de Encomendas */}
             <div className="grid gap-4">
                 {encomendasFiltradas.length === 0 ? (
-                    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
                         <Package size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-slate-500 dark:text-slate-400">Nenhuma encomenda encontrada</p>
                     </div>
                 ) : (
                     encomendasFiltradas.map((encomenda: any) => (
-                        <div key={encomenda.id} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
+                        <div key={encomenda.id} className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-shadow">
                             <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-14 bg-slate-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+                                    <div className="w-12 h-14 bg-slate-100 dark:bg-slate-700 rounded-sm flex items-center justify-center">
                                         <Package size={24} className="text-slate-600 dark:text-slate-300" />
                                     </div>
                                     <div>

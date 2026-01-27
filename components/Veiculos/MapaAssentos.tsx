@@ -317,7 +317,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                     <div className="space-y-3 min-w-max flex flex-col items-center">
                         {/* Frente do Ônibus */}
                         <div className="mb-4">
-                            <div className="inline-block px-6 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg">
+                            <div className="inline-block px-6 py-2 bg-slate-200 dark:bg-slate-700 rounded-sm">
                                 <p className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                     <BusIcon size={20} />
                                     Frente do Ônibus
@@ -348,7 +348,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                         // Render disabled seat
                                         return (
                                             <div key={colIndex} className="w-14 h-14 flex items-center justify-center">
-                                                <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg opacity-50">
+                                                <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-sm opacity-50">
                                                     <X size={20} className="text-slate-400 dark:text-slate-500" />
                                                 </div>
                                             </div>
@@ -361,7 +361,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                                 className="relative group cursor-pointer"
                                                 onClick={() => handleSeatClick(seat)}
                                             >
-                                                <div className={`w-14 h-14 rounded-lg transition-all duration-200 border-2 shadow-sm flex items-center justify-center ${SEAT_COLORS[getSeatType(seat)]} ${editMode === 'TYPE' ? 'hover:ring-2 hover:ring-offset-2 ring-blue-500' : ''}`}>
+                                                <div className={`w-14 h-14 rounded-sm transition-all duration-200 border-2 shadow-sm flex items-center justify-center ${SEAT_COLORS[getSeatType(seat)]} ${editMode === 'TYPE' ? 'hover:ring-2 hover:ring-offset-2 ring-blue-500' : ''}`}>
                                                     {editMode === 'NUMBER' ? (
                                                         <input
                                                             type="text"
@@ -389,7 +389,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                 <div className="flex gap-2 flex-shrink-0 ml-4 opacity-50 hover:opacity-100 transition-opacity w-[42px] justify-center">
                                     <button
                                         onClick={() => deleteRow(rowIndex, isUpperDeck)}
-                                        className="p-2 bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-600 rounded-lg transition-colors border border-slate-200 hover:border-red-200"
+                                        className="p-2 bg-slate-100 hover:bg-red-100 text-slate-400 hover:text-red-600 rounded-sm transition-colors border border-slate-200 hover:border-red-200"
                                         title="Deletar linha"
                                     >
                                         <X size={16} />
@@ -402,7 +402,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
 
                 <button
                     onClick={() => addNewRow(isUpperDeck)}
-                    className="w-full px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl font-medium transition-all flex items-center justify-center gap-2 group"
+                    className="w-full px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-sm font-medium transition-all flex items-center justify-center gap-2 group"
                 >
                     <div className="bg-slate-100 dark:bg-slate-700 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 p-1 rounded-full transition-colors">
                         <Plus size={16} />
@@ -427,7 +427,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                     Tipo de Plano <span className="text-red-500">*</span>
                 </label>
                 <select
-                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500"
                     value={hasSeatPlan ? 'Com Plano de Assentos' : 'Sem Plano de Assentos'}
                     onChange={(e) => setHasSeatPlan(e.target.value === 'Com Plano de Assentos')}
                 >
@@ -479,7 +479,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
 
                     <div className="mt-6">
                         {/* Configuration Controls */}
-                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-6">
+                        <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-6">
                             <h4 className="font-bold text-slate-700 dark:text-slate-200 mb-4">
                                 Parâmetros de Geração ({activeTab === 'LOWER' ? 'Térreo' : 'Superior'})
                             </h4>
@@ -491,7 +491,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                     <select
                                         value={driverPosition}
                                         onChange={(e) => setDriverPosition(e.target.value as DriverPosition)}
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="Left">Esquerda</option>
                                         <option value="Right">Direita</option>
@@ -508,7 +508,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                         onChange={(e) => setSeatRows(parseInt(e.target.value) || 0)}
                                         min="1"
                                         max="20"
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
 
@@ -523,7 +523,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                         min="3"
                                         max="7"
                                         step="2"
-                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500"
                                     />
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                                         Use números ímpares (3, 5, 7) para corredor central
@@ -533,7 +533,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                         </div>
 
                         {/* Toolbar de Edição */}
-                        <div className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm mb-6">
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm mb-6">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-700 pb-4 mb-4">
                                 <div>
                                     <h3 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
@@ -544,7 +544,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                         Escolha uma ferramenta para interagir com o mapa
                                     </p>
                                 </div>
-                                <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-lg">
+                                <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-sm">
                                     <button
                                         onClick={() => setEditMode('NUMBER')}
                                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${editMode === 'NUMBER'
@@ -569,7 +569,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                             </div>
 
                             {editMode === 'TYPE' && (
-                                <div className="animate-in fade-in slide-in-from-top-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                <div className="animate-in fade-in slide-in-from-top-2 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-sm border border-slate-100 dark:border-slate-700/50">
                                     <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-3">
                                         Selecione um tipo de assento para aplicar:
                                     </p>
@@ -578,7 +578,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                             <button
                                                 key={tipo}
                                                 onClick={() => setSelectedType(tipo)}
-                                                className={`px-3 py-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${selectedType === tipo
+                                                className={`px-3 py-2 rounded-sm border text-sm font-medium transition-all flex items-center gap-2 ${selectedType === tipo
                                                     ? 'ring-2 ring-blue-500 ring-offset-2 ' + SEAT_COLORS[tipo]
                                                     : 'hover:bg-white dark:hover:bg-slate-800 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                                                     }`}
@@ -599,7 +599,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                     <h4 className="text-lg font-bold text-slate-800 dark:text-white">Mapa do Andar Térreo</h4>
                                     <button
                                         onClick={() => generateBusSeats(false)}
-                                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                                     >
                                         <Plus size={18} />
                                         Gerar Assentos Térreo
@@ -615,7 +615,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                                     <h4 className="text-lg font-bold text-slate-800 dark:text-white">Mapa do Andar Superior</h4>
                                     <button
                                         onClick={() => generateBusSeats(true)}
-                                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2"
+                                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-sm font-semibold transition-all shadow-sm hover:shadow-md flex items-center gap-2"
                                     >
                                         <Plus size={18} />
                                         Gerar Assentos Superior
@@ -627,7 +627,7 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                     </div>
                 </>
             ) : (
-                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700 border-dashed">
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-sm p-8 text-center border border-slate-200 dark:border-slate-700 border-dashed">
                     <p className="text-slate-500 dark:text-slate-400 mb-2">
                         Este veículo opera sem lugares marcados.
                     </p>
@@ -646,14 +646,14 @@ export const MapaAssentos: React.FC<MapaAssentosProps> = ({ veiculo, seats = [],
                             setUpperDeckSeats([]);
                         }
                     }}
-                    className="px-6 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg font-semibold transition-colors flex items-center gap-2"
+                    className="px-6 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-sm font-semibold transition-colors flex items-center gap-2"
                 >
                     <X size={18} />
                     Limpar Tudo
                 </button>
                 <button
                     onClick={handleSave}
-                    className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm"
+                    className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-sm font-semibold transition-colors flex items-center gap-2 shadow-sm"
                 >
                     <Save size={18} />
                     Salvar Configuração

@@ -150,7 +150,7 @@ export const PerfilCliente: React.FC = () => {
                 <div className="flex items-center justify-between max-w-2xl mx-auto">
                     <button
                         onClick={() => navigate('/cliente/dashboard')}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-sm transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                     </button>
@@ -183,7 +183,7 @@ export const PerfilCliente: React.FC = () => {
                 )}
 
                 {/* Credit Balance Card */}
-                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl p-6 text-white shadow-xl shadow-blue-500/20">
+                <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-sm p-6 text-white shadow-xl shadow-blue-500/20">
                     <p className="text-blue-100 text-sm font-medium">Saldo de Créditos</p>
                     <h2 className="text-3xl font-bold mt-1">
                         {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(credits)}
@@ -191,9 +191,9 @@ export const PerfilCliente: React.FC = () => {
                 </div>
 
                 {/* Profile Form */}
-                <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-6">
                     {/* Avatar Section */}
-                    <div className="flex items-center gap-6 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-6 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-slate-200 dark:border-slate-700">
                         <div className="relative group">
                             <img
                                 src={avatarUrl}
@@ -242,7 +242,7 @@ export const PerfilCliente: React.FC = () => {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     required
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                     placeholder="Nome completo"
                                 />
                             </div>
@@ -260,7 +260,7 @@ export const PerfilCliente: React.FC = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                     placeholder="email@exemplo.com"
                                 />
                             </div>
@@ -300,14 +300,14 @@ export const PerfilCliente: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => navigate('/cliente/dashboard')}
-                            className="flex-1 px-6 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-semibold transition-colors"
+                            className="flex-1 px-6 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-sm font-semibold transition-colors"
                         >
                             Cancelar
                         </button>
                         <button
                             type="submit"
                             disabled={isSaving}
-                            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSaving ? (
                                 <>
@@ -327,10 +327,10 @@ export const PerfilCliente: React.FC = () => {
                 {/* Change Password Link */}
                 <button
                     onClick={() => {/* TODO: Implement password change modal */ }}
-                    className="w-full bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                    className="w-full bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-sm flex items-center justify-center">
                             <Lock size={20} />
                         </div>
                         <div className="text-left">

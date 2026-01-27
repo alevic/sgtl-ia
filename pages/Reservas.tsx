@@ -91,7 +91,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
     return (
         <Badge variant="outline" className={cn(
-            "rounded-xl font-semibold text-[12px] px-3 py-1 uppercase tracking-tighter shadow-sm",
+            "rounded-sm font-semibold text-[12px] px-3 py-1 uppercase tracking-tighter shadow-sm",
             config.color.replace('bg-', 'bg-') + "/10",
             config.text
         )}>
@@ -413,7 +413,7 @@ export const Reservas: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => navigate('/admin/reservas/nova')}
-                        className="h-14 px-6 rounded-xl font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
+                        className="h-14 px-6 rounded-sm font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-primary/20"
                     >
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         NOVA RESERVA
@@ -460,7 +460,7 @@ export const Reservas: React.FC = () => {
                             placeholder="Código ou passageiro..."
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
-                            className="h-14 pl-12 pr-4 bg-muted/40 border-input rounded-xl focus-visible:ring-primary/20 font-bold"
+                            className="h-14 pl-12 pr-4 bg-muted border-input rounded-sm focus-visible:ring-primary/20 font-bold"
                         />
                     </div>
                 </div>
@@ -469,16 +469,16 @@ export const Reservas: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Veículo</label>
                     <Select value={filtroVeiculo} onValueChange={(v) => setFiltroVeiculo(v)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold shadow-none focus:ring-primary/20">
+                        <SelectTrigger className="h-14 w-full bg-muted border-input rounded-sm font-bold shadow-none focus:ring-primary/20">
                             <div className="flex items-center">
                                 <Bus size={16} className="mr-2 text-muted-foreground" />
                                 <SelectValue placeholder="Todos" />
                             </div>
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl border-none shadow-2xl">
-                            <SelectItem value="TODOS" className="rounded-xl font-bold">Todos os Veículos</SelectItem>
+                        <SelectContent className="rounded-sm border-none shadow-2xl">
+                            <SelectItem value="TODOS" className="rounded-sm font-bold">Todos os Veículos</SelectItem>
                             {veiculos.map(v => (
-                                <SelectItem key={v.id} value={v.id} className="rounded-xl font-bold">
+                                <SelectItem key={v.id} value={v.id} className="rounded-sm font-bold">
                                     {v.modelo} - {v.placa}
                                 </SelectItem>
                             ))}
@@ -490,16 +490,16 @@ export const Reservas: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Viagem / Rota</label>
                     <Select value={filtroViagem} onValueChange={(v) => setFiltroViagem(v)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold shadow-none focus:ring-primary/20">
+                        <SelectTrigger className="h-14 w-full bg-muted border-input rounded-sm font-bold shadow-none focus:ring-primary/20">
                             <div className="flex items-center">
                                 <Calendar size={16} className="mr-2 text-muted-foreground" />
                                 <SelectValue placeholder="Todas" />
                             </div>
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl border-none shadow-2xl max-h-[300px]">
-                            <SelectItem value="TODOS" className="rounded-xl font-bold">Todas as Viagens</SelectItem>
+                        <SelectContent className="rounded-sm border-none shadow-2xl max-h-[300px]">
+                            <SelectItem value="TODOS" className="rounded-sm font-bold">Todas as Viagens</SelectItem>
                             {viagens.map(v => (
-                                <SelectItem key={v.id} value={v.id} className="rounded-xl font-bold">
+                                <SelectItem key={v.id} value={v.id} className="rounded-sm font-bold">
                                     {formatDate(v.departure_date)} - {v.title || v.route_name}
                                 </SelectItem>
                             ))}
@@ -514,7 +514,7 @@ export const Reservas: React.FC = () => {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold justify-between hover:bg-muted/60"
+                                className="h-14 w-full bg-muted border-input rounded-sm font-bold justify-between hover:bg-muted"
                             >
                                 <div className="flex items-center gap-2">
                                     <Filter size={16} strokeWidth={2.5} />
@@ -527,7 +527,7 @@ export const Reservas: React.FC = () => {
                                 <ChevronDown size={16} className={cn("transition-transform", isStatusDropdownOpen && "rotate-180")} />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[240px] p-3 rounded-xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
+                        <PopoverContent className="w-[240px] p-3 rounded-sm border-none shadow-2xl bg-card  " align="end">
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground">Selecionar Status</span>
@@ -545,7 +545,7 @@ export const Reservas: React.FC = () => {
                                 {statusOptions.map((option) => (
                                     <div
                                         key={option.value}
-                                        className="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors"
+                                        className="flex items-center space-x-3 px-2 py-2 rounded-sm hover:bg-muted cursor-pointer transition-colors"
                                         onClick={() => toggleStatus(option.value)}
                                     >
                                         <div className={cn(
@@ -573,10 +573,10 @@ export const Reservas: React.FC = () => {
 
             {/* Table Module */}
             {/* Reservations Table Container */}
-            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
-                <div className="p-8 border-b border-border/50 flex justify-between items-center bg-muted/20">
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-sm bg-card  ">
+                <div className="p-8 border-b border-border/50 flex justify-between items-center bg-muted">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-xl">
+                        <div className="p-2 bg-primary/10 rounded-sm">
                             <Ticket className="w-5 h-5 text-primary" strokeWidth={2.5} />
                         </div>
                         <h2 className="text-xl font-semibold tracking-tight">Registro de Passageiros</h2>
@@ -584,7 +584,7 @@ export const Reservas: React.FC = () => {
                 </div>
 
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
                             <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Código / Passageiro</TableHead>
                             <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Viagem / Veículo</TableHead>
@@ -598,7 +598,7 @@ export const Reservas: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={5} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-3 animate-pulse">
-                                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-sm flex items-center justify-center text-primary">
                                             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                                         </div>
                                         <p className="font-semibold text-sm tracking-widest text-muted-foreground uppercase">Carregando registro...</p>
@@ -625,10 +625,10 @@ export const Reservas: React.FC = () => {
                                 const pendente = Math.max(0, valorTotal - valorPago);
 
                                 return (
-                                    <TableRow key={reserva.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                    <TableRow key={reserva.id} className="group hover:bg-muted border-border/30 transition-colors">
                                         <TableCell className="pl-8 py-5">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+                                                <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
                                                     <User size={20} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="flex flex-col">
@@ -672,19 +672,19 @@ export const Reservas: React.FC = () => {
                                         <TableCell className="pr-8 text-right">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-10 w-10 p-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-colors">
+                                                    <Button variant="ghost" className="h-10 w-10 p-0 rounded-sm hover:bg-primary/10 hover:text-primary transition-colors">
                                                         <MoreHorizontal className="h-5 w-5" strokeWidth={2.5} />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl shadow-2xl border-none bg-card/95 backdrop-blur-md">
+                                                <DropdownMenuContent align="end" className="w-56 p-2 rounded-sm shadow-2xl border-none bg-card  ">
                                                     <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground px-3 py-2">Operações</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => handleEditClick(reserva)} className="rounded-xl px-3 py-2.5 font-bold focus:bg-primary focus:text-primary-foreground gap-3 transition-all">
+                                                    <DropdownMenuItem onClick={() => handleEditClick(reserva)} className="rounded-sm px-3 py-2.5 font-bold focus:bg-primary focus:text-primary-foreground gap-3 transition-all">
                                                         <Edit className="h-4 w-4" />
                                                         Editar Cadastro
                                                     </DropdownMenuItem>
 
                                                     {pendente > 0 && (
-                                                        <DropdownMenuItem onClick={() => handlePaymentClick(reserva)} className="rounded-xl px-3 py-2.5 font-bold text-emerald-600 focus:bg-emerald-500 focus:text-white gap-3 transition-all">
+                                                        <DropdownMenuItem onClick={() => handlePaymentClick(reserva)} className="rounded-sm px-3 py-2.5 font-bold text-emerald-600 focus:bg-emerald-500 focus:text-white gap-3 transition-all">
                                                             <DollarSign className="h-4 w-4" />
                                                             Baixar Pagamento
                                                         </DropdownMenuItem>
@@ -694,7 +694,7 @@ export const Reservas: React.FC = () => {
 
                                                     <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground px-3 py-2">Fluxo Operacional</DropdownMenuLabel>
                                                     {[ReservationStatus.CHECKED_IN, ReservationStatus.USED].map(st => (
-                                                        <DropdownMenuItem key={st} onClick={() => handleStatusChange(reserva, st)} className="rounded-xl px-3 py-2.5 font-bold gap-3 transition-all">
+                                                        <DropdownMenuItem key={st} onClick={() => handleStatusChange(reserva, st)} className="rounded-sm px-3 py-2.5 font-bold gap-3 transition-all">
                                                             <div className={cn("w-1.5 h-1.5 rounded-full",
                                                                 st === ReservationStatus.CHECKED_IN ? 'bg-indigo-500' : 'bg-emerald-500'
                                                             )} />
@@ -705,7 +705,7 @@ export const Reservas: React.FC = () => {
                                                     <DropdownMenuSeparator className="bg-border/50 my-2" />
 
                                                     {reserva.status !== ReservationStatus.CANCELLED && (
-                                                        <DropdownMenuItem onClick={() => handleCancelClick(reserva)} className="rounded-xl px-3 py-2.5 font-bold text-destructive focus:bg-destructive focus:text-destructive-foreground gap-3 transition-all">
+                                                        <DropdownMenuItem onClick={() => handleCancelClick(reserva)} className="rounded-sm px-3 py-2.5 font-bold text-destructive focus:bg-destructive focus:text-destructive-foreground gap-3 transition-all">
                                                             <XCircle className="h-4 w-4" />
                                                             Cancelar Reserva
                                                         </DropdownMenuItem>
@@ -723,10 +723,10 @@ export const Reservas: React.FC = () => {
 
             {/* Edit Modal */}
             <Dialog open={!!editingReserva} onOpenChange={(open) => !open && setEditingReserva(null)}>
-                <DialogContent className="sm:max-w-[600px] rounded-3xl border-none shadow-2xl p-0 overflow-hidden">
+                <DialogContent className="sm:max-w-[600px] rounded-sm border-none shadow-2xl p-0 overflow-hidden">
                     <DialogHeader className="p-8 bg-primary/5 border-b border-primary/10">
                         <DialogTitle className="text-2xl font-semibold flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-xl">
+                            <div className="p-2 bg-primary/10 rounded-sm">
                                 <Edit size={22} className="text-primary" />
                             </div>
                             Editar Reserva
@@ -742,7 +742,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_name}
                                     onChange={e => setEditForm({ ...editForm, passenger_name: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
+                                    className="h-14 bg-muted border-none rounded-sm font-bold"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -750,7 +750,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_document}
                                     onChange={e => setEditForm({ ...editForm, passenger_document: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
+                                    className="h-14 bg-muted border-none rounded-sm font-bold"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -758,7 +758,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_email}
                                     onChange={e => setEditForm({ ...editForm, passenger_email: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
+                                    className="h-14 bg-muted border-none rounded-sm font-bold"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -766,7 +766,7 @@ export const Reservas: React.FC = () => {
                                 <Input
                                     value={editForm.passenger_phone}
                                     onChange={e => setEditForm({ ...editForm, passenger_phone: e.target.value })}
-                                    className="h-14 bg-muted/40 border-none rounded-xl font-bold"
+                                    className="h-14 bg-muted border-none rounded-sm font-bold"
                                 />
                             </div>
                         </div>
@@ -786,12 +786,12 @@ export const Reservas: React.FC = () => {
                                                     value={editForm.boarding_point}
                                                     onValueChange={v => setEditForm({ ...editForm, boarding_point: v })}
                                                 >
-                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-xl font-bold">
+                                                    <SelectTrigger className="h-14 bg-muted border-none rounded-sm font-bold">
                                                         <SelectValue placeholder="Selecione o ponto" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="rounded-xl border-none shadow-2xl">
+                                                    <SelectContent className="rounded-sm border-none shadow-2xl">
                                                         {boardingOptions.map((s: any, idx: number) => (
-                                                            <SelectItem key={idx} value={s.nome} className="rounded-xl font-bold">
+                                                            <SelectItem key={idx} value={s.nome} className="rounded-sm font-bold">
                                                                 {s.nome}
                                                             </SelectItem>
                                                         ))}
@@ -803,7 +803,7 @@ export const Reservas: React.FC = () => {
                                             <Input
                                                 value={editForm.boarding_point}
                                                 onChange={e => setEditForm({ ...editForm, boarding_point: e.target.value })}
-                                                className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                                className="h-14 bg-muted border-none rounded-sm font-bold"
                                                 placeholder="Digite o ponto..."
                                             />
                                         );
@@ -822,12 +822,12 @@ export const Reservas: React.FC = () => {
                                                     value={editForm.dropoff_point}
                                                     onValueChange={v => setEditForm({ ...editForm, dropoff_point: v })}
                                                 >
-                                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-xl font-bold">
+                                                    <SelectTrigger className="h-14 bg-muted border-none rounded-sm font-bold">
                                                         <SelectValue placeholder="Selecione o ponto" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="rounded-xl border-none shadow-2xl">
+                                                    <SelectContent className="rounded-sm border-none shadow-2xl">
                                                         {dropoffOptions.map((s: any, idx: number) => (
-                                                            <SelectItem key={idx} value={s.nome} className="rounded-xl font-bold">
+                                                            <SelectItem key={idx} value={s.nome} className="rounded-sm font-bold">
                                                                 {s.nome}
                                                             </SelectItem>
                                                         ))}
@@ -839,7 +839,7 @@ export const Reservas: React.FC = () => {
                                             <Input
                                                 value={editForm.dropoff_point}
                                                 onChange={e => setEditForm({ ...editForm, dropoff_point: e.target.value })}
-                                                className="h-14 bg-muted/40 border-none rounded-2xl font-bold"
+                                                className="h-14 bg-muted border-none rounded-sm font-bold"
                                                 placeholder="Digite o ponto..."
                                             />
                                         );
@@ -848,12 +848,12 @@ export const Reservas: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="p-8 bg-muted/30 border-t border-border/50">
-                        <Button variant="ghost" onClick={() => setEditingReserva(null)} className="rounded-xl font-bold">Cancelar</Button>
+                    <DialogFooter className="p-8 bg-muted border-t border-border/50">
+                        <Button variant="ghost" onClick={() => setEditingReserva(null)} className="rounded-sm font-bold">Cancelar</Button>
                         <Button
                             onClick={handleSaveEdit}
                             disabled={actionLoading}
-                            className="rounded-xl font-semibold px-8 bg-primary shadow-lg shadow-primary/20 gap-2"
+                            className="rounded-sm font-semibold px-8 bg-primary shadow-lg shadow-primary/20 gap-2"
                         >
                             {actionLoading ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
                             Salvar Alterações
@@ -881,12 +881,12 @@ export const Reservas: React.FC = () => {
                                 value={cancelReason}
                                 onChange={e => setCancelReason(e.target.value)}
                                 placeholder="Descreva brevemente o motivo..."
-                                className="min-h-[100px] bg-muted/40 border-none rounded-2xl font-semibold resize-none focus-visible:ring-destructive/20"
+                                className="min-h-[100px] bg-muted border-none rounded-sm font-semibold resize-none focus-visible:ring-destructive/20"
                             />
                         </div>
 
                         {cancelingReserva && Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0) > 0 && (
-                            <div className="bg-muted/30 rounded-[1.5rem] p-6 border border-border/50 space-y-4 shadow-inner">
+                            <div className="bg-muted rounded-[1.5rem] p-6 border border-border/50 space-y-4 shadow-inner">
                                 <div className="flex items-center justify-between">
                                     <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">Valor Pago</span>
                                     <span className="font-semibold text-lg">R$ {Number(cancelingReserva.amount_paid || cancelingReserva.valor_pago || 0).toFixed(2)}</span>
@@ -898,11 +898,11 @@ export const Reservas: React.FC = () => {
                                         { id: 'CREDIT', label: 'Gerar Crédito Cliente', icon: CreditCard, color: 'text-blue-500' },
                                     ].map((opt) => (
                                         <label key={opt.id} className={cn(
-                                            "flex items-center justify-between p-3 rounded-xl border-2 transition-all cursor-pointer group",
+                                            "flex items-center justify-between p-3 rounded-sm border-2 transition-all cursor-pointer group",
                                             refundAction === opt.id ? "border-primary bg-primary/5" : "border-transparent bg-background/50 hover:border-muted-foreground/20"
                                         )}>
                                             <div className="flex items-center gap-3">
-                                                <div className={cn("p-1.5 rounded-lg bg-background shadow-sm", opt.color)}>
+                                                <div className={cn("p-1.5 rounded-sm bg-background shadow-sm", opt.color)}>
                                                     <opt.icon size={14} strokeWidth={3} />
                                                 </div>
                                                 <span className="text-xs font-bold">{opt.label}</span>
@@ -920,13 +920,13 @@ export const Reservas: React.FC = () => {
                             </div>
                         )}
                     </div>
-                    <DialogFooter className="p-8 bg-muted/30 border-t border-border/50">
-                        <Button variant="ghost" onClick={() => setCancelingReserva(null)} className="rounded-xl font-bold">Voltar</Button>
+                    <DialogFooter className="p-8 bg-muted border-t border-border/50">
+                        <Button variant="ghost" onClick={() => setCancelingReserva(null)} className="rounded-sm font-bold">Voltar</Button>
                         <Button
                             variant="destructive"
                             onClick={handleConfirmCancel}
                             disabled={actionLoading}
-                            className="rounded-xl font-semibold px-8 shadow-lg shadow-destructive/20 gap-2"
+                            className="rounded-sm font-semibold px-8 shadow-lg shadow-destructive/20 gap-2"
                         >
                             {actionLoading ? <Loader size={18} className="animate-spin" /> : <XCircle size={18} />}
                             Confirmar Cancelamento
@@ -942,7 +942,7 @@ export const Reservas: React.FC = () => {
                         <div className="absolute top-0 right-0 p-8 opacity-10">
                             <DollarSign size={120} />
                         </div>
-                        <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 shadow-xl border border-white/30">
+                        <div className="w-16 h-16 bg-white/20   rounded-sm flex items-center justify-center mb-4 shadow-xl border border-white/30">
                             <DollarSign size={32} strokeWidth={3} />
                         </div>
                         <h3 className="text-2xl font-semibold tracking-tight">Receber Pagamento</h3>
@@ -952,11 +952,11 @@ export const Reservas: React.FC = () => {
                     <div className="p-8 space-y-6">
                         {paymentReserva && (
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 bg-muted/30 rounded-2xl border border-border/40 text-center">
+                                <div className="p-4 bg-muted rounded-sm border border-border/40 text-center">
                                     <p className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground/60">Total Reserva</p>
                                     <p className="font-semibold text-lg">R$ {Number(paymentReserva.valor_total || paymentReserva.price || 0).toFixed(2)}</p>
                                 </div>
-                                <div className="p-4 bg-emerald-500/5 rounded-2xl border border-emerald-500/20 text-center">
+                                <div className="p-4 bg-emerald-500/5 rounded-sm border border-emerald-500/20 text-center">
                                     <p className="text-[12px] font-semibold uppercase tracking-widest text-emerald-600/60">Pendente</p>
                                     <p className="font-semibold text-lg text-emerald-600">
                                         R$ {(Number(paymentReserva.valor_total || paymentReserva.price || 0) - Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0)).toFixed(2)}
@@ -969,16 +969,16 @@ export const Reservas: React.FC = () => {
                             <div className="space-y-2">
                                 <Label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Método de Pagamento</Label>
                                 <Select value={paymentMethod} onValueChange={(v: any) => setPaymentMethod(v)}>
-                                    <SelectTrigger className="h-14 bg-muted/40 border-none rounded-2xl font-bold">
+                                    <SelectTrigger className="h-14 bg-muted border-none rounded-sm font-bold">
                                         <CreditCard size={16} className="mr-2 text-muted-foreground" />
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="rounded-xl border-none shadow-2xl">
-                                        <SelectItem value={FormaPagamento.PIX} className="rounded-xl font-bold">PIX</SelectItem>
-                                        <SelectItem value={FormaPagamento.CASH} className="rounded-xl font-bold">Dinheiro / Espécie</SelectItem>
-                                        <SelectItem value={FormaPagamento.CREDIT_CARD} className="rounded-xl font-bold">Cartão de Crédito</SelectItem>
-                                        <SelectItem value={FormaPagamento.DEBIT_CARD} className="rounded-xl font-bold">Cartão de Débito</SelectItem>
-                                        <SelectItem value={FormaPagamento.BOLETO} className="rounded-xl font-bold">Boleto Bancário</SelectItem>
+                                    <SelectContent className="rounded-sm border-none shadow-2xl">
+                                        <SelectItem value={FormaPagamento.PIX} className="rounded-sm font-bold">PIX</SelectItem>
+                                        <SelectItem value={FormaPagamento.CASH} className="rounded-sm font-bold">Dinheiro / Espécie</SelectItem>
+                                        <SelectItem value={FormaPagamento.CREDIT_CARD} className="rounded-sm font-bold">Cartão de Crédito</SelectItem>
+                                        <SelectItem value={FormaPagamento.DEBIT_CARD} className="rounded-sm font-bold">Cartão de Débito</SelectItem>
+                                        <SelectItem value={FormaPagamento.BOLETO} className="rounded-sm font-bold">Boleto Bancário</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -992,19 +992,19 @@ export const Reservas: React.FC = () => {
                                         step="0.01"
                                         value={amountToPay}
                                         onChange={e => setAmountToPay(e.target.value)}
-                                        className="h-16 pl-12 pr-4 bg-muted/40 border-none rounded-2xl font-semibold text-2xl text-emerald-600 focus-visible:ring-emerald-500/20"
+                                        className="h-16 pl-12 pr-4 bg-muted border-none rounded-sm font-semibold text-2xl text-emerald-600 focus-visible:ring-emerald-500/20"
                                     />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <DialogFooter className="p-8 bg-muted/30 border-t border-border/50">
-                        <Button variant="ghost" onClick={() => setPaymentReserva(null)} className="rounded-xl font-bold">Cancelar</Button>
+                    <DialogFooter className="p-8 bg-muted border-t border-border/50">
+                        <Button variant="ghost" onClick={() => setPaymentReserva(null)} className="rounded-sm font-bold">Cancelar</Button>
                         <Button
                             onClick={handleConfirmPayment}
                             disabled={actionLoading}
-                            className="rounded-xl font-semibold px-8 bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 gap-2"
+                            className="rounded-sm font-semibold px-8 bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 gap-2"
                         >
                             {actionLoading ? <Loader size={18} className="animate-spin" /> : <ShieldCheck size={18} strokeWidth={3} />}
                             Confirmar Recebimento

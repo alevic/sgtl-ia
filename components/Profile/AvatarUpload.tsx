@@ -116,12 +116,12 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({ currentAvatar, userN
             {/* Upload Modal */}
             {preview && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm shadow-2xl max-w-md w-full p-6">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white">Nova Foto de Perfil</h3>
                             <button
                                 onClick={() => setPreview(null)}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-sm transition-colors"
                             >
                                 <X size={20} className="text-slate-500" />
                             </button>
@@ -131,21 +131,21 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({ currentAvatar, userN
                             <img
                                 src={preview}
                                 alt="Preview"
-                                className="w-full h-64 object-cover rounded-xl"
+                                className="w-full h-64 object-cover rounded-sm"
                             />
                         </div>
 
                         <div className="flex gap-3">
                             <button
                                 onClick={() => setPreview(null)}
-                                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-colors"
+                                className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-sm font-medium transition-colors"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={handleUpload}
                                 disabled={isUploading}
-                                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {isUploading ? (
                                     <>

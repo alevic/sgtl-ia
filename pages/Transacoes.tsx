@@ -181,7 +181,7 @@ export const Transacoes: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => navigate('/admin/financeiro/transacoes/nova')}
-                        className="h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 px-8 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         Nova Transação
@@ -230,7 +230,7 @@ export const Transacoes: React.FC = () => {
                             placeholder="Descrição, ID ou documento..."
                             value={busca}
                             onChange={e => setBusca(e.target.value)}
-                            className="pl-12 h-14 bg-muted/20 border-border/50 rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted border-border/50 rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                         />
                     </div>
                 </div>
@@ -238,7 +238,7 @@ export const Transacoes: React.FC = () => {
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo</label>
                     <Select value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)}>
-                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
                             <SelectValue placeholder="TIPO" />
                         </SelectTrigger>
                         <SelectContent>
@@ -252,7 +252,7 @@ export const Transacoes: React.FC = () => {
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Status</label>
                     <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
-                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
                             <SelectValue placeholder="STATUS" />
                         </SelectTrigger>
                         <SelectContent>
@@ -273,14 +273,14 @@ export const Transacoes: React.FC = () => {
                             type="date"
                             value={dataInicio}
                             onChange={e => setDataInicio(e.target.value)}
-                            className="flex-1 h-14 bg-muted/20 border-border/50 rounded-xl text-xs font-bold"
+                            className="flex-1 h-14 bg-muted border-border/50 rounded-sm text-xs font-bold"
                         />
                         <span className="text-muted-foreground font-black">→</span>
                         <Input
                             type="date"
                             value={dataFim}
                             onChange={e => setDataFim(e.target.value)}
-                            className="flex-1 h-14 bg-muted/20 border-border/50 rounded-xl text-xs font-bold"
+                            className="flex-1 h-14 bg-muted border-border/50 rounded-sm text-xs font-bold"
                         />
                     </div>
                 </div>
@@ -288,7 +288,7 @@ export const Transacoes: React.FC = () => {
                 <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Centro de Custo</label>
                     <Select value={filtroCentroCusto} onValueChange={(v: any) => setFiltroCentroCusto(v)}>
-                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
                             <SelectValue placeholder="CENTRO CUSTO" />
                         </SelectTrigger>
                         <SelectContent>
@@ -303,7 +303,7 @@ export const Transacoes: React.FC = () => {
                 <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Classificação</label>
                     <Select value={filtroClassificacao} onValueChange={(v: any) => setFiltroClassificacao(v)}>
-                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-[11px] uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
                             <SelectValue placeholder="CLASSIFICAÇÃO" />
                         </SelectTrigger>
                         <SelectContent>
@@ -317,7 +317,7 @@ export const Transacoes: React.FC = () => {
                 </div>
             </ListFilterSection>
             {/* Lista de Transações */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-slate-800 dark:text-white">

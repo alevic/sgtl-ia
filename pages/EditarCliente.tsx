@@ -150,14 +150,14 @@ export const EditarCliente: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate(`/admin/clientes/${id}`)}
-                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
                         >
                             Descartar
                         </Button>
                         <Button
                             onClick={handleSalvar}
                             disabled={isLoading}
-                            className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                             {isLoading ? 'Sincronizando...' : 'Salvar Alterações'}
@@ -167,7 +167,7 @@ export const EditarCliente: React.FC = () => {
             />
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-destructive/20 bg-destructive/5  ">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro na Atualização</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -177,7 +177,7 @@ export const EditarCliente: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-[2rem] border-emerald-500/20 bg-emerald-500/5  ">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Sucesso</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -203,7 +203,7 @@ export const EditarCliente: React.FC = () => {
                                     value={formData.nome}
                                     onChange={handleChange}
                                     placeholder="Nome completo do cliente"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
 
@@ -217,7 +217,7 @@ export const EditarCliente: React.FC = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         placeholder="email@exemplo.com"
-                                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 pl-12 pr-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                             </div>
@@ -247,7 +247,7 @@ export const EditarCliente: React.FC = () => {
                                     name="segmento"
                                     value={formData.segmento}
                                     onChange={handleChange}
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none"
                                 >
                                     <option value="Standard">Standard</option>
                                     <option value="VIP">VIP</option>
@@ -271,7 +271,7 @@ export const EditarCliente: React.FC = () => {
                                     value={formData.endereco}
                                     onChange={handleChange}
                                     placeholder="Rua, número, complemento"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
 
@@ -283,7 +283,7 @@ export const EditarCliente: React.FC = () => {
                                     value={formData.cidade}
                                     onChange={handleChange}
                                     placeholder="São Paulo"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -295,7 +295,7 @@ export const EditarCliente: React.FC = () => {
                                     onChange={handleChange}
                                     placeholder="SP"
                                     maxLength={2}
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none uppercase"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none uppercase"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -306,7 +306,7 @@ export const EditarCliente: React.FC = () => {
                                     value={formData.pais}
                                     onChange={handleChange}
                                     placeholder="Brasil"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
                         </div>
@@ -336,7 +336,7 @@ export const EditarCliente: React.FC = () => {
                                     value={formData.nacionalidade}
                                     onChange={handleChange}
                                     placeholder="Brasileira"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
                         </div>
@@ -357,7 +357,7 @@ export const EditarCliente: React.FC = () => {
                                     onChange={handleChange}
                                     min="0"
                                     step="0.01"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
                             <div className="space-y-1.5">
@@ -368,7 +368,7 @@ export const EditarCliente: React.FC = () => {
                                     onChange={handleChange}
                                     placeholder="Notas sobre o cliente..."
                                     rows={5}
-                                    className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none min-h-[150px] resize-none"
+                                    className="w-full p-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none min-h-[150px] resize-none"
                                 />
                             </div>
                         </div>

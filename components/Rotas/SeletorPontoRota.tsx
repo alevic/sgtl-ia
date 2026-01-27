@@ -249,7 +249,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                         value={selectedState}
                         onChange={handleStateSelect}
                         disabled={readonly}
-                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                        className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
                     >
                         <option value="">Selecione...</option>
                         {states.map(state => (
@@ -268,7 +268,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                             value={selectedCity}
                             onChange={handleCitySelect}
                             disabled={readonly || !selectedState}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
                         >
                             <option value="">Selecione...</option>
                             {cities.map(city => (
@@ -287,13 +287,13 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                     if (e.key === 'Escape') setShowNewCityInput(false);
                                     if (e.key === 'Enter' && newCityName) handleCreateCity();
                                 }}
-                                className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 text-sm"
                                 autoFocus
                             />
                             <button
                                 onClick={handleCreateCity}
                                 disabled={!newCityName}
-                                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50"
+                                className="p-2 bg-blue-600 text-white rounded-sm hover:bg-blue-500 disabled:opacity-50"
                                 title="Criar cidade"
                             >
                                 <Plus size={16} />
@@ -312,7 +312,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                             value={selectedNeighborhood}
                             onChange={handleNeighborhoodSelect}
                             disabled={readonly || !selectedCity}
-                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                            className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
                         >
                             <option value="">Selecione...</option>
                             {neighborhoods.map(neighborhood => (
@@ -331,13 +331,13 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                     if (e.key === 'Escape') setShowNewNeighborhoodInput(false);
                                     if (e.key === 'Enter' && newNeighborhoodName) handleCreateNeighborhood();
                                 }}
-                                className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                                className="flex-1 p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 text-sm"
                                 autoFocus
                             />
                             <button
                                 onClick={handleCreateNeighborhood}
                                 disabled={!newNeighborhoodName}
-                                className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 disabled:opacity-50"
+                                className="p-2 bg-blue-600 text-white rounded-sm hover:bg-blue-500 disabled:opacity-50"
                                 title="Criar bairro"
                             >
                                 <Plus size={16} />
@@ -356,7 +356,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                     type="text"
                     value={ponto.nome}
                     onChange={(e) => handleChange('nome', e.target.value)}
-                    className="w-full p-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg text-sm"
+                    className="w-full p-2 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-sm text-sm"
                 />
             </div>
 
@@ -378,7 +378,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                                 onChange={(e) => handleChange('distancia_do_anterior_km', parseFloat(e.target.value))}
                                 disabled={readonly}
                                 placeholder="0 km"
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
                             />
                         </div>
                         {/* Tempo do anterior (min) */}
@@ -479,7 +479,7 @@ export const SeletorPontoRota: React.FC<SeletorPontoRotaProps> = ({
                     placeholder="Ex: Terminal Rodoviário Central"
                     disabled={readonly}
                     rows={2}
-                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
+                    className="w-full p-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 resize-none disabled:opacity-50"
                 />
             </div>
         </div>

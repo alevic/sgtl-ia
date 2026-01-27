@@ -14,7 +14,7 @@ export const ListFilterSection: React.FC<ListFilterSectionProps> = ({
 }) => {
     return (
         <div className={cn(
-            "bg-card/50 backdrop-blur-sm p-6 rounded-3xl border border-border/40 shadow-xl shadow-muted/10",
+            "bg-card   p-6 rounded-sm border border-border/40 shadow-xl shadow-muted/10",
             className
         )}>
             <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6", gridClassName)}>

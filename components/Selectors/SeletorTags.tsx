@@ -84,7 +84,7 @@ export const SeletorTags: React.FC<SeletorTagsProps> = ({ selectedTags, onChange
     return (
         <div className="relative" ref={dropdownRef}>
             <div
-                className="min-h-[42px] p-1.5 flex flex-wrap gap-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 rounded-lg cursor-text focus-within:ring-2 focus-within:ring-blue-500 transition-all"
+                className="min-h-[42px] p-1.5 flex flex-wrap gap-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 rounded-sm cursor-text focus-within:ring-2 focus-within:ring-blue-500 transition-all"
                 onClick={() => setIsOpen(true)}
             >
                 {selectedTags.map(tag => (
@@ -116,7 +116,7 @@ export const SeletorTags: React.FC<SeletorTagsProps> = ({ selectedTags, onChange
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100">
                     <div className="p-2 space-y-1">
                         {loading && availableTags.length === 0 ? (
                             <div className="p-4 text-center text-sm text-slate-500">Carregando tags...</div>

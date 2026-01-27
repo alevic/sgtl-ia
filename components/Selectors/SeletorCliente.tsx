@@ -65,13 +65,13 @@ export const SeletorCliente: React.FC<SeletorClienteProps> = ({
                         placeholder="Buscar por Nome, Razão Social, Documento..."
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
-                        className="w-full pl-10 pr-4 h-14 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 h-14 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
             </div>
 
             {/* Lista de Clientes */}
-            <div className="max-h-60 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-700 rounded-lg p-2">
+            <div className="max-h-60 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-700 rounded-sm p-2">
                 {clientesFiltrados.length > 0 ? (
                     clientesFiltrados.map((cliente) => {
                         const isSelected = clienteSelecionado?.id === cliente.id;
@@ -81,7 +81,7 @@ export const SeletorCliente: React.FC<SeletorClienteProps> = ({
                             <button
                                 key={cliente.id}
                                 onClick={() => handleSelecionarCliente(cliente)}
-                                className={`w-full p-3 rounded-lg border transition-all text-left ${isSelected
+                                className={`w-full p-3 rounded-sm border transition-all text-left ${isSelected
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-800'
                                     }`}

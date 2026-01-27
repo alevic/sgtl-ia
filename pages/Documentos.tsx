@@ -82,7 +82,7 @@ export const Documentos: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => { }}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <Upload className="w-4 h-4 mr-2" />
                         Novo Documento
@@ -92,12 +92,12 @@ export const Documentos: React.FC = () => {
 
             {/* Tabs & Filters */}
             <ListFilterSection>
-                <div className="flex bg-muted/40 p-1.5 rounded-xl border border-border/50 h-14 w-full md:w-fit gap-2">
+                <div className="flex bg-muted p-1.5 rounded-sm border border-border/50 h-14 w-full md:w-fit gap-2">
                     <button
                         onClick={() => setActiveTab('veiculo')}
-                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${activeTab === 'veiculo'
+                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm ${activeTab === 'veiculo'
                             ? 'bg-background text-primary shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                             }`}
                     >
                         <Truck size={14} />
@@ -105,9 +105,9 @@ export const Documentos: React.FC = () => {
                     </button>
                     <button
                         onClick={() => setActiveTab('motorista')}
-                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${activeTab === 'motorista'
+                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm ${activeTab === 'motorista'
                             ? 'bg-background text-primary shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                             }`}
                     >
                         <Users size={14} />
@@ -115,9 +115,9 @@ export const Documentos: React.FC = () => {
                     </button>
                     <button
                         onClick={() => setActiveTab('administrativo')}
-                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg ${activeTab === 'administrativo'
+                        className={`flex-1 md:flex-none flex items-center gap-2 px-6 h-full text-[10px] font-bold uppercase tracking-widest transition-all rounded-sm ${activeTab === 'administrativo'
                             ? 'bg-background text-primary shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                             }`}
                     >
                         <Building size={14} />
@@ -132,16 +132,16 @@ export const Documentos: React.FC = () => {
                         placeholder="Filtrar documentos..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border-input rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-xs"
+                        className="w-full h-14 pl-12 pr-4 bg-muted border-input rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none text-xs"
                     />
                 </div>
             </ListFilterSection>
 
             {/* Document List */}
-            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+            <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
-                        <thead className="bg-muted/20 border-b border-border/50">
+                        <thead className="bg-muted border-b border-border/50">
                             <tr>
                                 <th className="px-8 py-6 text-[12px] font-black uppercase tracking-widest text-muted-foreground">Documento</th>
                                 <th className="px-8 py-6 text-[12px] font-black uppercase tracking-widest text-muted-foreground">Entidade</th>
@@ -154,10 +154,10 @@ export const Documentos: React.FC = () => {
                         <tbody className="divide-y divide-border/30">
                             {filteredDocs.length > 0 ? (
                                 filteredDocs.map((doc) => (
-                                    <tr key={doc.id} className="group hover:bg-muted/30 transition-colors">
+                                    <tr key={doc.id} className="group hover:bg-muted transition-colors">
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                                                <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
                                                     <FileText size={18} strokeWidth={2.5} />
                                                 </div>
                                                 <div>
@@ -187,10 +187,10 @@ export const Documentos: React.FC = () => {
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-2 bg-muted/50 hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all rounded-xl">
+                                                <button className="p-2 bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary transition-all rounded-sm">
                                                     <Download size={16} strokeWidth={2.5} />
                                                 </button>
-                                                <button className="p-2 bg-muted/50 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all rounded-xl">
+                                                <button className="p-2 bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all rounded-sm">
                                                     <Trash2 size={16} strokeWidth={2.5} />
                                                 </button>
                                             </div>

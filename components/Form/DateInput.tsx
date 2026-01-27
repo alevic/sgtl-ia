@@ -84,7 +84,7 @@ export const DateInput: React.FC<DateInputProps> = ({
                     type="text"
                     value={formatDate(value)}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 h-14 bg-slate-50 dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white ${!validation.valid
+                    className={`w-full pl-10 pr-4 h-14 bg-slate-50 dark:bg-slate-900 border rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white ${!validation.valid
                         ? 'border-red-300 dark:border-red-700'
                         : value.length === 8
                             ? 'border-green-300 dark:border-green-700'

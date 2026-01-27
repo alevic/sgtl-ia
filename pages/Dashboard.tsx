@@ -78,10 +78,10 @@ const StatCard = ({ title, value, trend, trendValue, icon: Icon, color, isPositi
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 bg-card/60 backdrop-blur-sm shadow-sm group overflow-hidden">
+    <Card className="hover:shadow-lg transition-all duration-300 bg-card   shadow-sm group overflow-hidden">
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <div className={cn("p-3 rounded-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm", colorClasses[color])}>
+          <div className={cn("p-3 rounded-sm group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-sm", colorClasses[color])}>
             <Icon size={22} />
           </div>
           <Badge variant={isPositive ? "default" : "destructive"} className={cn(
@@ -159,7 +159,7 @@ export const Dashboard: React.FC = () => {
               Olá, <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">{user.name.split(' ')[0]}</span> 👋
             </h1>
             <div className="flex items-center gap-3">
-              <Badge variant="secondary" className="bg-muted/50 text-muted-foreground border-none font-medium text-[12px] uppercase tracking-widest">
+              <Badge variant="secondary" className="bg-muted text-muted-foreground border-none font-medium text-[12px] uppercase tracking-widest">
                 Admin Panel
               </Badge>
               <Separator orientation="vertical" className="h-3 shadow-none" />
@@ -172,7 +172,7 @@ export const Dashboard: React.FC = () => {
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className={cn(
-            "h-14 px-5 flex items-center gap-3 text-sm font-bold bg-card/40 backdrop-blur-md shadow-sm border-primary/10 rounded-xl",
+            "h-14 px-5 flex items-center gap-3 text-sm font-bold bg-card   shadow-sm border-primary/10 rounded-sm",
             isTurismo ? 'text-blue-600 border-blue-100' : 'text-orange-600 border-orange-100'
           )}>
             <div className={cn("w-2.5 h-2.5 rounded-full animate-pulse", isTurismo ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]')}></div>

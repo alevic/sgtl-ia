@@ -416,7 +416,7 @@ export const NovaManutencao: React.FC = () => {
                                 </AlertDescription>
                             </Alert>
 
-                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                            <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-sm border border-slate-200 dark:border-slate-800 flex justify-between items-center">
                                 <div className="text-xs text-slate-500 uppercase font-bold">Resumo</div>
                                 <div className="flex gap-4">
                                     <span className="text-sm line-through text-slate-400">{formData.moeda} {originalCusto.toFixed(2)}</span>
@@ -427,7 +427,7 @@ export const NovaManutencao: React.FC = () => {
                             <div className="grid grid-cols-1 gap-3">
                                 <button
                                     onClick={handleCancelAndRelaunch}
-                                    className="flex flex-col items-start p-3 text-left border-2 border-blue-100 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 dark:border-blue-900/20 dark:hover:border-blue-700 dark:bg-blue-900/10 dark:hover:bg-blue-900/20 rounded-xl transition-all group"
+                                    className="flex flex-col items-start p-3 text-left border-2 border-blue-100 hover:border-blue-500 bg-blue-50/50 hover:bg-blue-50 dark:border-blue-900/20 dark:hover:border-blue-700 dark:bg-blue-900/10 dark:hover:bg-blue-900/20 rounded-sm transition-all group"
                                 >
                                     <span className="text-sm font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
                                         <CheckCircle size={16} /> Cancelar e Relançar (Recomendado)
@@ -439,7 +439,7 @@ export const NovaManutencao: React.FC = () => {
 
                                 <button
                                     onClick={executeSave}
-                                    className="flex flex-col items-start p-3 text-left border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-600 dark:bg-slate-800/50 dark:hover:bg-slate-800 rounded-xl transition-all"
+                                    className="flex flex-col items-start p-3 text-left border border-slate-200 hover:border-slate-400 bg-white hover:bg-slate-50 dark:border-slate-800 dark:hover:border-slate-600 dark:bg-slate-800/50 dark:hover:bg-slate-800 rounded-sm transition-all"
                                 >
                                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                                         <Loader className="animate-spin group-hover:block hidden" size={14} /> Apenas Corrigir Existente
@@ -500,7 +500,7 @@ export const NovaManutencao: React.FC = () => {
                     <Button
                         onClick={(e) => handleSubmit(e as any)}
                         disabled={loading}
-                        className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         {loading ? (
                             <Loader className="w-4 h-4 animate-spin mr-2" />
@@ -539,7 +539,7 @@ export const NovaManutencao: React.FC = () => {
                                 <select
                                     name="tipo"
                                     required
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     onChange={handleInputChange}
                                     value={formData.tipo}
                                 >
@@ -558,7 +558,7 @@ export const NovaManutencao: React.FC = () => {
                                 <select
                                     name="status"
                                     required
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     onChange={handleInputChange}
                                     value={formData.status}
                                 >
@@ -578,7 +578,7 @@ export const NovaManutencao: React.FC = () => {
                                     type="number"
                                     name="km_veiculo"
                                     required
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                     onChange={handleNumberChange}
                                     value={formData.km_veiculo || 0}
                                 />
@@ -600,7 +600,7 @@ export const NovaManutencao: React.FC = () => {
                                     name="descricao"
                                     required
                                     rows={3}
-                                    className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
+                                    className="w-full p-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
                                     placeholder="Descreva o serviço a ser realizado..."
                                     onChange={handleInputChange}
                                     value={formData.descricao || ''}
@@ -615,7 +615,7 @@ export const NovaManutencao: React.FC = () => {
                                     <input
                                         type="text"
                                         name="oficina"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                         onChange={handleInputChange}
                                         value={formData.oficina || ''}
                                     />
@@ -627,7 +627,7 @@ export const NovaManutencao: React.FC = () => {
                                     <input
                                         type="text"
                                         name="responsavel"
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                         onChange={handleInputChange}
                                         value={formData.responsavel || ''}
                                     />
@@ -645,7 +645,7 @@ export const NovaManutencao: React.FC = () => {
                                             type="number"
                                             name="custo_pecas"
                                             step="0.01"
-                                            className="w-full h-14 pl-10 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                            className="w-full h-14 pl-10 pr-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                             onChange={handleNumberChange}
                                             value={formData.custo_pecas}
                                         />
@@ -661,7 +661,7 @@ export const NovaManutencao: React.FC = () => {
                                             type="number"
                                             name="custo_mao_de_obra"
                                             step="0.01"
-                                            className="w-full h-14 pl-10 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
+                                            className="w-full h-14 pl-10 pr-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                             onChange={handleNumberChange}
                                             value={formData.custo_mao_de_obra}
                                         />
@@ -671,7 +671,7 @@ export const NovaManutencao: React.FC = () => {
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
                                         Total Estimado
                                     </label>
-                                    <div className="h-14 flex items-center px-4 bg-muted/60 dark:bg-muted/20 border border-border/50 rounded-xl text-foreground font-black tracking-tight text-lg">
+                                    <div className="h-14 flex items-center px-4 bg-muted dark:bg-muted border border-border/50 rounded-sm text-foreground font-black tracking-tight text-lg">
                                         {formData.moeda} {((Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
                                 </div>
@@ -718,7 +718,7 @@ export const NovaManutencao: React.FC = () => {
                         </div>
                     </FormSection>
 
-                    <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10">
+                    <div className="bg-primary/5 rounded-sm p-6 border border-primary/10">
                         <h3 className="text-[12px] font-black uppercase tracking-widest text-primary mb-2 flex items-center gap-2">
                             <AlertTriangle size={14} />
                             Diretriz Operacional

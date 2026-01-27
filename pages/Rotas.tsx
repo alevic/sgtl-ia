@@ -150,7 +150,7 @@ export const Rotas: React.FC = () => {
                 subtitle="Configuração de itinerários e pontos de parada"
                 icon={MapPinned}
                 rightElement={
-                    <Button onClick={handleNovaRota} className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                    <Button onClick={handleNovaRota} className="h-14 px-6 rounded-sm font-semibold gap-2 shadow-lg shadow-primary/20">
                         <Plus size={20} strokeWidth={2.5} />
                         NOVA ROTA
                     </Button>
@@ -195,7 +195,7 @@ export const Rotas: React.FC = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                         <Input
                             placeholder="Nome ou ponto de parada..."
-                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
                         />
@@ -206,10 +206,10 @@ export const Rotas: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Tipo de Rota</label>
                     <Select value={filtroTipo} onValueChange={(v) => setFiltroTipo(v as any)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold">
+                        <SelectTrigger className="h-14 w-full bg-muted border-input rounded-sm font-bold">
                             <SelectValue placeholder="Tipo de Rota" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                        <SelectContent className="rounded-sm border-none shadow-2xl bg-card  ">
                             <SelectItem value="TODOS">Todos os Tipos</SelectItem>
                             <SelectItem value={RouteType.OUTBOUND}>Ida (Outbound)</SelectItem>
                             <SelectItem value={RouteType.INBOUND}>Volta (Inbound)</SelectItem>
@@ -221,19 +221,19 @@ export const Rotas: React.FC = () => {
                 <div className="space-y-1.5 flex flex-col">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Visibilidade</label>
                     <Tabs value={statusTab} onValueChange={(v: any) => setStatusTab(v)} className="w-full">
-                        <TabsList className="bg-muted/40 p-1.5 rounded-xl h-14 flex w-full border border-border/50">
-                            <TabsTrigger value="TODOS" className="flex-1 rounded-xl px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODAS</TabsTrigger>
-                            <TabsTrigger value="ATIVA" className="flex-1 rounded-xl px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVAS</TabsTrigger>
-                            <TabsTrigger value="INATIVA" className="flex-1 rounded-xl px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">INATIVAS</TabsTrigger>
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-14 flex w-full border border-border/50">
+                            <TabsTrigger value="TODOS" className="flex-1 rounded-sm px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">TODAS</TabsTrigger>
+                            <TabsTrigger value="ATIVA" className="flex-1 rounded-sm px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">ATIVAS</TabsTrigger>
+                            <TabsTrigger value="INATIVA" className="flex-1 rounded-sm px-4 font-black text-[10px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-sm">INATIVAS</TabsTrigger>
                         </TabsList>
                     </Tabs>
                 </div>
             </ListFilterSection>
 
             {/* Executive Table Module */}
-            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card/50 backdrop-blur-sm">
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-[2.5rem] bg-card  ">
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
                             <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Identificação</TableHead>
                             <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Trajeto</TableHead>
@@ -248,7 +248,7 @@ export const Rotas: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={6} className="h-96 text-center border-none">
                                     <div className="flex flex-col items-center justify-center gap-4 py-20 grayscale opacity-40">
-                                        <div className="p-6 bg-muted/40 rounded-full">
+                                        <div className="p-6 bg-muted rounded-full">
                                             <RouteIcon size={48} />
                                         </div>
                                         <div className="space-y-1">
@@ -260,11 +260,11 @@ export const Rotas: React.FC = () => {
                             </TableRow>
                         ) : (
                             rotasFiltradas.map((rota) => (
-                                <TableRow key={rota.id} className="group hover:bg-muted/20 border-border/30 transition-colors h-24">
+                                <TableRow key={rota.id} className="group hover:bg-muted border-border/30 transition-colors h-24">
                                     <TableCell className="pl-8">
                                         <div className="flex items-center gap-4">
                                             <div className={cn(
-                                                "w-12 h-14 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg",
+                                                "w-12 h-14 rounded-sm flex items-center justify-center text-white shrink-0 shadow-lg",
                                                 rota.ativa ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
                                             )}>
                                                 <RouteIcon size={20} strokeWidth={2.5} />
@@ -293,7 +293,7 @@ export const Rotas: React.FC = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant="outline" className={cn(
-                                            "rounded-xl font-semibold text-[12px] px-3 py-1 uppercase tracking-tighter shadow-sm",
+                                            "rounded-sm font-semibold text-[12px] px-3 py-1 uppercase tracking-tighter shadow-sm",
                                             rota.tipo_rota === RouteType.OUTBOUND || (rota.tipo_rota as any) === 'IDA'
                                                 ? 'bg-blue-500/10 text-blue-600'
                                                 : 'bg-orange-500/10 text-orange-600'
@@ -319,39 +319,39 @@ export const Rotas: React.FC = () => {
                                             {/* Visualizer Popover could go here, for now expanded menu */}
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="rounded-xl hover:bg-muted/80 h-9 w-9">
+                                                    <Button variant="ghost" size="icon" className="rounded-sm hover:bg-muted h-9 w-9">
                                                         <MoreHorizontal size={18} />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-2xl p-2 mt-2">
+                                                <DropdownMenuContent align="end" className="w-56 rounded-sm shadow-2xl p-2 mt-2">
                                                     <DropdownMenuLabel className="px-3 py-2 text-[12px] font-semibold uppercase tracking-widest text-muted-foreground/40">Gerenciar Rota</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => handleEditarRota(rota.id)} className="rounded-xl gap-3 font-bold h-11 cursor-pointer">
-                                                        <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600">
+                                                    <DropdownMenuItem onClick={() => handleEditarRota(rota.id)} className="rounded-sm gap-3 font-bold h-11 cursor-pointer">
+                                                        <div className="p-2 rounded-sm bg-blue-500/10 text-blue-600">
                                                             <Edit size={16} />
                                                         </div>
                                                         Editar Rota
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleDuplicarRota(rota.id)} className="rounded-xl gap-3 font-bold h-11 cursor-pointer">
-                                                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                                                    <DropdownMenuItem onClick={() => handleDuplicarRota(rota.id)} className="rounded-sm gap-3 font-bold h-11 cursor-pointer">
+                                                        <div className="p-2 rounded-sm bg-primary/10 text-primary">
                                                             <Copy size={16} />
                                                         </div>
                                                         Duplicar Rota
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleToggleStatus(rota.id)} className="rounded-xl gap-3 font-bold h-11 cursor-pointer">
+                                                    <DropdownMenuItem onClick={() => handleToggleStatus(rota.id)} className="rounded-sm gap-3 font-bold h-11 cursor-pointer">
                                                         <div className={cn(
-                                                            "p-2 rounded-lg",
+                                                            "p-2 rounded-sm",
                                                             rota.ativa ? "bg-orange-500/10 text-orange-600" : "bg-emerald-500/10 text-emerald-600"
                                                         )}>
                                                             {rota.ativa ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
                                                         </div>
                                                         {rota.ativa ? "Desativar Rota" : "Ativar Rota"}
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuSeparator className="my-2 bg-muted/50" />
+                                                    <DropdownMenuSeparator className="my-2 bg-muted" />
                                                     <DropdownMenuItem
                                                         onClick={() => handleExcluirRota(rota.id)}
-                                                        className="rounded-xl gap-3 font-bold h-11 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+                                                        className="rounded-sm gap-3 font-bold h-11 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
                                                     >
-                                                        <div className="p-2 rounded-lg bg-destructive/10">
+                                                        <div className="p-2 rounded-sm bg-destructive/10">
                                                             <Trash2 size={16} />
                                                         </div>
                                                         Excluir Rota
@@ -362,7 +362,7 @@ export const Rotas: React.FC = () => {
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() => handleEditarRota(rota.id)}
-                                                className="rounded-xl hover:bg-primary/10 hover:text-primary transition-all group/btn h-9 w-9"
+                                                className="rounded-sm hover:bg-primary/10 hover:text-primary transition-all group/btn h-9 w-9"
                                             >
                                                 <ChevronRight size={18} className="transition-transform group-hover/btn:translate-x-0.5" />
                                             </Button>

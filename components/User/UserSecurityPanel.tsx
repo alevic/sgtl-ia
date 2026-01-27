@@ -14,7 +14,7 @@ export const UserSecurityPanel: React.FC<UserSecurityPanelProps> = ({ userId }) 
     return (
         <div className="space-y-6">
             {/* Password Section */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <Key size={20} className="text-orange-600" />
                     Senha
@@ -24,7 +24,7 @@ export const UserSecurityPanel: React.FC<UserSecurityPanelProps> = ({ userId }) 
                 </p>
                 <button
                     onClick={() => setShowPasswordModal(true)}
-                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-colors flex items-center gap-2"
+                    className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-sm font-medium transition-colors flex items-center gap-2"
                 >
                     <Key size={18} />
                     Alterar Senha
@@ -32,7 +32,7 @@ export const UserSecurityPanel: React.FC<UserSecurityPanelProps> = ({ userId }) 
             </div>
 
             {/* Sessions Section */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <Monitor size={20} className="text-blue-600" />
                     Sessões Ativas
@@ -53,7 +53,7 @@ export const UserSecurityPanel: React.FC<UserSecurityPanelProps> = ({ userId }) 
                 ) : (
                     <div className="space-y-3">
                         {sessions.map((session, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                            <div key={index} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-sm">
                                 <div className="flex items-center gap-3">
                                     <Monitor size={20} className="text-slate-400" />
                                     <div>
@@ -75,7 +75,7 @@ export const UserSecurityPanel: React.FC<UserSecurityPanelProps> = ({ userId }) 
             </div>
 
             {/* Login History */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <Clock size={20} className="text-green-600" />
                     Histórico de Logins

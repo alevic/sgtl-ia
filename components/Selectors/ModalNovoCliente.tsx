@@ -72,8 +72,8 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60   animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-slate-800 w-full max-w-4xl rounded-sm shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-700">
                     <div>
@@ -85,7 +85,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-sm transition-colors"
                     >
                         <X size={20} className="text-slate-500" />
                     </button>
@@ -107,7 +107,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                         type="text"
                                         value={nome}
                                         onChange={(e) => setNome(e.target.value)}
-                                        className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                        className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                         placeholder="Ex: João Silva"
                                     />
                                 </div>
@@ -118,7 +118,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                             placeholder="joao@email.com"
                                         />
                                     </div>
@@ -128,7 +128,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                             type="tel"
                                             value={telefone}
                                             onChange={(e) => setTelefone(e.target.value)}
-                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                             placeholder="(11) 98765-4321"
                                         />
                                     </div>
@@ -149,7 +149,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                         <select
                                             value={documentoTipo}
                                             onChange={(e) => setDocumentoTipo(e.target.value as TipoDocumento)}
-                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                         >
                                             <option value={TipoDocumento.CPF}>CPF</option>
                                             <option value={TipoDocumento.RG}>RG</option>
@@ -163,7 +163,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                             type="text"
                                             value={documentoNumero}
                                             onChange={(e) => setDocumentoNumero(e.target.value)}
-                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                             placeholder="000.000.000-00"
                                         />
                                     </div>
@@ -175,7 +175,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                             type="date"
                                             value={dataNascimento}
                                             onChange={(e) => setDataNascimento(e.target.value)}
-                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                         />
                                     </div>
                                     <div>
@@ -184,7 +184,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                             type="text"
                                             value={nacionalidade}
                                             onChange={(e) => setNacionalidade(e.target.value)}
-                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                         />
                                     </div>
                                 </div>
@@ -205,7 +205,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                     type="text"
                                     value={endereco}
                                     onChange={(e) => setEndereco(e.target.value)}
-                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                     placeholder="Rua, número, bairro..."
                                 />
                             </div>
@@ -215,7 +215,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                     type="text"
                                     value={cidade}
                                     onChange={(e) => setCidade(e.target.value)}
-                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                 />
                             </div>
                             <div>
@@ -224,7 +224,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                                     type="text"
                                     value={estado}
                                     onChange={(e) => setEstado(e.target.value)}
-                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                                    className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                                     placeholder="UF"
                                 />
                             </div>
@@ -237,7 +237,7 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                         <textarea
                             value={observacoes}
                             onChange={(e) => setObservacoes(e.target.value)}
-                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm"
+                            className="w-full p-2.5 border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-sm text-sm"
                             rows={3}
                             placeholder="Informações adicionais..."
                         />
@@ -248,14 +248,14 @@ export const ModalNovoCliente: React.FC<ModalNovoClienteProps> = ({
                 <div className="p-6 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        className="px-6 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSalvar}
                         disabled={isSaving}
-                        className="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-500 transition-colors flex items-center gap-2 disabled:opacity-50"
+                        className="px-6 py-2.5 bg-blue-600 text-white rounded-sm font-semibold hover:bg-blue-500 transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                         {isSaving ? <Loader size={18} className="animate-spin" /> : <Save size={18} />}
                         Salvar e Selecionar

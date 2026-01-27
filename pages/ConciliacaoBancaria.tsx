@@ -142,11 +142,11 @@ export const ConciliacaoBancaria: React.FC = () => {
                 backLabel="Painel Financeiro"
                 rightElement={extrato && (
                     <div className="flex gap-4">
-                        <div className="px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-2xl flex items-center gap-2 animate-in zoom-in-95">
+                        <div className="px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-sm flex items-center gap-2 animate-in zoom-in-95">
                             <CheckCircle2 size={16} strokeWidth={3} />
                             <span className="text-[10px] font-black uppercase tracking-widest">{conciliadosCount} CONCILIADOS</span>
                         </div>
-                        <div className="px-6 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 rounded-2xl flex items-center gap-2 animate-in zoom-in-95">
+                        <div className="px-6 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 rounded-sm flex items-center gap-2 animate-in zoom-in-95">
                             <AlertCircle size={16} strokeWidth={3} />
                             <span className="text-[10px] font-black uppercase tracking-widest">{pendentes.length} PENDENTES</span>
                         </div>
@@ -162,10 +162,10 @@ export const ConciliacaoBancaria: React.FC = () => {
             ) : (
                 <div className="space-y-6">
                     {/* Executive Summary Card */}
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
                         <div className="p-8 flex flex-col md:flex-row justify-between items-center gap-6">
                             <div className="flex items-center gap-6">
-                                <div className="p-4 bg-primary/10 rounded-2xl text-primary">
+                                <div className="p-4 bg-primary/10 rounded-sm text-primary">
                                     <RefreshCw size={24} />
                                 </div>
                                 <div>
@@ -185,7 +185,7 @@ export const ConciliacaoBancaria: React.FC = () => {
                                 <Button
                                     variant="outline"
                                     onClick={() => setExtrato(null)}
-                                    className="h-14 px-6 rounded-2xl border-border/40 hover:bg-muted/50 text-muted-foreground transition-all"
+                                    className="h-14 px-6 rounded-sm border-border/40 hover:bg-muted text-muted-foreground transition-all"
                                 >
                                     <RefreshCw size={18} className="mr-2" />
                                     Trocar Arquivo

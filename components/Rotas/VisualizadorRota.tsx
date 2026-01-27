@@ -14,7 +14,7 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
 }) => {
     if (!rota) {
         return (
-            <div className="bg-slate-100 dark:bg-slate-900 rounded-lg p-8 text-center text-slate-500 dark:text-slate-400">
+            <div className="bg-slate-100 dark:bg-slate-900 rounded-sm p-8 text-center text-slate-500 dark:text-slate-400">
                 Rota não disponível
             </div>
         );
@@ -108,7 +108,7 @@ export const VisualizadorRota: React.FC<VisualizadorRotaProps> = ({
 
             {/* Informações gerais */}
             {(rota.duracao_estimada_minutos || rota.distancia_total_km) && (
-                <div className="flex items-center gap-6 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-lg p-3">
+                <div className="flex items-center gap-6 text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 rounded-sm p-3">
                     {rota.duracao_estimada_minutos && rota.duracao_estimada_minutos > 0 && (
                         <div className="flex items-center gap-2">
                             <Clock size={16} />

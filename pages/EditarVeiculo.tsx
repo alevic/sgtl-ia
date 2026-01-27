@@ -203,13 +203,13 @@ export const EditarVeiculo: React.FC = () => {
             {(error || (isLoading && !isFetching)) && (
                 <div className="fixed top-8 right-8 z-50 w-full max-w-md animate-in slide-in-from-right-8 duration-500">
                     {error ? (
-                        <Alert variant="destructive" className="shadow-2xl border-destructive/50 bg-destructive/10 backdrop-blur-xl">
+                        <Alert variant="destructive" className="shadow-2xl border-destructive/50 bg-destructive/10  ">
                             <AlertTriangle className="h-5 w-5" />
                             <AlertTitle className="font-black uppercase tracking-widest text-[12px]">Erro de Validação</AlertTitle>
                             <AlertDescription className="font-medium">{error}</AlertDescription>
                         </Alert>
                     ) : (
-                        <Alert className="shadow-2xl border-primary/50 bg-primary/10 backdrop-blur-xl">
+                        <Alert className="shadow-2xl border-primary/50 bg-primary/10  ">
                             <Loader className="h-5 w-5 animate-spin text-primary" />
                             <AlertTitle className="font-black uppercase tracking-widest text-[12px]">Processando</AlertTitle>
                             <AlertDescription className="font-medium text-primary">Sincronizando alterações com o servidor...</AlertDescription>
@@ -231,14 +231,14 @@ export const EditarVeiculo: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate(`/admin/frota/${id}`)}
-                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
                         >
                             Descartar
                         </Button>
                         <Button
                             onClick={handleSalvar}
                             disabled={isLoading}
-                            className="h-14 rounded-2xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isLoading ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                             {isLoading ? 'Sincronizando...' : 'Salvar Alterações'}
@@ -265,7 +265,7 @@ export const EditarVeiculo: React.FC = () => {
                                 onChange={(e) => setPlaca(e.target.value.toUpperCase())}
                                 placeholder="ABC-1234"
                                 maxLength={8}
-                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30 uppercase"
+                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30 uppercase"
                             />
                         </div>
 
@@ -278,7 +278,7 @@ export const EditarVeiculo: React.FC = () => {
                                 value={modelo}
                                 onChange={(e) => setModelo(e.target.value)}
                                 placeholder="Ex: Mercedes-Benz O500"
-                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
+                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
                             />
                         </div>
 
@@ -289,7 +289,7 @@ export const EditarVeiculo: React.FC = () => {
                             <select
                                 value={tipo}
                                 onChange={(e) => setTipo(e.target.value as 'ONIBUS' | 'CAMINHAO')}
-                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground appearance-none cursor-pointer text-sm"
+                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground appearance-none cursor-pointer text-sm"
                             >
                                 <option value="ONIBUS">🚌 Ônibus Executivo</option>
                                 <option value="CAMINHAO">🚛 Caminhão de Carga</option>
@@ -307,7 +307,7 @@ export const EditarVeiculo: React.FC = () => {
                                 placeholder="2024"
                                 min="1990"
                                 max={new Date().getFullYear() + 1}
-                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
+                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
                             />
                         </div>
 
@@ -318,7 +318,7 @@ export const EditarVeiculo: React.FC = () => {
                             <select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value as VeiculoStatus)}
-                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground appearance-none cursor-pointer text-sm"
+                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground appearance-none cursor-pointer text-sm"
                             >
                                 <option value={VeiculoStatus.ACTIVE}>✅ Ativo e Disponível</option>
                                 <option value={VeiculoStatus.MAINTENANCE}>🔧 Em Manutenção</option>
@@ -338,7 +338,7 @@ export const EditarVeiculo: React.FC = () => {
                                     onChange={(e) => setCapacidadePassageiros(e.target.value)}
                                     placeholder="46"
                                     min="1"
-                                    className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
+                                    className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
                                 />
                             </div>
                         ) : (
@@ -354,7 +354,7 @@ export const EditarVeiculo: React.FC = () => {
                                     placeholder="25.5"
                                     step="0.1"
                                     min="0"
-                                    className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
+                                    className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
                                 />
                             </div>
                         )}
@@ -396,7 +396,7 @@ export const EditarVeiculo: React.FC = () => {
                                 onChange={(e) => setKmAtual(e.target.value)}
                                 placeholder="87500"
                                 min="0"
-                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
+                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
                             />
                         </div>
 
@@ -411,7 +411,7 @@ export const EditarVeiculo: React.FC = () => {
                                 onChange={(e) => setProximaRevisaoKm(e.target.value)}
                                 placeholder="95000"
                                 min="0"
-                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
+                                className="w-full h-14 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-bold text-foreground placeholder:text-muted-foreground/30"
                             />
                         </div>
 
@@ -440,7 +440,7 @@ export const EditarVeiculo: React.FC = () => {
                             type="button"
                             variant="outline"
                             onClick={addFeature}
-                            className="h-10 rounded-xl px-4 font-black uppercase text-[10px] tracking-widest border-2"
+                            className="h-10 rounded-sm px-4 font-black uppercase text-[10px] tracking-widest border-2"
                         >
                             <Plus size={14} className="mr-2" />
                             Adicionar Característica
@@ -456,14 +456,14 @@ export const EditarVeiculo: React.FC = () => {
                                         value={feature.category}
                                         onChange={(e) => updateFeature(index, 'category', e.target.value)}
                                         placeholder="Categoria (Ex: Segurança)"
-                                        className="w-full h-12 px-4 bg-background border-2 border-border/50 rounded-xl focus:border-primary/50 transition-all font-bold text-[13px] text-foreground placeholder:text-muted-foreground/30"
+                                        className="w-full h-12 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 transition-all font-bold text-[13px] text-foreground placeholder:text-muted-foreground/30"
                                     />
                                     <input
                                         type="text"
                                         value={feature.label}
                                         onChange={(e) => updateFeature(index, 'label', e.target.value)}
                                         placeholder="Item (Ex: Freios ABS)"
-                                        className="w-full h-12 px-4 bg-background border-2 border-border/50 rounded-xl focus:border-primary/50 transition-all font-bold text-[13px] text-foreground placeholder:text-muted-foreground/30"
+                                        className="w-full h-12 px-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 transition-all font-bold text-[13px] text-foreground placeholder:text-muted-foreground/30"
                                     />
                                 </div>
                                 <Button
@@ -471,14 +471,14 @@ export const EditarVeiculo: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => removeFeature(index)}
-                                    className="h-12 w-12 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                    className="h-12 w-12 rounded-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                                 >
                                     <Trash2 size={18} />
                                 </Button>
                             </div>
                         ))}
                         {features.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-12 px-4 rounded-2xl border-2 border-dashed border-border/50 bg-muted/30">
+                            <div className="flex flex-col items-center justify-center py-12 px-4 rounded-sm border-2 border-dashed border-border/50 bg-muted">
                                 <Plus size={32} className="text-muted-foreground/30 mb-2" />
                                 <p className="text-[12px] font-black uppercase tracking-widest text-muted-foreground/50">
                                     Nenhuma característica personalizada
@@ -503,7 +503,7 @@ export const EditarVeiculo: React.FC = () => {
                             onChange={(e) => setObservacoes(e.target.value)}
                             placeholder="Descreva aqui considerações importantes sobre este veículo..."
                             rows={4}
-                            className="w-full p-4 bg-background border-2 border-border/50 rounded-2xl focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-foreground placeholder:text-muted-foreground/30 min-h-[160px]"
+                            className="w-full p-4 bg-background border-2 border-border/50 rounded-sm focus:border-primary/50 focus:ring-4 focus:ring-primary/10 transition-all font-medium text-foreground placeholder:text-muted-foreground/30 min-h-[160px]"
                         />
                     </div>
                 </FormSection>
@@ -522,7 +522,7 @@ export const EditarVeiculo: React.FC = () => {
                             </label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                 {imagem ? (
-                                    <div className="relative group rounded-3xl overflow-hidden border-2 border-border/50 shadow-lg aspect-video bg-muted">
+                                    <div className="relative group rounded-sm overflow-hidden border-2 border-border/50 shadow-lg aspect-video bg-muted">
                                         <img
                                             src={imagem}
                                             alt="Capa do veículo"
@@ -534,15 +534,15 @@ export const EditarVeiculo: React.FC = () => {
                                                 variant="destructive"
                                                 size="icon"
                                                 onClick={() => setImagem('')}
-                                                className="h-12 w-12 rounded-2xl shadow-2xl"
+                                                className="h-12 w-12 rounded-sm shadow-2xl"
                                             >
                                                 <Trash2 size={20} />
                                             </Button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed border-border/50 rounded-[2.5rem] cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group overflow-hidden bg-muted/30">
-                                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                                    <label className="flex flex-col items-center justify-center aspect-video border-2 border-dashed border-border/50 rounded-[2.5rem] cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group overflow-hidden bg-muted">
+                                        <div className="w-16 h-16 rounded-sm bg-primary/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
                                             <Upload size={24} className="text-primary" />
                                         </div>
                                         <span className="text-[12px] font-black uppercase tracking-widest text-muted-foreground">Upload Capa</span>
@@ -570,7 +570,7 @@ export const EditarVeiculo: React.FC = () => {
                             </label>
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                                 {galeria.map((img, idx) => (
-                                    <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden border-2 border-border/50 bg-muted">
+                                    <div key={idx} className="relative group aspect-square rounded-sm overflow-hidden border-2 border-border/50 bg-muted">
                                         <img
                                             src={img}
                                             alt={`Galeria ${idx + 1}`}
@@ -582,14 +582,14 @@ export const EditarVeiculo: React.FC = () => {
                                                 variant="destructive"
                                                 size="sm"
                                                 onClick={() => removeGaleriaImage(idx)}
-                                                className="h-8 w-8 rounded-lg"
+                                                className="h-8 w-8 rounded-sm"
                                             >
                                                 <X size={14} />
                                             </Button>
                                         </div>
                                     </div>
                                 ))}
-                                <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border/50 rounded-2xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group bg-muted/30">
+                                <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-border/50 rounded-sm cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group bg-muted">
                                     <Plus size={24} className="text-muted-foreground group-hover:text-primary transition-colors" />
                                     <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">Add Foto</span>
                                     <input

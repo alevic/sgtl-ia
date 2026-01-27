@@ -222,7 +222,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
             )}
 
             {showAvatar && (
-                <div className="flex items-center gap-6 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-6 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-slate-200 dark:border-slate-700">
                     <div className="relative group">
                         <img
                             src={avatarUrl}
@@ -271,7 +271,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                             value={username}
                             disabled={!canEditUsername}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                     </div>
                     {!canEditUsername && (
@@ -293,7 +293,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                         />
                     </div>
                 </div>
@@ -309,7 +309,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                         />
                     </div>
                 </div>
@@ -343,7 +343,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                         <select
                             value={role}
                             onChange={(e) => setRole(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                         >
                             <option value="user">Usuário</option>
                             <option value="admin">Administrador</option>
@@ -362,7 +362,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={3}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                     />
                 </div>
             )}
@@ -388,7 +388,7 @@ export const UserProfileForm: React.FC<UserProfileFormProps> = ({
                 <button
                     type="submit"
                     disabled={isSaving}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-semibold transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isSaving ? (
                         <>

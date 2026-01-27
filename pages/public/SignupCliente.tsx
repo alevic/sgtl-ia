@@ -103,11 +103,11 @@ export const SignupCliente: React.FC = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-800 p-4 font-sans">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 max-w-2xl w-full border border-slate-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 rounded-sm shadow-2xl p-8 max-w-2xl w-full border border-slate-200 dark:border-slate-700">
 
                 {/* Logo Section */}
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
+                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-blue-600 to-purple-600 rounded-sm flex items-center justify-center mb-4 shadow-lg shadow-blue-500/20">
                         <Bus size={32} className="text-white" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-slate-800 dark:text-white tracking-tight">
@@ -135,7 +135,7 @@ export const SignupCliente: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setTipoCliente(TipoCliente.PESSOA_FISICA)}
-                                className={`p-4 rounded-xl border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_FISICA
+                                className={`p-4 rounded-sm border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_FISICA
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
                                     }`}
@@ -146,7 +146,7 @@ export const SignupCliente: React.FC = () => {
                             <button
                                 type="button"
                                 onClick={() => setTipoCliente(TipoCliente.PESSOA_JURIDICA)}
-                                className={`p-4 rounded-xl border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_JURIDICA
+                                className={`p-4 rounded-sm border-2 transition-all ${tipoCliente === TipoCliente.PESSOA_JURIDICA
                                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                                     : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
                                     }`}
@@ -159,7 +159,7 @@ export const SignupCliente: React.FC = () => {
 
                     {/* Corporate Fields (only for PJ) */}
                     {tipoCliente === TipoCliente.PESSOA_JURIDICA && (
-                        <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-200 dark:border-blue-800 mb-4">
+                        <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-sm border border-blue-200 dark:border-blue-800 mb-4">
                             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                                 <Building2 size={16} />
                                 Dados da Empresa
@@ -176,7 +176,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setRazaoSocial(e.target.value)}
                                     placeholder="Nome empresarial completo"
                                     disabled={isLoading}
-                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
@@ -190,7 +190,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setNomeFantasia(e.target.value)}
                                     placeholder="Nome comercial (opcional)"
                                     disabled={isLoading}
-                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
@@ -213,7 +213,7 @@ export const SignupCliente: React.FC = () => {
                                     }}
                                     placeholder="00.000.000/0000-00"
                                     disabled={isLoading}
-                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
@@ -241,7 +241,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Como no documento"
                                     disabled={isLoading}
-                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
                         </div>
@@ -275,7 +275,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="exemplo@email.com"
                                     disabled={isLoading}
-                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
                         </div>
@@ -321,7 +321,7 @@ export const SignupCliente: React.FC = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Mínimo 8 caracteres"
                                     disabled={isLoading}
-                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
+                                    className="w-full h-14 pl-11 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all dark:text-white"
                                 />
                             </div>
 
@@ -392,7 +392,7 @@ export const SignupCliente: React.FC = () => {
                     <button
                         type="submit"
                         disabled={isLoading || !isPasswordValid}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-sm shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                     >
                         {isLoading ? (
                             <RefreshCcw className="animate-spin" size={20} />

@@ -83,7 +83,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                     <button
                         type="button"
                         onClick={() => setIsOpen(!isOpen)}
-                        className="h-14 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 min-w-[100px]"
+                        className="h-14 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 min-w-[100px]"
                     >
                         <span className="text-xl">{selectedCountry.flag}</span>
                         <span className="text-sm text-slate-600 dark:text-slate-400">{selectedCountry.code}</span>
@@ -96,7 +96,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                                 className="fixed inset-0 z-10"
                                 onClick={() => setIsOpen(false)}
                             />
-                            <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg z-20 max-h-80 overflow-y-auto">
+                            <div className="absolute top-full left-0 mt-1 w-64 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm shadow-lg z-20 max-h-80 overflow-y-auto">
                                 {COUNTRIES.map((country) => (
                                     <button
                                         key={country.code}
@@ -127,7 +127,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                         type="tel"
                         value={formatPhone(value, selectedCountry.mask)}
                         onChange={handlePhoneChange}
-                        className="w-full h-14 pl-10 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                        className="w-full h-14 pl-10 pr-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                         placeholder={selectedCountry.mask.replace(/9/g, '0')}
                         required={required}
                     />

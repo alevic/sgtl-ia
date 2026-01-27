@@ -21,7 +21,7 @@ const RoleBadge: React.FC<{ role: string }> = ({ role }) => {
 
     return (
         <span className={cn(
-            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[9px] font-black tracking-widest border-none",
+            "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm text-[9px] font-black tracking-widest border-none",
             color === 'purple' ? "bg-purple-100 text-purple-700" :
                 color === 'green' ? "bg-emerald-100 text-emerald-700" :
                     color === 'orange' ? "bg-amber-100 text-amber-700" :
@@ -132,7 +132,7 @@ export const Usuarios: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => navigate('/admin/usuarios/novo')}
-                        className="h-14 px-8 rounded-xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 px-8 rounded-sm bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         NOVO USUÁRIO
@@ -148,7 +148,7 @@ export const Usuarios: React.FC = () => {
                         placeholder="Buscar usuários por nome ou email..."
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
-                        className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                        className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                     />
                 </div>
             </ListFilterSection>
@@ -158,7 +158,7 @@ export const Usuarios: React.FC = () => {
                 {isLoading ? (
                     <div className="col-span-full p-12 text-center text-slate-500">Carregando usuários...</div>
                 ) : usersFiltrados.length === 0 ? (
-                    <div className="col-span-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center">
+                    <div className="col-span-full bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-12 text-center">
                         <User size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
                         <p className="text-slate-500 dark:text-slate-400">Nenhum usuário encontrado</p>
                     </div>
@@ -166,12 +166,12 @@ export const Usuarios: React.FC = () => {
                     usersFiltrados.map((user) => (
                         <div
                             key={user.id}
-                            className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all hover:border-blue-300 dark:hover:border-blue-700 flex flex-col justify-between"
+                            className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6 hover:shadow-md transition-all hover:border-blue-300 dark:hover:border-blue-700 flex flex-col justify-between"
                         >
                             <div>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl shadow-lg shadow-primary/5">
+                                        <div className="w-14 h-14 rounded-sm bg-primary/10 flex items-center justify-center text-primary font-black text-xl shadow-lg shadow-primary/5">
                                             {user.name?.charAt(0) || '?'}
                                         </div>
                                         <div>
@@ -201,7 +201,7 @@ export const Usuarios: React.FC = () => {
                                 <Button
                                     onClick={() => navigate(`/admin/usuarios/${user.id}/editar`)}
                                     variant="outline"
-                                    className="flex-1 h-11 bg-muted/20 hover:bg-primary/10 hover:text-primary rounded-xl font-bold transition-all border-none"
+                                    className="flex-1 h-11 bg-muted hover:bg-primary/10 hover:text-primary rounded-sm font-bold transition-all border-none"
                                 >
                                     <Edit size={16} className="mr-2" />
                                     EDITAR
@@ -209,7 +209,7 @@ export const Usuarios: React.FC = () => {
                                 <Button
                                     onClick={() => setResetPasswordUser(user)}
                                     variant="outline"
-                                    className="w-11 h-11 p-0 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 rounded-xl transition-all border-none"
+                                    className="w-11 h-11 p-0 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 rounded-sm transition-all border-none"
                                     title="Redefinir Senha"
                                 >
                                     <Key size={16} />
@@ -217,7 +217,7 @@ export const Usuarios: React.FC = () => {
                                 <Button
                                     onClick={() => handleDelete(user.id)}
                                     variant="outline"
-                                    className="w-11 h-11 p-0 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 rounded-xl transition-all border-none"
+                                    className="w-11 h-11 p-0 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 rounded-sm transition-all border-none"
                                     title="Excluir Usuário"
                                 >
                                     <Trash2 size={16} />
@@ -231,7 +231,7 @@ export const Usuarios: React.FC = () => {
             {/* Modal de Redefinir Senha */}
             {resetPasswordUser && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm shadow-2xl max-w-md w-full p-6">
                         <div className="flex justify-between items-center mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
@@ -247,7 +247,7 @@ export const Usuarios: React.FC = () => {
                                     setResetPasswordUser(null);
                                     setNewPassword('');
                                 }}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-sm transition-colors"
                             >
                                 <X size={20} className="text-slate-500" />
                             </button>
@@ -262,7 +262,7 @@ export const Usuarios: React.FC = () => {
                                     type="password"
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
+                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
                                     placeholder="Mínimo 8 caracteres"
                                     minLength={8}
                                 />
@@ -275,14 +275,14 @@ export const Usuarios: React.FC = () => {
                                         setResetPasswordUser(null);
                                         setNewPassword('');
                                     }}
-                                    className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition-colors"
+                                    className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-sm font-medium transition-colors"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     onClick={handleResetPassword}
                                     disabled={isResetting || !newPassword || newPassword.length < 8}
-                                    className="flex-1 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isResetting ? 'Redefinindo...' : 'Redefinir Senha'}
                                 </button>

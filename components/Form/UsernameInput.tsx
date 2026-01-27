@@ -139,7 +139,7 @@ export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, n
                         value={value}
                         onChange={(e) => onChange(e.target.value.toLowerCase())}
                         disabled={disabled}
-                        className={`w-full pl-10 pr-10 h-14 bg-slate-50 dark:bg-slate-900 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white disabled:opacity-50 disabled:cursor-not-allowed ${error || isAvailable === false
+                        className={`w-full pl-10 pr-10 h-14 bg-slate-50 dark:bg-slate-900 border rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white disabled:opacity-50 disabled:cursor-not-allowed ${error || isAvailable === false
                             ? 'border-red-300 dark:border-red-700'
                             : isAvailable === true
                                 ? 'border-green-300 dark:border-green-700'
@@ -157,7 +157,7 @@ export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, n
                     type="button"
                     onClick={generateSuggestions}
                     disabled={disabled || !name}
-                    className="px-4 h-14 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-4 h-14 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     title="Gerar sugestões"
                 >
                     <RefreshCw size={18} />
@@ -183,7 +183,7 @@ export const UsernameInput: React.FC<UsernameInputProps> = ({ value, onChange, n
                                 key={suggestion}
                                 type="button"
                                 onClick={() => onChange(suggestion)}
-                                className="px-3 py-1 text-sm bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg transition-colors"
+                                className="px-3 py-1 text-sm bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-sm transition-colors"
                             >
                                 {suggestion}
                             </button>

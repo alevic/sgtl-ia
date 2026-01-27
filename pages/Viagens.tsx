@@ -301,7 +301,7 @@ export const Viagens: React.FC = () => {
                 subtitle="Monitoramento em tempo real e controle operacional"
                 icon={Bus}
                 rightElement={
-                    <Button asChild className="h-14 px-6 rounded-xl font-semibold gap-2 shadow-lg shadow-primary/20">
+                    <Button asChild className="h-14 px-6 rounded-sm font-semibold gap-2 shadow-lg shadow-primary/20">
                         <Link to="/admin/viagens/nova" className="flex items-center gap-2">
                             <Plus size={20} strokeWidth={2.5} />
                             NOVA VIAGEM
@@ -348,7 +348,7 @@ export const Viagens: React.FC = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                         <Input
                             placeholder="Origem, destino ou rota..."
-                            className="pl-12 h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                             value={busca}
                             onChange={(e) => setBusca(e.target.value)}
                         />
@@ -363,7 +363,7 @@ export const Viagens: React.FC = () => {
                         onChange={setFiltroDataPartida}
                         placeholder="Qualquer data"
                         showIcon={true}
-                        className="h-14 bg-muted/40 border-input rounded-xl font-bold"
+                        className="h-14 bg-muted border-input rounded-sm font-bold"
                         containerClassName="w-full"
                     />
                 </div>
@@ -372,10 +372,10 @@ export const Viagens: React.FC = () => {
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80 ml-1">Visibilidade</label>
                     <Select value={filtroAtiva} onValueChange={(v) => setFiltroAtiva(v as any)}>
-                        <SelectTrigger className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold">
+                        <SelectTrigger className="h-14 w-full bg-muted border-input rounded-sm font-bold">
                             <SelectValue placeholder="Todas" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                        <SelectContent className="rounded-sm border-none shadow-2xl bg-card  ">
                             <SelectItem value="TODOS">Todas</SelectItem>
                             <SelectItem value="ATIVA">Somente Ativas</SelectItem>
                             <SelectItem value="INATIVA">Somente Inativas</SelectItem>
@@ -390,7 +390,7 @@ export const Viagens: React.FC = () => {
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="h-14 w-full bg-muted/40 border-input rounded-xl font-bold justify-between hover:bg-muted/60"
+                                className="h-14 w-full bg-muted border-input rounded-sm font-bold justify-between hover:bg-muted"
                             >
                                 <div className="flex items-center gap-2">
                                     <Filter size={16} strokeWidth={2.5} />
@@ -403,7 +403,7 @@ export const Viagens: React.FC = () => {
                                 <ChevronDown size={16} className={cn("transition-transform", isStatusDropdownOpen && "rotate-180")} />
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[240px] p-3 rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-md" align="end">
+                        <PopoverContent className="w-[240px] p-3 rounded-sm border-none shadow-2xl bg-card  " align="end">
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between mb-3">
                                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/80">Selecionar Status</span>
@@ -421,7 +421,7 @@ export const Viagens: React.FC = () => {
                                 {statusOptions.map((option) => (
                                     <div
                                         key={option.value}
-                                        className="flex items-center space-x-3 px-2 py-2 rounded-xl hover:bg-muted/50 cursor-pointer transition-colors"
+                                        className="flex items-center space-x-3 px-2 py-2 rounded-sm hover:bg-muted cursor-pointer transition-colors"
                                         onClick={() => toggleStatus(option.value)}
                                     >
                                         <div className={cn(
@@ -445,15 +445,15 @@ export const Viagens: React.FC = () => {
 
             {/* Executive Table Module */}
             {viagensFiltradas.length === 0 ? (
-                <div className="bg-card/40 backdrop-blur-md rounded-xl border border-dashed border-border p-12 text-center">
+                <div className="bg-card   rounded-sm border border-dashed border-border p-12 text-center">
                     <Bus size={48} className="mx-auto text-muted-foreground/30 mb-4" />
                     <h3 className="text-lg font-bold tracking-tight mb-2">Nenhuma viagem encontrada</h3>
                     <p className="text-muted-foreground font-medium mb-6">Tente ajustar seus filtros para encontrar o que procura.</p>
                 </div>
             ) : (
-                <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
+                <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-sm bg-card  ">
                     <Table>
-                        <TableHeader className="bg-muted/30">
+                        <TableHeader className="bg-muted">
                             <TableRow className="hover:bg-transparent border-border/50">
                                 <TableHead className="pl-8 w-[300px] h-14 text-[12px] font-semibold uppercase tracking-widest">Informações da Viagem</TableHead>
                                 <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Itinerário</TableHead>
@@ -468,7 +468,7 @@ export const Viagens: React.FC = () => {
                                 <TableRow
                                     key={viagem.id}
                                     className={cn(
-                                        "group hover:bg-muted/20 border-border/30 transition-colors",
+                                        "group hover:bg-muted border-border/30 transition-colors",
                                         viagem.active === false && "opacity-60 grayscale-[0.5]"
                                     )}
                                 >
@@ -501,7 +501,7 @@ export const Viagens: React.FC = () => {
                                     <TableCell>
                                         <div className="space-y-3">
                                             <div className="flex items-center gap-2 group/route">
-                                                <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 transition-colors group-hover/route:bg-emerald-500/20"><MapPinned size={14} /></div>
+                                                <div className="p-1.5 rounded-sm bg-emerald-500/10 text-emerald-600 transition-colors group-hover/route:bg-emerald-500/20"><MapPinned size={14} /></div>
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Partida</span>
                                                     <span className="text-sm font-semibold">{viagem.route_name || 'N/D'}</span>
@@ -512,7 +512,7 @@ export const Viagens: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2 group/route">
-                                                <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-600 transition-colors group-hover/route:bg-rose-500/20"><MapPinned size={14} /></div>
+                                                <div className="p-1.5 rounded-sm bg-rose-500/10 text-rose-600 transition-colors group-hover/route:bg-rose-500/20"><MapPinned size={14} /></div>
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Retorno</span>
                                                     <span className="text-sm font-semibold">{viagem.return_route_name || 'N/D'}</span>
@@ -530,13 +530,13 @@ export const Viagens: React.FC = () => {
                                         <div className="space-y-2">
                                             {viagem.vehicle_plate && (
                                                 <div className="flex items-center gap-2">
-                                                    <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-600"><Bus size={14} /></div>
+                                                    <div className="p-1.5 rounded-sm bg-blue-500/10 text-blue-600"><Bus size={14} /></div>
                                                     <span className="text-sm font-bold tracking-tight">{viagem.vehicle_plate}</span>
                                                 </div>
                                             )}
                                             {viagem.driver_name && (
                                                 <div className="flex items-center gap-2">
-                                                    <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600"><Users size={14} /></div>
+                                                    <div className="p-1.5 rounded-sm bg-indigo-500/10 text-indigo-600"><Users size={14} /></div>
                                                     <span className="text-sm font-medium">{viagem.driver_name}</span>
                                                 </div>
                                             )}
@@ -545,7 +545,7 @@ export const Viagens: React.FC = () => {
                                     <TableCell>
                                         <div className="flex flex-col gap-1">
                                             <div className="flex items-center gap-2">
-                                                <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-600"><Gauge size={14} /></div>
+                                                <div className="p-1.5 rounded-sm bg-purple-500/10 text-purple-600"><Gauge size={14} /></div>
                                                 <span className="text-sm font-semibold">{viagem.seats_available}</span>
                                                 <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">Livres</span>
                                             </div>
@@ -583,22 +583,22 @@ export const Viagens: React.FC = () => {
 
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-primary/10 hover:text-primary">
+                                                    <Button variant="ghost" size="icon" className="h-9 w-9 rounded-sm hover:bg-primary/10 hover:text-primary">
                                                         <MoreHorizontal size={18} strokeWidth={2.5} />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-56 rounded-2xl shadow-2xl border-none bg-card/95 backdrop-blur-md p-2">
+                                                <DropdownMenuContent align="end" className="w-56 rounded-sm shadow-2xl border-none bg-card   p-2">
                                                     <DropdownMenuLabel className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground/60 px-3 py-2">Ações Rápidas</DropdownMenuLabel>
                                                     <DropdownMenuItem
                                                         onClick={() => navigate(`/admin/viagens/editar/${viagem.id}`)}
-                                                        className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3"
+                                                        className="rounded-sm h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3"
                                                     >
                                                         <Edit size={16} strokeWidth={2.5} />
                                                         Editar Viagem
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem
                                                         onClick={() => handleToggleStatus(viagem.id)}
-                                                        className="rounded-xl h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3"
+                                                        className="rounded-sm h-10 gap-3 font-bold cursor-pointer focus:bg-primary focus:text-primary-foreground px-3"
                                                     >
                                                         {viagem.active !== false ? (
                                                             <>
@@ -615,7 +615,7 @@ export const Viagens: React.FC = () => {
                                                     <DropdownMenuSeparator className="bg-border/40 my-1" />
                                                     <DropdownMenuItem
                                                         onClick={() => setTripToDelete(viagem.id)}
-                                                        className="rounded-xl h-10 gap-3 font-bold cursor-pointer text-destructive focus:text-destructive-foreground focus:bg-destructive px-3"
+                                                        className="rounded-sm h-10 gap-3 font-bold cursor-pointer text-destructive focus:text-destructive-foreground focus:bg-destructive px-3"
                                                     >
                                                         <Trash2 size={16} strokeWidth={2.5} />
                                                         Excluir Definitivamente
@@ -639,7 +639,7 @@ export const Viagens: React.FC = () => {
                 />
             )}
             <AlertDialog open={!!tripToDelete} onOpenChange={(open) => !open && setTripToDelete(null)}>
-                <AlertDialogContent className="rounded-3xl border-none shadow-2xl bg-card/95 backdrop-blur-md">
+                <AlertDialogContent className="rounded-sm border-none shadow-2xl bg-card  ">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-2xl font-semibold tracking-tighter">Confirmar Exclusão</AlertDialogTitle>
                         <AlertDialogDescription className="font-medium text-muted-foreground">
@@ -647,10 +647,10 @@ export const Viagens: React.FC = () => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="gap-3">
-                        <AlertDialogCancel className="rounded-xl font-bold border-none bg-muted hover:bg-muted/80">Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-sm font-bold border-none bg-muted hover:bg-muted">Cancelar</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={() => tripToDelete && handleDelete(tripToDelete)}
-                            className="rounded-xl font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="rounded-sm font-semibold bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
                             EXCLUIR VIAGEM
                         </AlertDialogAction>

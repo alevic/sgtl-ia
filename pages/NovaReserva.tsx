@@ -449,7 +449,7 @@ export const NovaReserva: React.FC = () => {
       />
 
       {/* Stepper Executivo */}
-      <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl overflow-hidden">
+      <Card className="shadow-xl shadow-muted/20 bg-card   border border-border/40 rounded-sm overflow-hidden">
         <div className="p-8 flex items-center justify-between">
           {/* Step 1 */}
           <div className="flex items-center gap-4 flex-1">
@@ -525,7 +525,7 @@ export const NovaReserva: React.FC = () => {
           <Button
             variant="ghost"
             onClick={() => navigate('/admin/reservas')}
-            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
           >
             Voltar
           </Button>
@@ -544,7 +544,7 @@ export const NovaReserva: React.FC = () => {
         <Button
           onClick={() => setStep(2)}
           disabled={!podeAvancarStep1}
-          className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+          className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
         >
           Próxima Etapa
           <ArrowRight size={18} className="ml-2" />
@@ -595,7 +595,7 @@ export const NovaReserva: React.FC = () => {
                 </span>
               </div>
               {assentosSelecionados.length === 0 ? (
-                <Card className="shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl p-12 text-center border-dashed">
+                <Card className="shadow-xl shadow-muted/20 bg-card   border border-border/40 rounded-sm p-12 text-center border-dashed">
                   <Users size={48} className="mx-auto mb-6 text-muted-foreground/30" />
                   <p className="text-[14px] font-black uppercase tracking-widest text-muted-foreground mb-2">
                     Nenhuma poltrona selecionada
@@ -606,7 +606,7 @@ export const NovaReserva: React.FC = () => {
                 </Card>
               ) : (
                 assentosSelecionados.map((seat) => (
-                  <div key={seat.numero} className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 animate-in slide-in-from-left-2">
+                  <div key={seat.numero} className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-4 animate-in slide-in-from-left-2">
                     <div className="flex justify-between items-start mb-4 border-b border-slate-100 dark:border-slate-700 pb-3">
                       <div>
                         <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Assento</span>
@@ -647,7 +647,7 @@ export const NovaReserva: React.FC = () => {
                             type="text"
                             value={passageirosMap[seat.numero]?.nome || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'nome', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                             placeholder="Nome do passageiro"
                           />
                         </div>
@@ -657,7 +657,7 @@ export const NovaReserva: React.FC = () => {
                             type="text"
                             value={passageirosMap[seat.numero]?.documento || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'documento', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                             placeholder="000.000.000-00"
                           />
                         </div>
@@ -672,7 +672,7 @@ export const NovaReserva: React.FC = () => {
                           <select
                             value={passageirosMap[seat.numero]?.boarding_point || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'boarding_point', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                           >
                             <option value="">Selecione...</option>
                             {(() => {
@@ -693,7 +693,7 @@ export const NovaReserva: React.FC = () => {
                           <select
                             value={passageirosMap[seat.numero]?.dropoff_point || ''}
                             onChange={(e) => handlePassengerChange(seat.numero, 'dropoff_point', e.target.value)}
-                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
+                            className="w-full p-2 text-sm border border-slate-300 dark:border-slate-600 rounded-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white"
                           >
                             <option value="">Selecione...</option>
                             {(() => {
@@ -721,7 +721,7 @@ export const NovaReserva: React.FC = () => {
             <Button
               variant="ghost"
               onClick={() => setStep(1)}
-              className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+              className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
             >
               <ArrowLeft size={16} className="mr-2" />
               Voltar
@@ -735,7 +735,7 @@ export const NovaReserva: React.FC = () => {
               <Button
                 onClick={() => setStep(3)}
                 disabled={!podeAvancarStep2}
-                className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+                className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
               >
                 Revisão Final
                 <ArrowRight size={18} className="ml-2" />
@@ -758,7 +758,7 @@ export const NovaReserva: React.FC = () => {
                   <>
                     <div className="space-y-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <div className="w-10 h-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary">
                           <Check size={20} />
                         </div>
                         <div>
@@ -806,9 +806,9 @@ export const NovaReserva: React.FC = () => {
                         {assentosSelecionados.map((seat, index) => {
                           const p = passageirosMap[seat.numero];
                           return (
-                            <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-xl border border-border/30 group hover:border-primary/30 transition-colors">
+                            <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-sm border border-border/30 group hover:border-primary/30 transition-colors">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-[12px] font-black text-primary group-hover:scale-110 transition-transform">
+                                <div className="w-8 h-8 rounded-sm bg-background border border-border flex items-center justify-center text-[12px] font-black text-primary group-hover:scale-110 transition-transform">
                                   {seat.numero}
                                 </div>
                                 <div>
@@ -828,7 +828,7 @@ export const NovaReserva: React.FC = () => {
 
               {/* Pagamento e Finalização */}
               <div className="space-y-8">
-                <Card className="shadow-2xl shadow-primary/10 bg-slate-900 border-none rounded-3xl overflow-hidden relative group">
+                <Card className="shadow-2xl shadow-primary/10 bg-slate-900 border-none rounded-sm overflow-hidden relative group">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
                   <div className="p-8 relative">
                     <div className="flex justify-between items-center mb-8">
@@ -843,10 +843,10 @@ export const NovaReserva: React.FC = () => {
                     </div>
 
                     {/* Payment Method Selector */}
-                    <div className="flex p-1 bg-slate-800/80 backdrop-blur-sm rounded-2xl mb-8 border border-slate-700/50">
+                    <div className="flex p-1 bg-slate-800/80   rounded-sm mb-8 border border-slate-700/50">
                       <button
                         onClick={() => setPaymentMethod('MANUAL')}
-                        className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all gap-2 ${paymentMethod === 'MANUAL'
+                        className={`flex-1 flex flex-col items-center py-4 rounded-sm transition-all gap-2 ${paymentMethod === 'MANUAL'
                           ? 'bg-slate-700 text-white shadow-xl shadow-black/20 ring-1 ring-white/10'
                           : 'text-slate-500 hover:text-slate-300'
                           }`}
@@ -856,7 +856,7 @@ export const NovaReserva: React.FC = () => {
                       </button>
                       <button
                         onClick={() => setPaymentMethod('DIGITAL')}
-                        className={`flex-1 flex flex-col items-center py-4 rounded-xl transition-all gap-2 ${paymentMethod === 'DIGITAL'
+                        className={`flex-1 flex flex-col items-center py-4 rounded-sm transition-all gap-2 ${paymentMethod === 'DIGITAL'
                           ? 'bg-primary text-primary-foreground shadow-xl shadow-primary/30 ring-1 ring-white/10'
                           : 'text-slate-500 hover:text-slate-300'
                           }`}
@@ -873,7 +873,7 @@ export const NovaReserva: React.FC = () => {
                         <select
                           value={detailedPaymentMethod}
                           onChange={(e) => setDetailedPaymentMethod(e.target.value as FormaPagamento)}
-                          className="w-full h-14 px-4 bg-slate-800/50 border border-slate-700 rounded-xl text-white font-black uppercase text-[12px] tracking-widest focus:ring-2 focus:ring-primary/50 transition-all outline-none appearance-none"
+                          className="w-full h-14 px-4 bg-slate-800/50 border border-slate-700 rounded-sm text-white font-black uppercase text-[12px] tracking-widest focus:ring-2 focus:ring-primary/50 transition-all outline-none appearance-none"
                         >
                           <option value="DINHEIRO">Espécie (Dinheiro)</option>
                           <option value="PIX">Pix Transferência</option>
@@ -885,9 +885,9 @@ export const NovaReserva: React.FC = () => {
 
                     {/* Gestão de Créditos */}
                     {payerClient && payerClient.saldo_creditos > 0 && (
-                      <div className="mt-8 p-6 bg-indigo-500/10 border border-indigo-500/20 rounded-3xl animate-in fade-in">
+                      <div className="mt-8 p-6 bg-indigo-500/10 border border-indigo-500/20 rounded-sm animate-in fade-in">
                         <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                          <div className="w-12 h-12 rounded-sm bg-indigo-500/20 flex items-center justify-center text-indigo-400">
                             <Wallet size={24} />
                           </div>
                           <div>
@@ -910,7 +910,7 @@ export const NovaReserva: React.FC = () => {
                               setEntryValue(effectiveTotal * 0.20);
                             }
                           }}
-                          className={`w-full py-4 rounded-xl border-2 transition-all font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 ${useCredits
+                          className={`w-full py-4 rounded-sm border-2 transition-all font-black uppercase text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 ${useCredits
                             ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500/30'
                             : 'border-white/10 text-white/40 hover:border-indigo-500/50 hover:text-white'
                             }`}
@@ -934,12 +934,12 @@ export const NovaReserva: React.FC = () => {
                             setEntryValue(valorTotal);
                           }
                         }}
-                        className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all border ${isPartialPayment
+                        className={`flex items-center gap-4 p-4 rounded-sm cursor-pointer transition-all border ${isPartialPayment
                           ? 'bg-blue-500/10 border-blue-500/30 text-blue-400'
                           : 'border-transparent text-slate-500 hover:bg-white/5'
                           }`}
                       >
-                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isPartialPayment ? 'bg-blue-500 border-blue-400' : 'border-slate-600'}`}>
+                        <div className={`w-6 h-6 rounded-sm border-2 flex items-center justify-center transition-all ${isPartialPayment ? 'bg-blue-500 border-blue-400' : 'border-slate-600'}`}>
                           {isPartialPayment && <Check size={14} className="text-white" />}
                         </div>
                         <div className="flex-1">
@@ -950,7 +950,7 @@ export const NovaReserva: React.FC = () => {
 
                       {isPartialPayment && (
                         <div className="mt-4 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2">
-                          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700">
+                          <div className="bg-slate-800/80 p-4 rounded-sm border border-slate-700">
                             <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">Entrada (Agora)</label>
                             <div className="flex items-center gap-2 border-b border-primary/30 pb-1">
                               <span className="text-primary font-black">R$</span>
@@ -962,7 +962,7 @@ export const NovaReserva: React.FC = () => {
                               />
                             </div>
                           </div>
-                          <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 flex flex-col justify-between">
+                          <div className="bg-slate-800/80 p-4 rounded-sm border border-slate-700 flex flex-col justify-between">
                             <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">Saldo (Embarque)</label>
                             <p className="text-xl font-black text-slate-400 italic">
                               R$ {Math.max(0, (valorTotal - creditsToUse) - entryValue).toFixed(2)}
@@ -977,14 +977,14 @@ export const NovaReserva: React.FC = () => {
                       <Button
                         variant="outline"
                         onClick={() => setStep(2)}
-                        className="h-16 flex-1 bg-transparent border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-2xl font-black uppercase text-[12px] tracking-widest"
+                        className="h-16 flex-1 bg-transparent border-slate-700 text-slate-400 hover:bg-slate-800 hover:text-white rounded-sm font-black uppercase text-[12px] tracking-widest"
                       >
                         Corrigir Dados
                       </Button>
                       <Button
                         onClick={handleConfirmarReserva}
                         disabled={saving}
-                        className="h-16 flex-[2] bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                        className="h-16 flex-[2] bg-primary hover:bg-primary/90 text-primary-foreground rounded-sm font-black uppercase text-[12px] tracking-widest shadow-2xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
                       >
                         {saving ? <Loader size={20} className="animate-spin" /> : <CreditCard size={20} />}
                         {saving ? 'PROCESSANDO...' : 'FINALIZAR RESERVA'}
@@ -1000,7 +1000,7 @@ export const NovaReserva: React.FC = () => {
 
                 {/* Info Digital (Show only if DIGITAL) */}
                 {paymentMethod === 'DIGITAL' && (
-                  <Card className="shadow-xl bg-blue-600 rounded-3xl overflow-hidden border-none text-white animate-in zoom-in-95">
+                  <Card className="shadow-xl bg-blue-600 rounded-sm overflow-hidden border-none text-white animate-in zoom-in-95">
                     <CardContent className="p-8">
                       {!paymentData ? (
                         <div className="flex flex-col items-center text-center space-y-6">
@@ -1012,11 +1012,11 @@ export const NovaReserva: React.FC = () => {
                             </p>
                           </div>
                           <div className="grid grid-cols-2 gap-4 w-full">
-                            <Button onClick={() => handleGeneratePayment('PIX')} disabled={generatingPayment} className="h-14 bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-xl font-black uppercase text-[11px] tracking-widest gap-2">
+                            <Button onClick={() => handleGeneratePayment('PIX')} disabled={generatingPayment} className="h-14 bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-sm font-black uppercase text-[11px] tracking-widest gap-2">
                               {generatingPayment ? <Loader size={16} className="animate-spin" /> : <QrCode size={18} />}
                               Pix Imediato
                             </Button>
-                            <Button onClick={() => handleGeneratePayment('LINK')} disabled={generatingPayment} className="h-14 bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-xl font-black uppercase text-[11px] tracking-widest gap-2">
+                            <Button onClick={() => handleGeneratePayment('LINK')} disabled={generatingPayment} className="h-14 bg-white/10 hover:bg-white/20 border-white/20 text-white rounded-sm font-black uppercase text-[11px] tracking-widest gap-2">
                               {generatingPayment ? <Loader size={16} className="animate-spin" /> : <LinkIcon size={18} />}
                               Link Pagamento
                             </Button>
@@ -1026,14 +1026,14 @@ export const NovaReserva: React.FC = () => {
                         <div className="space-y-6">
                           <div className="flex justify-between items-start">
                             <h4 className="text-2xl font-black tracking-tight uppercase italic inset-shadow-sm text-blue-100">Checkout Ativo</h4>
-                            <button onClick={() => setPaymentData(null)} className="p-2 bg-black/10 hover:bg-black/20 rounded-lg transition-colors">
+                            <button onClick={() => setPaymentData(null)} className="p-2 bg-black/10 hover:bg-black/20 rounded-sm transition-colors">
                               <X size={18} />
                             </button>
                           </div>
 
                           <div className="flex flex-col md:flex-row gap-8">
                             {paymentData.qrCode && (
-                              <div className="bg-white p-4 rounded-3xl shadow-2xl flex-shrink-0 animate-in flip-in-y">
+                              <div className="bg-white p-4 rounded-sm shadow-2xl flex-shrink-0 animate-in flip-in-y">
                                 <img src={paymentData.qrCode} alt="QR Code Pix" className="w-40 h-40" />
                                 <p className="text-[10px] font-black text-slate-800 text-center mt-3 uppercase tracking-widest">Escaneie o QR Code</p>
                               </div>
@@ -1044,8 +1044,8 @@ export const NovaReserva: React.FC = () => {
                                 <div className="space-y-2">
                                   <label className="text-[10px] font-black uppercase tracking-widest text-blue-200">Pix Copia e Cola</label>
                                   <div className="flex gap-2">
-                                    <input readOnly value={paymentData.copyPasteCode} className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2 text-xs font-mono text-white outline-none" />
-                                    <Button onClick={() => { navigator.clipboard.writeText(paymentData.copyPasteCode || ''); alert('Copiado!'); }} className="bg-white text-blue-600 hover:bg-blue-50 px-3 rounded-xl h-10">
+                                    <input readOnly value={paymentData.copyPasteCode} className="flex-1 bg-white/10 border border-white/20 rounded-sm px-4 py-2 text-xs font-mono text-white outline-none" />
+                                    <Button onClick={() => { navigator.clipboard.writeText(paymentData.copyPasteCode || ''); alert('Copiado!'); }} className="bg-white text-blue-600 hover:bg-blue-50 px-3 rounded-sm h-10">
                                       <Copy size={16} />
                                     </Button>
                                   </div>
@@ -1054,7 +1054,7 @@ export const NovaReserva: React.FC = () => {
                               {paymentData.paymentLink && (
                                 <Button
                                   onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`Olá! Segue o link para pagamento da sua reserva: ${paymentData.paymentLink}`)}`, '_blank')}
-                                  className="h-14 bg-green-500 hover:bg-green-400 text-white rounded-xl font-black uppercase text-[12px] tracking-widest shadow-xl shadow-green-900/40"
+                                  className="h-14 bg-green-500 hover:bg-green-400 text-white rounded-sm font-black uppercase text-[12px] tracking-widest shadow-xl shadow-green-900/40"
                                 >
                                   Enviar WhatsApp <ArrowRight size={18} className="ml-2" />
                                 </Button>

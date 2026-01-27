@@ -114,7 +114,7 @@ export const Financeiro: React.FC = () => {
         const config = configs[status] || configs[StatusTransacao.PENDING];
 
         return (
-            <Badge variant="outline" className={cn("font-bold px-2 py-0.5 rounded-xl text-[12px] uppercase tracking-wider", config.className)}>
+            <Badge variant="outline" className={cn("font-bold px-2 py-0.5 rounded-sm text-[12px] uppercase tracking-wider", config.className)}>
                 {StatusTransacaoLabel[status] || status}
             </Badge>
         );
@@ -129,7 +129,7 @@ export const Financeiro: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => navigate('/admin/financeiro/transacoes/nova')}
-                        className="h-14 px-8 rounded-xl font-black shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 px-8 rounded-sm font-black shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         NOVA TRANSAÇÃO
@@ -138,11 +138,11 @@ export const Financeiro: React.FC = () => {
             />
 
             {/* Period Filter */}
-            <Tabs value={periodoSelecionado} onValueChange={(v: any) => setPeriodoSelecionado(v)} className="w-fit bg-muted/40 p-1 rounded-xl border border-border/50">
+            <Tabs value={periodoSelecionado} onValueChange={(v: any) => setPeriodoSelecionado(v)} className="w-fit bg-muted p-1 rounded-sm border border-border/50">
                 <TabsList className="bg-transparent h-10 gap-1">
-                    <TabsTrigger value="mes" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm">ESTE MÊS</TabsTrigger>
-                    <TabsTrigger value="trimestre" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Trimestre</TabsTrigger>
-                    <TabsTrigger value="ano" className="rounded-xl font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Este Ano</TabsTrigger>
+                    <TabsTrigger value="mes" className="rounded-sm font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm">ESTE MÊS</TabsTrigger>
+                    <TabsTrigger value="trimestre" className="rounded-sm font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Trimestre</TabsTrigger>
+                    <TabsTrigger value="ano" className="rounded-sm font-bold text-xs px-6 data-[state=active]:bg-background data-[state=active]:shadow-sm uppercase">Este Ano</TabsTrigger>
                 </TabsList>
             </Tabs>
 
@@ -190,10 +190,10 @@ export const Financeiro: React.FC = () => {
                     <button
                         key={i}
                         onClick={() => navigate(action.path)}
-                        className="p-5 flex items-center gap-4 bg-card/50 backdrop-blur-sm rounded-xl border border-border/50 hover:border-primary/30 hover:bg-card transition-all group text-left shadow-lg shadow-muted/10 active:scale-95"
+                        className="p-5 flex items-center gap-4 bg-card   rounded-sm border border-border/50 hover:border-primary/30 hover:bg-card transition-all group text-left shadow-lg shadow-muted/10 active:scale-95"
                     >
                         <div className={cn(
-                            "w-12 h-14 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm",
+                            "w-12 h-14 rounded-sm flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm",
                             action.color === 'emerald' ? "bg-emerald-500/10 text-emerald-600" :
                                 action.color === 'red' ? "bg-destructive/10 text-destructive" :
                                     action.color === 'blue' ? "bg-blue-500/10 text-blue-600" :
@@ -213,10 +213,10 @@ export const Financeiro: React.FC = () => {
             </div>
 
             {/* Recent Transactions Table */}
-            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-3xl bg-card/50 backdrop-blur-sm">
+            <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-sm bg-card  ">
                 <div className="p-8 border-b border-border/50 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                        <div className="w-12 h-14 bg-primary/10 rounded-sm flex items-center justify-center text-primary">
                             <ArrowUpDown className="w-5 h-5 text-primary" strokeWidth={2.5} />
                         </div>
                         <h2 className="text-xl font-black tracking-tight">Transações Recentes</h2>
@@ -224,14 +224,14 @@ export const Financeiro: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => navigate('/admin/financeiro/transacoes')}
-                        className="rounded-xl font-black text-xs hover:bg-primary/10 text-primary"
+                        className="rounded-sm font-black text-xs hover:bg-primary/10 text-primary"
                     >
                         VER TODAS AS TRANSAÇÕES
                     </Button>
                 </div>
 
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
                             <TableHead className="pl-8 h-14 text-table-head">Descrição / Emissão</TableHead>
                             <TableHead className="h-14 text-table-head">Tipo</TableHead>
@@ -245,7 +245,7 @@ export const Financeiro: React.FC = () => {
                             <TableRow>
                                 <TableCell colSpan={5} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-3 animate-pulse">
-                                        <div className="w-12 h-14 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+                                        <div className="w-12 h-14 bg-primary/10 rounded-sm flex items-center justify-center text-primary">
                                             <Loader2 className="animate-spin" />
                                         </div>
                                         <p className="font-black text-sm tracking-widest text-muted-foreground uppercase">Carregando registro...</p>
@@ -266,11 +266,11 @@ export const Financeiro: React.FC = () => {
                                 const isIncome = transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME';
 
                                 return (
-                                    <TableRow key={transacao.id} className="group hover:bg-muted/20 border-border/30 transition-colors">
+                                    <TableRow key={transacao.id} className="group hover:bg-muted border-border/30 transition-colors">
                                         <TableCell className="pl-8 py-5">
                                             <div className="flex items-center gap-4">
                                                 <div className={cn(
-                                                    "w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110",
+                                                    "w-10 h-10 rounded-sm flex items-center justify-center transition-transform group-hover:scale-110",
                                                     isIncome ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"
                                                 )}>
                                                     {isIncome ? <ArrowUpRight size={20} strokeWidth={2.5} /> : <ArrowDownRight size={20} strokeWidth={2.5} />}

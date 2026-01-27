@@ -233,7 +233,7 @@ export const VeiculoDetalhes: React.FC = () => {
                         <Button
                             variant="outline"
                             onClick={() => navigate(`/admin/frota/${id}/editar`)}
-                            className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card/50 hover:bg-card transition-all"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest border-border bg-card hover:bg-card transition-all"
                         >
                             <Edit size={16} className="mr-2" />
                             Editar Registro
@@ -242,7 +242,7 @@ export const VeiculoDetalhes: React.FC = () => {
                             <Button
                                 variant="secondary"
                                 onClick={() => setActiveTab('mapa')}
-                                className="h-14 rounded-2xl px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
+                                className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest bg-secondary/50 hover:bg-secondary transition-all"
                             >
                                 <Map size={16} className="mr-2" />
                                 Gerenciar Assentos
@@ -254,16 +254,16 @@ export const VeiculoDetalhes: React.FC = () => {
 
             {/* Tabs Modenizadas */}
             <Tabs defaultValue="info" value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
-                <Card className="bg-card/50 border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2rem]">
+                <Card className="bg-card border-none shadow-2xl shadow-muted/20 overflow-hidden rounded-[2rem]">
                     <div className="px-6 pt-6">
-                        <TabsList className="bg-muted/30 p-1.5 rounded-2xl h-16 flex w-full md:w-fit border border-border/50">
+                        <TabsList className="bg-muted p-1.5 rounded-sm h-16 flex w-full md:w-fit border border-border/50">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 return (
                                     <TabsTrigger
                                         key={tab.id}
                                         value={tab.id}
-                                        className="flex-1 md:px-8 py-3 rounded-xl font-black uppercase text-[11px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center justify-center gap-2 transition-all"
+                                        className="flex-1 md:px-8 py-3 rounded-sm font-black uppercase text-[11px] tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg flex items-center justify-center gap-2 transition-all"
                                     >
                                         <Icon size={16} />
                                         <span className="hidden sm:inline">{tab.label}</span>
@@ -292,7 +292,7 @@ export const VeiculoDetalhes: React.FC = () => {
                                 <p className="mb-4 text-slate-600 dark:text-slate-300">
                                     Alguns assentos não puderam ser excluídos pois possuem reservas ativas ou histórico de uso. Eles foram mantidos no sistema mas desabilitados do mapa.
                                 </p>
-                                <ul className="list-disc pl-5 space-y-1 text-sm bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-lg">
+                                <ul className="list-disc pl-5 space-y-1 text-sm bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-sm">
                                     {warningMessages.map((msg, index) => (
                                         <li key={index} className="text-yellow-800 dark:text-yellow-200">{msg}</li>
                                     ))}
@@ -346,7 +346,7 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
             </div>
 
             {/* Métricas de Performance */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-muted/10 rounded-[2rem] border border-border/30">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 p-8 bg-muted rounded-[2rem] border border-border/30">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 text-primary uppercase text-[10px] font-black tracking-widest mb-1">
                         <Gauge size={14} /> Quilometragem
@@ -376,7 +376,7 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
                         <h3 className="text-section-header flex items-center gap-2">
                             <FileText size={16} className="text-primary" /> Observações Operacionais
                         </h3>
-                        <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic">
+                        <div className="bg-card p-6 rounded-sm border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic">
                             "{veiculo.observacoes}"
                         </div>
                     </div>
@@ -389,7 +389,7 @@ const InfoGeralTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) =
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
                             {veiculo.features.map((item, idx) => (
-                                <div key={idx} className="bg-muted/10 p-4 rounded-2xl border border-border/30 flex items-center gap-3 transition-all hover:bg-muted/20">
+                                <div key={idx} className="bg-muted p-4 rounded-sm border border-border/30 flex items-center gap-3 transition-all hover:bg-muted">
                                     <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                     <span className="text-sm font-bold text-foreground">
                                         {item.label}
@@ -455,7 +455,7 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
 
     if (manutencoes.length === 0) {
         return (
-            <div className="text-center py-20 bg-muted/10 rounded-[2rem] border border-dashed border-border/50">
+            <div className="text-center py-20 bg-muted rounded-[2rem] border border-dashed border-border/50">
                 <Wrench size={48} className="mx-auto text-muted-foreground/30 mb-6" />
                 <h3 className="text-section-header">
                     Sem Registros de Oficina
@@ -465,7 +465,7 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                 </p>
                 <Button
                     onClick={() => navigate('/admin/manutencao/nova', { state: { initialVehicle: veiculo } })}
-                    className="h-14 rounded-2xl px-8 font-black uppercase text-[12px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
+                    className="h-14 rounded-sm px-8 font-black uppercase text-[12px] tracking-widest bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
                 >
                     <Plus size={18} className="mr-2" />
                     Registrar Manutenção
@@ -483,16 +483,16 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                 </div>
                 <Button
                     onClick={() => navigate('/admin/manutencao/nova', { state: { initialVehicle: veiculo } })}
-                    className="h-12 rounded-xl px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground transition-all hover:scale-[1.02]"
+                    className="h-12 rounded-sm px-6 font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground transition-all hover:scale-[1.02]"
                 >
                     <Plus size={18} className="mr-2" />
                     Nova Entrada
                 </Button>
             </div>
 
-            <div className="bg-card/30 rounded-3xl border border-border/40 overflow-hidden">
+            <div className="bg-card rounded-sm border border-border/40 overflow-hidden">
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50 h-14">
                             <TableHead className="pl-6 text-table-head">Data / Status</TableHead>
                             <TableHead className="text-table-head">Serviço Realizado</TableHead>
@@ -506,7 +506,7 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                             <TableRow
                                 key={manutencao.id}
                                 onClick={() => navigate(`/admin/manutencao/${manutencao.id}/editar`)}
-                                className="hover:bg-muted/20 border-border/30 transition-colors cursor-pointer group h-16"
+                                className="hover:bg-muted border-border/30 transition-colors cursor-pointer group h-16"
                             >
                                 <TableCell className="pl-6">
                                     <div className="flex flex-col gap-1.5">
@@ -542,7 +542,7 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                                     </span>
                                 </TableCell>
                                 <TableCell className="pr-6 text-right">
-                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-sm group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                                         <Edit size={16} />
                                     </Button>
                                 </TableCell>
@@ -558,8 +558,8 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
 // Tab: Histórico
 const HistoricoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) => {
     return (
-        <div className="text-center py-20 bg-muted/10 rounded-[2rem] border border-dashed border-border/50">
-            <div className="w-16 h-16 bg-purple-500/10 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+        <div className="text-center py-20 bg-muted rounded-[2rem] border border-dashed border-border/50">
+            <div className="w-16 h-16 bg-purple-500/10 text-purple-600 rounded-sm flex items-center justify-center mx-auto mb-6">
                 <History size={32} />
             </div>
             <h3 className="text-section-header mb-2">

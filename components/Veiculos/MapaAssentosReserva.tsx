@@ -80,7 +80,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
     // Se não tiver assentos, considera não configurado
     if (assentos.length === 0) {
         return (
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-8 text-center border border-slate-200 dark:border-slate-700">
+            <div className="bg-slate-50 dark:bg-slate-900 rounded-sm p-8 text-center border border-slate-200 dark:border-slate-700">
                 <BusIcon size={48} className="mx-auto mb-4 text-slate-300 dark:text-slate-600" />
                 <p className="text-slate-500 dark:text-slate-400 mb-2">
                     Mapa de assentos não configurado para este veículo.
@@ -94,7 +94,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
 
     if (!temPrecos) {
         return (
-            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-6 border border-amber-200 dark:border-amber-800">
+            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-sm p-6 border border-amber-200 dark:border-amber-800">
                 <p className="text-amber-800 dark:text-amber-300 mb-2 font-medium">
                     ⚠️ Preços não configurados
                 </p>
@@ -134,7 +134,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
             {/* Frente do ônibus */}
             <div className="flex flex-col items-center mb-6">
                 <div className="w-20 h-2 bg-slate-300 dark:bg-slate-600 rounded-full mb-1 opacity-50"></div>
-                <div className="w-16 h-8 bg-slate-200 dark:bg-slate-700/30 rounded-lg flex items-center justify-center border border-slate-300/30 dark:border-slate-600/30">
+                <div className="w-16 h-8 bg-slate-200 dark:bg-slate-700/30 rounded-sm flex items-center justify-center border border-slate-300/30 dark:border-slate-600/30">
                     <BusIcon size={18} className="text-slate-400 dark:text-slate-500" />
                 </div>
                 <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">
@@ -181,7 +181,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                                     const Icon = style.icon;
                                     const preco = getPrecoAssento(assento.tipo);
 
-                                    let buttonClasses = "relative w-12 h-12 rounded-xl transition-all duration-300 border-2 flex flex-col items-center justify-center gap-0.5 group/seat ";
+                                    let buttonClasses = "relative w-12 h-12 rounded-sm transition-all duration-300 border-2 flex flex-col items-center justify-center gap-0.5 group/seat ";
                                     let textClasses = "text-[12px] font-bold ";
                                     let iconClasses = "w-3.5 h-3.5 ";
 
@@ -270,7 +270,7 @@ export const MapaAssentosReserva: React.FC<MapaAssentosReservaProps> = ({
                         const style = SEAT_STYLES[tipo] || { icon: Circle, label: tipo };
                         const Icon = style.icon;
                         return (
-                            <div key={tipo} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/30 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <div key={tipo} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/30 rounded-sm border border-slate-100 dark:border-slate-800">
                                 <Icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
                                 <span className="text-[12px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-tight">
                                     {style.label}

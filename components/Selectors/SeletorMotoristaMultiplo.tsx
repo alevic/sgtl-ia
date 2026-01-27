@@ -65,7 +65,7 @@ export const SeletorMotoristaMultiplo: React.FC<SeletorMotoristaMultiploProps> =
                     value={busca}
                     onChange={e => setBusca(e.target.value)}
                     placeholder="Buscar motorista..."
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 text-sm"
                 />
             </div>
 
@@ -98,7 +98,7 @@ export const SeletorMotoristaMultiplo: React.FC<SeletorMotoristaMultiploProps> =
             </div>
 
             {/* Lista de motoristas */}
-            <div className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-y-auto" style={{ maxHeight }}>
+            <div className="border border-slate-200 dark:border-slate-700 rounded-sm overflow-y-auto" style={{ maxHeight }}>
                 {motoristasFiltrados.length === 0 ? (
                     <div className="p-8 text-center">
                         <Users size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-3" />
@@ -153,7 +153,7 @@ export const SeletorMotoristaMultiplo: React.FC<SeletorMotoristaMultiploProps> =
 
             {/* Footer com resumo */}
             {selecionados.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-sm p-3">
                     <p className="text-sm text-blue-800 dark:text-blue-300">
                         <strong>{selecionados.length}</strong> motorista{selecionados.length > 1 ? 's' : ''} selecionado{selecionados.length > 1 ? 's' : ''}
                     </p>

@@ -19,9 +19,9 @@ export const KpiCard: React.FC<KpiProps> = ({ title, value, trend, isPositive, i
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-sm border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all">
       <div className="flex justify-between items-start mb-4">
-        <div className={`p-3 rounded-lg ${colorMap[color]}`}>
+        <div className={`p-3 rounded-sm ${colorMap[color]}`}>
           <Icon size={24} />
         </div>
         <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${isPositive ? 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400' : 'text-red-700 bg-red-50 dark:bg-red-900/30 dark:text-red-400'}`}>

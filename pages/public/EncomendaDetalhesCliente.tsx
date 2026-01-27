@@ -71,11 +71,11 @@ export const EncomendaDetalhesCliente: React.FC = () => {
     if (error || !data) {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col items-center justify-center p-4 text-center">
-                <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-2xl border border-red-100 dark:border-red-800 max-w-sm">
+                <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-sm border border-red-100 dark:border-red-800 max-w-sm">
                     <p className="text-red-600 dark:text-red-400 font-bold mb-4">{error || 'Encomenda não encontrada'}</p>
                     <button
                         onClick={() => navigate('/cliente/dashboard')}
-                        className="bg-red-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-red-700 transition"
+                        className="bg-red-600 text-white px-6 py-2 rounded-sm font-bold hover:bg-red-700 transition"
                     >
                         Voltar ao Início
                     </button>
@@ -127,7 +127,7 @@ export const EncomendaDetalhesCliente: React.FC = () => {
                 </div>
 
                 {/* Tracking Progress Card */}
-                <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-8">
+                <div className="bg-white dark:bg-slate-800 rounded-sm p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-8">
                     <div className="relative">
                         {/* Timeline bar */}
                         <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-slate-100 dark:bg-slate-700"></div>
@@ -156,9 +156,9 @@ export const EncomendaDetalhesCliente: React.FC = () => {
                 </div>
 
                 {/* Packet & Delivery Details */}
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-6">
+                <div className="bg-white dark:bg-slate-800 rounded-sm p-5 border border-slate-200 dark:border-slate-700 shadow-sm space-y-6">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-sm flex items-center justify-center">
                             <Package size={24} />
                         </div>
                         <div>
@@ -202,18 +202,18 @@ export const EncomendaDetalhesCliente: React.FC = () => {
 
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-4">
-                    <button className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-700 dark:text-white transition-colors hover:bg-slate-50">
+                    <button className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm text-sm font-bold text-slate-700 dark:text-white transition-colors hover:bg-slate-50">
                         <History size={18} className="text-slate-400" />
                         Histórico
                     </button>
-                    <button className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-700 dark:text-white transition-colors hover:bg-slate-50">
+                    <button className="flex items-center justify-center gap-2 p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm text-sm font-bold text-slate-700 dark:text-white transition-colors hover:bg-slate-50">
                         <FileText size={18} className="text-slate-400" />
                         Minha NF
                     </button>
                 </div>
 
                 {/* Support Info */}
-                <div className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500">
+                <div className="flex items-center gap-3 p-4 bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 text-slate-500">
                     <Info size={20} className="text-blue-500 shrink-0" />
                     <p className="text-xs">
                         Algum problema com sua encomenda? {' '}

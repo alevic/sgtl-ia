@@ -86,8 +86,8 @@ export const PassengerListModal: React.FC<PassengerListModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50   animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-slate-800 rounded-sm w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
                 {/* Header */}
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between sticky top-0 bg-white dark:bg-slate-800 rounded-t-2xl z-10">
                     <div>
@@ -101,7 +101,7 @@ export const PassengerListModal: React.FC<PassengerListModalProps> = ({
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-sm transition-colors"
                     >
                         <X size={20} className="text-slate-500" />
                     </button>
@@ -123,7 +123,7 @@ export const PassengerListModal: React.FC<PassengerListModalProps> = ({
                         <div className="space-y-4">
                             {/* Stats Summary could go here */}
 
-                            <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div className="overflow-hidden rounded-sm border border-slate-200 dark:border-slate-700">
                                 <table className="w-full text-sm text-left">
                                     <thead className="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 font-medium">
                                         <tr>
@@ -190,14 +190,14 @@ export const PassengerListModal: React.FC<PassengerListModalProps> = ({
                 <div className="p-6 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 rounded-b-2xl flex justify-end gap-3">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg transition-colors font-medium"
+                        className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-sm transition-colors font-medium"
                     >
                         Fechar
                     </button>
                     <button
                         onClick={handleExportPDF}
                         disabled={loading || passengers.length === 0}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow"
                     >
                         <FileDown size={18} />
                         Exportar PDF

@@ -168,14 +168,14 @@ export const NovoCliente: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/admin/clientes')}
-                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
                         >
                             Cancelar
                         </Button>
                         <Button
                             onClick={handleSalvar}
                             disabled={isSaving}
-                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isSaving ? <Loader className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
                             {isSaving ? 'Processando...' : 'Salvar Registro'}
@@ -185,7 +185,7 @@ export const NovoCliente: React.FC = () => {
             />
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-destructive/20 bg-destructive/5  ">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro no Cadastro</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -210,7 +210,7 @@ export const NovoCliente: React.FC = () => {
                                     value={nome}
                                     onChange={(e) => setNome(e.target.value)}
                                     placeholder="Ex: João da Silva"
-                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                 />
                             </div>
 
@@ -224,7 +224,7 @@ export const NovoCliente: React.FC = () => {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="email@exemplo.com"
-                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 pl-12 pr-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                     </div>
                                 </div>
@@ -255,7 +255,7 @@ export const NovoCliente: React.FC = () => {
                                             value={nacionalidade}
                                             onChange={(e) => setNacionalidade(e.target.value)}
                                             placeholder="Brasileira"
-                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 pl-12 pr-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                     </div>
                                 </div>
@@ -279,7 +279,7 @@ export const NovoCliente: React.FC = () => {
                                             onChange={handleCepChange}
                                             placeholder="00000-000"
                                             maxLength={8}
-                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         />
                                         {isSearchingCep && (
                                             <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -295,7 +295,7 @@ export const NovoCliente: React.FC = () => {
                                         value={endereco}
                                         onChange={(e) => setEndereco(e.target.value)}
                                         placeholder="Rua, número, complemento"
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                             </div>
@@ -306,7 +306,7 @@ export const NovoCliente: React.FC = () => {
                                     <select
                                         value={selectedStateId}
                                         onChange={handleStateSelect}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
+                                        className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer"
                                     >
                                         <option value="">Selecione...</option>
                                         {states.map(s => (
@@ -320,7 +320,7 @@ export const NovoCliente: React.FC = () => {
                                         value={selectedCityId}
                                         onChange={handleCitySelect}
                                         disabled={!selectedStateId}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer disabled:opacity-50"
+                                        className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer disabled:opacity-50"
                                     >
                                         <option value="">Selecione...</option>
                                         {cities.map(c => (
@@ -335,7 +335,7 @@ export const NovoCliente: React.FC = () => {
                                         value={pais}
                                         onChange={(e) => setPais(e.target.value)}
                                         placeholder="Brasil"
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                     />
                                 </div>
                             </div>
@@ -372,10 +372,10 @@ export const NovoCliente: React.FC = () => {
                                         key={seg}
                                         onClick={() => setSegmento(seg as any)}
                                         className={cn(
-                                            "py-3 rounded-xl border-2 transition-all font-black text-[12px] tracking-widest uppercase",
+                                            "py-3 rounded-sm border-2 transition-all font-black text-[12px] tracking-widest uppercase",
                                             segmento === seg
                                                 ? "border-primary bg-primary shadow-lg shadow-primary/20 text-primary-foreground"
-                                                : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted/50"
+                                                : "border-border/50 text-muted-foreground hover:border-border hover:bg-muted"
                                         )}
                                     >
                                         {seg}
@@ -395,7 +395,7 @@ export const NovoCliente: React.FC = () => {
                             onChange={(e) => setObservacoes(e.target.value)}
                             rows={6}
                             placeholder="Informações relevantes sobre o relacionamento..."
-                            className="w-full p-4 bg-muted/40 border border-border/50 rounded-xl font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
+                            className="w-full p-4 bg-muted border border-border/50 rounded-sm font-medium text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20 outline-none resize-none transition-all"
                         />
                     </FormSection>
                 </div>

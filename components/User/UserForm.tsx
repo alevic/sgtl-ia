@@ -251,7 +251,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                 {/* Lateral: Foto e Status */}
                 <div className="lg:col-span-1 space-y-8">
                     {showAvatar && (
-                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden p-8 text-center flex flex-col items-center">
+                        <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden p-8 text-center flex flex-col items-center">
                             <div className="relative group mb-6">
                                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl relative">
                                     <img
@@ -261,7 +261,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                     />
                                 </div>
                                 <div className="absolute -bottom-2 -right-2 flex gap-2">
-                                    <label className="p-3 bg-primary text-primary-foreground rounded-2xl hover:scale-110 transition-transform shadow-lg cursor-pointer flex items-center justify-center">
+                                    <label className="p-3 bg-primary text-primary-foreground rounded-sm hover:scale-110 transition-transform shadow-lg cursor-pointer flex items-center justify-center">
                                         <Camera size={18} strokeWidth={2.5} />
                                         <input
                                             type="file"
@@ -274,7 +274,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                         <button
                                             type="button"
                                             onClick={handleRemoveAvatar}
-                                            className="p-3 bg-destructive text-destructive-foreground rounded-2xl hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
+                                            className="p-3 bg-destructive text-destructive-foreground rounded-sm hover:scale-110 transition-transform shadow-lg flex items-center justify-center"
                                         >
                                             <Trash2 size={18} strokeWidth={2.5} />
                                         </button>
@@ -311,7 +311,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                     )}
 
                     {showRole && (
-                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden p-8">
+                        <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden p-8">
                             <h4 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-6 flex items-center gap-2">
                                 <Shield size={14} className="text-primary" />
                                 Nível de Acesso
@@ -338,7 +338,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                                     setRole([...role, r.id]);
                                                 }
                                             }}
-                                            className={`w-full p-4 rounded-2xl border transition-all text-left group ${isSelected
+                                            className={`w-full p-4 rounded-sm border transition-all text-left group ${isSelected
                                                 ? 'border-primary bg-primary/5 shadow-lg shadow-primary/5'
                                                 : 'border-border/40 hover:border-primary/40'
                                                 }`}
@@ -355,8 +355,8 @@ export const UserForm: React.FC<UserFormProps> = ({
 
                 {/* Principal: Dados do Usuário */}
                 <div className="lg:col-span-2 space-y-8">
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
+                        <div className="p-8 border-b border-border/50 bg-muted">
                             <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <User size={14} className="text-primary" />
                                 Identidade e Acesso
@@ -372,7 +372,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         required
-                                        className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 pl-12 pr-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         placeholder="Ex: Alexandre de Moraes"
                                     />
                                 </div>
@@ -408,7 +408,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                                 onChange={(e) => setPassword(e.target.value)}
                                                 required={mode === 'create'}
                                                 minLength={6}
-                                                className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                                className="w-full h-14 pl-12 pr-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                                 placeholder="Defina uma senha segura"
                                             />
                                         </div>
@@ -425,7 +425,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                             type="email"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
-                                            className="w-full h-14 pl-12 pr-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 pl-12 pr-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                             placeholder="email@ecossistema.com"
                                         />
                                     </div>
@@ -464,8 +464,8 @@ export const UserForm: React.FC<UserFormProps> = ({
                     </Card>
 
                     {showNotes && (
-                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                            <div className="p-8 border-b border-border/50 bg-muted/20">
+                        <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
+                            <div className="p-8 border-b border-border/50 bg-muted">
                                 <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                     <FileText size={14} className="text-primary" />
                                     Observações Operacionais
@@ -476,7 +476,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     rows={4}
-                                    className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                                    className="w-full p-4 bg-muted border border-border/50 rounded-sm font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
                                     placeholder="Notas internas relevantes sobre o histórico do operador..."
                                 />
                             </div>
@@ -490,7 +490,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                                 type="button"
                                 variant="outline"
                                 onClick={onCancel}
-                                className="flex-1 h-14 rounded-2xl border-border/40 font-black uppercase text-[12px] tracking-widest"
+                                className="flex-1 h-14 rounded-sm border-border/40 font-black uppercase text-[12px] tracking-widest"
                             >
                                 Cancelar Registro
                             </Button>
@@ -498,7 +498,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                         <Button
                             type="submit"
                             disabled={isSaving}
-                            className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 group"
+                            className="flex-1 h-14 rounded-sm bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 group"
                         >
                             {isSaving ? (
                                 <>

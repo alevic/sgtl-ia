@@ -102,16 +102,16 @@ export const EditarUsuario: React.FC = () => {
             )}
 
             {/* Navigation Tabs Dynamic */}
-            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+            <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
                 <div className="p-2 overflow-x-auto scroller-hidden">
                     <div className="flex gap-2">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all rounded-2xl ${activeTab === tab.id
+                                className={`flex items-center gap-3 px-6 py-4 text-[12px] font-black uppercase tracking-[0.2em] transition-all rounded-sm ${activeTab === tab.id
                                     ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                     }`}
                             >
                                 <tab.icon size={14} strokeWidth={2.5} />
@@ -153,7 +153,7 @@ export const EditarUsuario: React.FC = () => {
                                         <label className="text-[12px] font-black uppercase tracking-widest text-muted-foreground ml-1">Senha Atual</label>
                                         <input
                                             type="password"
-                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                             placeholder="••••••••"
                                         />
                                     </div>
@@ -161,7 +161,7 @@ export const EditarUsuario: React.FC = () => {
                                         <label className="text-[12px] font-black uppercase tracking-widest text-muted-foreground ml-1">Nova Senha</label>
                                         <input
                                             type="password"
-                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                             placeholder="Mínimo 8 caracteres"
                                         />
                                     </div>
@@ -169,16 +169,16 @@ export const EditarUsuario: React.FC = () => {
                                         <label className="text-[12px] font-black uppercase tracking-widest text-muted-foreground ml-1">Confirmar Nova Senha</label>
                                         <input
                                             type="password"
-                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                             placeholder="Repita a nova senha"
                                         />
                                     </div>
-                                    <Button className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20">
+                                    <Button className="w-full h-14 rounded-sm bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20">
                                         Atualizar Senha de Acesso
                                     </Button>
                                 </div>
 
-                                <div className="p-8 bg-muted/20 border border-dashed border-border/50 rounded-[2rem] flex flex-col items-center justify-center text-center space-y-4">
+                                <div className="p-8 bg-muted border border-dashed border-border/50 rounded-[2rem] flex flex-col items-center justify-center text-center space-y-4">
                                     <div className="w-16 h-16 bg-muted border border-border/40 rounded-full flex items-center justify-center text-muted-foreground">
                                         <Shield size={24} />
                                     </div>
@@ -186,7 +186,7 @@ export const EditarUsuario: React.FC = () => {
                                         <h4 className="text-[12px] font-black uppercase tracking-widest text-foreground">Autenticação em Duas Etapas</h4>
                                         <p className="text-[9px] font-bold text-muted-foreground mt-1 uppercase leading-tight">Módulo de segurança avançada em fase de implementação</p>
                                     </div>
-                                    <Button variant="outline" disabled className="rounded-xl h-10 px-6 opacity-40">Em breve</Button>
+                                    <Button variant="outline" disabled className="rounded-sm h-10 px-6 opacity-40">Em breve</Button>
                                 </div>
                             </div>
                         </div>
@@ -205,18 +205,18 @@ export const EditarUsuario: React.FC = () => {
                                     { label: 'Notificações Push', desc: 'Alertas instantâneos no navegador' },
                                     { label: 'Logs de Viagem', desc: 'Atualizações em tempo real de rotas' },
                                 ].map((pref, idx) => (
-                                    <label key={idx} className="flex items-center justify-between p-4 bg-muted/20 rounded-2xl border border-border/40 cursor-pointer hover:bg-muted/30 transition-colors">
+                                    <label key={idx} className="flex items-center justify-between p-4 bg-muted rounded-sm border border-border/40 cursor-pointer hover:bg-muted transition-colors">
                                         <div>
                                             <p className="text-[12px] font-black uppercase tracking-widest text-foreground">{pref.label}</p>
                                             <p className="text-[9px] font-bold text-muted-foreground uppercase">{pref.desc}</p>
                                         </div>
-                                        <input type="checkbox" className="w-5 h-5 rounded-lg border-border/60 text-primary focus:ring-primary/20" defaultChecked />
+                                        <input type="checkbox" className="w-5 h-5 rounded-sm border-border/60 text-primary focus:ring-primary/20" defaultChecked />
                                     </label>
                                 ))}
                             </div>
                         </FormSection>
 
-                        <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden flex flex-col items-center justify-center p-8 text-center space-y-6">
+                        <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden flex flex-col items-center justify-center p-8 text-center space-y-6">
                             <div className="w-20 h-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center">
                                 <Settings size={32} strokeWidth={2.5} />
                             </div>
@@ -224,7 +224,7 @@ export const EditarUsuario: React.FC = () => {
                                 <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-foreground">Interface e Tema</h3>
                                 <p className="text-[9px] font-bold text-muted-foreground mt-2 uppercase">A personalização de tema individual está sendo migrada para a arquitetura global.</p>
                             </div>
-                            <Button variant="outline" disabled className="rounded-2xl h-14 px-8">Configurações Globais</Button>
+                            <Button variant="outline" disabled className="rounded-sm h-14 px-8">Configurações Globais</Button>
                         </Card>
                     </div>
                 )}
@@ -235,7 +235,7 @@ export const EditarUsuario: React.FC = () => {
                         icon={Activity}
                     >
                         <div className="py-20 flex flex-col items-center justify-center space-y-6 text-center">
-                            <div className="w-24 h-24 bg-muted/40 rounded-[2.5rem] flex items-center justify-center text-muted-foreground/30">
+                            <div className="w-24 h-24 bg-muted rounded-[2.5rem] flex items-center justify-center text-muted-foreground/30">
                                 <Activity size={48} strokeWidth={1} />
                             </div>
                             <div className="max-w-sm">
@@ -243,7 +243,7 @@ export const EditarUsuario: React.FC = () => {
                                     O histórico detalhado de interações deste operador está sendo indexado para o novo módulo de auditoria.
                                 </p>
                             </div>
-                            <Button variant="outline" onClick={() => window.location.reload()} className="h-14 px-8 rounded-2xl border-border/40 font-semibold uppercase text-[12px] tracking-widest">
+                            <Button variant="outline" onClick={() => window.location.reload()} className="h-14 px-8 rounded-sm border-border/40 font-semibold uppercase text-[12px] tracking-widest">
                                 Sincronizar Timeline
                             </Button>
                         </div>

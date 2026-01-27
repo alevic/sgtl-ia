@@ -47,7 +47,7 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
                         placeholder="Buscar por nome, email ou documento..."
                         value={busca}
                         onChange={e => setBusca(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                 </div>
                 {onNovoCliente && (
@@ -57,7 +57,7 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
                             onNovoCliente();
                         }}
                         title="Cadastrar Novo Cliente"
-                        className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center min-w-[42px]"
+                        className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-sm transition-colors flex items-center justify-center min-w-[42px]"
                     >
                         <User size={20} />
                         <span className="hidden sm:inline-block ml-2 text-sm font-semibold">Novo</span>
@@ -65,7 +65,7 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
                 )}
             </div>
             {clienteSelecionado && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-sm p-3">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                             <Check size={16} className="text-white" />
@@ -77,7 +77,7 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
                     </div>
                 </div>
             )}
-            <div className="max-h-96 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-700 rounded-lg p-2">
+            <div className="max-h-96 overflow-y-auto space-y-2 border border-slate-200 dark:border-slate-700 rounded-sm p-2">
                 {clientesFiltrados.length > 0 ? (
                     clientesFiltrados.map(cliente => {
                         const isSelected = clienteSelecionado?.id === cliente.id;
@@ -85,7 +85,7 @@ export const SeletorPassageiro: React.FC<SeletorPassageiroProps> = ({
                             <button
                                 key={cliente.id}
                                 onClick={() => handleSelecionarCliente(cliente)}
-                                className={`w-full p-3 rounded-lg border transition-all text-left ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                className={`w-full p-3 rounded-sm border transition-all text-left ${isSelected ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                             >
                                 <div className="flex items-center gap-3">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected ? 'bg-blue-600' : 'bg-slate-200 dark:bg-slate-700'}`}>

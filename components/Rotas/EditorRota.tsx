@@ -106,7 +106,7 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
     return (
         <div className="space-y-6">
             {/* Header com informações da rota */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-sm p-4 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                         <Route size={20} className="text-blue-600" />
@@ -134,7 +134,7 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
 
             {/* Mensagens de validação */}
             {!validacao.valida && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-sm p-4">
                     <div className="flex items-start gap-2">
                         <AlertCircle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
@@ -163,7 +163,7 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
                             <div className="absolute left-6 top-full h-4 w-0.5 bg-gradient-to-b from-blue-400 to-blue-300 dark:from-blue-600 dark:to-blue-700 z-0" />
                         )}
 
-                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 relative z-10">
+                        <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm p-4 relative z-10">
                             <div className="flex items-start gap-4">
                                 {/* Indicador visual */}
                                 <div className="flex flex-col items-center gap-2 pt-2">
@@ -190,7 +190,7 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
                                         <button
                                             onClick={() => moverParada(index, 'up')}
                                             disabled={index === 1}
-                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                            className="p-2 rounded-sm bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                             title="Mover para cima"
                                         >
                                             <ArrowUp size={16} className="text-slate-600 dark:text-slate-400" />
@@ -198,14 +198,14 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
                                         <button
                                             onClick={() => moverParada(index, 'down')}
                                             disabled={index === rota.pontos.length - 2}
-                                            className="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                            className="p-2 rounded-sm bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                             title="Mover para baixo"
                                         >
                                             <ArrowDown size={16} className="text-slate-600 dark:text-slate-400" />
                                         </button>
                                         <button
                                             onClick={() => removerParada(index)}
-                                            className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                                            className="p-2 rounded-sm bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                                             title="Remover parada"
                                         >
                                             <X size={16} className="text-red-600 dark:text-red-400" />
@@ -222,7 +222,7 @@ export const EditorRota: React.FC<EditorRotaProps> = ({
             {!readonly && (
                 <button
                     onClick={adicionarParada}
-                    className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
+                    className="w-full py-3 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-sm hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 font-medium"
                 >
                     <Plus size={20} />
                     Adicionar Parada Intermediária

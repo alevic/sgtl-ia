@@ -226,7 +226,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                                 type="text"
                                 value={formData.nome || ''}
                                 onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                             />
                         </div>
                         <div>
@@ -234,7 +234,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                             <select
                                 value={formData.estado_id || ''}
                                 onChange={e => setFormData({ ...formData, estado_id: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 disabled={!!editingId}
                             >
                                 <option value="">Selecione...</option>
@@ -252,7 +252,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                                 type="text"
                                 value={formData.nome || ''}
                                 onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                             />
                         </div>
                         <div>
@@ -260,7 +260,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                             <select
                                 value={formData.cidade_id || ''}
                                 onChange={e => setFormData({ ...formData, cidade_id: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 disabled={!!editingId}
                             >
                                 <option value="">Selecione...</option>
@@ -278,7 +278,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                                 type="text"
                                 value={formData.nome || ''}
                                 onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
                                 placeholder="Ex: Turismo"
                             />
                         </div>
@@ -288,7 +288,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                                 type="color"
                                 value={formData.cor || '#3b82f6'}
                                 onChange={e => setFormData({ ...formData, cor: e.target.value })}
-                                className="w-full h-10 p-1 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800"
+                                className="w-full h-10 p-1 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800"
                             />
                         </div>
                     </div>
@@ -388,13 +388,13 @@ export const CadastrosAuxiliares: React.FC = () => {
                                                 <>
                                                     <button
                                                         onClick={() => handleEdit(item)}
-                                                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-sm transition-colors"
                                                     >
                                                         <Edit size={16} />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(item.id)}
-                                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-sm transition-colors"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -455,7 +455,7 @@ export const CadastrosAuxiliares: React.FC = () => {
                     activeTab !== 'estados' && (
                         <Button
                             onClick={handleNew}
-                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <Plus className="w-4 h-4 mr-2" strokeWidth={3} />
                             Novo Registro
@@ -465,7 +465,7 @@ export const CadastrosAuxiliares: React.FC = () => {
             />
 
             {/* Navigation Tabs Module */}
-            <div className="flex bg-muted/40 p-1.5 rounded-xl border border-border/50 h-16 w-full lg:w-fit gap-2 overflow-x-auto scroller-hidden">
+            <div className="flex bg-muted p-1.5 rounded-sm border border-border/50 h-16 w-full lg:w-fit gap-2 overflow-x-auto scroller-hidden">
                 {[
                     { id: 'estados', label: 'Territórios', icon: Flag },
                     { id: 'cidades', label: 'Cidades', icon: Building },
@@ -476,10 +476,10 @@ export const CadastrosAuxiliares: React.FC = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as TabType)}
                         className={cn(
-                            "flex items-center gap-2.5 px-6 h-full text-[10px] font-black uppercase tracking-widest transition-all rounded-lg whitespace-nowrap",
+                            "flex items-center gap-2.5 px-6 h-full text-[10px] font-black uppercase tracking-widest transition-all rounded-sm whitespace-nowrap",
                             activeTab === tab.id
                                 ? "bg-background text-primary shadow-sm"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         )}
                     >
                         <tab.icon size={14} strokeWidth={activeTab === tab.id ? 2.5 : 2} />
@@ -496,13 +496,13 @@ export const CadastrosAuxiliares: React.FC = () => {
                         placeholder={`Pesquisar em ${activeTab}...`}
                         value={busca}
                         onChange={(e) => setBusca(e.target.value)}
-                        className="w-full h-14 pl-12 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20 text-xs tracking-tight"
+                        className="w-full h-14 pl-12 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20 text-xs tracking-tight"
                     />
                 </div>
             </ListFilterSection>
 
             {/* Content Table Executive */}
-            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
+            <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
                 <div className="overflow-x-auto">
                     {renderList()}
                 </div>
@@ -510,18 +510,18 @@ export const CadastrosAuxiliares: React.FC = () => {
 
             {/* Modal de Edição Executivo */}
             {isEditing && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/60   flex items-center justify-center z-50 p-4">
                     <Card className="w-full max-w-2xl bg-card border border-border/40 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="p-8 border-b border-border/50 bg-muted/20 flex items-center justify-between">
+                        <div className="p-8 border-b border-border/50 bg-muted flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-primary/10 rounded-2xl text-primary font-black uppercase text-xs">
+                                <div className="p-3 bg-primary/10 rounded-sm text-primary font-black uppercase text-xs">
                                     {editingId ? 'EDT' : 'NEW'}
                                 </div>
                                 <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
                                     {editingId ? 'Editar' : 'Novo'} Registro no Módulo {activeTab}
                                 </h2>
                             </div>
-                            <button onClick={handleCancel} className="p-2 hover:bg-muted rounded-xl transition-colors">
+                            <button onClick={handleCancel} className="p-2 hover:bg-muted rounded-sm transition-colors">
                                 <X size={20} />
                             </button>
                         </div>
@@ -531,14 +531,14 @@ export const CadastrosAuxiliares: React.FC = () => {
                                 <Button
                                     variant="outline"
                                     onClick={handleCancel}
-                                    className="flex-1 h-14 rounded-2xl border-border/40 font-black uppercase text-[12px] tracking-widest"
+                                    className="flex-1 h-14 rounded-sm border-border/40 font-black uppercase text-[12px] tracking-widest"
                                 >
                                     Cancelar Operação
                                 </Button>
                                 {activeTab !== 'estados' && (
                                     <Button
                                         onClick={handleSave}
-                                        className="flex-1 h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                        className="flex-1 h-14 rounded-sm bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
                                     >
                                         <Save className="w-4 h-4 mr-2" />
                                         Salvar Alterações

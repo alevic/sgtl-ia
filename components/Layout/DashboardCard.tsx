@@ -31,7 +31,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
 
     return (
         <Card className={cn(
-            "shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm group hover:bg-card transition-all duration-300 rounded-3xl border border-border/40",
+            "shadow-xl shadow-muted/20 bg-card   group hover:bg-card transition-all duration-300 rounded-sm border border-border/40",
             className
         )}>
             <CardContent className="p-6">
@@ -50,7 +50,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
                         )}
                     </div>
                     <div className={cn(
-                        "p-3 rounded-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-3",
+                        "p-3 rounded-sm transition-all duration-500 group-hover:scale-110 group-hover:rotate-3",
                         variants[variant]
                     )}>
                         <Icon size={20} strokeWidth={2.5} />

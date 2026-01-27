@@ -169,12 +169,12 @@ export const Organizacoes: React.FC = () => {
                     backLabel="Voltar para Lista"
                 />
 
-                <div className="flex gap-2 p-1.5 bg-muted/40 backdrop-blur-sm border border-border/40 rounded-2xl w-fit">
+                <div className="flex gap-2 p-1.5 bg-muted   border border-border/40 rounded-sm w-fit">
                     <button
                         onClick={() => setActiveDetailTab('geral')}
-                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-black uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'geral'
+                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-black uppercase tracking-widest transition-all rounded-sm ${activeDetailTab === 'geral'
                             ? 'bg-background text-primary shadow-lg shadow-muted/20'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                             }`}
                     >
                         <Building2 size={14} />
@@ -182,9 +182,9 @@ export const Organizacoes: React.FC = () => {
                     </button>
                     <button
                         onClick={() => setActiveDetailTab('equipe')}
-                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-black uppercase tracking-widest transition-all rounded-xl ${activeDetailTab === 'equipe'
+                        className={`flex items-center gap-2 px-6 py-3 text-[12px] font-black uppercase tracking-widest transition-all rounded-sm ${activeDetailTab === 'equipe'
                             ? 'bg-background text-primary shadow-lg shadow-muted/20'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                             }`}
                     >
                         <Users size={14} />
@@ -195,8 +195,8 @@ export const Organizacoes: React.FC = () => {
                 {activeDetailTab === 'geral' && (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div className="lg:col-span-2 space-y-8">
-                            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                                <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
+                                <div className="p-8 border-b border-border/50 bg-muted">
                                     <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                         <Building2 size={14} className="text-primary" />
                                         Informações de Registro
@@ -211,7 +211,7 @@ export const Organizacoes: React.FC = () => {
                                                     type="text"
                                                     value={orgDetails.name}
                                                     disabled
-                                                    className="w-full h-14 px-4 bg-muted/20 border border-border/40 rounded-2xl font-semibold uppercase text-[12px] tracking-widest cursor-not-allowed"
+                                                    className="w-full h-14 px-4 bg-muted border border-border/40 rounded-sm font-semibold uppercase text-[12px] tracking-widest cursor-not-allowed"
                                                 />
                                             </div>
                                             <div className="space-y-1.5 opacity-60">
@@ -220,7 +220,7 @@ export const Organizacoes: React.FC = () => {
                                                     type="text"
                                                     value={orgDetails.slug}
                                                     disabled
-                                                    className="w-full h-14 px-4 bg-muted/20 border border-border/40 rounded-2xl font-semibold text-[12px] tracking-widest cursor-not-allowed"
+                                                    className="w-full h-14 px-4 bg-muted border border-border/40 rounded-sm font-semibold text-[12px] tracking-widest cursor-not-allowed"
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
@@ -229,7 +229,7 @@ export const Organizacoes: React.FC = () => {
                                                     type="text"
                                                     value={orgDetails.legal_name || ''}
                                                     onChange={(e) => updateDetailField('legal_name', e.target.value)}
-                                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                                     placeholder="NOME EMPRESARIAL LTDA"
                                                 />
                                             </div>
@@ -239,7 +239,7 @@ export const Organizacoes: React.FC = () => {
                                                     type="text"
                                                     value={orgDetails.cnpj || ''}
                                                     onChange={(e) => updateDetailField('cnpj', e.target.value)}
-                                                    className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                                    className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                                     placeholder="00.000.000/0000-00"
                                                 />
                                             </div>
@@ -251,7 +251,7 @@ export const Organizacoes: React.FC = () => {
                                                 value={orgDetails.address || ''}
                                                 onChange={(e) => updateDetailField('address', e.target.value)}
                                                 rows={3}
-                                                className="w-full p-4 bg-muted/40 border border-border/50 rounded-2xl font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
+                                                className="w-full p-4 bg-muted border border-border/50 rounded-sm font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none"
                                                 placeholder="Rua, Número, Complemento, CEP..."
                                             />
                                         </div>
@@ -264,7 +264,7 @@ export const Organizacoes: React.FC = () => {
                                             <Button
                                                 type="submit"
                                                 disabled={isSaving}
-                                                className="h-14 rounded-2xl px-10 bg-primary font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                                className="h-14 rounded-sm px-10 bg-primary font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
                                             >
                                                 {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save className="mr-2" size={16} strokeWidth={3} />}
                                                 Sincronizar Dados
@@ -276,8 +276,8 @@ export const Organizacoes: React.FC = () => {
                         </div>
 
                         <div className="space-y-8">
-                            <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden">
-                                <div className="p-8 border-b border-border/50 bg-muted/20">
+                            <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden">
+                                <div className="p-8 border-b border-border/50 bg-muted">
                                     <h3 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                         <Users size={14} className="text-primary" />
                                         Canais de Contato
@@ -290,7 +290,7 @@ export const Organizacoes: React.FC = () => {
                                             type="email"
                                             value={orgDetails.contact_email || ''}
                                             onChange={(e) => updateDetailField('contact_email', e.target.value)}
-                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                             placeholder="contato@empresa.com"
                                         />
                                     </div>
@@ -300,7 +300,7 @@ export const Organizacoes: React.FC = () => {
                                             type="text"
                                             value={orgDetails.phone || ''}
                                             onChange={(e) => updateDetailField('phone', e.target.value)}
-                                            className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                            className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                             placeholder="(00) 00000-0000"
                                         />
                                     </div>
@@ -341,8 +341,8 @@ export const Organizacoes: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-1">
-                    <Card className="shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden sticky top-6">
-                        <div className="p-8 border-b border-border/50 bg-muted/20">
+                    <Card className="shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden sticky top-6">
+                        <div className="p-8 border-b border-border/50 bg-muted">
                             <h2 className="text-[12px] font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                 <Plus size={14} className="text-primary" />
                                 Adicionar Nova Organização
@@ -359,7 +359,7 @@ export const Organizacoes: React.FC = () => {
                                             setNewOrgName(e.target.value);
                                             setNewOrgSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '-'));
                                         }}
-                                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-2xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
+                                        className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none"
                                         placeholder="Ex: JJê Turismo"
                                         required
                                     />
@@ -370,7 +370,7 @@ export const Organizacoes: React.FC = () => {
                                         type="text"
                                         value={newOrgSlug}
                                         onChange={(e) => setNewOrgSlug(e.target.value)}
-                                        className="w-full h-14 px-4 bg-muted/20 border border-border/50 rounded-2xl font-semibold text-[12px] tracking-widest outline-none opacity-80"
+                                        className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-semibold text-[12px] tracking-widest outline-none opacity-80"
                                         placeholder="ex: jje-turismo"
                                         required
                                     />
@@ -379,7 +379,7 @@ export const Organizacoes: React.FC = () => {
                                 <Button
                                     type="submit"
                                     disabled={isCreating}
-                                    className="w-full h-14 rounded-2xl bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
+                                    className="w-full h-14 rounded-sm bg-primary text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
                                 >
                                     {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Processar Criação'}
                                 </Button>
@@ -399,7 +399,7 @@ export const Organizacoes: React.FC = () => {
                             <Loader2 className="animate-spin text-primary" size={40} strokeWidth={3} />
                         </div>
                     ) : orgs.length === 0 ? (
-                        <div className="p-20 text-center bg-card/50 backdrop-blur-sm rounded-[2.5rem] border border-dashed border-border/60">
+                        <div className="p-20 text-center bg-card   rounded-[2.5rem] border border-dashed border-border/60">
                             <p className="text-muted-foreground font-bold text-sm">Nenhuma organização encontrada.</p>
                         </div>
                     ) : (
@@ -408,13 +408,13 @@ export const Organizacoes: React.FC = () => {
                                 <Card
                                     key={org.id}
                                     onClick={() => setSelectedOrgId(org.id)}
-                                    className="group shadow-xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] p-8 hover:border-primary/40 cursor-pointer transition-all hover:bg-muted/20"
+                                    className="group shadow-xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] p-8 hover:border-primary/40 cursor-pointer transition-all hover:bg-muted"
                                 >
                                     <div className="flex items-start justify-between mb-6">
-                                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
+                                        <div className="w-16 h-16 rounded-sm bg-primary/10 flex items-center justify-center text-primary font-black text-2xl group-hover:scale-110 transition-transform shadow-lg shadow-primary/5">
                                             {org.name.charAt(0)}
                                         </div>
-                                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
+                                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black uppercase tracking-widest rounded-sm border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
                                             ATIVO
                                         </span>
                                     </div>
@@ -434,13 +434,13 @@ export const Organizacoes: React.FC = () => {
                 </div>
             </div>
             {error && (
-                <div className="fixed bottom-8 right-8 bg-rose-500 text-white px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-right-4 font-bold text-sm flex items-center gap-3">
+                <div className="fixed bottom-8 right-8 bg-rose-500 text-white px-6 py-4 rounded-sm shadow-2xl animate-in slide-in-from-right-4 font-bold text-sm flex items-center gap-3">
                     <AlertCircle size={20} />
                     {error}
                 </div>
             )}
             {success && (
-                <div className="fixed bottom-8 right-8 bg-emerald-500 text-white px-6 py-4 rounded-2xl shadow-2xl animate-in slide-in-from-right-4 font-bold text-sm flex items-center gap-3">
+                <div className="fixed bottom-8 right-8 bg-emerald-500 text-white px-6 py-4 rounded-sm shadow-2xl animate-in slide-in-from-right-4 font-bold text-sm flex items-center gap-3">
                     <CheckCircle size={20} />
                     {success}
                 </div>

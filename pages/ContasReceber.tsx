@@ -113,7 +113,7 @@ export const ContasReceber: React.FC = () => {
                 rightElement={
                     <Button
                         onClick={() => navigate('/admin/financeiro/transacoes/nova', { state: { tipo: TipoTransacao.INCOME } })}
-                        className="h-14 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        className="h-14 px-8 rounded-sm bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                     >
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         Nova Receita
@@ -160,7 +160,7 @@ export const ContasReceber: React.FC = () => {
                             placeholder="Cliente, descrição ou documento..."
                             value={busca}
                             onChange={e => setBusca(e.target.value)}
-                            className="pl-12 h-14 bg-muted/20 border-border/50 rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted border-border/50 rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                         />
                     </div>
                 </div>
@@ -168,7 +168,7 @@ export const ContasReceber: React.FC = () => {
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Status</label>
                     <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
-                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-xs uppercase tracking-widest">
                             <SelectValue placeholder="STATUS" />
                         </SelectTrigger>
                         <SelectContent>
@@ -184,7 +184,7 @@ export const ContasReceber: React.FC = () => {
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Categoria</label>
                     <Select value={filtroCategoria} onValueChange={(v: any) => setFiltroCategoria(v)}>
-                        <SelectTrigger className="h-14 bg-muted/20 border-border/50 rounded-xl font-bold text-xs uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-xs uppercase tracking-widest">
                             <SelectValue placeholder="CATEGORIA" />
                         </SelectTrigger>
                         <SelectContent>
@@ -198,7 +198,7 @@ export const ContasReceber: React.FC = () => {
                 </div>
             </ListFilterSection>
             {/* Lista de Contas */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                     <div className="flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-slate-800 dark:text-white">

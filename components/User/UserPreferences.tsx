@@ -28,7 +28,7 @@ export const UserPreferences: React.FC<UserPreferencesProps> = ({ userId }) => {
     return (
         <div className="space-y-6">
             {/* Theme Section */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <Palette size={20} className="text-purple-600" />
                     Aparência
@@ -46,7 +46,7 @@ export const UserPreferences: React.FC<UserPreferencesProps> = ({ userId }) => {
                             <button
                                 key={option.value}
                                 onClick={() => setTheme(option.value)}
-                                className={`p-4 rounded-lg border-2 transition-all ${theme === option.value
+                                className={`p-4 rounded-sm border-2 transition-all ${theme === option.value
                                         ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
                                         : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                                     }`}
@@ -62,7 +62,7 @@ export const UserPreferences: React.FC<UserPreferencesProps> = ({ userId }) => {
             </div>
 
             {/* Language Section */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <Globe size={20} className="text-blue-600" />
                     Idioma
@@ -70,7 +70,7 @@ export const UserPreferences: React.FC<UserPreferencesProps> = ({ userId }) => {
                 <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                    className="w-full p-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                 >
                     <option value="pt-BR">Português (Brasil)</option>
                     <option value="en">English</option>
@@ -79,7 +79,7 @@ export const UserPreferences: React.FC<UserPreferencesProps> = ({ userId }) => {
             </div>
 
             {/* Notifications Section */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-6">
                 <h3 className="font-bold text-slate-700 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <Bell size={20} className="text-orange-600" />
                     Notificações
@@ -126,7 +126,7 @@ export const UserPreferences: React.FC<UserPreferencesProps> = ({ userId }) => {
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                     {isSaving ? (
                         <>

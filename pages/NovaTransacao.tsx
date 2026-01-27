@@ -168,13 +168,13 @@ export const NovaTransacao: React.FC = () => {
                         <Button
                             variant="ghost"
                             onClick={() => navigate('/admin/financeiro')}
-                            className="h-14 rounded-xl px-6 font-black uppercase text-[12px] tracking-widest"
+                            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
                         >
                             Cancelar
                         </Button>
                         <Button
                             onClick={handleSubmit}
-                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <Save size={18} className="mr-2" />
                             Confirmar Lançamento
@@ -184,7 +184,7 @@ export const NovaTransacao: React.FC = () => {
             />
 
             {error && (
-                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-destructive/20 bg-destructive/5 backdrop-blur-sm">
+                <Alert variant="destructive" className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-destructive/20 bg-destructive/5  ">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest">Erro no Lançamento</AlertTitle>
                     <AlertDescription className="text-xs font-medium">
@@ -194,7 +194,7 @@ export const NovaTransacao: React.FC = () => {
             )}
 
             {success && (
-                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-3xl border-emerald-500/20 bg-emerald-500/5 backdrop-blur-sm">
+                <Alert className="animate-in fade-in slide-in-from-top-2 duration-300 rounded-sm border-emerald-500/20 bg-emerald-500/5  ">
                     <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                     <AlertTitle className="font-black uppercase text-[12px] tracking-widest text-emerald-500">Documento Salvo</AlertTitle>
                     <AlertDescription className="text-xs font-medium text-emerald-600/80">
@@ -218,7 +218,7 @@ export const NovaTransacao: React.FC = () => {
                                         "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
                                         tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA'
                                             ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                            : "bg-muted text-muted-foreground hover:bg-muted"
                                     )}
                                 >
                                     Receita
@@ -230,7 +230,7 @@ export const NovaTransacao: React.FC = () => {
                                         "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all",
                                         tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA'
                                             ? "bg-red-500 text-white shadow-lg shadow-red-500/30"
-                                            : "bg-muted text-muted-foreground hover:bg-muted/80"
+                                            : "bg-muted text-muted-foreground hover:bg-muted"
                                     )}
                                 >
                                     Despesa
@@ -247,7 +247,7 @@ export const NovaTransacao: React.FC = () => {
                                     value={descricao}
                                     onChange={e => setDescricao(e.target.value)}
                                     placeholder="Ex: Liquidação de Fatura, Manutenção Preventiva..."
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
                                 />
                             </div>
 
@@ -264,7 +264,7 @@ export const NovaTransacao: React.FC = () => {
                                             value={valor}
                                             onChange={e => setValor(e.target.value)}
                                             placeholder="0,00"
-                                            className="w-full h-14 pl-10 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black text-lg outline-none"
+                                            className="w-full h-14 pl-10 pr-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black text-lg outline-none"
                                         />
                                     </div>
                                 </div>
@@ -273,7 +273,7 @@ export const NovaTransacao: React.FC = () => {
                                     <select
                                         value={moeda}
                                         onChange={e => setMoeda(e.target.value as Moeda)}
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     >
                                         <option value={Moeda.BRL}>BRL - Real</option>
                                         <option value={Moeda.USD}>USD - Dólar</option>
@@ -289,7 +289,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={categoriaReceita}
                                             onChange={e => setCategoriaReceita(e.target.value as CategoriaReceita)}
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                         >
                                             <option value={CategoriaReceita.VENDA_PASSAGEM}>Venda de Passagem</option>
                                             <option value={CategoriaReceita.FRETAMENTO}>Fretamento</option>
@@ -301,7 +301,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={categoriaDespesa}
                                             onChange={e => setCategoriaDespesa(e.target.value as CategoriaDespesa)}
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                         >
                                             <option value={CategoriaDespesa.COMBUSTIVEL}>Combustível</option>
                                             <option value={CategoriaDespesa.MANUTENCAO}>Manutenção</option>
@@ -328,7 +328,7 @@ export const NovaTransacao: React.FC = () => {
                                             value={numeroDocumento}
                                             onChange={e => setNumeroDocumento(e.target.value)}
                                             placeholder="Ex: NF-123.456"
-                                            className="w-full h-14 pl-12 pr-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
+                                            className="w-full h-14 pl-12 pr-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-bold text-sm outline-none"
                                         />
                                     </div>
                                 </div>
@@ -337,7 +337,7 @@ export const NovaTransacao: React.FC = () => {
                                     <select
                                         value={formaPagamento}
                                         onChange={e => setFormaPagamento(e.target.value as FormaPagamento)}
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     >
                                         <option value={FormaPagamento.CASH}>Dinheiro Vivo</option>
                                         <option value={FormaPagamento.PIX}>PIX Instantâneo</option>
@@ -365,7 +365,7 @@ export const NovaTransacao: React.FC = () => {
                                         required
                                         value={centroCusto}
                                         onChange={e => setCentroCusto(e.target.value as CentroCusto)}
-                                        className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     >
                                         <option value={CentroCusto.ESTOQUE}>Estoque - Ativos e Equipamentos</option>
                                         <option value={CentroCusto.VENDAS}>Comercial - Serviços e Vendas</option>
@@ -380,7 +380,7 @@ export const NovaTransacao: React.FC = () => {
                                             required
                                             value={classificacaoContabil}
                                             onChange={e => setClassificacaoContabil(e.target.value as ClassificacaoContabil)}
-                                            className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                         >
                                             <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Estrutural Fixo</option>
                                             <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Operacional Variável</option>
@@ -391,8 +391,8 @@ export const NovaTransacao: React.FC = () => {
                                 )}
                             </div>
 
-                            <div className="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
-                                <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500 mt-1">
+                            <div className="p-4 rounded-sm bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
+                                <div className="p-2 bg-blue-500/10 rounded-sm text-blue-500 mt-1">
                                     <AlertCircle size={16} />
                                 </div>
                                 <div className="space-y-1">
@@ -417,7 +417,7 @@ export const NovaTransacao: React.FC = () => {
                             onChange={e => setObservacoes(e.target.value)}
                             rows={4}
                             placeholder="Notas detalhadas sobre a transação financeira..."
-                            className="w-full p-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none resize-none"
+                            className="w-full p-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm outline-none resize-none"
                         />
                     </FormSection>
                 </div>
@@ -453,7 +453,7 @@ export const NovaTransacao: React.FC = () => {
                                     required
                                     value={status}
                                     onChange={e => setStatus(e.target.value as StatusTransacao)}
-                                    className="w-full h-14 px-4 rounded-xl bg-muted/40 border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                    className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                 >
                                     <option value={StatusTransacao.PENDING}>AGUARDANDO PAGAMENTO</option>
                                     <option value={StatusTransacao.PAID}>LIQUIDADO / PAGO</option>
@@ -465,7 +465,7 @@ export const NovaTransacao: React.FC = () => {
                     </FormSection>
 
                     {/* Ficha de Transparência */}
-                    <div className="p-8 rounded-3xl bg-muted/30 border border-border/40 space-y-4">
+                    <div className="p-8 rounded-sm bg-muted border border-border/40 space-y-4">
                         <div className="flex items-center gap-3 text-primary">
                             <CheckCircle2 size={18} />
                             <h4 className="text-[12px] font-black uppercase tracking-widest">Compliance Financeiro</h4>

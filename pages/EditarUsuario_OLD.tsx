@@ -30,7 +30,7 @@ export const EditarUsuario: React.FC = () => {
             <div className="flex items-center gap-4">
                 <button
                     onClick={() => navigate('/admin/usuarios')}
-                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-sm transition-colors"
                 >
                     <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
                 </button>
@@ -41,7 +41,7 @@ export const EditarUsuario: React.FC = () => {
             </div>
 
             <div className="max-w-4xl">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
+                <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-sm p-8">
                     <UserProfileForm
                         userId={id!}
                         onSave={handleSave}

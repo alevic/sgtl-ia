@@ -319,9 +319,9 @@ export const CheckoutReserva: React.FC = () => {
     if (success && paymentResult) {
         return (
             <div className="max-w-xl mx-auto px-4 py-12">
-                <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
+                <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
                     <div className="p-8 text-center bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
-                        <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div className="w-20 h-20 bg-white/20   rounded-full flex items-center justify-center mx-auto mb-6">
                             <CheckCircle2 size={48} />
                         </div>
                         <h2 className="text-3xl font-black mb-2">Reserva Realizada!</h2>
@@ -331,7 +331,7 @@ export const CheckoutReserva: React.FC = () => {
                     <div className="p-8">
                         {paymentMethod === 'PIX' ? (
                             <div className="space-y-6 text-center">
-                                <div className="inline-block p-4 bg-white rounded-2xl border-2 border-slate-100 shadow-sm mb-4">
+                                <div className="inline-block p-4 bg-white rounded-sm border-2 border-slate-100 shadow-sm mb-4">
                                     {paymentResult.qrCode ? (
                                         <img src={paymentResult.qrCode} alt="PIX QR Code" className="w-48 h-48 mx-auto" />
                                     ) : (
@@ -347,21 +347,21 @@ export const CheckoutReserva: React.FC = () => {
                                         <input
                                             readOnly
                                             value={paymentResult.copyPasteCode}
-                                            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-mono truncate"
+                                            className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-sm text-sm font-mono truncate"
                                         />
                                         <button
                                             onClick={() => {
                                                 navigator.clipboard.writeText(paymentResult.copyPasteCode || '');
                                                 alert('Código PIX copiado!');
                                             }}
-                                            className="p-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+                                            className="p-3 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors"
                                         >
                                             <Copy size={20} />
                                         </button>
                                     </div>
                                 </div>
 
-                                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-100 dark:border-amber-800 text-left">
+                                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-sm border border-amber-100 dark:border-amber-800 text-left">
                                     <p className="text-xs text-amber-800 dark:text-amber-400 leading-relaxed">
                                         <strong>⚠️ Atenção:</strong> O pagamento via PIX é instantâneo. Assim que o processamento for concluído, você receberá um e-mail de confirmação.
                                     </p>
@@ -369,7 +369,7 @@ export const CheckoutReserva: React.FC = () => {
                             </div>
                         ) : (
                             <div className="space-y-6 text-center py-8">
-                                <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-sm flex items-center justify-center mx-auto mb-6">
                                     <CreditCard size={40} />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">Pague com Cartão ou Boleto</h3>
@@ -380,7 +380,7 @@ export const CheckoutReserva: React.FC = () => {
                                     href={paymentResult.paymentLink}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-blue-500/30 hover:bg-blue-700 transition-all active:scale-[0.98]"
+                                    className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-sm font-black text-lg shadow-xl shadow-blue-500/30 hover:bg-blue-700 transition-all active:scale-[0.98]"
                                 >
                                     Pagar Agora
                                     <ExternalLink size={20} />
@@ -423,9 +423,9 @@ export const CheckoutReserva: React.FC = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <button
                                 onClick={() => navigate(`/cliente/login?returnUrl=${returnUrl}`)}
-                                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl hover:border-blue-500 transition-all group"
+                                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-sm hover:border-blue-500 transition-all group"
                             >
-                                <div className="w-12 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <div className="w-12 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-sm flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     <User size={24} />
                                 </div>
                                 <span className="font-bold text-slate-800 dark:text-white">Já sou cliente</span>
@@ -434,9 +434,9 @@ export const CheckoutReserva: React.FC = () => {
 
                             <button
                                 onClick={() => navigate(`/cliente/signup?returnUrl=${returnUrl}`)}
-                                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl hover:border-emerald-500 transition-all group"
+                                className="flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-sm hover:border-emerald-500 transition-all group"
                             >
-                                <div className="w-12 h-14 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                                <div className="w-12 h-14 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-sm flex items-center justify-center mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                                     <User size={24} />
                                 </div>
                                 <span className="font-bold text-slate-800 dark:text-white">Ainda não sou cliente</span>
@@ -445,12 +445,12 @@ export const CheckoutReserva: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-3xl border border-slate-100 dark:border-slate-800">
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-8 rounded-sm border border-slate-100 dark:border-slate-800">
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Resumo da Reserva</h3>
 
                         <div className="space-y-6">
                             <div className="flex gap-4">
-                                <div className="w-12 h-14 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
+                                <div className="w-12 h-14 bg-white dark:bg-slate-800 rounded-sm flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
                                     <Bus size={24} />
                                 </div>
                                 <div>
@@ -460,7 +460,7 @@ export const CheckoutReserva: React.FC = () => {
                             </div>
 
                             <div className="flex gap-4">
-                                <div className="w-12 h-14 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
+                                <div className="w-12 h-14 bg-white dark:bg-slate-800 rounded-sm flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-blue-600">
                                     <Calendar size={24} />
                                 </div>
                                 <div>
@@ -501,7 +501,7 @@ export const CheckoutReserva: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Form Section */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
                         <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                             <User size={20} className="text-blue-600" />
                             Dados dos Passageiros
@@ -509,7 +509,7 @@ export const CheckoutReserva: React.FC = () => {
 
                         <form onSubmit={handleSubmit} className="space-y-8">
                             {passengers.map((p, index) => (
-                                <div key={p.seat_number} className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 relative overflow-hidden">
+                                <div key={p.seat_number} className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-slate-100 dark:border-slate-800 relative overflow-hidden">
                                     <div className="absolute top-0 right-0 py-1 px-3 bg-blue-600 text-white text-[12px] font-bold uppercase tracking-widest rounded-bl-lg">
                                         Assento {p.seat_number}
                                     </div>
@@ -523,7 +523,7 @@ export const CheckoutReserva: React.FC = () => {
                                                     required
                                                     value={p.name}
                                                     onChange={(e) => handlePassengerChange(index, 'name', e.target.value)}
-                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                                     placeholder="Como no documento"
                                                 />
                                             </div>
@@ -534,7 +534,7 @@ export const CheckoutReserva: React.FC = () => {
                                                     required
                                                     value={p.document}
                                                     onChange={(e) => handlePassengerChange(index, 'document', e.target.value)}
-                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                                     placeholder="000.000.000-00"
                                                 />
                                             </div>
@@ -545,7 +545,7 @@ export const CheckoutReserva: React.FC = () => {
                                                     required
                                                     value={p.phone}
                                                     onChange={(e) => handlePassengerChange(index, 'phone', e.target.value)}
-                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
                                                     placeholder="(00) 00000-0000"
                                                 />
                                             </div>
@@ -560,7 +560,7 @@ export const CheckoutReserva: React.FC = () => {
                                                 <select
                                                     value={p.boarding_point || ''}
                                                     onChange={(e) => handlePassengerChange(index, 'boarding_point', e.target.value)}
-                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all dark:text-white font-medium"
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all dark:text-white font-medium"
                                                     required
                                                 >
                                                     <option value="">Selecione...</option>
@@ -582,7 +582,7 @@ export const CheckoutReserva: React.FC = () => {
                                                 <select
                                                     value={p.dropoff_point || ''}
                                                     onChange={(e) => handlePassengerChange(index, 'dropoff_point', e.target.value)}
-                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all dark:text-white font-medium"
+                                                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none appearance-none transition-all dark:text-white font-medium"
                                                     required
                                                 >
                                                     <option value="">Selecione...</option>
@@ -605,9 +605,9 @@ export const CheckoutReserva: React.FC = () => {
                             {(clientProfile?.saldo_creditos > 0 || totalSelecionado > 0) && (
                                 <div className="space-y-4 pt-6 border-t border-slate-200 dark:border-slate-700">
                                     {clientProfile?.saldo_creditos > 0 && (
-                                        <div className={`p-4 rounded-2xl border transition-all ${useCredits ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
+                                        <div className={`p-4 rounded-sm border transition-all ${useCredits ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-12 h-14 rounded-xl flex items-center justify-center transition-colors ${useCredits ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                                <div className={`w-12 h-14 rounded-sm flex items-center justify-center transition-colors ${useCredits ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                                                     <Wallet size={24} />
                                                 </div>
                                                 <div className="flex-1">
@@ -622,7 +622,7 @@ export const CheckoutReserva: React.FC = () => {
                                                         type="checkbox"
                                                         checked={useCredits}
                                                         onChange={(e) => setUseCredits(e.target.checked)}
-                                                        className="w-6 h-6 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                                                        className="w-6 h-6 rounded-sm border-slate-300 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
                                                     />
                                                 </div>
                                             </div>
@@ -637,9 +637,9 @@ export const CheckoutReserva: React.FC = () => {
                                         </div>
                                     )}
 
-                                    <div className={`p-4 rounded-2xl border transition-all ${isPartialPayment ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
+                                    <div className={`p-4 rounded-sm border transition-all ${isPartialPayment ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800' : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800'}`}>
                                         <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-14 rounded-xl flex items-center justify-center transition-colors ${isPartialPayment ? 'bg-purple-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
+                                            <div className={`w-12 h-14 rounded-sm flex items-center justify-center transition-colors ${isPartialPayment ? 'bg-purple-600 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'}`}>
                                                 <CreditCard size={24} />
                                             </div>
                                             <div className="flex-1">
@@ -651,7 +651,7 @@ export const CheckoutReserva: React.FC = () => {
                                                     type="checkbox"
                                                     checked={isPartialPayment}
                                                     onChange={(e) => setIsPartialPayment(e.target.checked)}
-                                                    className="w-6 h-6 rounded-lg border-slate-300 text-purple-600 focus:ring-purple-500 transition-all cursor-pointer"
+                                                    className="w-6 h-6 rounded-sm border-slate-300 text-purple-600 focus:ring-purple-500 transition-all cursor-pointer"
                                                 />
                                             </div>
                                         </div>
@@ -672,7 +672,7 @@ export const CheckoutReserva: React.FC = () => {
                             )}
 
                             {/* Payment Selection */}
-                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
+                            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-sm border border-slate-100 dark:border-slate-800 p-6">
                                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <CreditCard size={16} />
                                     Forma de Pagamento
@@ -682,9 +682,9 @@ export const CheckoutReserva: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setPaymentMethod('PIX')}
-                                        className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-2xl transition-all ${paymentMethod === 'PIX' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
+                                        className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-sm transition-all ${paymentMethod === 'PIX' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
                                     >
-                                        <div className="w-12 h-14 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-3">
+                                        <div className="w-12 h-14 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-sm flex items-center justify-center mb-3">
                                             <QrCode size={24} />
                                         </div>
                                         <span className="font-bold text-slate-800 dark:text-white">PIX</span>
@@ -694,9 +694,9 @@ export const CheckoutReserva: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setPaymentMethod('LINK')}
-                                        className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-2xl transition-all ${paymentMethod === 'LINK' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
+                                        className={`flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 border-2 rounded-sm transition-all ${paymentMethod === 'LINK' ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'}`}
                                     >
-                                        <div className="w-12 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center mb-3">
+                                        <div className="w-12 h-14 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-sm flex items-center justify-center mb-3">
                                             <CreditCard size={24} />
                                         </div>
                                         <span className="font-bold text-slate-800 dark:text-white">Cartão ou Boleto</span>
@@ -715,7 +715,7 @@ export const CheckoutReserva: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                                className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-sm font-bold shadow-lg shadow-blue-500/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
                             >
                                 {isSubmitting ? (
                                     <Loader className="animate-spin" size={20} />
@@ -733,7 +733,7 @@ export const CheckoutReserva: React.FC = () => {
                 {/* Summary Section */}
                 <div className="lg:col-span-1">
                     <div className="sticky top-8 space-y-6">
-                        <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl p-6">
+                        <div className="bg-white dark:bg-slate-800 rounded-sm border border-slate-200 dark:border-slate-700 shadow-xl p-6">
                             <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                                 <ShieldCheck size={20} className="text-blue-600" />
                                 Resumo da Reserva
@@ -741,7 +741,7 @@ export const CheckoutReserva: React.FC = () => {
 
                             <div className="space-y-4 mb-6">
                                 <div className="flex gap-3">
-                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 h-fit">
+                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-sm text-blue-600 h-fit">
                                         <Bus size={20} />
                                     </div>
                                     <div>
@@ -751,7 +751,7 @@ export const CheckoutReserva: React.FC = () => {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600 h-fit">
+                                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-sm text-blue-600 h-fit">
                                         <Calendar size={20} />
                                     </div>
                                     <div>
@@ -779,7 +779,7 @@ export const CheckoutReserva: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-800/30 space-y-4">
+                            <div className="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-sm border border-emerald-100 dark:border-emerald-800/30 space-y-4">
                                 <div className="space-y-1">
                                     <div className="flex justify-between items-center">
                                         <span className="text-xs font-bold text-slate-500 uppercase">Passagens ({passengers.length})</span>
@@ -815,7 +815,7 @@ export const CheckoutReserva: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="p-4 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-500/20">
+                        <div className="p-4 bg-blue-600 rounded-sm text-white shadow-lg shadow-blue-500/20">
                             <div className="flex items-center gap-3 mb-2">
                                 <ShieldCheck size={24} className="opacity-80" />
                                 <p className="font-bold text-sm">Reserva 100% Segura</p>

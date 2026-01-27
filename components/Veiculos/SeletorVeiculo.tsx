@@ -90,7 +90,7 @@ export const SeletorVeiculo: React.FC<SeletorVeiculoProps> = ({
     return (
         <div className={`relative ${className}`} ref={wrapperRef}>
             <div
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus-within:ring-2 focus-within:ring-blue-500 cursor-pointer flex items-center justify-between min-h-[42px]"
+                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus-within:ring-2 focus-within:ring-blue-500 cursor-pointer flex items-center justify-between min-h-[42px]"
                 onClick={() => {
                     setIsOpen(!isOpen);
                     if (!isOpen) fetchVehicles('');
@@ -119,7 +119,7 @@ export const SeletorVeiculo: React.FC<SeletorVeiculoProps> = ({
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-60 overflow-hidden flex flex-col">
+                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-sm shadow-lg max-h-60 overflow-hidden flex flex-col">
                     <div className="p-2 border-b border-slate-100 dark:border-slate-700">
                         <div className="relative">
                             <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">🔍</span>

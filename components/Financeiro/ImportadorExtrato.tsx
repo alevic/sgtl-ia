@@ -65,7 +65,7 @@ export const ImportadorExtrato: React.FC<ImportadorExtratoProps> = ({ onImport }
     return (
         <div className="w-full">
             <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer
+                className={`border-2 border-dashed rounded-sm p-8 text-center transition-colors cursor-pointer
                     ${isDragging
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                         : 'border-slate-300 dark:border-slate-600 hover:border-blue-400 hover:bg-slate-50 dark:hover:bg-slate-800/50'
@@ -99,14 +99,14 @@ export const ImportadorExtrato: React.FC<ImportadorExtratoProps> = ({ onImport }
             </div>
 
             {isProcessing && (
-                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg flex items-center gap-3 animate-pulse">
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-sm flex items-center gap-3 animate-pulse">
                     <FileText size={20} />
                     <span>Processando arquivo...</span>
                 </div>
             )}
 
             {error && (
-                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg flex items-center gap-3">
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-sm flex items-center gap-3">
                     <AlertCircle size={20} />
                     <span>{error}</span>
                     <button onClick={() => setError(null)} className="ml-auto hover:bg-red-100 dark:hover:bg-red-800/30 p-1 rounded">

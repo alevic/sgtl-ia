@@ -123,7 +123,7 @@ export const MotoristaDetalhes: React.FC = () => {
                     <h3 className="text-xl font-black text-foreground uppercase tracking-tight">Motorista não localizado</h3>
                     <p className="text-muted-foreground font-medium mt-1">O registro solicitado não existe em nossa base de dados.</p>
                 </div>
-                <Button onClick={() => navigate('/admin/motoristas')} variant="outline" className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-xl">
+                <Button onClick={() => navigate('/admin/motoristas')} variant="outline" className="h-12 px-8 font-black uppercase text-[11px] tracking-widest rounded-sm">
                     Voltar para Listagem
                 </Button>
             </div>
@@ -146,12 +146,12 @@ export const MotoristaDetalhes: React.FC = () => {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="gap-3">
-                        <AlertDialogCancel className="h-12 px-6 rounded-xl font-black uppercase text-[11px] tracking-widest border-border hover:bg-muted transition-all">
+                        <AlertDialogCancel className="h-12 px-6 rounded-sm font-black uppercase text-[11px] tracking-widest border-border hover:bg-muted transition-all">
                             Manter Registro
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={confirmDelete}
-                            className="h-12 px-8 rounded-xl font-black uppercase text-[11px] tracking-widest bg-rose-600 text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/20"
+                            className="h-12 px-8 rounded-sm font-black uppercase text-[11px] tracking-widest bg-rose-600 text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/20"
                         >
                             Confirmar Remoção
                         </AlertDialogAction>
@@ -185,13 +185,13 @@ export const MotoristaDetalhes: React.FC = () => {
                                 variant="outline"
                                 onClick={handleDelete}
                                 disabled={isDeleting}
-                                className="h-14 px-8 rounded-2xl font-black uppercase text-[11px] tracking-widest border-border/50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all duration-300"
+                                className="h-14 px-8 rounded-sm font-black uppercase text-[11px] tracking-widest border-border/50 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all duration-300"
                             >
                                 <Trash2 size={18} className="mr-2" />
                                 {isDeleting ? 'Excluindo...' : 'Excluir'}
                             </Button>
                             <Link to={`/admin/motoristas/${id}/editar`}>
-                                <Button className="h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300">
+                                <Button className="h-14 px-10 rounded-sm font-black uppercase text-[11px] tracking-widest bg-primary text-primary-foreground shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-300">
                                     <Edit size={18} className="mr-2" />
                                     Editar Registro
                                 </Button>
@@ -234,25 +234,25 @@ export const MotoristaDetalhes: React.FC = () => {
             </div>
 
             <Tabs defaultValue="perfil" value={activeTab} onValueChange={setActiveTab} className="w-full space-y-10">
-                <Card className="p-2 bg-card/60 backdrop-blur-xl border border-border/50 rounded-[2.5rem] shadow-2xl shadow-primary/5">
+                <Card className="p-2 bg-card   border border-border/50 rounded-[2.5rem] shadow-2xl shadow-primary/5">
                     <TabsList className="w-full h-20 bg-transparent flex gap-2 p-2">
                         <TabsTrigger
                             value="perfil"
-                            className="flex-1 h-full rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
+                            className="flex-1 h-full rounded-sm font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
                         >
                             <User size={18} className="mr-2" />
                             Perfil do Operador
                         </TabsTrigger>
                         <TabsTrigger
                             value="documentacao"
-                            className="flex-1 h-full rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
+                            className="flex-1 h-full rounded-sm font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
                         >
                             <ShieldCheck size={18} className="mr-2" />
                             Certificações & Docs
                         </TabsTrigger>
                         <TabsTrigger
                             value="logs"
-                            className="flex-1 h-full rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
+                            className="flex-1 h-full rounded-sm font-black uppercase text-[11px] tracking-[0.2em] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-500"
                         >
                             <History size={18} className="mr-2" />
                             Histórico de Operação
@@ -269,7 +269,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                         <h3 className="text-section-header flex items-center gap-2">
                                             <User size={16} className="text-primary" /> Identificação & Status
                                         </h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-muted p-8 rounded-[2rem] border border-border/30">
                                             <div className="space-y-1">
                                                 <p className="text-label-caps">E-mail Corporativo</p>
                                                 <p className="text-base font-bold text-foreground">{motorista.email || '-'}</p>
@@ -325,10 +325,10 @@ export const MotoristaDetalhes: React.FC = () => {
                                         <h3 className="text-section-header flex items-center gap-2">
                                             <Award size={16} className="text-primary" /> Qualificações & Competências
                                         </h3>
-                                        <div className="space-y-6 bg-muted/10 p-8 rounded-[2rem] border border-border/30">
-                                            <div className="flex items-center justify-between p-4 bg-background/50 rounded-2xl border border-border/50">
+                                        <div className="space-y-6 bg-muted p-8 rounded-[2rem] border border-border/30">
+                                            <div className="flex items-center justify-between p-4 bg-background/50 rounded-sm border border-border/50">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                                                    <div className="w-10 h-10 rounded-sm bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
                                                         <Globe size={18} />
                                                     </div>
                                                     <div>
@@ -343,8 +343,8 @@ export const MotoristaDetalhes: React.FC = () => {
                                                 )}
                                             </div>
 
-                                            <div className="flex items-center gap-3 p-4 bg-background/50 rounded-2xl border border-border/50">
-                                                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                            <div className="flex items-center gap-3 p-4 bg-background/50 rounded-sm border border-border/50">
+                                                <div className="w-10 h-10 rounded-sm bg-blue-500/10 text-blue-600 flex items-center justify-center">
                                                     <Briefcase size={18} />
                                                 </div>
                                                 <div>
@@ -359,7 +359,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                         <h3 className="text-section-header flex items-center gap-2">
                                             <Info size={16} className="text-primary" /> Observações Internas
                                         </h3>
-                                        <div className="bg-card p-6 rounded-3xl border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
+                                        <div className="bg-card p-6 rounded-sm border border-border/50 text-slate-600 dark:text-slate-300 font-medium leading-relaxed italic shadow-sm">
                                             "{motorista.observacoes || 'Nenhuma observação ou restrição registrada para este perfil.'}"
                                         </div>
                                     </div>
@@ -378,7 +378,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                         <div className="relative z-10 space-y-8">
                                             <div className="flex justify-between items-center">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+                                                    <div className="w-12 h-12 bg-primary/10 rounded-sm flex items-center justify-center text-primary">
                                                         <ShieldCheck size={24} />
                                                     </div>
                                                     <div>
@@ -386,7 +386,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Carteira Nacional de Habilitação</p>
                                                     </div>
                                                 </div>
-                                                <Badge className="h-8 px-4 rounded-xl bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest">
+                                                <Badge className="h-8 px-4 rounded-sm bg-primary text-primary-foreground font-black uppercase text-[10px] tracking-widest">
                                                     CATEGORIA {motorista.categoria_cnh}
                                                 </Badge>
                                             </div>
@@ -424,7 +424,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                         "group relative overflow-hidden border rounded-[3rem] p-10 transition-all duration-500",
                                         motorista.passaporte
                                             ? "bg-card border-border hover:shadow-2xl hover:shadow-primary/5"
-                                            : "bg-muted/5 border-dashed border-border/50 opacity-60"
+                                            : "bg-muted border-dashed border-border/50 opacity-60"
                                     )}>
                                         <div className="absolute top-0 right-0 p-8 text-primary/5 group-hover:text-primary/10 transition-colors text-right">
                                             <Globe size={120} />
@@ -433,7 +433,7 @@ export const MotoristaDetalhes: React.FC = () => {
                                             <div className="flex justify-between items-center">
                                                 <div className="flex items-center gap-3">
                                                     <div className={cn(
-                                                        "w-12 h-12 rounded-2xl flex items-center justify-center",
+                                                        "w-12 h-12 rounded-sm flex items-center justify-center",
                                                         motorista.passaporte ? "bg-blue-500/10 text-blue-600" : "bg-muted text-muted-foreground"
                                                     )}>
                                                         <Globe size={24} />

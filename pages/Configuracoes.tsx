@@ -60,7 +60,7 @@ const SettingField: React.FC<ISettingFieldProps> = ({
         <div className="space-y-2">
             <div className="flex justify-between items-baseline">
                 <label className="text-label-caps ml-1">{label}</label>
-                <code className="text-section-description bg-primary/5 px-2 py-0.5 rounded-lg border border-primary/10">
+                <code className="text-section-description bg-primary/5 px-2 py-0.5 rounded-sm border border-primary/10">
                     {k}
                 </code>
             </div>
@@ -71,21 +71,21 @@ const SettingField: React.FC<ISettingFieldProps> = ({
                     value={value}
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full p-4 bg-muted/40 border border-border/50 rounded-xl font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none h-28"
+                    className="w-full p-4 bg-muted border border-border/50 rounded-sm font-medium text-sm transition-all focus:ring-2 focus:ring-primary/20 outline-none resize-none h-28"
                 />
             ) : type === 'select' ? (
                 <div className="relative group">
                     <select
                         value={value}
                         onChange={(e) => handleChange(e.target.value)}
-                        className="w-full h-14 px-4 bg-muted/40 border border-border/50 rounded-xl font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer text-sm"
+                        className="w-full h-14 px-4 bg-muted border border-border/50 rounded-sm font-bold transition-all focus:ring-2 focus:ring-primary/20 outline-none appearance-none cursor-pointer text-sm"
                     >
                         {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                     </select>
                     <ChevronRight size={16} className="absolute right-4 top-1/2 -translate-y-1/2 rotate-90 text-muted-foreground pointer-events-none group-hover:text-primary transition-colors" />
                 </div>
             ) : type === 'checkbox' ? (
-                <div className="flex items-center gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+                <div className="flex items-center gap-3 bg-muted p-4 rounded-sm border border-border/40">
                     <label className="relative inline-flex items-center cursor-pointer">
                         <input
                             type="checkbox"
@@ -109,7 +109,7 @@ const SettingField: React.FC<ISettingFieldProps> = ({
                     value={value}
                     onChange={(e) => handleChange(e.target.value)}
                     placeholder={placeholder}
-                    className="h-14 bg-muted/40 border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                    className="h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                 />
             )}
         </div>
@@ -442,12 +442,12 @@ export const Configuracoes: React.FC = () => {
                                 placeholder="Localizar parâmetro..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-14 pl-12 bg-card/50 backdrop-blur-sm border-input rounded-xl font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20 text-[12px] tracking-tight"
+                                className="h-14 pl-12 bg-card   border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20 text-[12px] tracking-tight"
                             />
                         </div>
                         <Button
                             onClick={() => setIsModalOpen(true)}
-                            className="h-14 rounded-xl px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <Plus size={16} className="mr-2" strokeWidth={3} />
                             Novo Parâmetro
@@ -459,7 +459,7 @@ export const Configuracoes: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 overflow-hidden">
                 {/* Sidebar Premium */}
                 <div className="lg:col-span-1 space-y-4 overflow-hidden flex flex-col">
-                    <Card className="flex-1 shadow-2xl shadow-muted/20 bg-card/50 backdrop-blur-sm border border-border/40 rounded-[2.5rem] overflow-hidden p-3 flex flex-col">
+                    <Card className="flex-1 shadow-2xl shadow-muted/20 bg-card   border border-border/40 rounded-[2.5rem] overflow-hidden p-3 flex flex-col">
                         <div className="p-4 border-b border-border/50 mb-2">
                             <span className="text-section-header">Arquitetura de Dados</span>
                         </div>
@@ -468,9 +468,9 @@ export const Configuracoes: React.FC = () => {
                                 <button
                                     key={group}
                                     onClick={() => { setSelectedGroup(group); setSearchQuery(''); }}
-                                    className={`w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all ${selectedGroup === group && !searchQuery
+                                    className={`w-full flex items-center justify-between px-6 py-4 rounded-sm transition-all ${selectedGroup === group && !searchQuery
                                         ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                                         }`}
                                 >
                                     <span className="text-label-caps">{group}</span>
@@ -480,7 +480,7 @@ export const Configuracoes: React.FC = () => {
                         </div>
                     </Card>
 
-                    <Card className="p-8 bg-primary/5 border-dashed border-primary/20 rounded-3xl">
+                    <Card className="p-8 bg-primary/5 border-dashed border-primary/20 rounded-sm">
                         <h4 className="text-section-header text-primary mb-2">Segurança de Rede</h4>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
@@ -501,7 +501,7 @@ export const Configuracoes: React.FC = () => {
                                     </Alert>
                                 )}
                                 {success && (
-                                    <Alert className="border-emerald-500 text-emerald-600 bg-emerald-50/50 backdrop-blur-sm animate-in fade-in slide-in-from-top-2">
+                                    <Alert className="border-emerald-500 text-emerald-600 bg-emerald-50/50   animate-in fade-in slide-in-from-top-2">
                                         <CheckCircle2 className="h-4 w-4" />
                                         <AlertDescription className="text-xs font-bold uppercase tracking-tight">{success}</AlertDescription>
                                     </Alert>
@@ -522,7 +522,7 @@ export const Configuracoes: React.FC = () => {
                                 <Button
                                     onClick={() => handleSaveBatch(filteredParameters.map(p => ({ key: p.key, description: PARAM_METADATA[p.key]?.description || p.description })))}
                                     disabled={isSaving}
-                                    className="h-14 rounded-xl px-10 bg-foreground text-background font-black uppercase text-[12px] tracking-widest shadow-lg transition-all hover:scale-[1.02]"
+                                    className="h-14 rounded-sm px-10 bg-foreground text-background font-black uppercase text-[12px] tracking-widest shadow-lg transition-all hover:scale-[1.02]"
                                 >
                                     {isSaving ? <Loader2 className="animate-spin mr-2" size={16} /> : <Save className="mr-2" size={16} />}
                                     Sincronizar Módulo
@@ -534,17 +534,17 @@ export const Configuracoes: React.FC = () => {
                             {filteredParameters.map(param => {
                                 const meta = PARAM_METADATA[param.key];
                                 return (
-                                    <Card key={param.id} className="group/card shadow-xl shadow-muted/10 bg-card/50 backdrop-blur-sm border border-border/40 rounded-3xl p-8 hover:border-primary/40 transition-all">
+                                    <Card key={param.id} className="group/card shadow-xl shadow-muted/10 bg-card   border border-border/40 rounded-sm p-8 hover:border-primary/40 transition-all">
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="space-y-1">
                                                 <h4 className="text-section-header">{meta?.label || param.key}</h4>
-                                                <code className="inline-block text-section-description bg-muted/50 px-2 py-0.5 rounded-lg text-primary">
+                                                <code className="inline-block text-section-description bg-muted px-2 py-0.5 rounded-sm text-primary">
                                                     {param.key}
                                                 </code>
                                             </div>
                                             <button
                                                 onClick={() => handleDeleteParameter(param.id)}
-                                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all opacity-0 group-hover/card:opacity-100"
+                                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-sm transition-all opacity-0 group-hover/card:opacity-100"
                                             >
                                                 <Trash2 size={14} />
                                             </button>
@@ -554,7 +554,7 @@ export const Configuracoes: React.FC = () => {
                                             {meta?.description || param.description || 'CONFORME PROTOCOLO PADRÃO'}
                                         </p>
 
-                                        <div className="p-6 bg-muted/20 rounded-xl border border-border/30">
+                                        <div className="p-6 bg-muted rounded-sm border border-border/30">
                                             <SettingField
                                                 label=""
                                                 k={param.key}
@@ -575,8 +575,8 @@ export const Configuracoes: React.FC = () => {
 
             {/* Modal for New Parameter */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50   p-4">
+                    <div className="bg-white dark:bg-slate-800 rounded-sm w-full max-w-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transform transition-all">
                         <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
                             <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                 <Plus size={24} className="text-blue-500" />
@@ -601,7 +601,7 @@ export const Configuracoes: React.FC = () => {
                                         type="text"
                                         value={newParam.key}
                                         onChange={(e) => setNewParam({ ...newParam, key: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono text-sm"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono text-sm"
                                         placeholder="ex: system_custom_key"
                                         required
                                     />
@@ -614,7 +614,7 @@ export const Configuracoes: React.FC = () => {
                                         <select
                                             value={newParam.group_name}
                                             onChange={(e) => setNewParam({ ...newParam, group_name: e.target.value })}
-                                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer"
+                                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer"
                                         >
                                             {groups.map(g => <option key={g} value={g}>{g}</option>)}
                                         </select>
@@ -628,7 +628,7 @@ export const Configuracoes: React.FC = () => {
                                         type="text"
                                         value={newParam.value}
                                         onChange={(e) => setNewParam({ ...newParam, value: e.target.value })}
-                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-sm outline-none focus:ring-2 focus:ring-blue-500 transition-all"
                                         placeholder="Valor do parâmetro"
                                         required
                                     />
@@ -639,7 +639,7 @@ export const Configuracoes: React.FC = () => {
                                     <textarea
                                         value={newParam.description}
                                         onChange={(e) => setNewParam({ ...newParam, description: e.target.value })}
-                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none transition-all"
+                                        className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-sm outline-none focus:ring-2 focus:ring-blue-500 h-24 resize-none transition-all"
                                         placeholder="Descreva a finalidade deste parâmetro..."
                                     />
                                 </div>
@@ -648,14 +648,14 @@ export const Configuracoes: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}
-                                        className="px-6 py-2.5 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all"
+                                        className="px-6 py-2.5 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-sm transition-all"
                                     >
                                         Cancelar
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSaving}
-                                        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isSaving ? <Loader2 className="animate-spin text-white" size={18} /> : <Check size={18} />}
                                         Criar Parâmetro
