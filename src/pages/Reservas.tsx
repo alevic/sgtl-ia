@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { IReserva, ReservationStatus, ReservationStatusLabel } from '../../types';
+import { IReserva, ReservationStatus, ReservationStatusLabel } from '@/types';
 import { reservationsService } from '../services/reservationsService';
 import { transactionsService } from '../services/transactionsService';
 import { clientsService } from '../services/clientsService';
 import { vehiclesService } from '../services/vehiclesService';
 import { tripsService } from '../services/tripsService';
-import { TipoTransacao, StatusTransacao, FormaPagamento, CategoriaReceita, CategoriaDespesa, IVeiculo, IViagem } from '../../types';
+import { TipoTransacao, StatusTransacao, FormaPagamento, CategoriaReceita, CategoriaDespesa, IVeiculo, IViagem } from '@/types';
 import {
     Ticket, User, Bus, Calendar, DollarSign, Filter, Plus, Search, Loader,
     Edit, Trash2, XCircle, RefreshCw, MoreVertical, X, Save, AlertTriangle,

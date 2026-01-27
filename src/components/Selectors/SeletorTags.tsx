@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, Check, Tag as TagIcon, ChevronDown, Loader } from 'lucide-react';
-import { ITag } from '../../../types';
+import { ITag } from '@/types';
 import { tripsService } from '../../services/tripsService';
 
 interface SeletorTagsProps {

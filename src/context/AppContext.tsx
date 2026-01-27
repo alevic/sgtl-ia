@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { EmpresaContexto, IEmpresa } from '../../types';
+import { EmpresaContexto, IEmpresa } from '@/types';
 import { authClient } from '../lib/auth-client';
 
 type Theme = 'light' | 'dark';

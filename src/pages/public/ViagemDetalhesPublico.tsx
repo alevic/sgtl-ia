@@ -11,7 +11,7 @@ import { vehiclesService } from '../../services/vehiclesService';
 import { reservationsService } from '../../services/reservationsService';
 import { MapaAssentosReserva } from '../../components/Veiculos/MapaAssentosReserva';
 import { publicService } from '../../services/publicService';
-import { IViagem, IVeiculo, TipoAssento, ITag, AssentoStatus } from '../../../types';
+import { IViagem, IVeiculo, TipoAssento, ITag, AssentoStatus } from '@/types';
 import { Circle, Star, Armchair, Moon, Bed, Crown, Lock } from 'lucide-react';
 
 const SEAT_ICONS: Record<string, React.ElementType> = {

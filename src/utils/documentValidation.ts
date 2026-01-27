@@ -1,4 +1,4 @@
-import { TipoDocumento } from '../../types';
+import { TipoDocumento } from '@/types';
 
 /**
  * Validate CPF (Cadastro de Pessoa Física)

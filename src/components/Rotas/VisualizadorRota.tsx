@@ -1,5 +1,5 @@
 import React from 'react';
-import { IRota } from '../../../types';
+import { IRota } from '@/types';
 import { MapPin, Clock, ArrowRight, Navigation } from 'lucide-react';
 import { calcularTemposRelativos } from '../../utils/rotaValidation';
 

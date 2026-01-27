@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../../../types';
+import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '@/types';
 import { Bus as BusIcon, Circle, Star, Armchair, Moon, Bed, Crown, Lock } from 'lucide-react';
 
 interface MapaAssentosReservaProps {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, Check, Download
 } from 'lucide-react';
-import { ITransacao, StatusTransacao, CategoriaReceita, Moeda, CentroCusto, TipoTransacao } from '../../types';
+import { ITransacao, StatusTransacao, CategoriaReceita, Moeda, CentroCusto, TipoTransacao } from '@/types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';

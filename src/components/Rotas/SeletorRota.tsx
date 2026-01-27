@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, X, MapPin, Clock } from 'lucide-react';
-import { IRota, RouteType } from '../../../types';
+import { IRota, RouteType } from '@/types';
 import { VisualizadorRota } from './VisualizadorRota';
 
 interface SeletorRotaProps {

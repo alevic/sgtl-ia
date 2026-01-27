@@ -5,7 +5,7 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { FormSection } from '../components/Layout/FormSection';
-import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, ReservationStatus, ReservationStatusLabel, TripStatus, TripStatusLabel } from '../../types';
+import { IViagem, IVeiculo, ICliente, Moeda, TipoAssento, ReservationStatus, ReservationStatusLabel, TripStatus, TripStatusLabel } from '@/types';
 import { SeletorViagem } from '../components/Selectors/SeletorViagem';
 import { SeletorPassageiro } from '../components/Selectors/SeletorPassageiro';
 import { ModalNovoCliente } from '../components/Selectors/ModalNovoCliente';
@@ -17,7 +17,7 @@ import { vehiclesService } from '../services/vehiclesService';
 import { reservationsService } from '../services/reservationsService';
 import { paymentService, IPaymentResponse } from '../services/paymentService';
 import { transactionsService } from '../services/transactionsService';
-import { TipoTransacao, StatusTransacao, CategoriaReceita, FormaPagamento } from '../../types';
+import { TipoTransacao, StatusTransacao, CategoriaReceita, FormaPagamento } from '@/types';
 
 const TRIP_STATUS_LABELS: Record<string, string> = {
   [TripStatus.SCHEDULED]: TripStatusLabel[TripStatus.SCHEDULED],

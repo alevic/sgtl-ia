@@ -1,14 +1,14 @@
 import express from "express";
-import { pool } from "../auth";
-import { isValidDateISO } from "../utils/validation";
+import { pool } from "../auth.js";
+import { isValidDateISO } from "../utils/validation.js";
 
 const router = express.Router();
 
-import { auth } from "../auth";
+import { auth } from "../auth.js";
 import {
     StatusManutencao, StatusTransacao, VeiculoStatus,
     TipoTransacao, CategoriaDespesa, CentroCusto, ClassificacaoContabil
-} from "../../../types.js";
+} from "../types.js";
 
 const authorize = (allowedRoles: string[]) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {

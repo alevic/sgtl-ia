@@ -5,7 +5,7 @@ import { publicService } from '../../services/publicService';
 import { UsernameInput } from '../../components/Form/UsernameInput';
 import { DocumentInput } from '../../components/Form/DocumentInput';
 import { PhoneInput } from '../../components/Form/PhoneInput';
-import { TipoDocumento, TipoCliente } from '../../../types';
+import { TipoDocumento, TipoCliente } from '@/types';
 
 export const SignupCliente: React.FC = () => {
     const navigate = useNavigate();

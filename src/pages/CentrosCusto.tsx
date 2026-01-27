@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import {
     ITransacao, TipoTransacao, CentroCusto, ClassificacaoContabil, Moeda, StatusTransacao
-} from '../../types';
+} from '@/types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { PageHeader } from '../components/Layout/PageHeader';

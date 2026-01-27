@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { EmpresaContexto } from '../../types';
+import { EmpresaContexto } from '@/types';
 import {
     Save, Bell, Shield, Monitor, RefreshCw, Database,
     Settings2, Plus, Trash2, AlertCircle, Loader2,

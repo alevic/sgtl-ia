@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { VeiculoStatus } from '../../types';
+import { VeiculoStatus } from '@/types';
 import {
     ArrowLeft, Save, Bus, Truck, FileText, Gauge,
     Calendar, Wrench, Plus, Trash2, Image, Upload,
     X, Loader, AlertTriangle, CheckCircle2
 } from 'lucide-react';
-import { IVeiculoFeature } from '../../types';
+import { IVeiculoFeature } from '@/types';
 import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';

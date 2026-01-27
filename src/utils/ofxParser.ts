@@ -1,4 +1,4 @@
-import { IExtratoBancario, ITransacaoBancaria } from '../../types';
+import { IExtratoBancario, ITransacaoBancaria } from '@/types';
 
 export const parseOFX = async (file: File): Promise<IExtratoBancario> => {
     return new Promise((resolve, reject) => {

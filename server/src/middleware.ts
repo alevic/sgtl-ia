@@ -1,5 +1,5 @@
 import express from "express";
-import { auth } from "./auth";
+import { auth } from "./auth.js";
 
 export const authorize = (allowedRoles: string[] = []) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {

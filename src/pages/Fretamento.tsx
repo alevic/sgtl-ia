@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IFretamento, IClienteCorporativo, Moeda, FretamentoStatus, FretamentoStatusLabel } from '../../types';
+import { IFretamento, IClienteCorporativo, Moeda, FretamentoStatus, FretamentoStatusLabel } from '@/types';
 import {
     Bus, Building2, Calendar, DollarSign, FileText, CheckCircle, Loader,
     ChevronLeft, Plus, Search, TrendingUp, Edit, Trash2, MoreHorizontal,

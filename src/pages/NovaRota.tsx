@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IRota } from '../../types';
+import { IRota } from '@/types';
 import { EditorRota } from '../components/Rotas/EditorRota';
 import { criarRotaVazia } from '../utils/rotaValidation';
 import { routesService } from '../services/routesService';

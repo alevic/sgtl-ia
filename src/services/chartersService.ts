@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IFretamento } from "../../types";
+import { IFretamento } from '@/types';
 
 export const chartersService = {
     getAll: async (filters?: { status?: string; search?: string }) => {

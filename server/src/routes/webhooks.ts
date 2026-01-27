@@ -1,6 +1,6 @@
 import express from "express";
-import { pool } from "../auth";
-import { ReservationStatus, StatusTransacao, TipoTransacao, CategoriaReceita } from "../../../types.js";
+import { pool } from "../auth.js";
+import { ReservationStatus, StatusTransacao, TipoTransacao, CategoriaReceita } from "../types.js";
 
 const router = express.Router();
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { parseOFX } from '../../utils/ofxParser';
-import { IExtratoBancario } from '../../../types';
+import { IExtratoBancario } from '@/types';
 
 interface ImportadorExtratoProps {
     onImport: (extrato: IExtratoBancario) => void;

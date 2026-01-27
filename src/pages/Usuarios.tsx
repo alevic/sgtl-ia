@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Plus, Search, Trash2, Shield, Mail, Calendar, Edit, Key, X } from 'lucide-react';
 import { authClient } from '../lib/auth-client';
-import { UserRole } from '../../types';
+import { UserRole } from '@/types';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { ListFilterSection } from '../components/Layout/ListFilterSection';
 import { cn } from '../lib/utils';

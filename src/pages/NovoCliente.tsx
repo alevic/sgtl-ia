@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TipoDocumento } from '../../types';
+import { TipoDocumento } from '@/types';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar, Globe, Briefcase, Loader } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
 import { locationService, IState, ICity } from '../services/locationService';

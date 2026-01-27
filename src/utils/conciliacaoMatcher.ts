@@ -1,4 +1,4 @@
-import { ITransacaoBancaria, ITransacao, TipoTransacao } from '../../types';
+import { ITransacaoBancaria, ITransacao, TipoTransacao } from '@/types';
 
 interface MatchResult {
     transacaoBancaria: ITransacaoBancaria;

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     MapPin, Flag, Building, Plus, Search, Edit, Trash2, Save, X, Tag, AlertCircle, CheckCircle2, ArrowLeft, Layers
 } from 'lucide-react';
-import { IEstado, ICidade, IBairro, ITag } from '../../types';
+import { IEstado, ICidade, IBairro, ITag } from '@/types';
 import { tripsService } from '../services/tripsService';
 import { locationService } from '../services/locationService';
 import { PageHeader } from '../components/Layout/PageHeader';

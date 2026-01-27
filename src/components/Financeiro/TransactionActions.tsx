@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, CheckCircle, Clock, MoreHorizontal, AlertTriangle, Loader2, ArrowUpDown } from 'lucide-react';
-import { ITransacao, StatusTransacao } from '../../../types';
+import { ITransacao, StatusTransacao } from '@/types';
 import {
     DropdownMenu,
     DropdownMenuContent,

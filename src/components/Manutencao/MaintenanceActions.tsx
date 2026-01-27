@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IManutencao } from '../../../types';
+import { IManutencao } from '@/types';
 import { Edit, Trash2, MoreHorizontal, AlertTriangle, Loader2 } from 'lucide-react';
 import {
     DropdownMenu,

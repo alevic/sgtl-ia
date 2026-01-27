@@ -5,7 +5,7 @@ import {
     CreditCard, AlertCircle, ArrowUpRight, ArrowDownRight, PieChart,
     Wallet, Receipt, ArrowUpDown, ChevronRight, Inbox, Loader2
 } from 'lucide-react';
-import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa, StatusTransacaoLabel } from '../../types';
+import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa, StatusTransacaoLabel } from '@/types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { useDateFormatter } from '../hooks/useDateFormatter';

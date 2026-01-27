@@ -4,7 +4,7 @@ import { ArrowLeft, Save, Calendar, DollarSign, Tag, FileText, Upload } from 'lu
 import {
     TipoTransacao, CategoriaReceita, CategoriaDespesa, FormaPagamento,
     StatusTransacao, Moeda, CentroCusto, ClassificacaoContabil
-} from '../../types';
+} from '@/types';
 import { getSugestaoClassificacao } from '../utils/classificacaoContabil';
 import { authClient } from '../lib/auth-client';
 import { SwissDatePicker } from '../components/Form/SwissDatePicker';

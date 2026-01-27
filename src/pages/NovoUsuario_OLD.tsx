@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authClient } from '../lib/auth-client';
 import { Lock, Mail, Loader2, Save, ArrowLeft, Shield } from 'lucide-react';
-import { UserRole } from '../../types';
+import { UserRole } from '@/types';
 import { UsernameInput } from '../components/Form/UsernameInput';
 import { PhoneInput } from '../components/Form/PhoneInput';
 import { CPFInput } from '../components/Form/CPFInput';

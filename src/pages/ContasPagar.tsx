@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, AlertCircle, Check, X, Download, CreditCard
 } from 'lucide-react';
-import { ITransacao, StatusTransacao, CategoriaDespesa, Moeda, CentroCusto, TipoTransacao } from '../../types';
+import { ITransacao, StatusTransacao, CategoriaDespesa, Moeda, CentroCusto, TipoTransacao } from '@/types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';

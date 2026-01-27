@@ -1,6 +1,6 @@
 import React from 'react';
 import { CreditCard } from 'lucide-react';
-import { TipoDocumento } from '../../../types';
+import { TipoDocumento } from '@/types';
 
 interface DocumentInputProps {
     documentType: TipoDocumento;

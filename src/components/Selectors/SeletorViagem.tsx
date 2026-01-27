@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IViagem } from '../../../types';
+import { IViagem } from '@/types';
 import {
     Calendar, MapPin, Search, Bus, Clock, Check, Users,
     CheckCircle, Loader, XCircle, TrendingUp

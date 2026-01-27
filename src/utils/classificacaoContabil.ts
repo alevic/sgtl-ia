@@ -1,4 +1,4 @@
-import { CategoriaDespesa, CentroCusto, ClassificacaoContabil } from '../../types';
+import { CategoriaDespesa, CentroCusto, ClassificacaoContabil } from '@/types';
 
 /**
  * Retorna o Centro de Custo e Classificação Contábil sugeridos baseados na categoria de despesa

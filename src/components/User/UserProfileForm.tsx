@@ -10,7 +10,7 @@ import { User, Mail, Loader2, Camera, Upload, Trash2 } from 'lucide-react';
 import { PhoneInput } from '../Form/PhoneInput';
 import { DocumentInput } from '../Form/DocumentInput';
 import { SwissDatePicker } from '../Form/SwissDatePicker';
-import { TipoDocumento } from '../../../types';
+import { TipoDocumento } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { CheckCircle2, AlertTriangle } from 'lucide-react';
 

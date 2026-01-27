@@ -1,8 +1,8 @@
 import express from "express";
-import { pool } from "../auth";
-import { auth } from "../auth";
-import { authorize } from "../middleware";
-import { TripStatus, RouteType } from "../../../types.js";
+import { pool } from "../auth.js";
+import { auth } from "../auth.js";
+import { authorize } from "../middleware.js";
+import { TripStatus, RouteType } from "../types.js";
 
 const router = express.Router();
 

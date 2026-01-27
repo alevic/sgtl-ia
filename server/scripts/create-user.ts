@@ -1,4 +1,4 @@
-import { auth, pool } from "./auth";
+import { auth, pool } from "../src/auth.js";
 import dotenv from "dotenv";
 
 dotenv.config();

@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { ICliente } from "../../types";
+import { ICliente } from '@/types';
 
 export const clientsService = {
     getAll: async (search?: string) => {

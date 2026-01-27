@@ -1,7 +1,7 @@
 import express from "express";
-import { pool } from "../auth";
-import { auth } from "../auth";
-import { FretamentoStatus } from "../../../types.js";
+import { pool } from "../auth.js";
+import { auth } from "../auth.js";
+import { FretamentoStatus } from "../types.js";
 
 const router = express.Router();
 

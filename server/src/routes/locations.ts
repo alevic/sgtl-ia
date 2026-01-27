@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { pool } from "../auth";
-import { authorize } from "../middleware";
+import { pool } from "../auth.js";
+import { authorize } from "../middleware.js";
 
 export const locationsRouter = Router();
 

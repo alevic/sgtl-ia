@@ -4,7 +4,7 @@ import { useDateFormatter } from '../hooks/useDateFormatter';
 import { Package, User, MapPin, Truck, Save, ArrowLeft, Loader, AlertCircle, CheckCircle2, DollarSign, ListFilter } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
 import { tripsService } from '../services/tripsService';
-import { IViagem, TripStatus } from '../../types';
+import { IViagem, TripStatus } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { Button } from '../components/ui/button';
 import { CardContent } from '../components/ui/card';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { IVeiculo } from '../../../types';
+import { IVeiculo } from '@/types';
 
 interface SeletorVeiculoProps {
     value?: string;

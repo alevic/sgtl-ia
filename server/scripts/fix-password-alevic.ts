@@ -1,4 +1,4 @@
-import { pool } from './config';
+import { pool } from '../src/config.js';
 import bcrypt from 'bcrypt';
 
 /**

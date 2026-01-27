@@ -7,7 +7,7 @@ import {
     Briefcase, CreditCard, ChevronDown, Wallet, QrCode, Copy, ExternalLink, Link as LinkIcon
 } from 'lucide-react';
 import { publicService } from '../../services/publicService';
-import { IViagem, TipoAssento } from '../../../types';
+import { IViagem, TipoAssento } from '@/types';
 import { authClient } from '../../lib/auth-client';
 import { paymentService, IPaymentResponse } from '../../services/paymentService';
 

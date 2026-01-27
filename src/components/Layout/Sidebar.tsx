@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { EmpresaContexto } from '../../../types';
+import { EmpresaContexto } from '@/types';
 import {
   LayoutDashboard, Users, Settings,
   Bus, Ticket, Truck, Package, MapPin,

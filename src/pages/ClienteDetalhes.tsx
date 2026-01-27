@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, ReservationStatusLabel, TipoInteracao, TipoInteracaoLabel } from '../../types';
+import { ICliente, IInteracao, INota, IReserva, TipoDocumento, Moeda, TipoAssento, ReservationStatusLabel, TipoInteracao, TipoInteracaoLabel } from '@/types';
 import { useAppContext } from '../context/AppContext';
 import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IRota, IPontoRota } from '../../../types';
+import { IRota, IPontoRota } from '@/types';
 import { SeletorPontoRota } from './SeletorPontoRota';
 import { criarPontoRotaVazio, validarRota, calcularDuracaoRota, gerarNomeRota, calcularTemposRelativos } from '../../utils/rotaValidation';
 import { Plus, X, ArrowUp, ArrowDown, AlertCircle, Clock, Route } from 'lucide-react';

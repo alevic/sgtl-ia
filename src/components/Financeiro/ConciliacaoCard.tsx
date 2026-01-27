@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, X, Plus, Search, AlertCircle } from 'lucide-react';
-import { ITransacaoBancaria, ITransacao } from '../../../types';
+import { ITransacaoBancaria, ITransacao } from '@/types';
 
 interface ConciliacaoCardProps {
     transacaoBancaria: ITransacaoBancaria;

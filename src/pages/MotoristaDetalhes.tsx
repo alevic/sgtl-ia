@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IMotorista, DriverStatus } from '../../types';
+import { IMotorista, DriverStatus } from '@/types';
 import {
     ArrowLeft, Edit, Trash2, User, FileText, Globe, Phone, MapPin,
     Calendar, Briefcase, AlertTriangle, CheckCircle, XCircle, AlertCircle,

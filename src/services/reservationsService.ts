@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IReserva } from "../../types";
+import { IReserva } from '@/types';
 
 export const reservationsService = {
     getAll: async (filters?: { status?: string; search?: string; trip_id?: string; client_id?: string }) => {

@@ -8,9 +8,8 @@ COPY server/package*.json ./server/
 # Install dependencies
 RUN cd server && npm install
 
-# Copy source code and shared types
+# Copy source code
 COPY server/ ./server/
-COPY types.ts ./
 
 # Set workdir to server for running scripts
 WORKDIR /app/server

@@ -1,8 +1,8 @@
 import express from "express";
-import { pool } from "../auth";
-import { auth } from "../auth";
+import { pool } from "../auth.js";
+import { auth } from "../auth.js";
 import crypto from "crypto";
-import { EncomendaStatus } from "../../../types.js";
+import { EncomendaStatus } from "../types.js";
 
 const router = express.Router();
 
@@ -10,7 +10,7 @@ const router = express.Router();
 const authorize = (allowedRoles: string[]) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         try {
-            const session = await auth.api.getSession({ headers: req.headers as HeadersInit });
+            const session = await auth.api.getSession({ headers: req.headers as any });
             if (!session) {
                 return res.status(401).json({ error: "Unauthorized" });
             }
@@ -142,7 +142,7 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
                 recipient_name, recipient_document, recipient_phone,
                 origin_city, origin_state, destination_city, destination_state,
                 description, weight || 0, dimensions || null,
-                EncomendaStatus.PENDING, tracking_code, price,
+                EncomendaStatus.AWAITING, tracking_code, price,
                 trip_id || null, null, client_id || null, notes || null,
                 orgId, userId
             ]

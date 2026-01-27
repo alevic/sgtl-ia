@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IMotorista } from "../../types";
+import { IMotorista } from '@/types';
 
 export const driversService = {
     getAll: async (active?: boolean) => {

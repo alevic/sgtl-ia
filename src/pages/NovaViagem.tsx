@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { IRota, IVeiculo, IMotorista, Moeda, IViagem, TripStatus, RouteType } from '../../types';
+import { IRota, IVeiculo, IMotorista, Moeda, IViagem, TripStatus, RouteType } from '@/types';
 import {
     ArrowLeft, Bus, Save, DollarSign, Image, Route, Clock, MapPin, Users, X, Plus, Calendar, Loader, Trash2
 } from 'lucide-react';

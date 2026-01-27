@@ -1,8 +1,8 @@
 import express from "express";
-import { pool } from "../auth";
-import { clientAuthorize } from "../middleware";
+import { pool } from "../auth.js";
+import { clientAuthorize } from "../middleware.js";
 import crypto from "crypto";
-import { ReservationStatus, StatusTransacao, TipoTransacao } from "../../../types.js";
+import { ReservationStatus, StatusTransacao, TipoTransacao } from "../types.js";
 
 const router = express.Router();
 

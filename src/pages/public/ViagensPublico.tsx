@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { tripsService } from '../../services/tripsService';
 import { publicService } from '../../services/publicService';
-import { IViagem, ITag, TripStatus } from '../../../types';
+import { IViagem, ITag, TripStatus } from '@/types';
 import { SwissDatePicker } from '../../components/Form/SwissDatePicker';
 
 

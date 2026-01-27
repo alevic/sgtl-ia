@@ -7,7 +7,7 @@ import { PhoneInput } from '../Form/PhoneInput';
 import { DocumentInput } from '../Form/DocumentInput';
 import { SwissDatePicker } from '../Form/SwissDatePicker';
 import { UsernameInput } from '../Form/UsernameInput';
-import { TipoDocumento } from '../../../types';
+import { TipoDocumento } from '@/types';
 import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota, ICliente } from '../../types';
+import { IClienteCorporativo, IVeiculo, IMotorista, Moeda, VeiculoStatus, IRota, ICliente } from '@/types';
 import { ArrowLeft, Save, Building2, Bus, MapPin, Calendar, FileText, User, DollarSign, Route, Clock, Mail, Users } from 'lucide-react';
 import { SeletorRota } from '../components/Rotas/SeletorRota';
 import { SeletorCliente, ClienteFretamento } from '../components/Selectors/SeletorCliente';

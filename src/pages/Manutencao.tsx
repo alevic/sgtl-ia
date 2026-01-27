@@ -15,7 +15,7 @@ import {
     Inbox,
     WrenchIcon
 } from 'lucide-react';
-import { IManutencao, TipoManutencao, StatusManutencao, StatusManutencaoLabel, TipoManutencaoLabel } from '../../types';
+import { IManutencao, TipoManutencao, StatusManutencao, StatusManutencaoLabel, TipoManutencaoLabel } from '@/types';
 import {
     Table,
     TableBody,

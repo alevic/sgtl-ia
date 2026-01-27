@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { EmpresaContexto, TipoTransacao, CategoriaReceita, CategoriaDespesa } from '../../types';
+import { EmpresaContexto, TipoTransacao, CategoriaReceita, CategoriaDespesa } from '@/types';
 import {
     ArrowLeft, Download, TrendingUp, TrendingDown, DollarSign, Calendar,
     FileText, PieChart, BarChart as BarChartIcon, Activity, Users, Truck,

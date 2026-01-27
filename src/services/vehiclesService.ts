@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IVeiculo } from "../../types";
+import { IVeiculo } from '@/types';
 
 export const vehiclesService = {
     getAll: async (active?: boolean) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '../../../types';
+import { IAssento, IVeiculo, TipoAssento, AssentoStatus } from '@/types';
 import { Plus, X, Bus as BusIcon, Save, PaintBucket, Type, MousePointer2 } from 'lucide-react';
 
 interface MapaAssentosProps {

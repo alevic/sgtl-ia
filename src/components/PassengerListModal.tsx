@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { X, FileDown, Loader, User, Armchair } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { IReserva } from '../../types';
+import { IReserva } from '@/types';
 import { reservationsService } from '../services/reservationsService';
 
 interface PassengerListModalProps {

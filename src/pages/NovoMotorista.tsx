@@ -8,7 +8,7 @@ import { CardContent } from '../components/ui/card';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { FormSection } from '../components/Layout/FormSection';
 import { cn } from '../lib/utils';
-import { DriverStatus } from '../../types';
+import { DriverStatus } from '@/types';
 
 export const NovoMotorista: React.FC = () => {
     const navigate = useNavigate();

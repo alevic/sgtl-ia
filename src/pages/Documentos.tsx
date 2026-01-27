@@ -6,7 +6,7 @@ import {
     Truck, Users, Building, ArrowLeft
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { EmpresaContexto } from '../../types';
+import { EmpresaContexto } from '@/types';
 import { ResponsiveActions, ActionItem } from '../components/Common/ResponsiveActions';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';

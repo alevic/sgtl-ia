@@ -1,5 +1,5 @@
-import { pool } from './config';
-import { auth } from './auth';
+import { pool } from '../src/config.js';
+import { auth } from '../src/auth.js';
 
 /**
  * Migration: Set password for user 'alevic'

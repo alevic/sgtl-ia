@@ -26,7 +26,7 @@ import {
     StatusTransacao,
     StatusManutencaoLabel,
     TipoManutencaoLabel
-} from '../../types';
+} from '@/types';
 import { ModalConfirmacao } from '../components/ui/ModalConfirmacao';
 import { SeletorVeiculo } from '../components/Veiculos/SeletorVeiculo';
 

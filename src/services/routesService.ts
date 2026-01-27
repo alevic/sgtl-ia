@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IRota } from "../../types";
+import { IRota } from '@/types';
 
 export const routesService = {
     getAll: async (active?: boolean) => {

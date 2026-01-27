@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IVeiculo, VeiculoStatus, VeiculoStatusLabel } from '../../types';
+import { IVeiculo, VeiculoStatus, VeiculoStatusLabel } from '@/types';
 import { useAppContext } from '../context/AppContext';
 import {
     Bus, Truck, Plus, Search, Filter, Gauge, Calendar,

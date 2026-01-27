@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { admin, organization, phoneNumber } from "better-auth/plugins";
-import { sendWhatsAppMessage } from "./services/whatsappService";
-import { config, pool } from "./config";
+import { sendWhatsAppMessage } from "./services/whatsappService.js";
+import { config, pool } from "./config.js";
 
 export { pool };
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ICliente } from '../../types';
+import { ICliente } from '@/types';
 import {
     Users, Search, Filter, UserPlus, Star, TrendingUp,
     Phone, Mail, MapPin, Calendar, Award, Tag, ChevronRight, MoreHorizontal

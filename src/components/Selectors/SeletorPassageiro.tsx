@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ICliente } from '../../../types';
+import { ICliente } from '@/types';
 import { User, Search, Check } from 'lucide-react';
 
 interface SeletorPassageiroProps {

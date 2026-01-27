@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ICliente } from '../../../types';
+import { ICliente } from '@/types';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { clientsService } from '../../services/clientsService';
 import { ResponsiveActions, ActionItem } from '../Common/ResponsiveActions';

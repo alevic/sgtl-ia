@@ -7,7 +7,7 @@ import { publicService } from '../../services/publicService';
 import { PhoneInput } from '../../components/Form/PhoneInput';
 import { DocumentInput } from '../../components/Form/DocumentInput';
 import { SwissDatePicker } from '../../components/Form/SwissDatePicker';
-import { TipoDocumento } from '../../../types';
+import { TipoDocumento } from '@/types';
 
 export const PerfilCliente: React.FC = () => {
     const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { IPontoRota } from '../../../types';
+import { IPontoRota } from '@/types';
 import { MapPin, Clock, CheckSquare, Plus, X } from 'lucide-react';
 import { locationService, IState, ICity, INeighborhood } from '../../services/locationService';
 import { TimePicker } from '../Form/TimePicker';

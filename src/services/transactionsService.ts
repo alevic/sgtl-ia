@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { ITransacao } from "../../types";
+import { ITransacao } from '@/types';
 
 export const transactionsService = {
     getAll: async () => {

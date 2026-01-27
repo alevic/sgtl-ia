@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IRota, RouteType, RouteTypeLabel } from '../../types';
+import { IRota, RouteType, RouteTypeLabel } from '@/types';
 import { VisualizadorRota } from '../components/Rotas/VisualizadorRota';
 import { routesService } from '../services/routesService';
 import {

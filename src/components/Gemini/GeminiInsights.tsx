@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Sparkles, RefreshCw, AlertCircle } from 'lucide-react';
-import { EmpresaContexto } from '../../../types';
+import { EmpresaContexto } from '@/types';
 
 // NOTE: In a real app, this key comes from process.env
 // The system prompt forbids creating UI for API key entry, assuming env var.

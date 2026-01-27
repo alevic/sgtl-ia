@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ICliente, TipoDocumento } from '../../../types';
+import { ICliente, TipoDocumento } from '@/types';
 import { X, Save, User, Mail, Phone, MapPin, FileText, Calendar, Loader } from 'lucide-react';
 import { clientsService } from '../../services/clientsService';
 

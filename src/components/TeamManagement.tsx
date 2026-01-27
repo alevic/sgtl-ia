@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Users, Trash2, Search, Loader2 } from 'lucide-react';
-import { EmpresaContexto } from '../../types';
+import { EmpresaContexto } from '@/types';
 
 interface TeamManagementProps {
     themeColor: string;

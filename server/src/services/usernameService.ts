@@ -1,4 +1,4 @@
-import { pool } from '../config';
+import { pool } from '../config.js';
 
 /**
  * Generate username suggestions based on a name

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { Link, useNavigate } from 'react-router-dom';
-import { IViagem, ITag, TripStatus, TripStatusLabel } from '../../types';
+import { IViagem, ITag, TripStatus, TripStatusLabel } from '@/types';
 import { tripsService } from '../services/tripsService';
 import {
     Bus, Calendar, MapPin, Users, Filter, Plus, Search,

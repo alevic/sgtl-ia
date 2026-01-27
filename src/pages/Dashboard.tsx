@@ -2,7 +2,7 @@ import React from 'react';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
-import { EmpresaContexto } from '../../types';
+import { EmpresaContexto } from '@/types';
 import { GeminiInsights } from '../components/Gemini/GeminiInsights';
 import {
   Users, Bus, Package, ArrowUpRight, ArrowDownRight,

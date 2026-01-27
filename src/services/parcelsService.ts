@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IEncomenda } from "../../types";
+import { IEncomenda } from '@/types';
 
 export const parcelsService = {
     getAll: async (filters?: { status?: string; search?: string }) => {

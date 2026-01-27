@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IMotorista, DriverStatus, DriverStatusLabel } from '../../types';
+import { IMotorista, DriverStatus, DriverStatusLabel } from '@/types';
 import {
     User,
     Calendar,

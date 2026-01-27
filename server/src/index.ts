@@ -9,7 +9,7 @@ import { config } from "./config.js";
 import {
     TipoTransacao, StatusTransacao, FormaPagamento,
     VeiculoStatus, AssentoStatus, DriverStatus
-} from "../../types.js";
+} from "./types.js";
 import { isValidDateISO } from "./utils/validation.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,7 +27,7 @@ import passwordRecoveryRouter from "./routes/passwordRecovery.js";
 import usernameRouter from "./routes/username.js";
 import usernameRecoveryRouter from "./routes/usernameRecovery.js";
 
-import { setupDb } from "./db/setup";
+import { setupDb } from "./db/setup.js";
 
 const app = express();
 const PORT = config.port;
@@ -300,7 +300,7 @@ import { upload, processAvatar } from './middleware/upload.js';
 // Get current user profile
 app.get("/api/profile", async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers });
+        const session = await auth.api.getSession({ headers: req.headers as any });
         if (!session) {
             return res.status(401).json({ error: "Não autenticado" });
         }
@@ -327,7 +327,7 @@ app.get("/api/profile", async (req, res) => {
 // Update current user profile
 app.put("/api/profile", async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers });
+        const session = await auth.api.getSession({ headers: req.headers as any });
         if (!session) {
             return res.status(401).json({ error: "Não autenticado" });
         }
@@ -411,7 +411,7 @@ app.put("/api/profile", async (req, res) => {
 // Upload avatar
 app.post("/api/profile/avatar", upload.single('avatar'), async (req, res) => {
     try {
-        const session = await auth.api.getSession({ headers: req.headers });
+        const session = await auth.api.getSession({ headers: req.headers as any });
         if (!session) {
             return res.status(401).json({ error: "Não autenticado" });
         }
@@ -1755,6 +1755,9 @@ app.delete("/api/organization/:id/parameters/:paramId", authorize(['admin']), as
     }
 });
 
+// Global Error Handler (MUST BE LAST)
+import { errorHandler } from "./middleware/errorHandler.js";
+app.use(errorHandler);
 
 // Start server
 const startServer = async () => {

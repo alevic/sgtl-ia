@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { IClienteCorporativo, ICliente } from '../../../types';
+import { IClienteCorporativo, ICliente } from '@/types';
 import { Building2, Search, Check, DollarSign, User } from 'lucide-react';
 
 // Union type para aceitar ambos os tipos de cliente

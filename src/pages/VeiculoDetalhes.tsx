@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoManutencao, IVeiculoFeature } from '../../types';
+import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoManutencao, IVeiculoFeature } from '@/types';
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,

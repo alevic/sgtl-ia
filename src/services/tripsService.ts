@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { IViagem, IAssento, ITag } from "../../types";
+import { IViagem, IAssento, ITag } from '@/types';
 
 export const tripsService = {
     getAll: async (filters?: { status?: string; search?: string }) => {

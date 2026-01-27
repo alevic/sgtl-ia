@@ -3,7 +3,7 @@ import {
     isUsernameAvailable,
     generateAvailableUsernames,
     validateUsername
-} from '../services/usernameService';
+} from '../services/usernameService.js';
 
 const router = Router();
 

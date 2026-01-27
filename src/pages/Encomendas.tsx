@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IEncomenda, TipoEncomenda, Moeda, EncomendaStatus, EncomendaStatusLabel } from '../../types';
+import { IEncomenda, TipoEncomenda, Moeda, EncomendaStatus, EncomendaStatusLabel } from '@/types';
 import { Package, Truck, Bus, MapPin, Calendar, TrendingUp, Check, Loader, Search } from 'lucide-react';
 import { parcelsService } from '../services/parcelsService';
 import { Card, CardContent } from '../components/ui/card';

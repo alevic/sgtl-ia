@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { pool } from '../config';
-import { sendWhatsAppMessage } from '../services/whatsappService';
+import { pool } from '../config.js';
+import { sendWhatsAppMessage } from '../services/whatsappService.js';
 
 const router = Router();
 

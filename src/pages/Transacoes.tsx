@@ -6,7 +6,7 @@ import {
 import {
     ITransacao, TipoTransacao, StatusTransacao, CategoriaReceita, CategoriaDespesa,
     FormaPagamento, Moeda, CentroCusto, ClassificacaoContabil, StatusTransacaoLabel, TipoTransacaoLabel
-} from '../../types';
+} from '@/types';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
 import { PageHeader } from '../components/Layout/PageHeader';

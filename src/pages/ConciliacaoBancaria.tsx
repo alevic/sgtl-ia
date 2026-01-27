@@ -4,7 +4,7 @@ import { RefreshCw, CheckCircle, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { ImportadorExtrato } from '../components/Financeiro/ImportadorExtrato';
 import { ConciliacaoCard } from '../components/Financeiro/ConciliacaoCard';
 import { findMatches } from '../utils/conciliacaoMatcher';
-import { IExtratoBancario, ITransacaoBancaria, ITransacao, TipoTransacao, StatusTransacao, Moeda, CentroCusto } from '../../types';
+import { IExtratoBancario, ITransacaoBancaria, ITransacao, TipoTransacao, StatusTransacao, Moeda, CentroCusto } from '@/types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { PageHeader } from '../components/Layout/PageHeader';

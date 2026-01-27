@@ -21,6 +21,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@/types": [
+        "./server/src/types"
       ]
     },
     "allowImportingTsExtensions": true,

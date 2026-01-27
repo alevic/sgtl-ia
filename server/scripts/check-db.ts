@@ -1,4 +1,4 @@
-import { pool } from "./auth";
+import { pool } from "../src/auth.js";
 
 async function check() {
     try {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
-import { EmpresaContexto } from '../../../types';
+import { EmpresaContexto } from '@/types';
 import { Menu, Bell, ChevronDown, Search, Moon, Sun, LogOut, User, Settings } from 'lucide-react';
 import { authClient } from '../../lib/auth-client';
 import {

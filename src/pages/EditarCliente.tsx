@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { TipoDocumento } from '../../types';
+import { TipoDocumento } from '@/types';
 import { ArrowLeft, Save, User, Mail, Phone, MapPin, FileText, Calendar, MessageSquare, Loader } from 'lucide-react';
 import { clientsService } from '../services/clientsService';
 import { SwissDatePicker } from '../components/Form/SwissDatePicker';

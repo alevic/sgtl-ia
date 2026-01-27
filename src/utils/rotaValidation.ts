@@ -1,4 +1,4 @@
-import { IRota, IPontoRota, IViagem, RouteType } from '../../types';
+import { IRota, IPontoRota, IViagem, RouteType } from '@/types';
 
 /**
  * Valida se uma rota está corretamente configurada

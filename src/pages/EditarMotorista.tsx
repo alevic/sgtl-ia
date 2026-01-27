@@ -10,7 +10,7 @@ import { cn } from '../lib/utils';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
-import { DriverStatus } from '../../types';
+import { DriverStatus } from '@/types';
 
 export const EditarMotorista: React.FC = () => {
     const { id } = useParams<{ id: string }>();

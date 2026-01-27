@@ -1,6 +1,6 @@
 import cron from 'node-cron';
-import { pool } from '../auth';
-import { ReservationStatus, TripStatus } from '../../../types.js';
+import { pool } from '../auth.js';
+import { ReservationStatus, TripStatus } from '../types.js';
 
 /**
  * Initializes all system cron jobs
@@ -115,7 +115,7 @@ export const initCronJobs = () => {
                 WHERE (status = $1 OR status = 'COMPLETED' OR status = 'FINALIZADA') AND active = true
             `;
             const cleanupResult = await client.query(cleanupQuery, [TripStatus.COMPLETED]);
-            if (cleanupResult.rowCount > 0) {
+            if ((cleanupResult.rowCount ?? 0) > 0) {
                 console.log(`✅ [CRON] Deactivated ${cleanupResult.rowCount} already completed trips.`);
             }
 

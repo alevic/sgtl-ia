@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { pool } from '../auth';
-import { RouteType } from '../../../types.js';
+import { pool } from '../auth.js';
+import { RouteType } from '../types.js';
 
 const router = Router();
 
