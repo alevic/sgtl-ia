@@ -61,13 +61,14 @@ function Calendar({
                 },
                 // CUSTOM CAPTION IMPLEMENTATION for guaranteed Dropdowns
                 Caption: (props) => {
-                    const { goToMonth, currentMonth } = useNavigation();
-                    const { fromYear, toYear } = useDayPicker(); // Access limits from context
+                    const { goToMonth } = useNavigation();
+                    const currentMonth = props.calendarMonth.date;
+                    const { startMonth, endMonth } = useDayPicker().dayPickerProps; // Access limits from context
 
                     // Safe defaults if props are not passed
                     const currentYear = currentMonth?.getFullYear() || new Date().getFullYear();
-                    const startYear = fromYear || 1920;
-                    const endYear = toYear || (new Date().getFullYear() + 10);
+                    const startYear = startMonth?.getFullYear() || 1920;
+                    const endYear = endMonth?.getFullYear() || (new Date().getFullYear() + 10);
 
                     const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
                     const months = Array.from({ length: 12 }, (_, i) => i);
