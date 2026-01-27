@@ -222,7 +222,7 @@ export async function setupDb() {
         // Populate mock data for existing users without complete information
         console.log("Checking for users needing mock data...");
         const usersNeedingData = await pool.query(`
-            SELECT id, name, email, username, phone, cpf, birth_date 
+            SELECT id, name, email, username, phone, documento, birth_date 
             FROM "user" 
             WHERE username IS NULL OR phone IS NULL OR phone = '00000000000'
         `);
@@ -252,13 +252,13 @@ export async function setupDb() {
                     phone = `+5511${String(90000000 + i).padStart(8, '0')}`;
                 }
 
-                // Generate CPF if missing (mock data)
-                let cpf = user.cpf;
-                if (!cpf) {
+                // Generate documento if missing (mock data)
+                let documento = user.documento;
+                if (!documento) {
                     // Use a more unique seed combining timestamp and index to avoid collision
                     // Format: XXXXXXXXXXX (11 digits)
                     const uniqueSeed = Date.now().toString().slice(-8) + String(i).padStart(3, '0');
-                    cpf = uniqueSeed;
+                    documento = uniqueSeed;
                 }
 
                 // Generate birth_date if missing (mock: 30 years ago)
@@ -272,21 +272,21 @@ export async function setupDb() {
                 try {
                     await pool.query(`
                         UPDATE "user" 
-                        SET username = $1, phone = $2, cpf = $3, birth_date = $4
+                        SET username = $1, phone = $2, documento = $3, birth_date = $4
                         WHERE id = $5
-                    `, [username, phone, cpf, birthDate, user.id]);
+                    `, [username, phone, documento, birthDate, user.id]);
                     console.log(`  ✅ Updated user: ${user.name} (${username})`);
                 } catch (err: any) {
                     console.error(`  ⚠️ Failed to update user ${user.name} mock data: ${err.message}`);
-                    // If CPF collision, try one more time with random suffix
+                    // If documento collision, try one more time with random suffix
                     if (err.code === '23505') { // unique_violation
-                        const randomCpf = Math.floor(Math.random() * 10000000000).toString().padStart(11, '0');
+                        const randomDocumento = Math.floor(Math.random() * 10000000000).toString().padStart(11, '0');
                         await pool.query(`
                             UPDATE "user" 
-                            SET username = $1, phone = $2, cpf = $3, birth_date = $4
+                            SET username = $1, phone = $2, documento = $3, birth_date = $4
                             WHERE id = $5
-                        `, [username, phone, randomCpf, birthDate, user.id]);
-                        console.log(`  ✅ Updated user ${user.name} with retry CPF`);
+                        `, [username, phone, randomDocumento, birthDate, user.id]);
+                        console.log(`  ✅ Updated user ${user.name} with retry documento`);
                     }
                 }
             }
@@ -1094,7 +1094,8 @@ export async function setupDb() {
         await pool.query(`
             ALTER TABLE vehicle 
             ADD COLUMN IF NOT EXISTS imagem TEXT,
-            ADD COLUMN IF NOT EXISTS galeria JSONB;
+            ADD COLUMN IF NOT EXISTS galeria JSONB,
+            ADD COLUMN IF NOT EXISTS created_by TEXT;
         `);
 
         // Create system_parameters table
@@ -1113,6 +1114,26 @@ export async function setupDb() {
             CREATE INDEX IF NOT EXISTS idx_system_parameters_org ON system_parameters(organization_id);
         `);
 
+        // Migration: Add missing columns to maintenance table
+        await pool.query(`
+            ALTER TABLE maintenance 
+            ADD COLUMN IF NOT EXISTS start_date DATE,
+            ADD COLUMN IF NOT EXISTS workshop TEXT,
+            ADD COLUMN IF NOT EXISTS responsible TEXT,
+            ADD COLUMN IF NOT EXISTS notes TEXT;
+        `);
+
+        // Migration: Add created_by to other tables
+        await pool.query(`
+            ALTER TABLE routes ADD COLUMN IF NOT EXISTS created_by TEXT;
+            ALTER TABLE trips ADD COLUMN IF NOT EXISTS created_by TEXT;
+            ALTER TABLE trips ADD COLUMN IF NOT EXISTS seats_available INTEGER;
+            ALTER TABLE trips ADD COLUMN IF NOT EXISTS notes TEXT;
+            ALTER TABLE parcel ADD COLUMN IF NOT EXISTS created_by TEXT;
+            ALTER TABLE charter ADD COLUMN IF NOT EXISTS created_by TEXT;
+            ALTER TABLE driver ADD COLUMN IF NOT EXISTS created_by TEXT;
+        `);
+
         // Migration: Add group_name column if it doesn't exist
         await pool.query(`
             ALTER TABLE system_parameters 
@@ -1124,10 +1145,57 @@ export async function setupDb() {
             CREATE INDEX IF NOT EXISTS idx_system_parameters_group ON system_parameters(group_name);
         `);
 
+        // Migration: Cleanup duplicates in system_parameters before adding constraint
+        try {
+            await pool.query(`
+               DELETE FROM system_parameters a USING system_parameters b
+               WHERE a.id < b.id AND a.organization_id = b.organization_id AND a.key = b.key;
+           `);
+            console.log("  ✅ Cleaned up duplicate system_parameters");
+        } catch (e: any) {
+            console.error("  ⚠️ Error cleaning system_parameters duplicates:", e.message);
+        }
+
+        // Migration: Add unique constraint on organization_id and key if not exists
+        try {
+            await pool.query(`
+                ALTER TABLE system_parameters 
+                ADD CONSTRAINT system_parameters_organization_id_key_key UNIQUE (organization_id, key);
+            `);
+            console.log("  ✅ Added unique constraint to system_parameters");
+        } catch (e: any) {
+            // Ignore if 'relation "system_parameters_organization_id_key_key" already exists'
+            if (e.code !== '42710' && !e.message?.includes('already exists')) {
+                console.error("  ⚠️ Unique constraint check failed:", e.message);
+            }
+        }
+
+        // Migration: Add description column if it doesn't exist
+        await pool.query(`
+            ALTER TABLE system_parameters 
+            ADD COLUMN IF NOT EXISTS description TEXT;
+        `);
+
         // Seed default trip safety margin if not exists
         await pool.query(`
             INSERT INTO system_parameters (organization_id, key, value, description)
             SELECT id, 'trip_auto_complete_safety_margin_hours', '168', 'Margem de segurança para finalização automática de viagens (em horas)'
+            FROM "organization"
+            ON CONFLICT (organization_id, key) DO NOTHING;
+        `);
+
+        // Seed system language
+        await pool.query(`
+            INSERT INTO system_parameters (organization_id, key, value, description)
+            SELECT id, 'system_language', 'pt-BR', 'Idioma principal da interface.'
+            FROM "organization"
+            ON CONFLICT (organization_id, key) DO NOTHING;
+        `);
+
+        // Seed system timezone
+        await pool.query(`
+            INSERT INTO system_parameters (organization_id, key, value, description)
+            SELECT id, 'system_timezone', 'America/Sao_Paulo', 'Fuso horário padrão para datas e horários.'
             FROM "organization"
             ON CONFLICT (organization_id, key) DO NOTHING;
         `);
@@ -1205,10 +1273,10 @@ export async function setupDb() {
             UPDATE maintenance SET status = 'IN_PROGRESS' WHERE status IN ('EM_ANDAMENTO', 'EM_CURSO', 'IN_PROGRESS');
             UPDATE maintenance SET status = 'COMPLETED' WHERE status IN ('CONCLUIDA', 'CONCLUIDO', 'FINALIZADA', 'FINALIZADO', 'COMPLETED');
             UPDATE maintenance SET status = 'CANCELLED' WHERE status IN ('CANCELADA', 'CANCELADO', 'CANCELLED');
-            UPDATE maintenance SET tipo = 'PREVENTIVE' WHERE tipo IN ('PREVENTIVA', 'PREVENTIVE');
-            UPDATE maintenance SET tipo = 'CORRECTIVE' WHERE tipo IN ('CORRETIVA', 'CORRECTIVE');
-            UPDATE maintenance SET tipo = 'PREDICTIVE' WHERE tipo IN ('PREDITIVA', 'PREDICTIVE');
-            UPDATE maintenance SET tipo = 'INSPECTION' WHERE tipo IN ('INSPECAO', 'INSPECTION');
+            UPDATE maintenance SET type = 'PREVENTIVE' WHERE type IN ('PREVENTIVA', 'PREVENTIVE');
+            UPDATE maintenance SET type = 'CORRECTIVE' WHERE type IN ('CORRETIVA', 'CORRECTIVE');
+            UPDATE maintenance SET type = 'PREDICTIVE' WHERE type IN ('PREDITIVA', 'PREDICTIVE');
+            UPDATE maintenance SET type = 'INSPECTION' WHERE type IN ('INSPECAO', 'INSPECTION');
 
             -- Reservations
             UPDATE reservations SET status = 'PENDING' WHERE status IN ('PENDENTE', 'PENDING');

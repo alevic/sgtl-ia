@@ -55,7 +55,7 @@ router.get("/", authorize(['admin', 'operacional', 'financeiro']), async (req, r
             params.push(vehicle_id);
         }
 
-        query += ` ORDER BY m.data_agendada DESC, m.created_at DESC`;
+        query += ` ORDER BY m.scheduled_date DESC, m.created_at DESC`;
 
         const result = await pool.query(query, params);
         res.json(result.rows);
@@ -107,9 +107,9 @@ router.post("/", authorize(['admin', 'operacional']), async (req, res) => {
 
         const result = await pool.query(
             `INSERT INTO maintenance (
-                vehicle_id, tipo, status, data_agendada, data_inicio, data_conclusao,
-                km_veiculo, descricao, custo_pecas, custo_mao_de_obra, moeda,
-                oficina, responsavel, observacoes, organization_id, created_by
+                vehicle_id, type, status, scheduled_date, start_date, completion_date,
+                km_veiculo, description, cost_parts, cost_labor, moeda,
+                workshop, responsible, notes, organization_id, created_by
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING *`,
             [
@@ -170,10 +170,10 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
 
         const result = await pool.query(
             `UPDATE maintenance SET
-                vehicle_id = $1, tipo = $2, status = $3, data_agendada = $4,
-                data_inicio = $5, data_conclusao = $6, km_veiculo = $7,
-                descricao = $8, custo_pecas = $9, custo_mao_de_obra = $10,
-                moeda = $11, oficina = $12, responsavel = $13, observacoes = $14,
+                vehicle_id = $1, type = $2, status = $3, scheduled_date = $4,
+                start_date = $5, completion_date = $6, km_veiculo = $7,
+                description = $8, cost_parts = $9, cost_labor = $10,
+                moeda = $11, workshop = $12, responsible = $13, notes = $14,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = $15 AND organization_id = $16
             RETURNING *`,
