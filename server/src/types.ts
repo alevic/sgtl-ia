@@ -646,6 +646,7 @@ export interface IBankAccount {
   initial_balance: number;
   current_balance: number;
   currency: Moeda;
+  is_default: boolean;
   active: boolean;
   organization_id: string;
   created_at: string;

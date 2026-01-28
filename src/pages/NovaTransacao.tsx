@@ -63,16 +63,18 @@ export const NovaTransacao: React.FC = () => {
                 setCostCenters(centers);
             }
             if (accountsRes.ok) {
-                const accounts = await accountsRes.json();
+                const accounts: IBankAccount[] = await accountsRes.json();
                 setBankAccounts(accounts);
+
+                // Auto-select default account if no account is selected yet
+                if (!bankAccountId) {
+                    const defaultAcc = accounts.find(acc => acc.is_default);
+                    if (defaultAcc) setBankAccountId(defaultAcc.id);
+                }
             }
             if (catsRes.ok) {
                 const cats = await catsRes.json();
                 setCategories(cats);
-            }
-            if (accountsRes.ok) {
-                const accounts = await accountsRes.json();
-                setBankAccounts(accounts);
             }
         } catch (error) {
             console.error("Erro ao buscar entidades financeiras:", error);

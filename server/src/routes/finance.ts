@@ -61,19 +61,28 @@ router.post("/accounts", authorize(['admin', 'financeiro']), async (req, res) =>
     try {
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
-        const { name, bank_name, account_number, initial_balance, currency } = req.body;
+        const { name, bank_name, account_number, initial_balance, currency, is_default } = req.body;
 
-        const [newAccount] = await db.insert(bankAccounts)
-            .values({
-                name,
-                bank_name: bank_name || null,
-                account_number: account_number || null,
-                initial_balance: (initial_balance || 0).toString(),
-                current_balance: (initial_balance || 0).toString(),
-                currency: currency || Moeda.BRL,
-                organization_id: orgId
-            })
-            .returning();
+        const [newAccount] = await db.transaction(async (tx) => {
+            if (is_default) {
+                await tx.update(bankAccounts)
+                    .set({ is_default: false })
+                    .where(eq(bankAccounts.organization_id, orgId));
+            }
+
+            return tx.insert(bankAccounts)
+                .values({
+                    name,
+                    bank_name: bank_name || null,
+                    account_number: account_number || null,
+                    initial_balance: (initial_balance || 0).toString(),
+                    current_balance: (initial_balance || 0).toString(),
+                    currency: currency || Moeda.BRL,
+                    is_default: is_default || false,
+                    organization_id: orgId
+                })
+                .returning();
+        });
 
         res.json(newAccount);
     } catch (error) {
@@ -88,22 +97,34 @@ router.put("/accounts/:id", authorize(['admin', 'financeiro']), async (req, res)
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
         const { id } = req.params;
-        const { name, bank_name, account_number, initial_balance, active } = req.body;
+        const { name, bank_name, account_number, initial_balance, active, is_default } = req.body;
 
-        const [updatedAccount] = await db.update(bankAccounts)
-            .set({
-                name: name !== undefined ? name : undefined,
-                bank_name: bank_name !== undefined ? bank_name : undefined,
-                account_number: account_number !== undefined ? account_number : undefined,
-                initial_balance: initial_balance !== undefined ? initial_balance.toString() : undefined,
-                active: active !== undefined ? active : undefined,
-                updated_at: new Date()
-            })
-            .where(and(
-                eq(bankAccounts.id, id),
-                eq(bankAccounts.organization_id, orgId)
-            ))
-            .returning();
+        const [updatedAccount] = await db.transaction(async (tx) => {
+            if (is_default) {
+                await tx.update(bankAccounts)
+                    .set({ is_default: false })
+                    .where(and(
+                        eq(bankAccounts.organization_id, orgId),
+                        // Avoid unsetting if it's already the one we are updating? Actually it doesn't matter much if we update it in the next step anyway.
+                    ));
+            }
+
+            return tx.update(bankAccounts)
+                .set({
+                    name: name !== undefined ? name : undefined,
+                    bank_name: bank_name !== undefined ? bank_name : undefined,
+                    account_number: account_number !== undefined ? account_number : undefined,
+                    initial_balance: initial_balance !== undefined ? initial_balance.toString() : undefined,
+                    active: active !== undefined ? active : undefined,
+                    is_default: is_default !== undefined ? is_default : undefined,
+                    updated_at: new Date()
+                })
+                .where(and(
+                    eq(bankAccounts.id, id),
+                    eq(bankAccounts.organization_id, orgId)
+                ))
+                .returning();
+        });
 
         if (!updatedAccount) {
             return res.status(404).json({ error: "Bank account not found" });

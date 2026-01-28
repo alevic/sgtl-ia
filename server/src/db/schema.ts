@@ -121,6 +121,7 @@ export const bankAccounts = pgTable("bank_accounts", {
     initial_balance: decimal("initial_balance", { precision: 15, scale: 2 }).default("0.00"),
     current_balance: decimal("current_balance", { precision: 15, scale: 2 }).default("0.00"),
     currency: varchar("currency", { length: 10 }).default("BRL"),
+    is_default: boolean("is_default").default(false),
     active: boolean("active").default(true),
     organization_id: text("organization_id").notNull(),
     created_at: timestamp("created_at").defaultNow(),

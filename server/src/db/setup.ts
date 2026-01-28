@@ -438,6 +438,7 @@ export async function setupDb() {
                     initial_balance DECIMAL(15, 2) DEFAULT 0.00,
                     current_balance DECIMAL(15, 2) DEFAULT 0.00,
                     currency VARCHAR(10) DEFAULT 'BRL',
+                    is_default BOOLEAN DEFAULT FALSE,
                     active BOOLEAN DEFAULT TRUE,
                     organization_id TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1308,6 +1309,9 @@ export async function setupDb() {
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS client_id UUID REFERENCES clients(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS maintenance_id UUID REFERENCES maintenance(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS reservation_id UUID REFERENCES reservations(id);
+
+            -- Bank Accounts improvements
+            ALTER TABLE bank_accounts ADD COLUMN IF NOT EXISTS is_default BOOLEAN DEFAULT false;
         `);
 
         await pool.query(`

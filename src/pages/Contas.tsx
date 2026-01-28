@@ -26,7 +26,8 @@ export const Contas: React.FC = () => {
         bank_name: '',
         account_number: '',
         initial_balance: '0',
-        currency: Moeda.BRL
+        currency: Moeda.BRL,
+        is_default: false
     });
 
     const fetchAccounts = async () => {
@@ -74,7 +75,7 @@ export const Contas: React.FC = () => {
             setSuccess('Conta salva com sucesso!');
             setIsAdding(false);
             setEditingAccount(null);
-            setFormData({ name: '', bank_name: '', account_number: '', initial_balance: '0', currency: Moeda.BRL });
+            setFormData({ name: '', bank_name: '', account_number: '', initial_balance: '0', currency: Moeda.BRL, is_default: false });
             fetchAccounts();
             setTimeout(() => setSuccess(null), 3000);
         } catch (err: any) {
@@ -89,7 +90,8 @@ export const Contas: React.FC = () => {
             bank_name: account.bank_name || '',
             account_number: account.account_number || '',
             initial_balance: account.initial_balance.toString(),
-            currency: account.currency
+            currency: account.currency,
+            is_default: account.is_default || false
         });
         setIsAdding(true);
     };
@@ -110,7 +112,7 @@ export const Contas: React.FC = () => {
                     <Button
                         onClick={() => {
                             setEditingAccount(null);
-                            setFormData({ name: '', bank_name: '', account_number: '', initial_balance: '0', currency: Moeda.BRL });
+                            setFormData({ name: '', bank_name: '', account_number: '', initial_balance: '0', currency: Moeda.BRL, is_default: false });
                             setIsAdding(true);
                         }}
                         className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20"
@@ -186,6 +188,20 @@ export const Contas: React.FC = () => {
                                         <option value={Moeda.PYG}>PYG - Guarani</option>
                                     </select>
                                 </div>
+                                <div className="space-y-4 flex items-end pb-1">
+                                    <div className="flex items-center gap-3 bg-muted/50 p-3 rounded-sm border border-border/50 w-full group cursor-pointer" onClick={() => setFormData({ ...formData, is_default: !formData.is_default })}>
+                                        <div className={cn(
+                                            "w-10 h-5 rounded-full transition-colors relative",
+                                            formData.is_default ? "bg-primary" : "bg-slate-300 dark:bg-slate-700"
+                                        )}>
+                                            <div className={cn(
+                                                "absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform",
+                                                formData.is_default ? "translate-x-5" : "translate-x-0"
+                                            )} />
+                                        </div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer select-none">Conta Padrão do Sistema</label>
+                                    </div>
+                                </div>
                             </div>
                             <div className="flex justify-end gap-3 pt-4">
                                 <Button type="button" variant="ghost" onClick={() => setIsAdding(false)} className="font-black uppercase text-[10px] tracking-widest">Cancelar</Button>
@@ -228,6 +244,13 @@ export const Contas: React.FC = () => {
                                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                                     {account.bank_name || 'Caixa Interno'} {account.account_number ? `• ${account.account_number}` : ''}
                                 </p>
+                                {account.is_default && (
+                                    <div className="pt-2">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest border border-primary/20">
+                                            <CheckCircle2 size={10} /> Conta Padrão
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <div className="space-y-1">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Saldo Efetivo</p>
