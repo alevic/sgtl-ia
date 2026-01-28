@@ -38,6 +38,7 @@ import { NovaTransacao } from './pages/NovaTransacao';
 import { Transacoes } from './pages/Transacoes';
 import { Relatorios } from './pages/Relatorios';
 import { CentrosCusto } from './pages/CentrosCusto';
+import { Contas } from './pages/Contas';
 import { ConciliacaoBancaria } from './pages/ConciliacaoBancaria';
 import { Configuracoes } from './pages/Configuracoes';
 import { Documentos } from './pages/Documentos';
@@ -137,6 +138,7 @@ const App: React.FC = () => {
                         <Route path="transacoes/nova" element={<NovaTransacao />} />
                         <Route path="transacoes" element={<Transacoes />} />
                         <Route path="centros-custo" element={<CentrosCusto />} />
+                        <Route path="contas" element={<Contas />} />
                         <Route path="conciliacao" element={<ConciliacaoBancaria />} />
                       </Routes>
                     </ProtectedRoute>

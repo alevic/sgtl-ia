@@ -113,3 +113,257 @@ export const auditLogs = pgTable("audit_logs", {
     created_at: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const bankAccounts = pgTable("bank_accounts", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    bank_name: varchar("bank_name", { length: 255 }),
+    account_number: varchar("account_number", { length: 100 }),
+    initial_balance: decimal("initial_balance", { precision: 15, scale: 2 }).default("0.00"),
+    current_balance: decimal("current_balance", { precision: 15, scale: 2 }).default("0.00"),
+    currency: varchar("currency", { length: 10 }).default("BRL"),
+    active: boolean("active").default(true),
+    organization_id: text("organization_id").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+    return {
+        nameOrgUnique: unique("bank_accounts_name_organization_id_unique").on(table.name, table.organization_id),
+    };
+});
+
+export const costCenters = pgTable("cost_centers", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: text("description"),
+    active: boolean("active").default(true),
+    organization_id: text("organization_id").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+    return {
+        nameOrgUnique: unique("cost_centers_name_organization_id_unique").on(table.name, table.organization_id),
+    };
+});
+
+export const categories = pgTable("categories", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    type: text("type").notNull(), // 'INCOME' or 'EXPENSE'
+    cost_center_id: uuid("cost_center_id").references(() => costCenters.id, { onDelete: 'cascade' }),
+    active: boolean("active").default(true),
+    organization_id: text("organization_id").notNull(),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+    return {
+        nameOrgUnique: unique("categories_name_organization_id_unique").on(table.name, table.organization_id),
+    };
+});
+
+export const transactions = pgTable("transaction", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    type: text("type").notNull(),
+    description: text("description").notNull(),
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    currency: text("currency").default("BRL"),
+    date: timestamp("date").notNull(),
+    due_date: timestamp("due_date"),
+    payment_date: timestamp("payment_date"),
+    status: text("status").notNull(),
+    payment_method: text("payment_method"),
+    category: text("category"), // Keep for legacy string support
+    category_id: uuid("category_id").references(() => categories.id),
+    cost_center: text("cost_center"),
+    cost_center_id: uuid("cost_center_id").references(() => costCenters.id),
+    bank_account_id: uuid("bank_account_id").references(() => bankAccounts.id),
+    reservation_id: uuid("reservation_id").references(() => reservations.id),
+    maintenance_id: uuid("maintenance_id"), // maintenance table not yet in drizzle
+    client_id: uuid("client_id").references(() => clients.id),
+    classificacao_contabil: text("classificacao_contabil"),
+    document_number: text("document_number"),
+    notes: text("notes"),
+    organization_id: text("organization_id").notNull(),
+    created_by: text("created_by"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const vehicle = pgTable("vehicle", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    placa: text("placa").notNull().unique(),
+    modelo: text("modelo").notNull(),
+    tipo: text("tipo").notNull(),
+    status: text("status").notNull().default('ACTIVE'),
+    ano: integer("ano").notNull(),
+    km_atual: integer("km_atual").notNull().default(0),
+    proxima_revisao_km: integer("proxima_revisao_km").notNull(),
+    ultima_revisao: timestamp("ultima_revisao"),
+    is_double_deck: boolean("is_double_deck").default(false),
+    capacidade_passageiros: integer("capacidade_passageiros"),
+    mapa_configurado: boolean("mapa_configurado").default(false),
+    capacidade_carga: decimal("capacidade_carga", { precision: 10, scale: 2 }),
+    observacoes: text("observacoes"),
+    motorista_atual: text("motorista_atual"),
+    imagem: text("imagem"),
+    galeria: text("galeria"), // JSONB in DB
+    organization_id: text("organization_id").notNull(),
+    created_by: text("created_by"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const seat = pgTable("seat", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    vehicle_id: uuid("vehicle_id").notNull().references(() => vehicle.id, { onDelete: 'cascade' }),
+    numero: text("numero").notNull(),
+    andar: integer("andar").notNull(),
+    posicao_x: integer("posicao_x").notNull(),
+    posicao_y: integer("posicao_y").notNull(),
+    tipo: text("tipo").notNull(),
+    status: text("status").notNull().default('AVAILABLE'),
+    preco: decimal("preco", { precision: 10, scale: 2 }),
+    disabled: boolean("disabled").default(false),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+}, (table) => {
+    return {
+        vehicleSeatUnique: unique("seat_vehicle_id_numero_unique").on(table.vehicle_id, table.numero),
+    };
+});
+
+export const driver = pgTable("driver", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nome: text("nome").notNull(),
+    cnh: text("cnh").notNull(),
+    categoria_cnh: text("categoria_cnh").notNull(),
+    validade_cnh: timestamp("validade_cnh").notNull(),
+    passaporte: text("passaporte"),
+    validade_passaporte: timestamp("validade_passaporte"),
+    telefone: text("telefone"),
+    email: text("email"),
+    endereco: text("endereco"),
+    cidade: text("cidade"),
+    estado: text("estado"),
+    pais: text("pais"),
+    status: text("status").notNull().default('AVAILABLE'),
+    data_contratacao: timestamp("data_contratacao").notNull(),
+    salario: decimal("salario", { precision: 10, scale: 2 }),
+    anos_experiencia: integer("anos_experiencia"),
+    viagens_internacionais: integer("viagens_internacionais").default(0),
+    disponivel_internacional: boolean("disponivel_internacional").default(false),
+    observacoes: text("observacoes"),
+    organization_id: text("organization_id").notNull(),
+    created_by: text("created_by"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const clients = pgTable("clients", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    nome: varchar("nome", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull(),
+    telefone: varchar("telefone", { length: 50 }),
+    saldo_creditos: decimal("saldo_creditos", { precision: 10, scale: 2 }).default("0.00"),
+    historico_viagens: integer("historico_viagens").default(0),
+    tipo_cliente: varchar("tipo_cliente", { length: 20 }).default('PESSOA_FISICA'),
+    documento_tipo: varchar("documento_tipo", { length: 20 }).default('CPF'),
+    documento: varchar("documento", { length: 50 }),
+    nacionalidade: varchar("nacionalidade", { length: 100 }),
+    data_cadastro: timestamp("data_cadastro").defaultNow(),
+    data_nascimento: timestamp("data_nascimento"),
+    endereco: varchar("endereco", { length: 255 }),
+    cidade: varchar("cidade", { length: 100 }),
+    estado: varchar("estado", { length: 2 }),
+    pais: varchar("pais", { length: 100 }),
+    segmento: varchar("segmento", { length: 20 }).default('NOVO'),
+    tags: text("tags").array(),
+    valor_total_gasto: decimal("valor_total_gasto", { precision: 10, scale: 2 }).default("0.00"),
+    observacoes: text("observacoes"),
+    organization_id: text("organization_id"),
+    user_id: text("user_id"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+    razao_social: varchar("razao_social", { length: 255 }),
+    nome_fantasia: varchar("nome_fantasia", { length: 255 }),
+    cnpj: varchar("cnpj", { length: 18 }),
+});
+
+export const routes = pgTable("routes", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organization_id: text("organization_id").notNull(),
+    name: text("name").notNull(),
+    origin_city: text("origin_city").notNull(),
+    origin_state: text("origin_state").notNull(),
+    destination_city: text("destination_city").notNull(),
+    destination_state: text("destination_state").notNull(),
+    origin_neighborhood: text("origin_neighborhood"),
+    destination_neighborhood: text("destination_neighborhood"),
+    distance_km: decimal("distance_km", { precision: 10, scale: 2 }),
+    duration_minutes: integer("duration_minutes"),
+    stops: text("stops"), // JSONB in DB
+    type: text("type").default('OUTBOUND'),
+    active: boolean("active").default(true),
+    created_by: text("created_by"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const trips = pgTable("trips", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organization_id: text("organization_id").notNull(),
+    route_id: uuid("route_id").notNull().references(() => routes.id),
+    return_route_id: uuid("return_route_id").references(() => routes.id),
+    vehicle_id: uuid("vehicle_id").references(() => vehicle.id),
+    driver_id: uuid("driver_id").references(() => driver.id),
+    departure_date: timestamp("departure_date").notNull(),
+    departure_time: text("departure_time").notNull(),
+    arrival_date: timestamp("arrival_date"),
+    arrival_time: text("arrival_time"),
+    status: text("status").notNull().default('SCHEDULED'),
+    price_conventional: decimal("price_conventional", { precision: 10, scale: 2 }),
+    price_executive: decimal("price_executive", { precision: 10, scale: 2 }),
+    price_semi_sleeper: decimal("price_semi_sleeper", { precision: 10, scale: 2 }),
+    price_sleeper: decimal("price_sleeper", { precision: 10, scale: 2 }),
+    price_bed: decimal("price_bed", { precision: 10, scale: 2 }),
+    price_master_bed: decimal("price_master_bed", { precision: 10, scale: 2 }),
+    seats_available: integer("seats_available"),
+    notes: text("notes"),
+    title: text("title"),
+    trip_type: text("trip_type"),
+    tags: text("tags").array(),
+    cover_image: text("cover_image"),
+    gallery: text("gallery"), // JSONB
+    baggage_limit: text("baggage_limit"),
+    alerts: text("alerts"),
+    active: boolean("active").default(true),
+    created_by: text("created_by"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const reservations = pgTable("reservations", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organization_id: text("organization_id").notNull(),
+    trip_id: uuid("trip_id").notNull().references(() => trips.id),
+    seat_id: uuid("seat_id").references(() => seat.id),
+    passenger_name: text("passenger_name").notNull(),
+    passenger_document: text("passenger_document").notNull(),
+    passenger_email: text("passenger_email"),
+    passenger_phone: text("passenger_phone"),
+    status: text("status").notNull().default('PENDING'),
+    ticket_code: text("ticket_code").notNull().unique(),
+    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    user_id: text("user_id"),
+    client_id: uuid("client_id").references(() => clients.id),
+    boarding_point: text("boarding_point"),
+    dropoff_point: text("dropoff_point"),
+    amount_paid: decimal("amount_paid", { precision: 10, scale: 2 }).default("0.00"),
+    payment_method: text("payment_method"),
+    external_payment_id: text("external_payment_id"),
+    credits_used: decimal("credits_used", { precision: 10, scale: 2 }).default("0.00"),
+    is_partial: boolean("is_partial").default(false),
+    notes: text("notes"),
+    created_by: text("created_by"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});

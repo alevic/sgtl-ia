@@ -638,6 +638,41 @@ export interface IManutencao {
   anexos?: string[];
 }
 
+export interface IBankAccount {
+  id: string;
+  name: string;
+  bank_name?: string;
+  account_number?: string;
+  initial_balance: number;
+  current_balance: number;
+  currency: Moeda;
+  active: boolean;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ICostCenter {
+  id: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IFinanceCategory {
+  id: string;
+  name: string;
+  type: TipoTransacao;
+  cost_center_id: string;
+  active: boolean;
+  organization_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ITransacao {
   id: string;
   tipo: TipoTransacao;
@@ -661,6 +696,9 @@ export interface ITransacao {
   observacoes?: string;
   anexos?: string[];
   centro_custo?: CentroCusto;
+  cost_center_id?: string;
+  bank_account_id?: string;
+  category_id?: string;
   classificacao_contabil?: ClassificacaoContabil;
   parcela_atual?: number;
   total_parcelas?: number;
@@ -684,6 +722,9 @@ export interface IContaPagar {
   observacoes?: string;
   anexos?: string[];
   centro_custo?: CentroCusto;
+  cost_center_id?: string;
+  bank_account_id?: string;
+  category_id?: string;
   classificacao_contabil?: ClassificacaoContabil;
 }
 
@@ -702,6 +743,9 @@ export interface IContaReceber {
   numero_documento?: string;
   observacoes?: string;
   centro_custo?: CentroCusto;
+  cost_center_id?: string;
+  bank_account_id?: string;
+  category_id?: string;
 }
 
 export interface IFatura {

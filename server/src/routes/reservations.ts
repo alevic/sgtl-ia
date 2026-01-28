@@ -3,6 +3,7 @@ import { pool } from "../auth.js";
 import { auth } from "../auth.js";
 import crypto from "crypto";
 import { ReservationStatus } from "../types.js";
+import { FinanceService } from "../services/financeService.js";
 
 const router = express.Router();
 
@@ -254,6 +255,11 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
         }
 
         const newReservation = result.rows[0];
+
+        // Create Financial Transaction automatically
+        FinanceService.createReservationTransaction(newReservation).catch(err => {
+            console.error("Error creating automatic financial transaction for reservation:", err);
+        });
 
         // Audit Log
         AuditService.logEvent({

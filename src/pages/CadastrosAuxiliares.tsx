@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import {
     MapPin, Flag, Building, Plus, Search, Edit, Trash2, Save, X, Tag, AlertCircle, CheckCircle2, ArrowLeft, Layers
 } from 'lucide-react';
-import { IEstado, ICidade, IBairro, ITag } from '@/types';
+import { IEstado, ICidade, IBairro, ITag, ICostCenter, IFinanceCategory, TipoTransacao } from '@/types';
 import { tripsService } from '../services/tripsService';
 import { locationService } from '../services/locationService';
+import { financeAuxService } from '../services/financeAuxService';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { ListFilterSection } from '../components/Layout/ListFilterSection';
 import { cn } from '../lib/utils';
@@ -24,11 +25,11 @@ import {
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
 
-type TabType = 'estados' | 'cidades' | 'bairros' | 'tags';
+type TabType = 'estados' | 'cidades' | 'bairros' | 'tags' | 'centros-custo' | 'categorias';
 
 export const CadastrosAuxiliares: React.FC = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<TabType>('estados');
+    const [activeTab, setActiveTab] = useState<TabType>('centros-custo');
     const [busca, setBusca] = useState('');
 
     // State for data
@@ -36,6 +37,8 @@ export const CadastrosAuxiliares: React.FC = () => {
     const [cidades, setCidades] = useState<ICidade[]>([]);
     const [bairros, setBairros] = useState<IBairro[]>([]);
     const [tags, setTags] = useState<ITag[]>([]);
+    const [costCenters, setCostCenters] = useState<ICostCenter[]>([]);
+    const [categories, setCategories] = useState<IFinanceCategory[]>([]);
 
     // State for editing/creating
     const [isEditing, setIsEditing] = useState(false);
@@ -110,6 +113,16 @@ export const CadastrosAuxiliares: React.FC = () => {
             } else if (activeTab === 'tags') {
                 const data = await tripsService.getTags();
                 setTags(data);
+            } else if (activeTab === 'centros-custo') {
+                const data = await financeAuxService.getCostCenters();
+                setCostCenters(data);
+            } else if (activeTab === 'categorias') {
+                const [cats, centers] = await Promise.all([
+                    financeAuxService.getCategories(),
+                    financeAuxService.getCostCenters()
+                ]);
+                setCategories(cats);
+                setCostCenters(centers);
             }
         } catch (error) {
             console.error('Error loading data:', error);
@@ -170,6 +183,27 @@ export const CadastrosAuxiliares: React.FC = () => {
                 } else {
                     await tripsService.createTag({ nome: formData.nome, cor: formData.cor });
                 }
+            } else if (activeTab === 'centros-custo') {
+                if (editingId) {
+                    await financeAuxService.updateCostCenter(editingId, { name: formData.name, description: formData.description });
+                } else {
+                    await financeAuxService.createCostCenter({ name: formData.name, description: formData.description });
+                }
+            } else if (activeTab === 'categorias') {
+                if (editingId) {
+                    setError('Edição de categorias ainda não suportada via Cadastros Auxiliares. Exclua e crie uma nova.');
+                    return;
+                } else {
+                    if (!formData.cost_center_id || !formData.type) {
+                        setError('Selecione um centro de custo e um tipo');
+                        return;
+                    }
+                    await financeAuxService.createCategory({
+                        name: formData.name,
+                        type: formData.type,
+                        cost_center_id: formData.cost_center_id
+                    });
+                }
             }
             setSuccess('Registro salvo com sucesso!');
             handleCancel();
@@ -200,6 +234,10 @@ export const CadastrosAuxiliares: React.FC = () => {
                 await locationService.deleteNeighborhood(parseInt(id));
             } else if (activeTab === 'tags') {
                 await tripsService.deleteTag(id);
+            } else if (activeTab === 'centros-custo') {
+                await financeAuxService.deleteCostCenter(id);
+            } else if (activeTab === 'categorias') {
+                await financeAuxService.deleteCategory(id);
             }
             setSuccess('Excluído com sucesso');
             await loadData();
@@ -293,6 +331,69 @@ export const CadastrosAuxiliares: React.FC = () => {
                         </div>
                     </div>
                 );
+            case 'centros-custo':
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome do Centro de Custo</label>
+                            <input
+                                type="text"
+                                value={formData.name || ''}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                placeholder="Ex: Manutenção e Oficina"
+                            />
+                        </div>
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição</label>
+                            <textarea
+                                value={formData.description || ''}
+                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                rows={3}
+                                placeholder="Finalidade deste centro de custo..."
+                            />
+                        </div>
+                    </div>
+                );
+            case 'categorias':
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome da Categoria Financeira</label>
+                            <input
+                                type="text"
+                                value={formData.name || ''}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                                placeholder="Ex: Diesel S10"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Centro de Custo</label>
+                            <select
+                                value={formData.cost_center_id || ''}
+                                onChange={e => setFormData({ ...formData, cost_center_id: e.target.value })}
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                            >
+                                <option value="">Selecione...</option>
+                                {costCenters.map(cc => <option key={cc.id} value={cc.id}>{cc.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo de Fluxo</label>
+                            <select
+                                value={formData.type || ''}
+                                onChange={e => setFormData({ ...formData, type: e.target.value })}
+                                className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                            >
+                                <option value="">Selecione...</option>
+                                <option value={TipoTransacao.INCOME}>RECEITA (+)</option>
+                                <option value={TipoTransacao.EXPENSE}>DESPESA (-)</option>
+                            </select>
+                        </div>
+                    </div>
+                );
         }
     };
 
@@ -341,12 +442,39 @@ export const CadastrosAuxiliares: React.FC = () => {
                 },
                 { key: 'cor', label: 'Código da Cor' },
             ];
+        } else if (activeTab === 'centros-custo') {
+            data = costCenters;
+            columns = [
+                { key: 'name', label: 'Nome' },
+                { key: 'description', label: 'Descrição' },
+            ];
+        } else if (activeTab === 'categorias') {
+            data = categories;
+            columns = [
+                { key: 'name', label: 'Nome' },
+                {
+                    key: 'type', label: 'Tipo', render: (item) => (
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${item.type === TipoTransacao.INCOME ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {item.type === TipoTransacao.INCOME ? 'Receita' : 'Despesa'}
+                        </span>
+                    )
+                },
+                {
+                    key: 'cost_center_id', label: 'Centro de Custo', render: (item) => {
+                        const cc = costCenters.find(c => c.id === item.cost_center_id);
+                        return cc ? cc.name : 'N/A';
+                    }
+                },
+            ];
         }
 
         // Filter
-        const filteredData = data.filter(item =>
-            item.nome.toLowerCase().includes(busca.toLowerCase())
-        );
+        const filteredData = data.filter(item => {
+            const searchVal = busca.toLowerCase();
+            if (activeTab === 'centros-custo') return item.name.toLowerCase().includes(searchVal);
+            if (activeTab === 'categorias') return item.name.toLowerCase().includes(searchVal);
+            return item.nome.toLowerCase().includes(searchVal);
+        });
 
         return (
             <div className="overflow-x-auto">
@@ -467,10 +595,12 @@ export const CadastrosAuxiliares: React.FC = () => {
             {/* Navigation Tabs Module */}
             <div className="flex bg-muted p-1.5 rounded-sm border border-border/50 h-16 w-full lg:w-fit gap-2 overflow-x-auto scroller-hidden">
                 {[
+                    { id: 'centros-custo', label: 'Centros de Custo', icon: Layers },
+                    { id: 'categorias', label: 'Categorizações Fin.', icon: Tag },
+                    { id: 'tags', label: 'Tags Operacionais', icon: CheckCircle2 },
                     { id: 'estados', label: 'Territórios', icon: Flag },
                     { id: 'cidades', label: 'Cidades', icon: Building },
                     { id: 'bairros', label: 'Bairros', icon: MapPin },
-                    { id: 'tags', label: 'Categorização', icon: Tag },
                 ].map((tab) => (
                     <button
                         key={tab.id}

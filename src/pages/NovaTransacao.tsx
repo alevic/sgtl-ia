@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Save, Calendar, DollarSign, Tag, FileText, Upload } from 'lucide-react';
 import {
     TipoTransacao, CategoriaReceita, CategoriaDespesa, FormaPagamento,
-    StatusTransacao, Moeda, CentroCusto, ClassificacaoContabil
+    StatusTransacao, Moeda, CentroCusto, ClassificacaoContabil, ICostCenter, IBankAccount, IFinanceCategory
 } from '@/types';
 import { getSugestaoClassificacao } from '../utils/classificacaoContabil';
 import { authClient } from '../lib/auth-client';
@@ -35,7 +35,6 @@ export const NovaTransacao: React.FC = () => {
     const [numeroDocumento, setNumeroDocumento] = useState('');
     const [observacoes, setObservacoes] = useState('');
 
-    // Centros de Custo
     const [centroCusto, setCentroCusto] = useState<CentroCusto>(CentroCusto.VENDAS);
     const [classificacaoContabil, setClassificacaoContabil] = useState<ClassificacaoContabil>(ClassificacaoContabil.CUSTO_VARIAVEL);
 
@@ -43,18 +42,63 @@ export const NovaTransacao: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
+    // Dynamic entities
+    const [costCenters, setCostCenters] = useState<ICostCenter[]>([]);
+    const [bankAccounts, setBankAccounts] = useState<IBankAccount[]>([]);
+    const [categories, setCategories] = useState<IFinanceCategory[]>([]);
+    const [costCenterId, setCostCenterId] = useState<string>('');
+    const [bankAccountId, setBankAccountId] = useState<string>('');
+    const [categoryId, setCategoryId] = useState<string>('');
+
+    const fetchEntities = async () => {
+        try {
+            const [centersRes, accountsRes, catsRes] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_URL}/api/finance/cost-centers`, { credentials: 'include' }),
+                fetch(`${import.meta.env.VITE_API_URL}/api/finance/accounts`, { credentials: 'include' }),
+                fetch(`${import.meta.env.VITE_API_URL}/api/finance/categories`, { credentials: 'include' })
+            ]);
+
+            if (centersRes.ok) {
+                const centers = await centersRes.json();
+                setCostCenters(centers);
+            }
+            if (accountsRes.ok) {
+                const accounts = await accountsRes.json();
+                setBankAccounts(accounts);
+            }
+            if (catsRes.ok) {
+                const cats = await catsRes.json();
+                setCategories(cats);
+            }
+            if (accountsRes.ok) {
+                const accounts = await accountsRes.json();
+                setBankAccounts(accounts);
+            }
+        } catch (error) {
+            console.error("Erro ao buscar entidades financeiras:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchEntities();
+    }, []);
+
     // Auto-sugerir classificação quando categoria de despesa mudar
     useEffect(() => {
         if (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') {
             const sugestao = getSugestaoClassificacao(categoriaDespesa);
             if (sugestao) {
+                const matchingCC = costCenters.find(cc => cc.name === sugestao.centro_custo);
+                if (matchingCC) setCostCenterId(matchingCC.id);
                 setCentroCusto(sugestao.centro_custo);
                 setClassificacaoContabil(sugestao.classificacao_contabil);
             }
         } else if (tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') {
+            const matchingCC = costCenters.find(cc => cc.name === 'VENDAS');
+            if (matchingCC) setCostCenterId(matchingCC.id);
             setCentroCusto(CentroCusto.VENDAS);
         }
-    }, [tipo, categoriaDespesa]);
+    }, [tipo, categoriaDespesa, costCenters]);
 
     // Handle initial state from navigation
     useEffect(() => {
@@ -85,16 +129,19 @@ export const NovaTransacao: React.FC = () => {
                     setCentroCusto(state.centro_custo);
                     setClassificacaoContabil(state.classificacao_contabil);
                 }
+                if (state.cost_center_id) setCostCenterId(state.cost_center_id);
+                if (state.bank_account_id) setBankAccountId(state.bank_account_id);
+                if (state.category_id) setCategoryId(state.category_id);
             }
             else {
                 if (state.tipo) setTipo(state.tipo);
                 if (state.valor) setValor(state.valor.toString());
                 if (state.descricao) setDescricao(state.descricao);
-                if (state.categoria_despesa) {
+                if (state.categoria_despesa_id) {
                     setTipo(TipoTransacao.EXPENSE);
-                    setCategoriaDespesa(state.categoria_despesa);
+                    setCategoryId(state.categoria_despesa_id);
                 }
-                if (state.centro_custo) setCentroCusto(state.centro_custo);
+                if (state.cost_center_id) setCostCenterId(state.cost_center_id);
             }
         }
     }, [location]);
@@ -111,9 +158,10 @@ export const NovaTransacao: React.FC = () => {
             data_vencimento: dataVencimento,
             status,
             forma_pagamento: formaPagamento,
-            categoria_receita: (tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') ? categoriaReceita : undefined,
-            categoria_despesa: (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') ? categoriaDespesa : undefined,
+            category_id: categoryId || undefined,
             centro_custo: centroCusto,
+            cost_center_id: costCenterId || undefined,
+            bank_account_id: bankAccountId || undefined,
             classificacao_contabil: (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') ? classificacaoContabil : undefined,
             numero_documento: numeroDocumento,
             observacoes,
@@ -251,7 +299,7 @@ export const NovaTransacao: React.FC = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Valor Nominal *</label>
                                     <div className="relative group">
@@ -282,40 +330,6 @@ export const NovaTransacao: React.FC = () => {
                                         <option value={Moeda.ARS}>ARS - Peso Argentino</option>
                                     </select>
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria de Fluxo *</label>
-                                    {(tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA') ? (
-                                        <select
-                                            required
-                                            value={categoriaReceita}
-                                            onChange={e => setCategoriaReceita(e.target.value as CategoriaReceita)}
-                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
-                                        >
-                                            <option value={CategoriaReceita.VENDA_PASSAGEM}>Venda de Passagem</option>
-                                            <option value={CategoriaReceita.FRETAMENTO}>Fretamento</option>
-                                            <option value={CategoriaReceita.ENCOMENDA}>Encomenda</option>
-                                            <option value={CategoriaReceita.OUTROS}>Outros Recebíveis</option>
-                                        </select>
-                                    ) : (
-                                        <select
-                                            required
-                                            value={categoriaDespesa}
-                                            onChange={e => setCategoriaDespesa(e.target.value as CategoriaDespesa)}
-                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
-                                        >
-                                            <option value={CategoriaDespesa.COMBUSTIVEL}>Combustível</option>
-                                            <option value={CategoriaDespesa.MANUTENCAO}>Manutenção</option>
-                                            <option value={CategoriaDespesa.PECAS}>Peças e Acessórios</option>
-                                            <option value={CategoriaDespesa.SALARIOS}>Salários e Pró-labore</option>
-                                            <option value={CategoriaDespesa.FOLHA_PAGAMENTO}>Encargos Sociais</option>
-                                            <option value={CategoriaDespesa.IMPOSTOS}>Impostos e Taxas</option>
-                                            <option value={CategoriaDespesa.PEDAGIO}>Pedágio e Viagem</option>
-                                            <option value={CategoriaDespesa.SEGURO}>Seguro Veicular/Resp.</option>
-                                            <option value={CategoriaDespesa.ALUGUEL}>Aluguel e Infra</option>
-                                            <option value={CategoriaDespesa.OUTROS}>Outros Gastos</option>
-                                        </select>
-                                    )}
-                                </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -333,7 +347,20 @@ export const NovaTransacao: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Forma de Liquidação</label>
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Conta de Liquidação</label>
+                                    <select
+                                        value={bankAccountId}
+                                        onChange={e => setBankAccountId(e.target.value)}
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                    >
+                                        <option value="">NÃO INFORMADA (CAIXA GERAL)</option>
+                                        {bankAccounts.map(acc => (
+                                            <option key={acc.id} value={acc.id}>{acc.name} - {acc.bank_name || 'INTERNO'}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Meio de Pagamento</label>
                                     <select
                                         value={formaPagamento}
                                         onChange={e => setFormaPagamento(e.target.value as FormaPagamento)}
@@ -363,33 +390,79 @@ export const NovaTransacao: React.FC = () => {
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Centro de Custo Responsável *</label>
                                     <select
                                         required
-                                        value={centroCusto}
-                                        onChange={e => setCentroCusto(e.target.value as CentroCusto)}
+                                        value={costCenterId}
+                                        onChange={e => {
+                                            const id = e.target.value;
+                                            setCostCenterId(id);
+                                            const cc = costCenters.find(c => c.id === id);
+                                            if (cc) setCentroCusto(cc.name as any);
+
+                                            // Reset category if it doesn't belong to the new cost center
+                                            if (id && categoryId) {
+                                                const currentCat = categories.find(c => c.id === categoryId);
+                                                if (currentCat && currentCat.cost_center_id !== id) {
+                                                    setCategoryId('');
+                                                }
+                                            }
+                                        }}
                                         className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     >
-                                        <option value={CentroCusto.ESTOQUE}>Estoque - Ativos e Equipamentos</option>
-                                        <option value={CentroCusto.VENDAS}>Comercial - Serviços e Vendas</option>
-                                        <option value={CentroCusto.ADMINISTRATIVO}>Administrativo - Gestão e RH</option>
+                                        <option value="">Selecione o Centro de Custo</option>
+                                        {costCenters.map(cc => (
+                                            <option key={cc.id} value={cc.id}>{cc.name} {cc.description ? `- ${cc.description}` : ''}</option>
+                                        ))}
                                     </select>
                                 </div>
 
-                                {(tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') && (
-                                    <div className="space-y-2">
-                                        <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Natureza Contábil *</label>
-                                        <select
-                                            required
-                                            value={classificacaoContabil}
-                                            onChange={e => setClassificacaoContabil(e.target.value as ClassificacaoContabil)}
-                                            className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
-                                        >
-                                            <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Estrutural Fixo</option>
-                                            <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Operacional Variável</option>
-                                            <option value={ClassificacaoContabil.DESPESA_FIXA}>Despesa Administrativa Fixa</option>
-                                            <option value={ClassificacaoContabil.DESPESA_VARIAVEL}>Despesa Administrativa Variável</option>
-                                        </select>
-                                    </div>
-                                )}
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria de Fluxo *</label>
+                                    <select
+                                        required
+                                        value={categoryId}
+                                        onChange={e => {
+                                            const id = e.target.value;
+                                            setCategoryId(id);
+                                            const cat = categories.find(c => c.id === id);
+                                            if (cat && cat.cost_center_id) {
+                                                setCostCenterId(cat.cost_center_id);
+                                                const cc = costCenters.find(c => c.id === cat.cost_center_id);
+                                                if (cc) setCentroCusto(cc.name as any);
+                                            }
+                                        }}
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                    >
+                                        <option value="">Selecione uma Categoria</option>
+                                        {categories
+                                            .filter(cat => {
+                                                const typeMatch = (tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA')
+                                                    ? cat.type === TipoTransacao.INCOME
+                                                    : cat.type === TipoTransacao.EXPENSE;
+                                                const ccMatch = costCenterId ? cat.cost_center_id === costCenterId : true;
+                                                return typeMatch && ccMatch;
+                                            })
+                                            .map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name.toUpperCase()}</option>
+                                            ))}
+                                    </select>
+                                </div>
                             </div>
+
+                            {(tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') && (
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Natureza Contábil *</label>
+                                    <select
+                                        required
+                                        value={classificacaoContabil}
+                                        onChange={e => setClassificacaoContabil(e.target.value as ClassificacaoContabil)}
+                                        className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
+                                    >
+                                        <option value={ClassificacaoContabil.CUSTO_FIXO}>Custo Estrutural Fixo</option>
+                                        <option value={ClassificacaoContabil.CUSTO_VARIAVEL}>Custo Operacional Variável</option>
+                                        <option value={ClassificacaoContabil.DESPESA_FIXA}>Despesa Administrativa Fixa</option>
+                                        <option value={ClassificacaoContabil.DESPESA_VARIAVEL}>Despesa Administrativa Variável</option>
+                                    </select>
+                                </div>
+                            )}
 
                             <div className="p-4 rounded-sm bg-blue-500/5 border border-blue-500/10 flex items-start gap-4">
                                 <div className="p-2 bg-blue-500/10 rounded-sm text-blue-500 mt-1">

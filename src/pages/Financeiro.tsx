@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     DollarSign, TrendingUp, TrendingDown, Calendar, Plus, FileText,
     CreditCard, AlertCircle, ArrowUpRight, ArrowDownRight, PieChart,
-    Wallet, Receipt, ArrowUpDown, ChevronRight, Inbox, Loader2
+    Wallet, Receipt, ArrowUpDown, ChevronRight, Inbox, Loader2, Landmark
 } from 'lucide-react';
 import { ITransacao, TipoTransacao, StatusTransacao, Moeda, CategoriaReceita, CategoriaDespesa, StatusTransacaoLabel } from '@/types';
 import { authClient } from '../lib/auth-client';
@@ -184,6 +184,7 @@ export const Financeiro: React.FC = () => {
                     { label: 'Contas a Receber', icon: ArrowUpRight, color: 'emerald', path: '/admin/financeiro/contas-receber' },
                     { label: 'Contas a Pagar', icon: ArrowDownRight, color: 'red', path: '/admin/financeiro/contas-pagar' },
                     { label: 'Relatórios', icon: FileText, color: 'blue', path: '/admin/relatorios' },
+                    { label: 'Contas Bancárias', icon: Landmark, color: 'emerald', path: '/admin/financeiro/contas' },
                     { label: 'Centros de Custo', icon: PieChart, color: 'purple', path: '/admin/financeiro/centros-custo' },
                     { label: 'Conciliação', icon: Receipt, color: 'amber', path: '/admin/financeiro/conciliacao' }
                 ].map((action, i) => (

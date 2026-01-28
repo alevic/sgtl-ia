@@ -3,6 +3,10 @@ import { pool } from "../auth.js";
 import { clientAuthorize } from "../middleware.js";
 import crypto from "crypto";
 import { ReservationStatus, StatusTransacao, TipoTransacao } from "../types.js";
+import { db } from "../db/drizzle.js";
+import { clients, reservations, trips, routes, seat, transactions } from "../db/schema.js";
+import { eq, and, ne, sql, desc, asc } from "drizzle-orm";
+import { FinanceService } from "../services/financeService.js";
 
 const router = express.Router();
 
@@ -12,20 +16,17 @@ router.get("/dashboard", clientAuthorize(), async (req, res) => {
         const userId = (req as any).session.user.id;
 
         // 1. Fetch Client Profile
-        const clientResult = await pool.query(
-            "SELECT * FROM clients WHERE user_id = $1",
-            [userId]
-        );
+        let [clientProfile] = await db.select()
+            .from(clients)
+            .where(eq(clients.user_id, userId))
+            .limit(1);
 
-        if (clientResult.rows.length === 0) {
+        if (!clientProfile) {
             // Lazy Creation: If no client record exists, create one from user data
             console.log(`[DASHBOARD] Lazy-creating client profile for userId: ${userId}`);
 
-            // Fetch basic user data
-            const userResult = await pool.query(
-                'SELECT name, email, phone, cpf FROM "user" WHERE id = $1',
-                [userId]
-            );
+            // Fetch basic user data using raw pool for "user" if needed or keep it simple
+            const userResult = await pool.query('SELECT name, email, phone, cpf FROM "user" WHERE id = $1', [userId]);
 
             if (userResult.rows.length === 0) {
                 return res.status(404).json({ error: "User not found" });
@@ -35,51 +36,53 @@ router.get("/dashboard", clientAuthorize(), async (req, res) => {
             const orgId = (req as any).session.session.activeOrganizationId;
 
             // Insert new client record
-            const newClientResult = await pool.query(
-                `INSERT INTO clients (
-                    tipo_cliente, nome, email, telefone, 
-                    documento_tipo, documento,
-                    organization_id, user_id,
-                    data_cadastro, saldo_creditos
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP, 0)
-                RETURNING *`,
-                [
-                    'PESSOA_FISICA',
-                    user.name,
-                    user.email,
-                    user.phone || null,
-                    'CPF',
-                    user.cpf || '',
-                    orgId,
-                    userId
-                ]
-            );
-
-            clientResult.rows[0] = newClientResult.rows[0];
+            [clientProfile] = await db.insert(clients)
+                .values({
+                    tipo_cliente: 'PESSOA_FISICA',
+                    nome: user.name,
+                    email: user.email,
+                    telefone: user.phone || null,
+                    documento_tipo: 'CPF',
+                    documento: user.cpf || '',
+                    organization_id: orgId,
+                    user_id: userId,
+                    data_cadastro: new Date(),
+                    saldo_creditos: '0'
+                })
+                .returning();
         }
-
-        const clientProfile = clientResult.rows[0];
         const clientId = clientProfile.id;
 
         // 2. Fetch Future Reservations
-        const reservationsResult = await pool.query(
-            `SELECT r.*, 
-                   t.departure_date, t.departure_time, t.title as trip_title,
-                   route.name as route_name, route.origin_city, route.origin_state, 
-                   route.destination_city, route.destination_state,
-                   route.origin_neighborhood, route.destination_neighborhood,
-                   route.stops as route_stops,
-                   s.numero as seat_number, s.tipo as seat_type
-            FROM reservations r
-            JOIN trips t ON r.trip_id = t.id
-            JOIN routes route ON t.route_id = route.id
-            LEFT JOIN seat s ON r.seat_id = s.id
-            WHERE r.client_id = $1 AND r.status != $2
-            ORDER BY t.departure_date ASC, t.departure_time ASC`,
-            [clientId, ReservationStatus.CANCELLED]
-        );
+        const reservationsList = await db.select({
+            id: reservations.id,
+            ticket_code: reservations.ticket_code,
+            status: reservations.status,
+            passenger_name: reservations.passenger_name,
+            price: reservations.price,
+            departure_date: trips.departure_date,
+            departure_time: trips.departure_time,
+            trip_title: trips.title,
+            route_name: routes.name,
+            origin_city: routes.origin_city,
+            origin_state: routes.origin_state,
+            destination_city: routes.destination_city,
+            destination_state: routes.destination_state,
+            seat_number: seat.numero,
+            seat_type: seat.tipo
+        })
+            .from(reservations)
+            .innerJoin(trips, eq(reservations.trip_id, trips.id))
+            .innerJoin(routes, eq(trips.route_id, routes.id))
+            .leftJoin(seat, eq(reservations.seat_id, seat.id))
+            .where(and(
+                eq(reservations.client_id, clientId),
+                ne(reservations.status, ReservationStatus.CANCELLED)
+            ))
+            .orderBy(asc(trips.departure_date), asc(trips.departure_time));
 
-        // 3. Fetch Recent Parcels
+        // 3. Fetch Recent Parcels - Keep as is for now or refactor later
+        // (Assuming parcels doesn't have a Drizzle schema yet)
         const parcelsResult = await pool.query(
             `SELECT * FROM parcel_orders 
              WHERE sender_document = $1 OR recipient_document = $1
@@ -89,7 +92,7 @@ router.get("/dashboard", clientAuthorize(), async (req, res) => {
 
         res.json({
             profile: clientProfile,
-            reservations: reservationsResult.rows,
+            reservations: reservationsList,
             parcels: parcelsResult.rows
         });
     } catch (error) {
@@ -211,14 +214,14 @@ router.post("/checkout", clientAuthorize(), async (req, res) => {
     try {
         const userId = (req as any).session.user.id;
         const {
-            reservations, // Array of reservation objects
+            reservations: reservationsData, // Array of reservation objects
             credits_used,
             is_partial,
             entry_value,
             trip_id
         } = req.body;
 
-        if (!reservations || !Array.isArray(reservations) || reservations.length === 0) {
+        if (!reservationsData || !Array.isArray(reservationsData) || reservationsData.length === 0) {
             return res.status(400).json({ error: "No reservations provided" });
         }
 
@@ -242,26 +245,35 @@ router.post("/checkout", clientAuthorize(), async (req, res) => {
                 throw new Error("Saldo de créditos insuficiente");
             }
 
-            await client.query(
-                "UPDATE clients SET saldo_creditos = saldo_creditos - $1 WHERE id = $2",
-                [credits_used, clientId]
-            );
+            await db.update(clients)
+                .set({
+                    saldo_creditos: sql`${clients.saldo_creditos} - ${credits_used}`
+                })
+                .where(eq(clients.id, clientId));
 
             // Log Credit Usage (Financial Transaction)
-            await client.query(
-                `INSERT INTO transaction (
-                    organization_id, type, category, amount, description, status, 
-                    client_id, date, created_at
-                ) VALUES ($1, $2, 'OUTROS', $3, $4, $5, $6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-                [orgId, TipoTransacao.EXPENSE, credits_used, `Uso de créditos na reserva - ${tripResult.rows[0].title}`, StatusTransacao.PAID, clientId]
-            );
+            const catId = await FinanceService.getCategoryIdByName('OUTROS', orgId);
+
+            await db.insert(transactions)
+                .values({
+                    organization_id: orgId,
+                    type: TipoTransacao.EXPENSE,
+                    category: 'OUTROS',
+                    category_id: catId,
+                    amount: credits_used.toString(),
+                    description: `Uso de créditos na reserva - ${tripResult.rows[0].title}`,
+                    status: StatusTransacao.PAID,
+                    client_id: clientId,
+                    date: new Date(),
+                    created_by: userId
+                });
         }
 
         const createdReservations = [];
-        const totalAmount = reservations.reduce((sum, r) => sum + Number(r.price || 0), 0);
+        const totalAmount = reservationsData.reduce((sum, r) => sum + Number(r.price || 0), 0);
 
         // 4. Create Reservations
-        for (const r of reservations) {
+        for (const r of reservationsData) {
             // Double Booking Check
             const reservationCheck = await client.query(
                 "SELECT id FROM reservations WHERE trip_id = $1 AND seat_id = $2 AND status != $3",
@@ -273,63 +285,76 @@ router.post("/checkout", clientAuthorize(), async (req, res) => {
 
             const ticket_code = 'T-' + crypto.randomBytes(3).toString('hex').toUpperCase();
 
-            // Calculate individualized stats for this reservation (pro-rata distribution if needed, but usually we just tag the main group)
-            // For now, we store the full price and mark the group
-            const resResult = await client.query(
-                `INSERT INTO reservations (
-                    trip_id, seat_id,
-                    passenger_name, passenger_document, passenger_email, passenger_phone,
-                    status, ticket_code, price,
-                    client_id, organization_id,
-                    boarding_point, dropoff_point,
-                    credits_used, is_partial, amount_paid,
-                    created_at, updated_at
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-                RETURNING *`,
-                [
-                    trip_id, r.seat_id,
-                    r.passenger_name, r.passenger_document, r.passenger_email || null, r.passenger_phone || null,
-                    ReservationStatus.PENDING, ticket_code, r.price,
-                    clientId, orgId,
-                    r.boarding_point || null, r.dropoff_point || null,
-                    0, // credits_used per reservation (store total on financial or split?) - common practice: store total on financial
-                    is_partial || false,
-                    0 // amount_paid starts at 0 until payment confirmed
-                ]
-            );
-            createdReservations.push(resResult.rows[0]);
+            const [newRes] = await db.insert(reservations)
+                .values({
+                    trip_id,
+                    seat_id: r.seat_id,
+                    passenger_name: r.passenger_name,
+                    passenger_document: r.passenger_document,
+                    passenger_email: r.passenger_email || null,
+                    passenger_phone: r.passenger_phone || null,
+                    status: ReservationStatus.PENDING,
+                    ticket_code,
+                    price: r.price.toString(),
+                    client_id: clientId,
+                    organization_id: orgId,
+                    boarding_point: r.boarding_point || null,
+                    dropoff_point: r.dropoff_point || null,
+                    credits_used: '0',
+                    is_partial: is_partial || false,
+                    amount_paid: '0',
+                    created_by: userId
+                })
+                .returning();
+            createdReservations.push(newRes);
         }
 
         // 5. Create Financial Transactions (Entry and Remaining Balance)
         const description = `Reserva Portal: ${tripResult.rows[0].title} (${createdReservations.length} pax)`;
+        const catId = await FinanceService.getCategoryIdByName('VENDA_PASSAGEM', orgId);
 
         // Transaction for Entry/Total
-        await client.query(
-            `INSERT INTO transaction (
-                organization_id, type, category, amount, description, status, 
-                client_id, reservation_id, date, created_at
-            ) VALUES ($1, $2, 'VENDA_PASSAGEM', $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-            [orgId, TipoTransacao.INCOME, entry_value || (totalAmount - (credits_used || 0)), description + (is_partial ? " - Entrada/Sinal" : ""), StatusTransacao.PENDING, clientId, createdReservations[0].id]
-        );
+        await db.insert(transactions)
+            .values({
+                organization_id: orgId,
+                type: TipoTransacao.INCOME,
+                category: 'VENDA_PASSAGEM',
+                category_id: catId,
+                amount: (entry_value || (totalAmount - (credits_used || 0))).toString(),
+                description: description + (is_partial ? " - Entrada/Sinal" : ""),
+                status: StatusTransacao.PENDING,
+                client_id: clientId,
+                reservation_id: createdReservations[0].id,
+                date: new Date(),
+                created_by: userId
+            });
 
         if (is_partial) {
             const remaining = totalAmount - (credits_used || 0) - entry_value;
             if (remaining > 0) {
-                await client.query(
-                    `INSERT INTO transaction (
-                        organization_id, type, category, amount, description, status, 
-                        client_id, reservation_id, date, created_at
-                    ) VALUES ($1, $2, 'VENDA_PASSAGEM', $3, $4, $5, $6, $7, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-                    [orgId, TipoTransacao.INCOME, remaining, description + " - Restante no Embarque", StatusTransacao.PENDING, clientId, createdReservations[0].id]
-                );
+                await db.insert(transactions)
+                    .values({
+                        organization_id: orgId,
+                        type: TipoTransacao.INCOME,
+                        category: 'VENDA_PASSAGEM',
+                        category_id: catId,
+                        amount: remaining.toString(),
+                        description: description + " - Restante no Embarque",
+                        status: StatusTransacao.PENDING,
+                        client_id: clientId,
+                        reservation_id: createdReservations[0].id,
+                        date: new Date(),
+                        created_by: userId
+                    });
             }
         }
 
         // 6. Update Trip Seats
-        await client.query(
-            "UPDATE trips SET seats_available = seats_available - $1 WHERE id = $2",
-            [reservations.length, trip_id]
-        );
+        await db.update(trips)
+            .set({
+                seats_available: sql`${trips.seats_available} - ${reservationsData.length}`
+            })
+            .where(eq(trips.id, trip_id));
 
         await client.query("COMMIT");
         console.log(`[Public Checkout] Success! ${createdReservations.length} reservations created for org ${orgId}`);

@@ -9,6 +9,9 @@ import {
 } from '@/types';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
+import { SwissDatePicker } from '../components/Form/SwissDatePicker';
+import { financeAuxService } from '../services/financeAuxService';
+import { ICostCenter, IFinanceCategory } from '@/types';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { DashboardCard } from '../components/Layout/DashboardCard';
 import { ListFilterSection } from '../components/Layout/ListFilterSection';
@@ -30,27 +33,33 @@ export const Transacoes: React.FC = () => {
     const [busca, setBusca] = useState('');
     const [filtroTipo, setFiltroTipo] = useState<TipoTransacao | 'TODAS'>('TODAS');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
-    const [filtroCentroCusto, setFiltroCentroCusto] = useState<CentroCusto | 'TODOS'>('TODOS');
+    const [filtroCentroCusto, setFiltroCentroCusto] = useState<string>('TODOS');
+    const [filtroCategoria, setFiltroCategoria] = useState<string>('TODAS');
     const [filtroClassificacao, setFiltroClassificacao] = useState<ClassificacaoContabil | 'TODAS'>('TODAS');
     const [dataInicio, setDataInicio] = useState('');
     const [dataFim, setDataFim] = useState('');
     const [info, setInfo] = useState<string | null>(null);
 
+    const [costCenters, setCostCenters] = useState<ICostCenter[]>([]);
+    const [categories, setCategories] = useState<IFinanceCategory[]>([]);
+
     const fetchTransacoes = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, {
-                credentials: 'include'
-            });
+            const [transRes, centers, cats] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, { credentials: 'include' }),
+                financeAuxService.getCostCenters(),
+                financeAuxService.getCategories()
+            ]);
 
-            if (!response.ok) {
-                throw new Error('Falha ao buscar transações');
+            if (transRes.ok) {
+                const data = await transRes.json();
+                setTransacoes(data);
             }
-
-            const data = await response.json();
-            setTransacoes(data);
+            setCostCenters(centers);
+            setCategories(cats);
         } catch (error) {
-            console.error("Erro ao buscar transações:", error);
+            console.error("Erro ao buscar dados:", error);
         } finally {
             setIsLoading(false);
         }
@@ -69,7 +78,17 @@ export const Transacoes: React.FC = () => {
 
             const matchTipo = filtroTipo === 'TODAS' || transacao.tipo === filtroTipo;
             const matchStatus = filtroStatus === 'TODAS' || transacao.status === filtroStatus;
-            const matchCentroCusto = filtroCentroCusto === 'TODOS' || transacao.centro_custo === filtroCentroCusto;
+
+            // Filter by ID or Legacy Name
+            const matchCentroCusto = filtroCentroCusto === 'TODOS' ||
+                transacao.cost_center_id === filtroCentroCusto ||
+                transacao.centro_custo === filtroCentroCusto;
+
+            const matchCategoria = filtroCategoria === 'TODAS' ||
+                transacao.category_id === filtroCategoria ||
+                transacao.categoria_receita === filtroCategoria ||
+                transacao.categoria_despesa === filtroCategoria;
+
             const matchClassificacao = filtroClassificacao === 'TODAS' || transacao.classificacao_contabil === filtroClassificacao;
 
             let matchData = true;
@@ -90,9 +109,9 @@ export const Transacoes: React.FC = () => {
                 matchData = dataEmissao >= start && dataEmissao <= end;
             }
 
-            return matchBusca && matchTipo && matchStatus && matchData && matchCentroCusto && matchClassificacao;
+            return matchBusca && matchTipo && matchStatus && matchData && matchCentroCusto && matchCategoria && matchClassificacao;
         }).sort((a, b) => new Date(b.data_emissao).getTime() - new Date(a.data_emissao).getTime());
-    }, [transacoes, busca, filtroTipo, filtroStatus, dataInicio, dataFim, filtroCentroCusto, filtroClassificacao]);
+    }, [transacoes, busca, filtroTipo, filtroStatus, dataInicio, dataFim, filtroCentroCusto, filtroCategoria, filtroClassificacao]);
 
     const resumo = useMemo(() => {
         const receitas = transacoesFiltradas
@@ -269,33 +288,53 @@ export const Transacoes: React.FC = () => {
                 <div className="lg:col-span-2 space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Período de Emissão</label>
                     <div className="flex items-center gap-2">
-                        <Input
-                            type="date"
-                            value={dataInicio}
-                            onChange={e => setDataInicio(e.target.value)}
-                            className="flex-1 h-14 bg-muted border-border/50 rounded-sm text-xs font-bold"
-                        />
+                        <div className="flex-1">
+                            <SwissDatePicker
+                                value={dataInicio}
+                                onChange={setDataInicio}
+                            />
+                        </div>
                         <span className="text-muted-foreground font-black">→</span>
-                        <Input
-                            type="date"
-                            value={dataFim}
-                            onChange={e => setDataFim(e.target.value)}
-                            className="flex-1 h-14 bg-muted border-border/50 rounded-sm text-xs font-bold"
-                        />
+                        <div className="flex-1">
+                            <SwissDatePicker
+                                value={dataFim}
+                                onChange={setDataFim}
+                            />
+                        </div>
                     </div>
                 </div>
 
                 <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Centro de Custo</label>
-                    <Select value={filtroCentroCusto} onValueChange={(v: any) => setFiltroCentroCusto(v)}>
+                    <Select value={filtroCentroCusto} onValueChange={(v: any) => {
+                        setFiltroCentroCusto(v);
+                        setFiltroCategoria('TODAS'); // Reset category when cost center changes
+                    }}>
                         <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
                             <SelectValue placeholder="CENTRO CUSTO" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="TODOS">TODOS C. CUSTO</SelectItem>
-                            <SelectItem value={CentroCusto.ESTOQUE}>ESTOQUE</SelectItem>
-                            <SelectItem value={CentroCusto.VENDAS}>VENDAS</SelectItem>
-                            <SelectItem value={CentroCusto.ADMINISTRATIVO}>ADMINISTRATIVO</SelectItem>
+                            <SelectItem value="TODOS">TODOS C. CUSTOS</SelectItem>
+                            {costCenters.map(cc => (
+                                <SelectItem key={cc.id} value={cc.id}>{cc.name.toUpperCase()}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Categoria</label>
+                    <Select value={filtroCategoria} onValueChange={(v: any) => setFiltroCategoria(v)}>
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
+                            <SelectValue placeholder="CATEGORIA" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODAS">TODAS CATEGORIAS</SelectItem>
+                            {categories
+                                .filter(cat => filtroCentroCusto === 'TODOS' || cat.cost_center_id === filtroCentroCusto)
+                                .map(cat => (
+                                    <SelectItem key={cat.id} value={cat.id}>{cat.name.toUpperCase()}</SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
                 </div>

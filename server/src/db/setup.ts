@@ -427,30 +427,241 @@ export async function setupDb() {
 
         console.log("Migrations completed successfully.");
 
+        // Bank Accounts table
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS bank_accounts (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    name VARCHAR(255) NOT NULL,
+                    bank_name VARCHAR(255),
+                    account_number VARCHAR(100),
+                    initial_balance DECIMAL(15, 2) DEFAULT 0.00,
+                    current_balance DECIMAL(15, 2) DEFAULT 0.00,
+                    currency VARCHAR(10) DEFAULT 'BRL',
+                    active BOOLEAN DEFAULT TRUE,
+                    organization_id TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(name, organization_id)
+                );
+            `);
+            console.log("Bank accounts table created successfully.");
+        } catch (error: any) {
+            if (error.code === '23505' && error.constraint === 'pg_type_typname_nsp_index') {
+                console.log("Bank accounts table already exists (pg_type constraint handled).");
+            } else {
+                throw error;
+            }
+        }
+
+        // Cost Centers table
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS cost_centers (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    name VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    active BOOLEAN DEFAULT TRUE,
+                    organization_id TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(name, organization_id)
+                );
+            `);
+            console.log("Cost centers table created successfully.");
+        } catch (error: any) {
+            if (error.code === '23505' && error.constraint === 'pg_type_typname_nsp_index') {
+                console.log("Cost centers table already exists (pg_type constraint handled).");
+            } else {
+                throw error;
+            }
+        }
+        // Categories table
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS categories (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    name VARCHAR(255) NOT NULL,
+                    type VARCHAR(20) NOT NULL,
+                    cost_center_id UUID REFERENCES cost_centers(id) ON DELETE CASCADE,
+                    active BOOLEAN DEFAULT TRUE,
+                    organization_id TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(name, organization_id)
+                );
+            `);
+            console.log("Categories table created successfully.");
+        } catch (error: any) {
+            // Handle race condition where IF NOT EXISTS fails due to pg_type duplicate key
+            if (error.code === '23505' && error.constraint === 'pg_type_typname_nsp_index') {
+                console.log("Categories table already exists (pg_type constraint handled).");
+            } else {
+                throw error;
+            }
+        }
+
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS transaction (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    type TEXT NOT NULL,
+                    description TEXT NOT NULL,
+                    amount DECIMAL(10, 2) NOT NULL,
+                    currency TEXT DEFAULT 'BRL',
+                    date DATE NOT NULL,
+                    due_date DATE,
+                    payment_date DATE,
+                    status TEXT NOT NULL CHECK (status IN ('PENDING', 'PAID', 'OVERDUE', 'CANCELLED', 'PARTIALLY_PAID')),
+                    payment_method TEXT,
+                    category TEXT,
+                    cost_center TEXT,
+                    cost_center_id UUID REFERENCES cost_centers(id),
+                    bank_account_id UUID REFERENCES bank_accounts(id),
+                    classificacao_contabil TEXT,
+                    document_number TEXT,
+                    notes TEXT,
+                    organization_id TEXT NOT NULL,
+                    created_by TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+            console.log("Transaction table created successfully.");
+        } catch (error: any) {
+            if (error.code === '23505' && error.constraint === 'pg_type_typname_nsp_index') {
+                console.log("Transaction table already exists (pg_type constraint handled).");
+            } else {
+                throw error;
+            }
+        }
+
+        // Migration/Updates for existing transaction table
         await pool.query(`
-            CREATE TABLE IF NOT EXISTS transaction (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                type TEXT NOT NULL,
-                description TEXT NOT NULL,
-                amount DECIMAL(10, 2) NOT NULL,
-                currency TEXT DEFAULT 'BRL',
-                date DATE NOT NULL,
-                due_date DATE,
-                payment_date DATE,
-                status TEXT NOT NULL CHECK (status IN ('PENDING', 'PAID', 'OVERDUE', 'CANCELLED', 'PARTIALLY_PAID')),
-                payment_method TEXT,
-                category TEXT,
-                cost_center TEXT,
-                accounting_classification TEXT,
-                document_number TEXT,
-                notes TEXT,
-                organization_id TEXT NOT NULL,
-                created_by TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS cost_center_id UUID REFERENCES cost_centers(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS bank_account_id UUID REFERENCES bank_accounts(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES categories(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS classificacao_contabil TEXT;
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
         `);
 
-        console.log("Transaction table created successfully.");
+        // Seed default cost centers (10 items)
+        await pool.query(`
+            -- MATRIZ E FILIAIS
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'SEDE - ADMINISTRATIVO', 'Gestão central, RH e Jurídico', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+            
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'MATRIZ - FINANCEIRO', 'Controladoria e Tesouraria', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+            
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'FILIAL - SÃO PAULO', 'Operação Regional SP', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+            
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'FILIAL - RIO DE JANEIRO', 'Operação Regional RJ', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            -- OPERACIONAL E VENDAS
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'OPERAÇÃO - LINHAS REGULARES', 'Transporte rodoviário de passageiros', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+            
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'OPERAÇÃO - FRETAMENTO', 'Turismo e eventos', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'COMERCIAL - MARKETING', 'Publicidade e Vendas', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            -- SUPORTE
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'MANUTENÇÃO E OFICINA', 'Serviços mecânicos e peças', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+            
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'TI - INFRAESTRUTURA', 'Hardware, Software e Redes', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO cost_centers (name, description, organization_id)
+            SELECT 'LOGÍSTICA E ALMOXARIFADO', 'Gestão de estoques e cargas', id FROM "organization"
+            ON CONFLICT (name, organization_id) DO NOTHING;
+        `);
+
+        // Seed default categories (10+ items)
+        await pool.query(`
+            -- INCOME (Receitas)
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Passagens de Linha', 'INCOME', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'OPERAÇÃO - LINHAS REGULARES'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Fretamento Executivo', 'INCOME', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'OPERAÇÃO - FRETAMENTO'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Transporte de Cargas', 'INCOME', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'LOGÍSTICA E ALMOXARIFADO'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Encomendas Expressas', 'INCOME', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'LOGÍSTICA E ALMOXARIFADO'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Comissões sobre Vendas', 'INCOME', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'COMERCIAL - MARKETING'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            -- EXPENSE (Despesas)
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Diesel S10 / Arla', 'EXPENSE', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'OPERAÇÃO - LINHAS REGULARES'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Peças de Reposição', 'EXPENSE', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'MANUTENÇÃO E OFICINA'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Pneus e Recapagens', 'EXPENSE', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'MANUTENÇÃO E OFICINA'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Folha de Pagamento', 'EXPENSE', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'SEDE - ADMINISTRATIVO'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+
+            INSERT INTO categories (name, type, cost_center_id, organization_id)
+            SELECT 'Pedágios e Taxas', 'EXPENSE', cc.id, cc.organization_id 
+            FROM cost_centers cc WHERE cc.name = 'OPERAÇÃO - LINHAS REGULARES'
+            ON CONFLICT (name, organization_id) DO NOTHING;
+        `);
+
+        // Migration: Link legacy cost_center strings and category strings to new IDs
+        await pool.query(`
+            -- Link Cost Centers
+            UPDATE transaction t
+            SET cost_center_id = cc.id
+            FROM cost_centers cc
+            WHERE t.cost_center = cc.name AND t.organization_id = cc.organization_id AND t.cost_center_id IS NULL;
+
+            -- Link Categories
+            UPDATE transaction t
+            SET category_id = cat.id
+            FROM categories cat
+            WHERE t.category = cat.name AND t.organization_id = cat.organization_id AND t.category_id IS NULL;
+        `);
+
+        console.log("Transaction table and categories created/updated successfully.");
 
         // Ensure transaction table has updated_at
         await pool.query(`
@@ -1000,30 +1211,38 @@ export async function setupDb() {
         console.log("Charters table created successfully.");
 
         // Create Maintenance Table
-        await pool.query(`
-            CREATE TABLE IF NOT EXISTS maintenance (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                vehicle_id UUID NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
-                tipo TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
-                data_agendada DATE NOT NULL,
-                data_inicio DATE,
-                data_conclusao DATE,
-                km_veiculo INTEGER NOT NULL,
-                descricao TEXT NOT NULL,
-                custo_pecas DECIMAL(10, 2) DEFAULT 0,
-                custo_mao_de_obra DECIMAL(10, 2) DEFAULT 0,
-                moeda TEXT DEFAULT 'BRL',
-                oficina TEXT,
-                responsavel TEXT,
-                observacoes TEXT,
-                organization_id TEXT NOT NULL,
-                created_by TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-        console.log("Maintenance table created successfully.");
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS maintenance (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    vehicle_id UUID NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
+                    tipo TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+                    data_agendada DATE NOT NULL,
+                    data_inicio DATE,
+                    data_conclusao DATE,
+                    km_veiculo INTEGER NOT NULL,
+                    descricao TEXT NOT NULL,
+                    custo_pecas DECIMAL(10, 2) DEFAULT 0,
+                    custo_mao_de_obra DECIMAL(10, 2) DEFAULT 0,
+                    moeda TEXT DEFAULT 'BRL',
+                    oficina TEXT,
+                    responsavel TEXT,
+                    observacoes TEXT,
+                    organization_id TEXT NOT NULL,
+                    created_by TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+            console.log("Maintenance table created successfully.");
+        } catch (error: any) {
+            if (error.code === '23505' && error.constraint === 'pg_type_typname_nsp_index') {
+                console.log("Maintenance table already exists (pg_type constraint handled).");
+            } else {
+                throw error;
+            }
+        }
 
         // Create indexes for maintenance
         await pool.query(`
@@ -1177,15 +1396,16 @@ export async function setupDb() {
         // Migration: Add unique constraint on organization_id and key if not exists
         try {
             await pool.query(`
-                ALTER TABLE system_parameters 
-                ADD CONSTRAINT system_parameters_organization_id_key_key UNIQUE (organization_id, key);
+                DO $$ 
+                BEGIN 
+                    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'system_parameters_organization_id_key_key') THEN 
+                        ALTER TABLE system_parameters ADD CONSTRAINT system_parameters_organization_id_key_key UNIQUE (organization_id, key); 
+                    END IF; 
+                END $$;
             `);
-            console.log("  ✅ Added unique constraint to system_parameters");
+            console.log("  ✅ System parameters unique constraint ensured");
         } catch (e: any) {
-            // Ignore if 'relation "system_parameters_organization_id_key_key" already exists'
-            if (e.code !== '42710' && e.code !== '42P07' && !e.message?.includes('already exists')) {
-                console.error("  ⚠️ Unique constraint check failed:", e.message);
-            }
+            console.error("  ⚠️ Unique constraint migration failed:", e.message);
         }
 
         // Migration: Add description column if it doesn't exist

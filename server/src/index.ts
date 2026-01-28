@@ -27,6 +27,7 @@ import passwordRecoveryRouter from "./routes/passwordRecovery.js";
 import usernameRouter from "./routes/username.js";
 import usernameRecoveryRouter from "./routes/usernameRecovery.js";
 import auditRouter from "./routes/audit.js";
+import financeRouter from "./routes/finance.js";
 
 import { setupDb } from "./db/setup.js";
 
@@ -637,6 +638,7 @@ app.put("/api/users/:id", authorize(['admin']), async (req, res) => {
 
 // Clients Routes
 app.use("/api/clients", clientsRouter);
+app.use("/api/finance", financeRouter);
 
 // Maintenance Routes
 app.use("/api/maintenance", maintenanceRouter);
@@ -687,172 +689,7 @@ app.use("/api/client", clientRouter);
 import webhooksRouter from "./routes/webhooks.js";
 app.use("/api/webhooks", webhooksRouter);
 
-// Finance Endpoints
-app.get("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
-    try {
-        const session = (req as any).session;
-        const orgId = session.session.activeOrganizationId;
-
-        const result = await pool.query(
-            `SELECT 
-                id,
-                type as tipo,
-                description as descricao,
-                amount as valor,
-                currency as moeda,
-                date as data_emissao,
-                due_date as data_vencimento,
-                payment_date as data_pagamento,
-                status,
-                payment_method as forma_pagamento,
-                category as categoria_despesa, -- We map category to both for simplicity, frontend handles type check
-                category as categoria_receita,
-                cost_center as centro_custo,
-                accounting_classification as classificacao_contabil,
-                document_number as numero_documento,
-                notes as observacoes,
-                created_by as criado_por,
-                created_at as criado_em
-            FROM transaction 
-            WHERE organization_id = $1 
-            ORDER BY date DESC, created_at DESC`,
-            [orgId]
-        );
-        res.json(result.rows);
-    } catch (error) {
-        console.error("Error fetching transactions:", error);
-        res.status(500).json({ error: "Failed to fetch transactions" });
-    }
-});
-
-app.get("/api/finance/transactions/:id", authorize(['admin', 'financeiro']), async (req, res) => {
-    try {
-        const session = (req as any).session;
-        const orgId = session.session.activeOrganizationId;
-        const { id } = req.params;
-
-        const result = await pool.query(
-            "SELECT * FROM transaction WHERE id = $1 AND organization_id = $2",
-            [id, orgId]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: "Transaction not found" });
-        }
-
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error("Error fetching transaction:", error);
-        res.status(500).json({ error: "Failed to fetch transaction" });
-    }
-});
-
-app.post("/api/finance/transactions", authorize(['admin', 'financeiro']), async (req, res) => {
-    try {
-        const session = (req as any).session;
-        const orgId = session.session.activeOrganizationId;
-        const userId = session.user.id;
-
-        const {
-            tipo, descricao, valor, moeda, data_emissao,
-            data_vencimento, data_pagamento, status, forma_pagamento,
-            categoria_receita, categoria_despesa, centro_custo,
-            classificacao_contabil, numero_documento, observacoes
-        } = req.body;
-
-        // Determine category based on type
-        const category = tipo === 'RECEITA' ? categoria_receita : categoria_despesa;
-
-        await pool.query(
-            `INSERT INTO transaction (
-                type, description, amount, currency, date,
-                due_date, payment_date, status, payment_method, category,
-                cost_center, accounting_classification, document_number, notes,
-                organization_id, created_by, maintenance_id, reservation_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
-            [
-                tipo || TipoTransacao.EXPENSE, descricao, valor, moeda || 'BRL', data_emissao,
-                data_vencimento, data_pagamento || null, status || StatusTransacao.PENDING, forma_pagamento || null, (category || null),
-                centro_custo || null, classificacao_contabil || null, numero_documento || null, observacoes || null,
-                orgId, userId, req.body.maintenance_id || null, req.body.reserva_id || null
-            ]
-        );
-
-        res.json({ success: true });
-    } catch (error) {
-        console.error("Error creating transaction:", error);
-        res.status(500).json({ error: "Failed to create transaction" });
-    }
-});
-
-app.delete("/api/finance/transactions/:id", authorize(['admin', 'financeiro']), async (req, res) => {
-    try {
-        const session = (req as any).session;
-        const orgId = session.session.activeOrganizationId;
-        const { id } = req.params;
-
-        // Verify transaction belongs to organization
-        const check = await pool.query(
-            "SELECT id FROM transaction WHERE id = $1 AND organization_id = $2",
-            [id, orgId]
-        );
-
-        if (check.rows.length === 0) {
-            return res.status(404).json({ error: "Transaction not found" });
-        }
-
-        await pool.query("DELETE FROM transaction WHERE id = $1", [id]);
-        res.json({ success: true });
-    } catch (error) {
-        console.error("Error deleting transaction:", error);
-        res.status(500).json({ error: "Failed to delete transaction" });
-    }
-});
-
-app.put("/api/finance/transactions/:id", authorize(['admin', 'financeiro']), async (req, res) => {
-    try {
-        const session = (req as any).session;
-        const orgId = session.session.activeOrganizationId;
-        const { id } = req.params;
-        const {
-            tipo, descricao, valor, moeda, data_emissao,
-            data_vencimento, data_pagamento, status, forma_pagamento,
-            categoria_receita, categoria_despesa, centro_custo,
-            classificacao_contabil, numero_documento, observacoes
-        } = req.body;
-
-        // Verify transaction belongs to organization
-        const check = await pool.query(
-            "SELECT id FROM transaction WHERE id = $1 AND organization_id = $2",
-            [id, orgId]
-        );
-
-        if (check.rows.length === 0) {
-            return res.status(404).json({ error: "Transaction not found" });
-        }
-
-        const category = tipo === 'RECEITA' ? categoria_receita : categoria_despesa;
-
-        await pool.query(
-            `UPDATE transaction SET
-                type = $1, description = $2, amount = $3, currency = $4, date = $5,
-                due_date = $6, payment_date = $7, status = $8, payment_method = $9, category = $10,
-                cost_center = $11, accounting_classification = $12, document_number = $13, notes = $14
-            WHERE id = $15 AND organization_id = $16`,
-            [
-                tipo || TipoTransacao.EXPENSE, descricao, valor, moeda || 'BRL', data_emissao,
-                data_vencimento, data_pagamento || null, status || StatusTransacao.PENDING, forma_pagamento || null, (category || null),
-                centro_custo || null, classificacao_contabil || null, numero_documento || null, observacoes || null,
-                id, orgId
-            ]
-        );
-
-        res.json({ success: true });
-    } catch (error) {
-        console.error("Error updating transaction:", error);
-        res.status(500).json({ error: "Failed to update transaction" });
-    }
-});
+// Redundant transaction routes removed - moved to routes/finance.ts
 
 
 app.get("/health", (req, res) => {

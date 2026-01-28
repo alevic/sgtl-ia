@@ -10,6 +10,7 @@ import {
     TipoTransacao, CategoriaDespesa, CentroCusto, ClassificacaoContabil
 } from "../types.js";
 import { AuditService } from "../services/auditService.js";
+import { FinanceService } from "../services/financeService.js";
 
 
 const authorize = (allowedRoles: string[]) => {
@@ -142,6 +143,11 @@ router.post("/", authorize(['admin', 'operacional']), async (req, res) => {
 
 
         const newMaintenance = result.rows[0];
+
+        // Create Financial Transaction automatically
+        FinanceService.createMaintenanceTransaction(newMaintenance).catch(err => {
+            console.error("Error creating automatic financial transaction for maintenance:", err);
+        });
 
         // Audit Log
         AuditService.logEvent({

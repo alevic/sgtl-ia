@@ -1,6 +1,10 @@
 import express from "express";
 import { pool } from "../auth.js";
-import { ReservationStatus, StatusTransacao, TipoTransacao, CategoriaReceita } from "../types.js";
+import { ReservationStatus, StatusTransacao, TipoTransacao } from "../types.js";
+import { db } from "../db/drizzle.js";
+import { reservations, transactions } from "../db/schema.js";
+import { eq, and, sql } from "drizzle-orm";
+import { FinanceService } from "../services/financeService.js";
 
 const router = express.Router();
 
@@ -79,35 +83,29 @@ router.post("/payment-confirmed", verifyWebhookSecret, async (req, res) => {
         // 3. Create Financial Transaction (Receita)
         // We need organization_id from the reservation
         const orgId = reservation.organization_id;
-
-        // Use a system user or the user who created the reservation as the 'creator' of the transaction?
-        // Or null/system. Let's send 'System' or CreatedBy of reservation.
         const userId = reservation.created_by; // Fallback to reservation creator
 
-        await client.query(
-            `INSERT INTO transaction (
-                type, description, amount, currency, date,
-                due_date, payment_date, status, payment_method, category,
-                organization_id, created_by, reservation_id, document_number, notes
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
-            [
-                TipoTransacao.INCOME,
-                `Pagamento Digital - Reserva ${reservation.ticket_code}`,
-                amount,
-                'BRL',
-                new Date().toISOString(), // Emission
-                new Date().toISOString(), // Due
-                payment_date || new Date().toISOString(), // Payment Date
-                StatusTransacao.PAID,
-                payment_method || 'DIGITAL',
-                CategoriaReceita.VENDA_PASSAGEM,
-                orgId,
-                userId,
-                reservation_id,
-                transaction_id || null, // Document Number = Asaas ID
-                'Confirmação Automática via Webhook (N8N)'
-            ]
-        );
+        const catId = await FinanceService.getCategoryIdByName('VENDA_PASSAGEM', orgId);
+
+        await db.insert(transactions)
+            .values({
+                type: TipoTransacao.INCOME,
+                description: `Pagamento Digital - Reserva ${reservation.ticket_code}`,
+                amount: amount.toString(),
+                currency: 'BRL',
+                date: new Date(), // Emission
+                due_date: new Date(), // Due
+                payment_date: payment_date ? new Date(payment_date) : new Date(), // Payment Date
+                status: StatusTransacao.PAID,
+                payment_method: payment_method || 'DIGITAL',
+                category: 'VENDA_PASSAGEM',
+                category_id: catId,
+                organization_id: orgId,
+                created_by: userId,
+                reservation_id: reservation_id,
+                document_number: transaction_id || null, // Document Number = Asaas ID
+                notes: 'Confirmação Automática via Webhook (N8N)'
+            });
 
         await client.query("COMMIT");
 
@@ -131,13 +129,17 @@ router.post("/payment-confirmed", verifyWebhookSecret, async (req, res) => {
 // GET /api/webhooks/pending-reservations
 router.get("/pending-reservations", verifyWebhookSecret, async (req, res) => {
     try {
-        // Return PENDING reservations created more than 15 minutes ago (optional logic here or in N8N)
-        // For flexibility, we return ALL pending and let N8N filter by date.
-        const result = await pool.query(
-            "SELECT id, ticket_code, created_at, passenger_name, passenger_email FROM reservations WHERE status = $1",
-            [ReservationStatus.PENDING]
-        );
-        res.json(result.rows);
+        const results = await db.select({
+            id: reservations.id,
+            ticket_code: reservations.ticket_code,
+            created_at: reservations.created_at,
+            passenger_name: reservations.passenger_name,
+            passenger_email: reservations.passenger_email
+        })
+            .from(reservations)
+            .where(eq(reservations.status, ReservationStatus.PENDING));
+
+        res.json(results);
     } catch (error) {
         console.error("Error fetching pending reservations:", error);
         res.status(500).json({ error: "Internal Server Error" });
@@ -154,15 +156,16 @@ router.post("/cancel-reservation", verifyWebhookSecret, async (req, res) => {
     }
 
     try {
-        const result = await pool.query(
-            `UPDATE reservations 
-             SET status = $1, notes = COALESCE(notes, '') || ' [Cancelado via N8N: ' || COALESCE($2, 'Expirado') || ']', updated_at = CURRENT_TIMESTAMP
-             WHERE id = $3
-             RETURNING id, status`,
-            [ReservationStatus.CANCELLED, reason, reservation_id]
-        );
+        const [updatedRes] = await db.update(reservations)
+            .set({
+                status: ReservationStatus.CANCELLED,
+                notes: sql`COALESCE(notes, '') || ' [Cancelado via N8N: ' || COALESCE(${reason}, 'Expirado') || ']'`,
+                updated_at: new Date()
+            })
+            .where(eq(reservations.id, reservation_id))
+            .returning();
 
-        if (result.rows.length === 0) {
+        if (!updatedRes) {
             return res.status(404).json({ error: "Reservation not found" });
         }
 

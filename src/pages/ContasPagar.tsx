@@ -7,6 +7,8 @@ import { ITransacao, StatusTransacao, CategoriaDespesa, Moeda, CentroCusto, Tipo
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
+import { financeAuxService } from '../services/financeAuxService';
+import { ICostCenter, IFinanceCategory } from '@/types';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { DashboardCard } from '../components/Layout/DashboardCard';
 import { ListFilterSection } from '../components/Layout/ListFilterSection';
@@ -21,26 +23,31 @@ export const ContasPagar: React.FC = () => {
     const { currentContext } = useApp();
     const [busca, setBusca] = useState('');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
-    const [filtroCategoria, setFiltroCategoria] = useState<CategoriaDespesa | 'TODAS'>('TODAS');
-    const [filtroCentroCusto, setFiltroCentroCusto] = useState<CentroCusto | 'TODOS'>('TODOS');
+    const [filtroCategoria, setFiltroCategoria] = useState<string>('TODAS');
+    const [filtroCentroCusto, setFiltroCentroCusto] = useState<string>('TODOS');
     const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const [costCenters, setCostCenters] = useState<ICostCenter[]>([]);
+    const [categories, setCategories] = useState<IFinanceCategory[]>([]);
 
     const fetchTransacoes = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, {
-                credentials: 'include'
-            });
+            const [transRes, centers, cats] = await Promise.all([
+                fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, { credentials: 'include' }),
+                financeAuxService.getCostCenters(),
+                financeAuxService.getCategories()
+            ]);
 
-            if (!response.ok) {
-                throw new Error('Falha ao buscar transações');
+            if (transRes.ok) {
+                const data = await transRes.json();
+                setTransacoes(data);
             }
-
-            const data = await response.json();
-            setTransacoes(data);
+            setCostCenters(centers);
+            setCategories(cats);
         } catch (error) {
-            console.error("Erro ao buscar transações:", error);
+            console.error("Erro ao buscar dados:", error);
         } finally {
             setIsLoading(false);
         }
@@ -59,8 +66,14 @@ export const ContasPagar: React.FC = () => {
                     conta.numero_documento?.toLowerCase().includes(busca.toLowerCase());
 
                 const matchStatus = filtroStatus === 'TODAS' || conta.status === filtroStatus;
-                const matchCategoria = filtroCategoria === 'TODAS' || conta.categoria_despesa === filtroCategoria;
-                const matchCentroCusto = filtroCentroCusto === 'TODOS' || conta.centro_custo === filtroCentroCusto;
+
+                const matchCategoria = filtroCategoria === 'TODAS' ||
+                    conta.category_id === filtroCategoria ||
+                    conta.categoria_despesa === filtroCategoria;
+
+                const matchCentroCusto = filtroCentroCusto === 'TODOS' ||
+                    conta.cost_center_id === filtroCentroCusto ||
+                    conta.centro_custo === filtroCentroCusto;
 
                 return matchBusca && matchStatus && matchCategoria && matchCentroCusto;
             });
@@ -189,6 +202,24 @@ export const ContasPagar: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Centro de Custo</label>
+                    <Select value={filtroCentroCusto} onValueChange={(v: any) => {
+                        setFiltroCentroCusto(v);
+                        setFiltroCategoria('TODAS');
+                    }}>
+                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-xs uppercase tracking-widest">
+                            <SelectValue placeholder="CENTRO CUSTO" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODOS">TODOS C. CUSTOS</SelectItem>
+                            {costCenters.map(cc => (
+                                <SelectItem key={cc.id} value={cc.id}>{cc.name.toUpperCase()}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1.5 ">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Categoria</label>
                     <Select value={filtroCategoria} onValueChange={(v: any) => setFiltroCategoria(v)}>
                         <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-xs uppercase tracking-widest">
@@ -196,12 +227,11 @@ export const ContasPagar: React.FC = () => {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="TODAS">TODAS CATEGORIAS</SelectItem>
-                            <SelectItem value={CategoriaDespesa.COMBUSTIVEL}>COMBUSTÍVEL</SelectItem>
-                            <SelectItem value={CategoriaDespesa.MANUTENCAO}>MANUTENÇÃO</SelectItem>
-                            <SelectItem value={CategoriaDespesa.PECAS}>PEÇAS</SelectItem>
-                            <SelectItem value={CategoriaDespesa.SALARIOS}>SALÁRIOS</SelectItem>
-                            <SelectItem value={CategoriaDespesa.SEGURO}>SEGURO</SelectItem>
-                            <SelectItem value={CategoriaDespesa.OUTROS}>OUTROS</SelectItem>
+                            {categories
+                                .filter(c => c.type === TipoTransacao.EXPENSE && (filtroCentroCusto === 'TODOS' || c.cost_center_id === filtroCentroCusto))
+                                .map(cat => (
+                                    <SelectItem key={cat.id} value={cat.id}>{cat.name.toUpperCase()}</SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
                 </div>
