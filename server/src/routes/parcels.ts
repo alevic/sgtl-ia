@@ -7,6 +7,7 @@ import { EncomendaStatus } from "../types.js";
 const router = express.Router();
 
 import { AuditService } from "../services/auditService.js";
+import { FinanceService } from "../services/financeService.js";
 
 // Helper for authorization
 
@@ -165,6 +166,11 @@ router.post("/", authorize(['admin', 'operacional', 'vendas']), async (req, res)
             ipAddress: req.ip,
             userAgent: req.get('user-agent')
         }).catch(console.error);
+
+        // Financial Log (Automatic)
+        FinanceService.createParcelTransaction(newParcelItem).catch(err => {
+            console.error("Error creating financial transaction for parcel:", err);
+        });
 
         res.json(newParcelItem);
 

@@ -1,6 +1,6 @@
 import { db } from "../db/drizzle.js";
-import { bankAccounts, costCenters, transactions, categories } from "../db/schema.js";
-import { eq, and, sql } from "drizzle-orm";
+import { bankAccounts, costCenters, transactions, categories, tripTransactions } from "../db/schema.js";
+import { eq, and, sql, desc } from "drizzle-orm";
 import {
     TipoTransacao,
     StatusTransacao,
@@ -128,7 +128,150 @@ export class FinanceService {
             })
             .returning();
 
+        // Vincular à viagem se houver trip_id
+        if (reservation_id && reservation.trip_id) {
+            await this.linkTransactionToTrip(newTransaction.id, reservation.trip_id, amount.toString(), `Automático: Reserva ${ticket_code}`);
+        }
+
         return newTransaction.id;
+    }
+
+    /**
+     * Garante que uma transação automática seja criada para uma Encomenda.
+     */
+    static async createParcelTransaction(parcel: any) {
+        const {
+            id: parcel_id,
+            tracking_code,
+            price,
+            organization_id,
+            created_by,
+            client_id,
+            trip_id,
+            created_at
+        } = parcel;
+
+        if (!price || Number(price) <= 0) return null;
+
+        const costCenterId = await this.getCostCenterIdByName('LOGÍSTICA E ALMOXARIFADO', organization_id);
+        const categoryId = await this.getCategoryIdByName('Encomendas Expressas', organization_id);
+
+        const [newTransaction] = await db.insert(transactions)
+            .values({
+                type: TipoTransacao.INCOME,
+                description: `Encomenda: ${tracking_code}`,
+                amount: price.toString(),
+                currency: 'BRL',
+                date: new Date(created_at || new Date().toISOString()).toISOString().split('T')[0],
+                status: StatusTransacao.PAID,
+                category_id: categoryId,
+                parcel_id: parcel_id,
+                organization_id,
+                created_by,
+                client_id: client_id,
+                cost_center_id: costCenterId,
+                payment_date: new Date(created_at || new Date().toISOString()).toISOString().split('T')[0]
+            })
+            .returning();
+
+        if (trip_id) {
+            await this.linkTransactionToTrip(newTransaction.id, trip_id, price.toString(), `Automático: Encomenda ${tracking_code}`);
+        }
+
+        return newTransaction.id;
+    }
+
+    /**
+     * Vincula uma transação a uma viagem.
+     */
+    static async linkTransactionToTrip(transactionId: string, tripId: string, amountAllocated?: string, notes?: string) {
+        await db.insert(tripTransactions)
+            .values({
+                transaction_id: transactionId,
+                trip_id: tripId,
+                amount_allocated: amountAllocated,
+                notes: notes
+            });
+    }
+
+    /**
+     * Obtém o resumo financeiro de uma viagem detalhado (pago vs pendente).
+     */
+    static async getTripFinancialSummary(tripId: string) {
+        const linkedTransactions = await db.select({
+            type: transactions.type,
+            status: transactions.status,
+            amount: sql<string>`COALESCE(${tripTransactions.amount_allocated}, ${transactions.amount})`.as('amount')
+        })
+            .from(tripTransactions)
+            .innerJoin(transactions, eq(tripTransactions.transaction_id, transactions.id))
+            .where(eq(tripTransactions.trip_id, tripId));
+
+        let totalIncome = 0;
+        let paidIncome = 0;
+        let pendingIncome = 0;
+
+        let totalExpense = 0;
+        let paidExpense = 0;
+        let pendingExpense = 0;
+
+        linkedTransactions.forEach(t => {
+            const val = Number(t.amount) || 0;
+            const isPaid = t.status === StatusTransacao.PAID;
+
+            if (t.type === TipoTransacao.INCOME) {
+                totalIncome += val;
+                if (isPaid) paidIncome += val;
+                else pendingIncome += val;
+            } else if (t.type === TipoTransacao.EXPENSE) {
+                totalExpense += val;
+                if (isPaid) paidExpense += val;
+                else pendingExpense += val;
+            }
+        });
+
+        return {
+            totalIncome,
+            paidIncome,
+            pendingIncome,
+            totalExpense,
+            paidExpense,
+            pendingExpense,
+            netProfit: paidIncome - paidExpense, // Lucro real (efetivado)
+            estimatedProfit: totalIncome - totalExpense, // Lucro projetado
+            transactionCount: linkedTransactions.length
+        };
+    }
+
+    /**
+     * Obtém a lista detalhada de transações vinculadas a uma viagem.
+     */
+    static async getTripTransactions(tripId: string) {
+        return db.select({
+            id: transactions.id,
+            type: transactions.type,
+            description: transactions.description,
+            amount: sql<string>`COALESCE(${tripTransactions.amount_allocated}, ${transactions.amount})`.as('amount'),
+            currency: transactions.currency,
+            date: transactions.date,
+            due_date: transactions.due_date,
+            payment_date: transactions.payment_date,
+            status: transactions.status,
+            payment_method: transactions.payment_method,
+            category_id: transactions.category_id,
+            cost_center_id: transactions.cost_center_id,
+            category_name: categories.name,
+            cost_center_name: costCenters.name,
+            classificacao_contabil: transactions.classificacao_contabil,
+            notes: transactions.notes,
+            trip_notes: tripTransactions.notes
+        })
+            .from(tripTransactions)
+            .innerJoin(transactions, eq(tripTransactions.transaction_id, transactions.id))
+            .leftJoin(categories, eq(transactions.category_id, categories.id))
+            .leftJoin(costCenters, eq(transactions.cost_center_id, costCenters.id))
+            .where(eq(tripTransactions.trip_id, tripId))
+            .orderBy(desc(transactions.date));
     }
 
     /**

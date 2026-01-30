@@ -37,6 +37,7 @@ import { ContasReceber } from './pages/ContasReceber';
 import { NovaTransacao } from './pages/NovaTransacao';
 import { Transacoes } from './pages/Transacoes';
 import { Relatorios } from './pages/Relatorios';
+import { TripFinancialAnalysis } from './pages/TripFinancialAnalysis';
 import { CentrosCusto } from './pages/CentrosCusto';
 import { Contas } from './pages/Contas';
 import { ConciliacaoBancaria } from './pages/ConciliacaoBancaria';
@@ -144,6 +145,7 @@ const App: React.FC = () => {
                     </ProtectedRoute>
                   } />
                   <Route path="relatorios" element={<Relatorios />} />
+                  <Route path="relatorios/viagens/:id" element={<TripFinancialAnalysis />} />
                   <Route path="documentos" element={<Documentos />} />
                   <Route path="atividades" element={<AtividadesRecentes />} />
                   <Route path="perfil" element={<Perfil />} />

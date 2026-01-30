@@ -41,6 +41,7 @@ export const NovaTransacao: React.FC = () => {
     const isIncome = tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA';
 
     const [maintenanceId, setMaintenanceId] = useState<string | null>(null);
+    const [tripId, setTripId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
@@ -89,6 +90,9 @@ export const NovaTransacao: React.FC = () => {
 
     // Auto-sugerir classificação quando categoria de despesa mudar
     useEffect(() => {
+        // Skip suggestion if we are editing an existing transaction
+        if (id) return;
+
         if (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') {
             const sugestao = getSugestaoClassificacao(categoriaDespesa);
             if (sugestao) {
@@ -102,7 +106,7 @@ export const NovaTransacao: React.FC = () => {
             if (matchingCC) setCostCenterId(matchingCC.id);
             setCentroCusto(CentroCusto.VENDAS);
         }
-    }, [tipo, categoriaDespesa, costCenters]);
+    }, [tipo, categoriaDespesa, costCenters, id]);
 
     // Handle initial state from navigation
     useEffect(() => {
@@ -111,6 +115,10 @@ export const NovaTransacao: React.FC = () => {
         if (state) {
             if (state.manutencao_id || state.maintenance_id) {
                 setMaintenanceId(state.manutencao_id || state.maintenance_id);
+            }
+
+            if (state.trip_id) {
+                setTripId(state.trip_id);
             }
 
             if (state.id) {
@@ -136,6 +144,17 @@ export const NovaTransacao: React.FC = () => {
                 if (state.cost_center_id) setCostCenterId(state.cost_center_id);
                 if (state.bank_account_id) setBankAccountId(state.bank_account_id);
                 if (state.category_id) setCategoryId(state.category_id);
+                if (state.trip_id) setTripId(state.trip_id);
+
+                // Also set legacy string names if available for legacy logic
+                if (state.cost_center_name) setCentroCusto(state.cost_center_name);
+                if (state.category_name) {
+                    if (state.type === TipoTransacao.INCOME || state.tipo === 'RECEITA') {
+                        setCategoriaReceita(state.category_name as any);
+                    } else {
+                        setCategoriaDespesa(state.category_name as any);
+                    }
+                }
             }
             else {
                 if (state.type || state.tipo) setTipo(state.type || state.tipo);
@@ -193,7 +212,8 @@ export const NovaTransacao: React.FC = () => {
             financial_classification: (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') ? classificacaoContabil : undefined,
             document_number: numeroDocumento,
             notes: observacoes,
-            maintenance_id: maintenanceId
+            maintenance_id: maintenanceId,
+            trip_id: tripId || undefined
         };
 
         try {
@@ -488,6 +508,9 @@ export const NovaTransacao: React.FC = () => {
                                                 setCostCenterId(cat.cost_center_id);
                                                 const cc = costCenters.find(c => c.id === cat.cost_center_id);
                                                 if (cc) setCentroCusto(cc.name as any);
+                                            } else if (cat && !cat.cost_center_id && costCenterId) {
+                                                // If category has no CC but we have one selected, keep it?
+                                                // Usually categories SHOULD have a CC.
                                             }
                                         }}
                                         className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"

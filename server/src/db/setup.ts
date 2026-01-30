@@ -519,6 +519,9 @@ export async function setupDb() {
                     cost_center TEXT,
                     cost_center_id UUID REFERENCES cost_centers(id),
                     bank_account_id UUID REFERENCES bank_accounts(id),
+                    reservation_id UUID REFERENCES reservations(id),
+                    parcel_id UUID REFERENCES parcel_orders(id),
+                    maintenance_id UUID REFERENCES maintenance(id),
                     classificacao_contabil TEXT,
                     document_number TEXT,
                     notes TEXT,
@@ -539,9 +542,12 @@ export async function setupDb() {
 
         // Migration/Updates for existing transaction table
         await pool.query(`
-            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS cost_center_id UUID REFERENCES cost_centers(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS bank_account_id UUID REFERENCES bank_accounts(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES categories(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS reservation_id UUID REFERENCES reservations(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS parcel_id UUID REFERENCES parcel_orders(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS maintenance_id UUID REFERENCES maintenance(id);
+            ALTER TABLE transaction ADD COLUMN IF NOT EXISTS cost_center_id UUID REFERENCES cost_centers(id);
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS classificacao_contabil TEXT;
             ALTER TABLE transaction ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
         `);
@@ -1645,6 +1651,21 @@ export async function setupDb() {
             -- Route Type Status
             ALTER TABLE routes ADD CONSTRAINT routes_type_check
             CHECK (type IN ('OUTBOUND', 'INBOUND', 'IDA', 'VOLTA'));
+        `);
+
+        // Create trip_transactions table
+        console.log("Creating trip_transactions table...");
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS trip_transactions (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                trip_id UUID NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+                transaction_id UUID NOT NULL REFERENCES transaction(id) ON DELETE CASCADE,
+                amount_allocated DECIMAL(10, 2),
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_trip_transactions_trip ON trip_transactions(trip_id);
+            CREATE INDEX IF NOT EXISTS idx_trip_transactions_transaction ON trip_transactions(transaction_id);
         `);
 
         console.log("System parameters table created and seeded successfully.");

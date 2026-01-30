@@ -178,6 +178,7 @@ export const transactions = pgTable("transaction", {
     cost_center_id: uuid("cost_center_id").references(() => costCenters.id),
     bank_account_id: uuid("bank_account_id").references(() => bankAccounts.id),
     reservation_id: uuid("reservation_id").references(() => reservations.id),
+    parcel_id: uuid("parcel_id").references(() => parcelOrders.id), // Added for direct link
     maintenance_id: uuid("maintenance_id"), // maintenance table not yet in drizzle
     client_id: uuid("client_id").references(() => clients.id),
     classificacao_contabil: text("classificacao_contabil"),
@@ -367,4 +368,41 @@ export const reservations = pgTable("reservations", {
     created_by: text("created_by"),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const parcelOrders = pgTable("parcel_orders", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organization_id: text("organization_id").notNull(),
+    sender_name: text("sender_name").notNull(),
+    sender_document: text("sender_document").notNull(),
+    sender_phone: text("sender_phone").notNull(),
+    recipient_name: text("recipient_name").notNull(),
+    recipient_document: text("recipient_document").notNull(),
+    recipient_phone: text("recipient_phone").notNull(),
+    origin_city: text("origin_city").notNull(),
+    origin_state: text("origin_state").notNull(),
+    destination_city: text("destination_city").notNull(),
+    destination_state: text("destination_state").notNull(),
+    description: text("description").notNull(),
+    weight: decimal("weight", { precision: 10, scale: 2 }),
+    dimensions: text("dimensions"),
+    status: text("status").notNull().default('AWAITING'),
+    tracking_code: text("tracking_code").notNull().unique(),
+    price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    trip_id: uuid("trip_id").references(() => trips.id),
+    user_id: text("user_id"),
+    client_id: uuid("client_id").references(() => clients.id),
+    notes: text("notes"),
+    created_by: text("created_by"),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const tripTransactions = pgTable("trip_transactions", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    trip_id: uuid("trip_id").notNull().references(() => trips.id, { onDelete: 'cascade' }),
+    transaction_id: uuid("transaction_id").notNull().references(() => transactions.id, { onDelete: 'cascade' }),
+    amount_allocated: decimal("amount_allocated", { precision: 10, scale: 2 }),
+    notes: text("notes"),
+    created_at: timestamp("created_at").defaultNow(),
 });

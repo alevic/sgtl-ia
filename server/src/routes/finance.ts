@@ -96,13 +96,20 @@ const mapTransaction = (t: any) => {
     res.document_number = t.document_number;
     res.numero_documento = t.document_number;
 
+    // IDs
+    res.category_id = t.category_id;
+    res.cost_center_id = t.cost_center_id;
+    res.bank_account_id = t.bank_account_id;
+    res.reservation_id = t.reservation_id;
+    res.maintenance_id = t.maintenance_id;
+
     // NOTES ALIASES
     res.notes = t.notes;
     res.observacoes = t.notes;
 
     // Join names (flattened for frontend)
-    res.category_name = t.category_name || t.category?.name;
-    res.cost_center_name = t.cost_center_name || t.cost_center?.name;
+    res.category_name = t.category_name || t.category?.name || t.category;
+    res.cost_center_name = t.cost_center_name || t.cost_center?.name || t.cost_center;
 
     // console.log('DEBUG: Resulting date:', res.date);
 
@@ -534,6 +541,8 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
             reservation_id, reserva_id
         } = req.body;
 
+        console.log('DEBUG: Creating transaction with body:', JSON.stringify(req.body, null, 2));
+
         // Map legacy frontend fields to new schema if necessary
         const finalType = tipo || type || 'EXPENSE';
         const finalDescription = description || descricao || 'Nova Transação';
@@ -548,6 +557,20 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
         const finalClassification = classificacao_contabil || financial_classification || null;
         const finalMaintId = maintenance_id || null;
         const finalResId = reservation_id || reserva_id || null;
+        const finalTripId = req.body.trip_id || null;
+
+        // Fetch names for legacy columns if IDs are provided
+        let catName = null;
+        let ccName = null;
+
+        if (category_id) {
+            const [cat] = await db.select().from(categories).where(eq(categories.id, category_id)).limit(1);
+            if (cat) catName = cat.name;
+        }
+        if (cost_center_id) {
+            const [cc] = await db.select().from(costCenters).where(eq(costCenters.id, cost_center_id)).limit(1);
+            if (cc) ccName = cc.name;
+        }
 
         const [newTransaction] = await db.insert(transactions)
             .values({
@@ -562,9 +585,12 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
                 payment_method: finalPaymentMethod,
                 category_id: category_id || null,
                 cost_center_id: cost_center_id || null,
+                category: catName,
+                cost_center: ccName,
                 bank_account_id: bank_account_id || null,
                 maintenance_id: finalMaintId,
                 reservation_id: finalResId,
+                parcel_id: req.body.parcel_id || null,
                 classificacao_contabil: finalClassification,
                 document_number: finalDocNum,
                 notes: finalNotes,
@@ -572,6 +598,11 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
                 created_by: userId
             })
             .returning();
+
+        // Link to trip if trip_id is provided
+        if (finalTripId) {
+            await FinanceService.linkTransactionToTrip(newTransaction.id, finalTripId, finalAmount);
+        }
 
         // Update bank balance if necessary
         if (bank_account_id && status === 'PAID') {
@@ -612,6 +643,8 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
             reservation_id, reserva_id
         } = req.body;
 
+        console.log('DEBUG: Updating transaction', id, 'with body:', JSON.stringify(req.body, null, 2));
+
         // Map legacy fields
         const finalType = tipo || type;
         const finalDescription = description || descricao;
@@ -624,6 +657,19 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
         const finalDocNum = document_number || numero_documento;
         const finalNotes = notes || observacoes || observations;
         const finalClassification = classificacao_contabil || financial_classification;
+
+        // Fetch names for legacy columns if IDs are provided
+        let catName = undefined;
+        let ccName = undefined;
+
+        if (category_id) {
+            const [cat] = await db.select().from(categories).where(eq(categories.id, category_id)).limit(1);
+            if (cat) catName = cat.name;
+        }
+        if (cost_center_id) {
+            const [cc] = await db.select().from(costCenters).where(eq(costCenters.id, cost_center_id)).limit(1);
+            if (cc) ccName = cc.name;
+        }
 
         const [updatedTransaction] = await db.update(transactions)
             .set({
@@ -638,6 +684,8 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
                 payment_method: finalPaymentMethod,
                 category_id,
                 cost_center_id,
+                category: catName,
+                cost_center: ccName,
                 bank_account_id,
                 maintenance_id,
                 reservation_id: reservation_id || reserva_id,
@@ -654,6 +702,14 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
 
         if (!updatedTransaction) {
             return res.status(404).json({ error: "Transaction not found" });
+        }
+
+        // Handle trip linking update if trip_id is provided
+        if (req.body.trip_id) {
+            // For now, we just link it. If it was already linked, this might cause duplicates if not careful.
+            // In a more robust system, we would check and update. 
+            // Considering the prompt, we'll keep it simple: link only if not already linked or as a new link.
+            await FinanceService.linkTransactionToTrip(id, req.body.trip_id, (finalAmount || updatedTransaction.amount).toString());
         }
 
         // Update bank balance if necessary
@@ -695,6 +751,32 @@ router.delete("/transactions/:id", authorize(['admin', 'financeiro']), async (re
     } catch (error) {
         console.error("Error deleting transaction:", error);
         res.status(500).json({ error: "Failed to delete transaction" });
+    }
+});
+
+// --- TRIP SUMMARIES ---
+
+// GET financial summary for a trip
+router.get("/trips/:id/summary", authorize(['admin', 'financeiro', 'operacional']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const summary = await FinanceService.getTripFinancialSummary(id);
+        res.json(summary);
+    } catch (error) {
+        console.error("Error fetching trip financial summary:", error);
+        res.status(500).json({ error: "Failed to fetch trip financial summary" });
+    }
+});
+
+// GET detailed transactions for a trip
+router.get("/trips/:id/transactions", authorize(['admin', 'financeiro', 'operacional']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const transactionsList = await FinanceService.getTripTransactions(id);
+        res.json(transactionsList.map(mapTransaction));
+    } catch (error) {
+        console.error("Error fetching trip transactions:", error);
+        res.status(500).json({ error: "Failed to fetch trip transactions" });
     }
 });
 

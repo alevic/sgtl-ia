@@ -111,6 +111,8 @@ When user's prompt is NOT in English:
 - **Testing**: Mandatory. Pyramid (Unit > Int > E2E) + AAA Pattern.
 - **Performance**: Measure first. Adhere to 2025 standards (Core Web Vitals).
 - **Infra/Safety**: 5-Phase Deployment. Verify secrets security.
+- **Database Alignment**: Whenever `schema.ts` is updated with new columns or tables, the corresponding SQL instructions MUST be added to `server/src/db/setup.ts` to ensure consistency in Docker/Dev environments.
+- **Date Formatting**: ALWAYS use the `useDateFormatter` hook for displaying dates in the UI. Never use `toLocaleDateString()` or raw `new Date()` for display, to ensure consistency with system-wide locale (pt-BR) and timezone settings.
 
 ### 📁 File Dependency Awareness
 

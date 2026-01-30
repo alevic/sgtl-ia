@@ -28,6 +28,8 @@ Isole as regras complexas. Para o SGTL, o cálculo de cancelamento é crítico.
 Defina as interfaces TypeScript de entrada e saída da API.
 *   A LLM usará isso para gerar os hooks do React Query (`useViagens`, `useReservas`) com precisão.
 *   Veja o arquivo `types.ts` gerado neste projeto: ele serve como essa "fonte de verdade" para o frontend.
+*   **Protocolo de Migração:** Sempre que houver alteração no `schema.ts`, adicione as instruções SQL correspondentes no script `server/src/db/setup.ts` para evitar falhas em novos ambientes.
+*   **Formatação de Datas:** Utilize sempre o hook `useDateFormatter` para exibir datas. Nunca use `toLocaleDateString()` puro, para respeitar as configurações de idioma e fuso horário do sistema.
 
 ## 2. System Prompts Sugeridos
 

@@ -16,5 +16,13 @@ export const transactionsService = {
 
     delete: async (id: string) => {
         return api.delete(`/api/finance/transactions/${id}`);
+    },
+
+    getTripSummary: async (tripId: string) => {
+        return api.get<any>(`/api/finance/trips/${tripId}/summary`);
+    },
+
+    getTripTransactions: async (tripId: string) => {
+        return api.get<ITransacao[]>(`/api/finance/trips/${tripId}/transactions`);
     }
 };
