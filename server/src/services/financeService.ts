@@ -48,7 +48,7 @@ export class FinanceService {
             type: maintenance_type,
             cost_parts,
             cost_labor,
-            moeda,
+            currency,
             organization_id,
             created_by,
             description,
@@ -58,16 +58,16 @@ export class FinanceService {
         const totalAmount = (Number(cost_parts) || 0) + (Number(cost_labor) || 0);
         if (totalAmount <= 0) return null;
 
-        // Buscar Centro de Custo ESTOQUE por padrão para manutenções
-        const costCenterId = await this.getCostCenterIdByName('ESTOQUE', organization_id);
-        const categoryId = await this.getCategoryIdByName('MANUTENCAO', organization_id);
+        // Buscar Centro de Custo MANUTENÇÃO E OFICINA por padrão para manutenções
+        const costCenterId = await this.getCostCenterIdByName('MANUTENÇÃO E OFICINA', organization_id);
+        const categoryId = await this.getCategoryIdByName('Peças de Reposição', organization_id);
 
         const [newTransaction] = await db.insert(transactions)
             .values({
                 type: TipoTransacao.EXPENSE,
                 description: `Manutenção Automática: ${description || maintenance_type}`,
                 amount: totalAmount.toString(),
-                currency: moeda || 'BRL',
+                currency: currency || 'BRL',
                 date: new Date(scheduled_date || new Date().toISOString()),
                 status: StatusTransacao.PENDING,
                 category: CategoriaDespesa.MANUTENCAO,

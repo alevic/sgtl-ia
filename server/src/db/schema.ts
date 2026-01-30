@@ -167,9 +167,9 @@ export const transactions = pgTable("transaction", {
     description: text("description").notNull(),
     amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
     currency: text("currency").default("BRL"),
-    date: timestamp("date").notNull(),
-    due_date: timestamp("due_date"),
-    payment_date: timestamp("payment_date"),
+    date: text("date").notNull(), // Using text to match DATE in SQL or manage mapping better
+    due_date: text("due_date"),
+    payment_date: text("payment_date"),
     status: text("status").notNull(),
     payment_method: text("payment_method"),
     category: text("category"), // Keep for legacy string support

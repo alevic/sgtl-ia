@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDateFormatter } from '../hooks/useDateFormatter';
-import { IVeiculo, VeiculoStatus, IAssento, IManutencao, StatusManutencao, TipoManutencao, IVeiculoFeature } from '@/types';
+import { IVeiculo, VeiculoStatus, IAssento, IMaintenance as IManutencao, StatusManutencao, TipoManutencao, IVeiculoFeature } from '@/types';
 import { MapaAssentos } from '../components/Veiculos/MapaAssentos';
 import {
     ArrowLeft, FileText, Map, History, Wrench,
@@ -511,7 +511,7 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                                 <TableCell className="pl-6">
                                     <div className="flex flex-col gap-1.5">
                                         <span className="text-sm font-bold text-foreground">
-                                            {formatDate(manutencao.data_agendada)}
+                                            {formatDate(manutencao.scheduled_date)}
                                         </span>
                                         <Badge variant="outline" className={cn("inline-flex h-5 px-2 text-[9px] font-black uppercase tracking-tighter border-none", getStatusColor(manutencao.status))}>
                                             {manutencao.status.replace('_', ' ')}
@@ -521,10 +521,10 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                                 <TableCell>
                                     <div className="flex flex-col">
                                         <span className="text-sm font-black text-foreground uppercase tracking-tight">
-                                            {manutencao.tipo}
+                                            {manutencao.type}
                                         </span>
                                         <span className="text-[12px] font-medium text-muted-foreground line-clamp-1">
-                                            {manutencao.descricao}
+                                            {manutencao.description}
                                         </span>
                                     </div>
                                 </TableCell>
@@ -532,13 +532,13 @@ const ManutencaoTab: React.FC<{ veiculo: typeof MOCK_VEICULO }> = ({ veiculo }) 
                                     <div className="flex items-center gap-1.5">
                                         <Gauge size={14} className="text-muted-foreground" />
                                         <span className="text-sm font-bold text-foreground">
-                                            {manutencao.km_veiculo.toLocaleString()} <span className="text-xs text-muted-foreground">km</span>
+                                            {manutencao.km_vehicle.toLocaleString()} <span className="text-xs text-muted-foreground">km</span>
                                         </span>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <span className="text-sm font-black text-foreground">
-                                        {manutencao.moeda} {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        {manutencao.currency} {(Number(manutencao.cost_parts) + Number(manutencao.cost_labor)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </span>
                                 </TableCell>
                                 <TableCell className="pr-6 text-right">

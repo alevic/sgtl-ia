@@ -107,68 +107,91 @@ export const NovaTransacao: React.FC = () => {
         const state = location.state as any;
 
         if (state) {
-            if (state.manutencao_id) {
-                setMaintenanceId(state.manutencao_id);
+            if (state.manutencao_id || state.maintenance_id) {
+                setMaintenanceId(state.manutencao_id || state.maintenance_id);
             }
 
             if (state.id) {
                 setId(state.id);
-                setTipo(state.tipo);
-                setDescricao(state.descricao);
-                setValor(state.valor.toString());
-                setMoeda(state.moeda);
-                setDataEmissao(state.data_emissao.split('T')[0]);
-                setDataVencimento(state.data_vencimento.split('T')[0]);
+                setTipo(state.type || state.tipo);
+                setDescricao(state.description || state.descricao || '');
+                setValor((state.amount || state.valor || 0).toString());
+                setMoeda(state.currency || state.moeda);
+                setDataEmissao((state.date || state.data_emissao).split('T')[0]);
+                setDataVencimento((state.due_date || state.data_vencimento || state.date || state.data_emissao).split('T')[0]);
                 setStatus(state.status);
-                setFormaPagamento(state.forma_pagamento);
-                setNumeroDocumento(state.numero_documento || '');
-                setObservacoes(state.observacoes || '');
+                setFormaPagamento(state.payment_method || state.forma_pagamento);
+                setNumeroDocumento(state.document_number || state.numero_documento || '');
+                setObservacoes(state.notes || state.observations || state.observacoes || '');
 
-                if (state.tipo === TipoTransacao.INCOME || state.tipo === 'RECEITA') {
-                    setCategoriaReceita(state.categoria_receita);
+                if (state.type === TipoTransacao.INCOME || state.tipo === 'RECEITA') {
+                    setCategoriaReceita(state.category_name || state.categoria_receita);
                 } else {
-                    setCategoriaDespesa(state.categoria_despesa);
-                    setCentroCusto(state.centro_custo);
-                    setClassificacaoContabil(state.classificacao_contabil);
+                    setCategoriaDespesa(state.category_name || state.categoria_despesa);
+                    setCentroCusto(state.cost_center_name || state.centro_custo);
+                    setClassificacaoContabil(state.financial_classification || state.classificacao_contabil);
                 }
                 if (state.cost_center_id) setCostCenterId(state.cost_center_id);
                 if (state.bank_account_id) setBankAccountId(state.bank_account_id);
                 if (state.category_id) setCategoryId(state.category_id);
             }
             else {
-                if (state.tipo) setTipo(state.tipo);
-                if (state.valor) setValor(state.valor.toString());
-                if (state.descricao) setDescricao(state.descricao);
-                if (state.categoria_despesa_id) {
+                if (state.type || state.tipo) setTipo(state.type || state.tipo);
+                if (state.amount || state.valor) setValor((state.amount || state.valor).toString());
+                if (state.description || state.descricao) setDescricao(state.description || state.descricao);
+                if (state.category_id || state.categoria_despesa_id) {
                     setTipo(TipoTransacao.EXPENSE);
-                    setCategoryId(state.categoria_despesa_id);
+                    setCategoryId(state.category_id || state.categoria_despesa_id);
                 }
                 if (state.cost_center_id) setCostCenterId(state.cost_center_id);
             }
         }
     }, [location]);
 
+    // Resolve IDs from names if passed in state
+    useEffect(() => {
+        const state = location.state as any;
+        if (state) {
+            if (state.categoria_despesa_nome && categories.length > 0) {
+                const cat = categories.find(c => c.name.trim().toLowerCase() === state.categoria_despesa_nome.trim().toLowerCase());
+                if (cat) {
+                    setCategoryId(cat.id);
+                    setTipo(TipoTransacao.EXPENSE);
+                }
+            }
+            if (state.centro_custo_nome && costCenters.length > 0) {
+                const cc = costCenters.find(c => c.name.trim().toLowerCase() === state.centro_custo_nome.trim().toLowerCase());
+                if (cc) setCostCenterId(cc.id);
+            }
+            if (state.categoria_receita_nome && categories.length > 0) {
+                const cat = categories.find(c => c.name.trim().toLowerCase() === state.categoria_receita_nome.trim().toLowerCase());
+                if (cat) {
+                    setCategoryId(cat.id);
+                    setTipo(TipoTransacao.INCOME);
+                }
+            }
+        }
+    }, [location.state, categories, costCenters]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const transacao = {
-            tipo,
-            descricao,
-            valor: parseFloat(valor),
-            moeda,
-            data_emissao: dataEmissao,
-            data_vencimento: dataVencimento,
+            type: tipo,
+            description: descricao,
+            amount: parseFloat(valor),
+            currency: moeda,
+            date: dataEmissao,
+            due_date: dataVencimento,
             status,
-            forma_pagamento: formaPagamento,
+            payment_method: formaPagamento,
             category_id: categoryId || undefined,
-            centro_custo: centroCusto,
             cost_center_id: costCenterId || undefined,
             bank_account_id: bankAccountId || undefined,
-            classificacao_contabil: (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') ? classificacaoContabil : undefined,
-            numero_documento: numeroDocumento,
-            observacoes,
+            financial_classification: (tipo === TipoTransacao.EXPENSE || (tipo as any) === 'DESPESA') ? classificacaoContabil : undefined,
+            document_number: numeroDocumento,
+            notes: observacoes,
             maintenance_id: maintenanceId
-            // criado_por and criado_em are handled by the backend
         };
 
         try {

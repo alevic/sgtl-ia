@@ -1217,19 +1217,19 @@ export async function setupDb() {
                 CREATE TABLE IF NOT EXISTS maintenance (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                     vehicle_id UUID NOT NULL REFERENCES vehicle(id) ON DELETE CASCADE,
-                    tipo TEXT NOT NULL,
+                    type TEXT NOT NULL,
                     status TEXT NOT NULL DEFAULT 'SCHEDULED' CHECK (status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
-                    data_agendada DATE NOT NULL,
-                    data_inicio DATE,
-                    data_conclusao DATE,
-                    km_veiculo INTEGER NOT NULL,
-                    descricao TEXT NOT NULL,
-                    custo_pecas DECIMAL(10, 2) DEFAULT 0,
-                    custo_mao_de_obra DECIMAL(10, 2) DEFAULT 0,
-                    moeda TEXT DEFAULT 'BRL',
-                    oficina TEXT,
-                    responsavel TEXT,
-                    observacoes TEXT,
+                    scheduled_date DATE NOT NULL,
+                    start_date DATE,
+                    completion_date DATE,
+                    km_vehicle INTEGER NOT NULL,
+                    description TEXT NOT NULL,
+                    cost_parts DECIMAL(10, 2) DEFAULT 0,
+                    cost_labor DECIMAL(10, 2) DEFAULT 0,
+                    currency TEXT DEFAULT 'BRL',
+                    workshop TEXT,
+                    responsible TEXT,
+                    notes TEXT,
                     organization_id TEXT NOT NULL,
                     created_by TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1373,6 +1373,70 @@ export async function setupDb() {
             ALTER TABLE parcel ADD COLUMN IF NOT EXISTS created_by TEXT;
             ALTER TABLE charter ADD COLUMN IF NOT EXISTS created_by TEXT;
             ALTER TABLE driver ADD COLUMN IF NOT EXISTS created_by TEXT;
+            ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS created_by TEXT;
+
+            -- Migration: Maintenance table Portuguese -> English
+            DO $$ 
+            BEGIN 
+                -- Add missing columns in English
+                IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'maintenance') THEN
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS type TEXT;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS scheduled_date DATE;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS start_date DATE;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS completion_date DATE;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS description TEXT;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS cost_parts DECIMAL(10, 2);
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS cost_labor DECIMAL(10, 2);
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS workshop TEXT;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS responsible TEXT;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS notes TEXT;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS km_vehicle INTEGER;
+                    ALTER TABLE maintenance ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'BRL';
+
+                    -- Drop NOT NULL constraints on legacy columns to allow English-only inserts
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'tipo') THEN
+                        UPDATE maintenance SET type = tipo WHERE type IS NULL;
+                        ALTER TABLE maintenance ALTER COLUMN tipo DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'data_agendada') THEN
+                        UPDATE maintenance SET scheduled_date = data_agendada WHERE scheduled_date IS NULL;
+                        ALTER TABLE maintenance ALTER COLUMN data_agendada DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'data_inicio') THEN
+                        UPDATE maintenance SET start_date = data_inicio WHERE start_date IS NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'data_conclusao') THEN
+                        UPDATE maintenance SET completion_date = data_conclusao WHERE completion_date IS NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'descricao') THEN
+                        UPDATE maintenance SET description = descricao WHERE description IS NULL;
+                        ALTER TABLE maintenance ALTER COLUMN descricao DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'custo_pecas') THEN
+                        UPDATE maintenance SET cost_parts = custo_pecas WHERE cost_parts IS NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'custo_mao_de_obra') THEN
+                        UPDATE maintenance SET cost_labor = custo_mao_de_obra WHERE cost_labor IS NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'oficina') THEN
+                        UPDATE maintenance SET workshop = oficina WHERE workshop IS NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'responsavel') THEN
+                        UPDATE maintenance SET responsible = responsavel WHERE responsible IS NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'observacoes') THEN
+                        UPDATE maintenance SET notes = observacoes WHERE notes IS NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'km_veiculo') THEN
+                        UPDATE maintenance SET km_vehicle = km_veiculo WHERE km_vehicle IS NULL;
+                        ALTER TABLE maintenance ALTER COLUMN km_veiculo DROP NOT NULL;
+                    END IF;
+                    IF EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'maintenance' AND column_name = 'moeda') THEN
+                        UPDATE maintenance SET currency = moeda WHERE currency IS NULL;
+                        ALTER TABLE maintenance ALTER COLUMN moeda DROP NOT NULL;
+                    END IF;
+                END IF;
+            END $$;
         `);
 
         // Migration: Add group_name column if it doesn't exist

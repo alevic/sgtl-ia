@@ -10,6 +10,7 @@ import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
 import { useDateFormatter } from '../hooks/useDateFormatter';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
+import { api } from '../services/api';
 import {
     Table,
     TableBody,
@@ -37,15 +38,7 @@ export const Financeiro: React.FC = () => {
     const fetchTransacoes = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, {
-                credentials: 'include'
-            });
-
-            if (!response.ok) {
-                throw new Error('Falha ao buscar transações');
-            }
-
-            const data = await response.json();
+            const data = await api.get<ITransacao[]>('/api/finance/transactions');
             setTransacoes(data);
         } catch (error) {
             console.error("Erro ao buscar transações:", error);
@@ -60,26 +53,28 @@ export const Financeiro: React.FC = () => {
 
     const resumo = useMemo(() => {
         const receitas = transacoes
-            .filter(t => (t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA') && t.status !== StatusTransacao.CANCELLED)
-            .reduce((sum, t) => sum + Number(t.valor), 0);
+            .filter(t => (t.type === TipoTransacao.INCOME || t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA') && (t.status !== StatusTransacao.CANCELLED && (t.status as any) !== 'CANCELADA'))
+            .reduce((sum, t) => sum + Number(t.amount || t.valor || 0), 0);
 
         const despesas = transacoes
-            .filter(t => (t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA') && t.status !== StatusTransacao.CANCELLED)
-            .reduce((sum, t) => sum + Number(t.valor), 0);
+            .filter(t => (t.type === TipoTransacao.EXPENSE || t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA') && (t.status !== StatusTransacao.CANCELLED && (t.status as any) !== 'CANCELADA'))
+            .reduce((sum, t) => sum + Number(t.amount || t.valor || 0), 0);
 
         const saldo = receitas - despesas;
 
         const receitasPagas = transacoes
-            .filter(t => (t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA') && (t.status === StatusTransacao.PAID || (t.status as any) === 'PAGA'))
-            .reduce((sum, t) => sum + Number(t.valor), 0);
+            .filter(t => (t.type === TipoTransacao.INCOME || t.tipo === TipoTransacao.INCOME || (t.tipo as any) === 'RECEITA') && (t.status === StatusTransacao.PAID || (t.status as any) === 'PAGO' || (t.status as any) === 'PAGA'))
+            .reduce((sum, t) => sum + Number(t.amount || t.valor || 0), 0);
 
         const despesasPagas = transacoes
-            .filter(t => (t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA') && (t.status === StatusTransacao.PAID || (t.status as any) === 'PAGA'))
-            .reduce((sum, t) => sum + Number(t.valor), 0);
+            .filter(t => (t.type === TipoTransacao.EXPENSE || t.tipo === TipoTransacao.EXPENSE || (t.tipo as any) === 'DESPESA') && (t.status === StatusTransacao.PAID || (t.status as any) === 'PAGO' || (t.status as any) === 'PAGA'))
+            .reduce((sum, t) => sum + Number(t.amount || t.valor || 0), 0);
 
         const contasVencidas = transacoes.filter(t => {
             if (t.status !== StatusTransacao.PENDING && (t.status as any) !== 'PENDENTE') return false;
-            const vencimento = new Date(t.data_vencimento);
+            const dueDateVal = t.due_date || t.data_vencimento || (t as any).vencimento;
+            if (!dueDateVal) return false;
+            const vencimento = new Date(dueDateVal);
             return vencimento < new Date();
         }).length;
 
@@ -234,11 +229,11 @@ export const Financeiro: React.FC = () => {
                 <Table>
                     <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
-                            <TableHead className="pl-8 h-14 text-table-head">Descrição / Emissão</TableHead>
-                            <TableHead className="h-14 text-table-head">Tipo</TableHead>
-                            <TableHead className="h-14 text-table-head">Status</TableHead>
-                            <TableHead className="h-14 text-table-head">Valor</TableHead>
-                            <TableHead className="pr-8 h-14 text-table-head text-right">Ações</TableHead>
+                            <TableHead className="pl-8 h-14 text-table-head uppercase text-[10px] font-black tracking-widest">Transação / Categoria</TableHead>
+                            <TableHead className="h-14 text-table-head uppercase text-[10px] font-black tracking-widest text-center">Data Emissão</TableHead>
+                            <TableHead className="h-14 text-table-head uppercase text-[10px] font-black tracking-widest">Status</TableHead>
+                            <TableHead className="h-14 text-table-head uppercase text-[10px] font-black tracking-widest">Valor</TableHead>
+                            <TableHead className="pr-8 h-14 text-table-head text-right uppercase text-[10px] font-black tracking-widest">Ações</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -264,33 +259,32 @@ export const Financeiro: React.FC = () => {
                             </TableRow>
                         ) : (
                             transacoes.slice(0, 10).map((transacao) => {
-                                const isIncome = transacao.tipo === TipoTransacao.INCOME || (transacao.tipo as any) === 'RECEITA' || (transacao.tipo as any) === 'INCOME';
+                                const isIncome = transacao.type === TipoTransacao.INCOME;
 
                                 return (
-                                    <TableRow key={transacao.id} className="group hover:bg-muted border-border/30 transition-colors">
+                                    <TableRow key={transacao.id} className="group hover:bg-muted/40 dark:hover:bg-slate-700/50 border-border/30 transition-colors">
                                         <TableCell className="pl-8 py-5">
                                             <div className="flex items-center gap-4">
                                                 <div className={cn(
                                                     "w-10 h-10 rounded-sm flex items-center justify-center transition-transform group-hover:scale-110",
-                                                    isIncome ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"
+                                                    isIncome ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-destructive/10 text-destructive dark:text-rose-400"
                                                 )}>
                                                     {isIncome ? <ArrowUpRight size={20} strokeWidth={2.5} /> : <ArrowDownRight size={20} strokeWidth={2.5} />}
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="font-black text-sm tracking-tight text-foreground">{transacao.descricao}</span>
-                                                    <span className="text-[12px] font-bold text-muted-foreground/60 tracking-wider">
-                                                        {formatDate(transacao.data_emissao)}
+                                                    <span className="font-bold text-sm tracking-tight text-slate-800 dark:text-slate-100">{transacao.description}</span>
+                                                    <span className="text-[11px] font-bold text-muted-foreground/60 tracking-wider">
+                                                        {transacao.category_name || 'Sem Categoria'}
                                                     </span>
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell>
-                                            <Badge variant="secondary" className={cn(
-                                                "font-black text-[9px] uppercase",
-                                                isIncome ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive"
-                                            )}>
-                                                {isIncome ? 'Receita' : 'Despesa'}
-                                            </Badge>
+                                        <TableCell className="text-center">
+                                            <div className="flex flex-col items-center">
+                                                <span className="text-[13px] font-bold text-slate-600 dark:text-slate-300">
+                                                    {formatDate(transacao.date || transacao.data_emissao || transacao.issue_date)}
+                                                </span>
+                                            </div>
                                         </TableCell>
                                         <TableCell>
                                             {getStatusBadge(transacao.status)}
@@ -298,10 +292,10 @@ export const Financeiro: React.FC = () => {
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <span className={cn(
-                                                    "text-sm font-black",
-                                                    isIncome ? "text-emerald-600" : "text-destructive"
+                                                    "text-sm font-black tracking-tight",
+                                                    isIncome ? "text-emerald-600 dark:text-emerald-400" : "text-destructive dark:text-rose-400"
                                                 )}>
-                                                    {isIncome ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
+                                                    {isIncome ? '+' : '-'} {formatCurrency(Number(transacao.amount))}
                                                 </span>
                                             </div>
                                         </TableCell>

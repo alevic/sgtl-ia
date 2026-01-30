@@ -103,22 +103,33 @@ router.post("/", authorize(['admin', 'operacional']), async (req, res) => {
         const userId = session.user.id;
 
         const {
-            vehicle_id, tipo, status, data_agendada, data_inicio, data_conclusao,
-            km_veiculo, descricao, custo_pecas, custo_mao_de_obra, moeda,
-            oficina, responsavel, observacoes
+            vehicle_id,
+            type,
+            status,
+            scheduled_date,
+            start_date,
+            completion_date,
+            km_vehicle,
+            description,
+            cost_parts,
+            cost_labor,
+            currency,
+            workshop,
+            responsible,
+            notes
         } = req.body;
 
         const result = await pool.query(
             `INSERT INTO maintenance (
                 vehicle_id, type, status, scheduled_date, start_date, completion_date,
-                km_veiculo, description, cost_parts, cost_labor, moeda,
+                km_vehicle, description, cost_parts, cost_labor, currency,
                 workshop, responsible, notes, organization_id, created_by
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
             RETURNING *`,
             [
-                vehicle_id, tipo, status, data_agendada, data_inicio || null, data_conclusao || null,
-                km_veiculo, descricao, custo_pecas || 0, custo_mao_de_obra || 0, moeda || 'BRL',
-                oficina || null, responsavel || null, observacoes || null, orgId, userId
+                vehicle_id, type, status, scheduled_date, start_date || null, completion_date || null,
+                km_vehicle, description, cost_parts || 0, cost_labor || 0, currency || 'BRL',
+                workshop || null, responsible || null, notes || null, orgId, userId
             ]
         );
 
@@ -126,28 +137,23 @@ router.post("/", authorize(['admin', 'operacional']), async (req, res) => {
         if (status === StatusManutencao.IN_PROGRESS || status === 'EM_ANDAMENTO') {
             await pool.query(
                 `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
-                [VeiculoStatus.MAINTENANCE, km_veiculo || 0, vehicle_id, orgId]
+                [VeiculoStatus.MAINTENANCE, km_vehicle || 0, vehicle_id, orgId]
             );
         } else if (status === StatusManutencao.COMPLETED || status === 'CONCLUIDA') {
             await pool.query(
                 `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
-                [VeiculoStatus.ACTIVE, km_veiculo || 0, vehicle_id, orgId]
+                [VeiculoStatus.ACTIVE, km_vehicle || 0, vehicle_id, orgId]
             );
         } else {
             // Even if scheduled, update KM if provided
             await pool.query(
                 `UPDATE vehicle SET km_atual = GREATEST(km_atual, $1) WHERE id = $2 AND organization_id = $3`,
-                [km_veiculo || 0, vehicle_id, orgId]
+                [km_vehicle || 0, vehicle_id, orgId]
             );
         }
 
 
         const newMaintenance = result.rows[0];
-
-        // Create Financial Transaction automatically
-        FinanceService.createMaintenanceTransaction(newMaintenance).catch(err => {
-            console.error("Error creating automatic financial transaction for maintenance:", err);
-        });
 
         // Audit Log
         AuditService.logEvent({
@@ -177,9 +183,20 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
         const { id } = req.params;
 
         const {
-            vehicle_id, tipo, status, data_agendada, data_inicio, data_conclusao,
-            km_veiculo, descricao, custo_pecas, custo_mao_de_obra, moeda,
-            oficina, responsavel, observacoes
+            vehicle_id,
+            type,
+            status,
+            scheduled_date,
+            start_date,
+            completion_date,
+            km_vehicle,
+            description,
+            cost_parts,
+            cost_labor,
+            currency,
+            workshop,
+            responsible,
+            notes
         } = req.body;
 
         const check = await pool.query(
@@ -196,30 +213,30 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
         const result = await pool.query(
             `UPDATE maintenance SET
                 vehicle_id = $1, type = $2, status = $3, scheduled_date = $4,
-                start_date = $5, completion_date = $6, km_veiculo = $7,
+                start_date = $5, completion_date = $6, km_vehicle = $7,
                 description = $8, cost_parts = $9, cost_labor = $10,
-                moeda = $11, workshop = $12, responsible = $13, notes = $14,
+                currency = $11, workshop = $12, responsible = $13, notes = $14,
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = $15 AND organization_id = $16
             RETURNING *`,
             [
-                vehicle_id, tipo, status, data_agendada, data_inicio || null, data_conclusao || null,
-                km_veiculo, descricao, custo_pecas || 0, custo_mao_de_obra || 0, moeda || 'BRL',
-                oficina || null, responsavel || null, observacoes || null, id, orgId
+                vehicle_id, type, status, scheduled_date, start_date || null, completion_date || null,
+                km_vehicle, description, cost_parts || 0, cost_labor || 0, currency || 'BRL',
+                workshop || null, responsible || null, notes || null, id, orgId
             ]
         );
 
         // Update transaction amount/description if it exists and is not cancelled/paid
         if (status !== StatusManutencao.CANCELLED && status !== 'CANCELADA') {
-            const custoTotal = (Number(custo_pecas) || 0) + (Number(custo_mao_de_obra) || 0);
-            if (custoTotal > 0) {
+            const totalCost = (Number(cost_parts) || 0) + (Number(cost_labor) || 0);
+            if (totalCost > 0) {
                 await pool.query(
                     `UPDATE transaction SET 
                         amount = $1, 
                         description = 'Manutenção ' || COALESCE((SELECT placa FROM vehicle WHERE id = $6), 'Veículo') || ' - ' || $2,
                         date = $3
                       WHERE maintenance_id = $4 AND organization_id = $5 AND (status = $7 OR status = 'PENDENTE')`,
-                    [custoTotal, tipo, data_agendada, id, orgId, vehicle_id, StatusTransacao.PENDING]
+                    [totalCost, type, scheduled_date, id, orgId, vehicle_id, StatusTransacao.PENDING]
                 );
             }
         }
@@ -228,13 +245,13 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
         if (status === StatusManutencao.IN_PROGRESS || status === 'EM_ANDAMENTO') {
             await pool.query(
                 `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
-                [VeiculoStatus.MAINTENANCE, km_veiculo || 0, vehicle_id, orgId]
+                [VeiculoStatus.MAINTENANCE, km_vehicle || 0, vehicle_id, orgId]
             );
         } else if (status === StatusManutencao.COMPLETED || status === 'CONCLUIDA') {
             // Set back to ATIVO and update KM
             await pool.query(
                 `UPDATE vehicle SET status = $1, km_atual = GREATEST(km_atual, $2) WHERE id = $3 AND organization_id = $4`,
-                [VeiculoStatus.ACTIVE, km_veiculo || 0, vehicle_id, orgId]
+                [VeiculoStatus.ACTIVE, km_vehicle || 0, vehicle_id, orgId]
             );
 
             // Update linked transaction to PAID if it is PENDING
@@ -253,7 +270,7 @@ router.put("/:id", authorize(['admin', 'operacional']), async (req, res) => {
             // For other statuses (like SCHEDULED), still update KM if it's higher
             await pool.query(
                 `UPDATE vehicle SET km_atual = GREATEST(km_atual, $1) WHERE id = $2 AND organization_id = $3`,
-                [km_veiculo || 0, vehicle_id, orgId]
+                [km_vehicle || 0, vehicle_id, orgId]
             );
         }
 

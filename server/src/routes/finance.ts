@@ -36,6 +36,86 @@ const authorize = (allowedRoles: string[]) => {
     };
 };
 
+const mapTransaction = (t: any) => {
+    if (!t) return null;
+
+    // DEBUG: Log the raw object from DB
+    // console.log('DEBUG: Mapping transaction:', t.id, 'Raw Date:', t.date);
+
+    // Ensure dates are stringified for JSON if they are Date objects or valid date strings
+    const dateToISO = (d: any) => {
+        if (!d) return null;
+
+        let dateObj: Date;
+        if (d instanceof Date) {
+            dateObj = d;
+        } else {
+            dateObj = new Date(d);
+        }
+
+        if (isNaN(dateObj.getTime())) {
+            // console.log('DEBUG: Invalid date:', d);
+            return null;
+        }
+        return dateObj.toISOString();
+    };
+
+    const res = { ...t };
+
+    // Standardize field names (English as primary, Portuguese as legacy)
+    res.type = t.type;
+    res.tipo = t.type;
+
+    res.description = t.description;
+    res.descricao = t.description;
+
+    res.amount = t.amount?.toString() || "0.00";
+    res.valor = Number(res.amount);
+
+    res.currency = t.currency || "BRL";
+    res.moeda = res.currency;
+
+    // DATE ALIASES (ISSUE DATE)
+    res.date = dateToISO(t.date);
+    res.issue_date = res.date;
+    res.data_emissao = res.date;
+
+    // DUE DATE ALIASES
+    res.due_date = dateToISO(t.due_date || t.date);
+    res.data_vencimento = res.due_date;
+
+    // PAYMENT DATE ALIASES
+    res.payment_date = dateToISO(t.payment_date);
+    res.data_pagamento = res.payment_date;
+
+    res.status = t.status;
+    res.payment_method = t.payment_method;
+    res.forma_pagamento = t.payment_method;
+
+    // DOCUMENT NUMBER ALIASES
+    res.document_number = t.document_number;
+    res.numero_documento = t.document_number;
+
+    // NOTES ALIASES
+    res.notes = t.notes;
+    res.observacoes = t.notes;
+
+    // Join names (flattened for frontend)
+    res.category_name = t.category_name || t.category?.name;
+    res.cost_center_name = t.cost_center_name || t.cost_center?.name;
+
+    // console.log('DEBUG: Resulting date:', res.date);
+
+    return res;
+};
+
+const ensureValidDate = (dateVal: any, fallback: any = null) => {
+    if (!dateVal) return fallback;
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return fallback;
+    return d;
+};
+
 // --- BANK ACCOUNTS ---
 
 // GET all bank accounts
@@ -368,12 +448,33 @@ router.get("/transactions", authorize(['admin', 'financeiro']), async (req, res)
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
 
-        const results = await db.select()
+        const results = await db.select({
+            id: transactions.id,
+            type: transactions.type,
+            description: transactions.description,
+            amount: transactions.amount,
+            currency: transactions.currency,
+            date: transactions.date,
+            due_date: transactions.due_date,
+            payment_date: transactions.payment_date,
+            status: transactions.status,
+            payment_method: transactions.payment_method,
+            category_id: transactions.category_id,
+            cost_center_id: transactions.cost_center_id,
+            bank_account_id: transactions.bank_account_id,
+            organization_id: transactions.organization_id,
+            created_at: transactions.created_at,
+            category_name: categories.name,
+            cost_center_name: costCenters.name,
+            classificacao_contabil: transactions.classificacao_contabil,
+        })
             .from(transactions)
+            .leftJoin(categories, eq(transactions.category_id, categories.id))
+            .leftJoin(costCenters, eq(transactions.cost_center_id, costCenters.id))
             .where(eq(transactions.organization_id, orgId))
             .orderBy(desc(transactions.date), desc(transactions.created_at));
 
-        res.json(results);
+        res.json(results.map(mapTransaction));
     } catch (error) {
         console.error("Error fetching transactions:", error);
         res.status(500).json({ error: "Failed to fetch transactions" });
@@ -399,7 +500,7 @@ router.get("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
             return res.status(404).json({ error: "Transaction not found" });
         }
 
-        res.json(transaction);
+        res.json(mapTransaction(transaction));
     } catch (error) {
         console.error("Error fetching transaction:", error);
         res.status(500).json({ error: "Failed to fetch transaction" });
@@ -424,9 +525,9 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
         // Map legacy frontend fields to new schema if necessary
         const finalAmount = (valor || amount || 0).toString();
         const finalCurrency = moeda || currency || 'BRL';
-        const finalDate = date ? new Date(date) : (data_emissao ? new Date(data_emissao) : new Date());
-        const finalDueDate = due_date ? new Date(due_date) : (data_vencimento ? new Date(data_vencimento) : null);
-        const finalPaymentDate = payment_date ? new Date(payment_date) : (data_pagamento ? new Date(data_pagamento) : null);
+        const finalDate = ensureValidDate(date, ensureValidDate(data_emissao, new Date()));
+        const finalDueDate = ensureValidDate(due_date, ensureValidDate(data_vencimento));
+        const finalPaymentDate = ensureValidDate(payment_date, ensureValidDate(data_pagamento));
         const finalPaymentMethod = payment_method || forma_pagamento || null;
         const finalDocNum = document_number || numero_documento || null;
         const finalNotes = notes || observacoes || null;
@@ -462,7 +563,7 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
             await FinanceService.updateBankAccountBalance(bank_account_id, orgId);
         }
 
-        res.status(201).json(newTransaction);
+        res.status(201).json(mapTransaction(newTransaction));
     } catch (error) {
         console.error("Error creating transaction:", error);
         res.status(500).json({ error: "Failed to create transaction" });
@@ -487,9 +588,9 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
         // Map legacy fields
         const finalAmount = valor || amount;
         const finalCurrency = moeda || currency;
-        const finalDate = date || data_emissao;
-        const finalDueDate = due_date || data_vencimento;
-        const finalPaymentDate = payment_date || data_pagamento;
+        const finalDate = ensureValidDate(date || data_emissao);
+        const finalDueDate = ensureValidDate(due_date || data_vencimento);
+        const finalPaymentDate = ensureValidDate(payment_date || data_pagamento);
         const finalPaymentMethod = payment_method || forma_pagamento;
         const finalDocNum = document_number || numero_documento;
         const finalNotes = notes || observacoes;
@@ -500,9 +601,9 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
                 description: description || req.body.descricao,
                 amount: finalAmount ? finalAmount.toString() : undefined,
                 currency: finalCurrency,
-                date: finalDate ? new Date(finalDate) : undefined,
-                due_date: finalDueDate ? new Date(finalDueDate) : undefined,
-                payment_date: finalPaymentDate ? new Date(finalPaymentDate) : undefined,
+                date: finalDate,
+                due_date: finalDueDate,
+                payment_date: finalPaymentDate,
                 status,
                 payment_method: finalPaymentMethod,
                 category_id,
@@ -530,7 +631,7 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
             await FinanceService.updateBankAccountBalance(bank_account_id, orgId);
         }
 
-        res.json(updatedTransaction);
+        res.json(mapTransaction(updatedTransaction));
     } catch (error) {
         console.error("Error updating transaction:", error);
         res.status(500).json({ error: "Failed to update transaction" });

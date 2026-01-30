@@ -8,9 +8,11 @@ import {
     FormaPagamento, Moeda, CentroCusto, ClassificacaoContabil, StatusTransacaoLabel, TipoTransacaoLabel
 } from '@/types';
 import { useApp } from '../context/AppContext';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
 import { SwissDatePicker } from '../components/Form/SwissDatePicker';
 import { financeAuxService } from '../services/financeAuxService';
+import { api } from '../services/api';
 import { ICostCenter, IFinanceCategory } from '@/types';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { DashboardCard } from '../components/Layout/DashboardCard';
@@ -26,6 +28,7 @@ import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 export const Transacoes: React.FC = () => {
     const navigate = useNavigate();
     const { currentContext } = useApp();
+    const { formatDate } = useDateFormatter();
     const [transacoes, setTransacoes] = useState<ITransacao[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -47,15 +50,12 @@ export const Transacoes: React.FC = () => {
         setIsLoading(true);
         try {
             const [transRes, centers, cats] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, { credentials: 'include' }),
+                api.get<ITransacao[]>('/api/finance/transactions'),
                 financeAuxService.getCostCenters(),
                 financeAuxService.getCategories()
             ]);
 
-            if (transRes.ok) {
-                const data = await transRes.json();
-                setTransacoes(data);
-            }
+            setTransacoes(transRes);
             setCostCenters(centers);
             setCategories(cats);
         } catch (error) {
@@ -72,28 +72,30 @@ export const Transacoes: React.FC = () => {
     const transacoesFiltradas = useMemo(() => {
         return transacoes.filter(transacao => {
             const matchBusca = busca === '' ||
-                transacao.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-                transacao.numero_documento?.toLowerCase().includes(busca.toLowerCase()) ||
-                transacao.id.toLowerCase().includes(busca.toLowerCase());
+                (transacao.description || '').toLowerCase().includes(busca.toLowerCase()) ||
+                (transacao.document_number || '').toLowerCase().includes(busca.toLowerCase()) ||
+                (transacao.id || '').toLowerCase().includes(busca.toLowerCase());
 
-            const matchTipo = filtroTipo === 'TODAS' || transacao.tipo === filtroTipo;
+            const matchTipo = filtroTipo === 'TODAS' || transacao.type === filtroTipo;
             const matchStatus = filtroStatus === 'TODAS' || transacao.status === filtroStatus;
 
-            // Filter by ID or Legacy Name
             const matchCentroCusto = filtroCentroCusto === 'TODOS' ||
                 transacao.cost_center_id === filtroCentroCusto ||
-                transacao.centro_custo === filtroCentroCusto;
+                transacao.cost_center_name === filtroCentroCusto; // Fallback for legacy data
 
             const matchCategoria = filtroCategoria === 'TODAS' ||
                 transacao.category_id === filtroCategoria ||
+                transacao.category_name === filtroCategoria ||
                 transacao.categoria_receita === filtroCategoria ||
                 transacao.categoria_despesa === filtroCategoria;
 
-            const matchClassificacao = filtroClassificacao === 'TODAS' || transacao.classificacao_contabil === filtroClassificacao;
+            const matchClassificacao = filtroClassificacao === 'TODAS' ||
+                transacao.accounting_classification === filtroClassificacao ||
+                transacao.classificacao_contabil === filtroClassificacao;
 
             let matchData = true;
             if (dataInicio && dataFim) {
-                const dataEmissao = new Date(transacao.data_emissao);
+                const dataEmissao = new Date(transacao.date || transacao.issue_date || transacao.data_emissao);
                 // Adjust comparison to compare Dates only, ignoring time components of the transacao if needed
                 // But generally direct comparison works if we set start to 00:00 and end to 23:59
 
@@ -110,17 +112,17 @@ export const Transacoes: React.FC = () => {
             }
 
             return matchBusca && matchTipo && matchStatus && matchData && matchCentroCusto && matchCategoria && matchClassificacao;
-        }).sort((a, b) => new Date(b.data_emissao).getTime() - new Date(a.data_emissao).getTime());
+        }).sort((a, b) => new Date(b.date || b.issue_date || b.data_emissao || 0).getTime() - new Date(a.date || a.issue_date || a.data_emissao || 0).getTime());
     }, [transacoes, busca, filtroTipo, filtroStatus, dataInicio, dataFim, filtroCentroCusto, filtroCategoria, filtroClassificacao]);
 
     const resumo = useMemo(() => {
         const receitas = transacoesFiltradas
-            .filter(t => t.tipo === TipoTransacao.INCOME)
-            .reduce((sum, t) => sum + Number(t.valor), 0);
+            .filter(t => t.type === TipoTransacao.INCOME)
+            .reduce((sum, t) => sum + Number(t.amount), 0);
 
         const despesas = transacoesFiltradas
-            .filter(t => t.tipo === TipoTransacao.EXPENSE)
-            .reduce((sum, t) => sum + Number(t.valor), 0);
+            .filter(t => t.type === TipoTransacao.EXPENSE)
+            .reduce((sum, t) => sum + Number(t.amount), 0);
 
         const saldo = receitas - despesas;
 
@@ -129,11 +131,6 @@ export const Transacoes: React.FC = () => {
 
     const formatCurrency = (value: number) => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    };
-
-    const formatDate = (dateString: string) => {
-        if (!dateString) return '-';
-        return new Date(dateString).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
     };
 
     const getStatusBadge = (status: StatusTransacao) => {
@@ -158,8 +155,8 @@ export const Transacoes: React.FC = () => {
         );
     };
 
-    const getTipoBadge = (tipo: TipoTransacao) => {
-        if (tipo === TipoTransacao.INCOME) {
+    const getTipoBadge = (type: TipoTransacao) => {
+        if (type === TipoTransacao.INCOME) {
             return (
                 <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-1 border border-emerald-500/20">
                     <ArrowUpRight size={12} strokeWidth={3} />
@@ -240,7 +237,6 @@ export const Transacoes: React.FC = () => {
 
             {/* Filters Module */}
             <ListFilterSection gridClassName="lg:grid-cols-4">
-                {/* Row 1: Busca e Filtros Principais */}
                 <div className="lg:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Pesquisar</label>
                     <div className="relative group">
@@ -249,108 +245,36 @@ export const Transacoes: React.FC = () => {
                             placeholder="Descrição, ID ou documento..."
                             value={busca}
                             onChange={e => setBusca(e.target.value)}
-                            className="pl-12 h-14 bg-muted border-border/50 rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
+                            className="pl-12 h-14 bg-muted/40 border-border/50 rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo</label>
-                    <Select value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)}>
-                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
-                            <SelectValue placeholder="TIPO" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="TODAS">TODOS OS TIPOS</SelectItem>
-                            <SelectItem value={TipoTransacao.INCOME}>RECEITA</SelectItem>
-                            <SelectItem value={TipoTransacao.EXPENSE}>DESPESA</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Status</label>
                     <Select value={filtroStatus} onValueChange={(v: any) => setFiltroStatus(v)}>
-                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
+                        <SelectTrigger className="h-14 bg-muted/40 border-border/50 rounded-sm font-bold uppercase tracking-widest text-[11px]">
                             <SelectValue placeholder="STATUS" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="TODAS">TODOS OS STATUS</SelectItem>
-                            <SelectItem value={StatusTransacao.PAID}>PAGA / RECEBIDA</SelectItem>
-                            <SelectItem value={StatusTransacao.PENDING}>PENDENTE</SelectItem>
-                            <SelectItem value={StatusTransacao.OVERDUE}>VENCIDA</SelectItem>
-                            <SelectItem value={StatusTransacao.PARTIALLY_PAID}>PARCIAL</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                {/* Row 2: Período e Filtros de Negócio */}
-                <div className="lg:col-span-2 space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Período de Emissão</label>
-                    <div className="flex items-center gap-2">
-                        <div className="flex-1">
-                            <SwissDatePicker
-                                value={dataInicio}
-                                onChange={setDataInicio}
-                            />
-                        </div>
-                        <span className="text-muted-foreground font-black">→</span>
-                        <div className="flex-1">
-                            <SwissDatePicker
-                                value={dataFim}
-                                onChange={setDataFim}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Centro de Custo</label>
-                    <Select value={filtroCentroCusto} onValueChange={(v: any) => {
-                        setFiltroCentroCusto(v);
-                        setFiltroCategoria('TODAS'); // Reset category when cost center changes
-                    }}>
-                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
-                            <SelectValue placeholder="CENTRO CUSTO" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="TODOS">TODOS C. CUSTOS</SelectItem>
-                            {costCenters.map(cc => (
-                                <SelectItem key={cc.id} value={cc.id}>{cc.name.toUpperCase()}</SelectItem>
+                            {Object.values(StatusTransacao).map(s => (
+                                <SelectItem key={s} value={s}>{StatusTransacaoLabel[s]}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 </div>
 
-                <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Categoria</label>
-                    <Select value={filtroCategoria} onValueChange={(v: any) => setFiltroCategoria(v)}>
-                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
-                            <SelectValue placeholder="CATEGORIA" />
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo</label>
+                    <Select value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)}>
+                        <SelectTrigger className="h-14 bg-muted/40 border-border/50 rounded-sm font-bold uppercase tracking-widest text-[11px]">
+                            <SelectValue placeholder="TIPO" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="TODAS">TODAS CATEGORIAS</SelectItem>
-                            {categories
-                                .filter(cat => filtroCentroCusto === 'TODOS' || cat.cost_center_id === filtroCentroCusto)
-                                .map(cat => (
-                                    <SelectItem key={cat.id} value={cat.id}>{cat.name.toUpperCase()}</SelectItem>
-                                ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="space-y-1.5 pt-4 border-t lg:border-t-0 border-border/40">
-                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Classificação</label>
-                    <Select value={filtroClassificacao} onValueChange={(v: any) => setFiltroClassificacao(v)}>
-                        <SelectTrigger className="h-14 bg-muted border-border/50 rounded-sm font-bold text-[11px] uppercase tracking-widest">
-                            <SelectValue placeholder="CLASSIFICAÇÃO" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="TODAS">TODAS CLASSIF.</SelectItem>
-                            <SelectItem value={ClassificacaoContabil.CUSTO_FIXO}>CUSTO FIXO</SelectItem>
-                            <SelectItem value={ClassificacaoContabil.CUSTO_VARIAVEL}>CUSTO VARIÁVEL</SelectItem>
-                            <SelectItem value={ClassificacaoContabil.DESPESA_FIXA}>DESPESA FIXA</SelectItem>
-                            <SelectItem value={ClassificacaoContabil.DESPESA_VARIAVEL}>DESPESA VARIÁVEL</SelectItem>
+                            <SelectItem value="TODAS">AMBOS OS TIPOS</SelectItem>
+                            <SelectItem value={TipoTransacao.INCOME}>RECEITAS (ENTRADAS)</SelectItem>
+                            <SelectItem value={TipoTransacao.EXPENSE}>DESPESAS (SAÍDAS)</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -391,40 +315,40 @@ export const Transacoes: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            {getTipoBadge(transacao.tipo)}
+                                            {getTipoBadge(transacao.type)}
                                             {getStatusBadge(transacao.status)}
                                             <span className="text-xs text-slate-500 dark:text-slate-400">
                                                 ID: {transacao.id}
                                             </span>
                                         </div>
                                         <h3 className="font-semibold text-slate-800 dark:text-white mb-1">
-                                            {transacao.descricao}
+                                            {transacao.description}
                                         </h3>
                                         <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                                            <span>Emissão: {formatDate(transacao.data_emissao)}</span>
+                                            <span>Emissão: {formatDate(transacao.date || transacao.data_emissao || transacao.issue_date)}</span>
                                             <span>•</span>
-                                            <span>Vencimento: {formatDate(transacao.data_vencimento)}</span>
-                                            {transacao.numero_documento && (
+                                            <span>Vencimento: {formatDate(transacao.due_date || transacao.data_vencimento)}</span>
+                                            {transacao.document_number && (
                                                 <>
                                                     <span>•</span>
-                                                    <span>Doc: {transacao.numero_documento}</span>
+                                                    <span>Doc: {transacao.document_number}</span>
                                                 </>
                                             )}
-                                            {transacao.forma_pagamento && (
+                                            {transacao.payment_method && (
                                                 <>
                                                     <span>•</span>
-                                                    <span>{transacao.forma_pagamento}</span>
+                                                    <span>{transacao.payment_method}</span>
                                                 </>
                                             )}
                                             <span>•</span>
                                             <span>
-                                                Categoria: {transacao.categoria_receita || transacao.categoria_despesa}
+                                                Categoria: {transacao.category_name}
                                             </span>
-                                            {transacao.centro_custo && (
+                                            {transacao.cost_center_name && (
                                                 <>
                                                     <span>•</span>
                                                     <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 font-medium">
-                                                        {transacao.centro_custo}
+                                                        {transacao.cost_center_name}
                                                     </span>
                                                 </>
                                             )}
@@ -432,14 +356,14 @@ export const Transacoes: React.FC = () => {
                                     </div>
                                     <div className="text-right ml-4 flex items-center gap-3">
                                         <div>
-                                            <p className={`text-xl font-black ${transacao.tipo === TipoTransacao.INCOME
+                                            <p className={`text-xl font-black ${transacao.type === TipoTransacao.INCOME
                                                 ? 'text-emerald-600 dark:text-emerald-400'
                                                 : 'text-rose-600 dark:text-rose-400'
                                                 }`}>
-                                                {transacao.tipo === TipoTransacao.INCOME ? '+' : '-'} {formatCurrency(Number(transacao.valor))}
+                                                {transacao.type === TipoTransacao.INCOME ? '+' : '-'} {formatCurrency(Number(transacao.amount))}
                                             </p>
                                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                                {transacao.moeda}
+                                                {transacao.currency}
                                             </p>
                                         </div>
                                         <TransactionActions transacao={transacao} onUpdate={fetchTransacoes} />

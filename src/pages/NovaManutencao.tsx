@@ -18,11 +18,11 @@ import { AlertCircle, Loader } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
 import {
-    IManutencao,
+    IVeiculo,
+    IMaintenance,
     TipoManutencao,
     StatusManutencao,
     Moeda,
-    IVeiculo,
     StatusTransacao,
     StatusManutencaoLabel,
     TipoManutencaoLabel
@@ -40,15 +40,17 @@ export const NovaManutencao: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [selectedVehicleDetails, setSelectedVehicleDetails] = useState<Partial<IVeiculo> | null>(null);
     const [isLoadingData, setIsLoadingData] = useState(true);
-    const [originalData, setOriginalData] = useState<Partial<IManutencao> | null>(null);
+    const [originalData, setOriginalData] = useState<Partial<IMaintenance> | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
-    const [formData, setFormData] = useState<Partial<IManutencao>>({
-        tipo: TipoManutencao.PREVENTIVE,
+    const [formData, setFormData] = useState<Partial<IMaintenance>>({
+        type: TipoManutencao.PREVENTIVE,
         status: StatusManutencao.SCHEDULED,
-        moeda: Moeda.BRL,
-        custo_pecas: 0,
-        custo_mao_de_obra: 0,
-        data_agendada: new Date().toISOString().split('T')[0]
+        currency: Moeda.BRL,
+        cost_parts: 0,
+        cost_labor: 0,
+        scheduled_date: new Date().toISOString().split('T')[0]
     });
 
     useEffect(() => {
@@ -64,10 +66,10 @@ export const NovaManutencao: React.FC = () => {
                         const maintenanceData = await maintenanceRes.json();
                         const formattedData = {
                             ...maintenanceData,
-                            data_agendada: maintenanceData.data_agendada ? maintenanceData.data_agendada.split('T')[0] : '',
-                            data_inicio: maintenanceData.data_inicio ? maintenanceData.data_inicio.split('T')[0] : '',
-                            data_conclusao: maintenanceData.data_conclusao ? maintenanceData.data_conclusao.split('T')[0] : '',
-                            veiculo_id: maintenanceData.vehicle_id
+                            scheduled_date: maintenanceData.scheduled_date ? maintenanceData.scheduled_date.split('T')[0] : '',
+                            start_date: maintenanceData.start_date ? maintenanceData.start_date.split('T')[0] : '',
+                            completion_date: maintenanceData.completion_date ? maintenanceData.completion_date.split('T')[0] : '',
+                            vehicle_id: maintenanceData.vehicle_id
                         };
                         setFormData(formattedData);
                         setOriginalData(formattedData);
@@ -77,7 +79,7 @@ export const NovaManutencao: React.FC = () => {
                                 id: maintenanceData.vehicle_id,
                                 placa: maintenanceData.placa,
                                 modelo: maintenanceData.modelo,
-                                tipo: maintenanceData.vehicle_type
+                                type: maintenanceData.vehicle_type
                             });
                         }
 
@@ -111,21 +113,21 @@ export const NovaManutencao: React.FC = () => {
 
     // Handle initial vehicle from navigation state (e.g. from Fleet module)
     useEffect(() => {
-        if (!isEditing && location.state?.initialVehicle && !formData.veiculo_id) {
+        if (!isEditing && location.state?.initialVehicle && !formData.vehicle_id) {
             const vehicle = location.state.initialVehicle;
             setFormData(prev => ({
                 ...prev,
-                veiculo_id: vehicle.id,
-                km_veiculo: vehicle.km_atual
+                vehicle_id: vehicle.id,
+                km_vehicle: vehicle.km_atual
             }));
             setSelectedVehicleDetails({
                 id: vehicle.id,
                 placa: vehicle.placa,
                 modelo: vehicle.modelo,
-                tipo: vehicle.tipo
+                type: vehicle.type
             });
         }
-    }, [location.state, isEditing, formData.veiculo_id]);
+    }, [location.state, isEditing, formData.vehicle_id]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -138,16 +140,16 @@ export const NovaManutencao: React.FC = () => {
     const handleVehicleChange = (vehicleId: string, vehicle?: IVeiculo) => {
         setFormData(prev => ({
             ...prev,
-            veiculo_id: vehicleId
+            vehicle_id: vehicleId
         }));
 
         if (vehicle) {
             setSelectedVehicleDetails(vehicle);
             // Auto-fill KM if empty
-            if (!formData.km_veiculo) {
+            if (!formData.km_vehicle) {
                 setFormData(prev => ({
                     ...prev,
-                    km_veiculo: vehicle.km_atual
+                    km_vehicle: vehicle.km_atual
                 }));
             }
         } else if (!vehicleId) {
@@ -187,11 +189,8 @@ export const NovaManutencao: React.FC = () => {
 
             const method = isEditing ? 'PUT' : 'POST';
 
-            // Map frontend keys to backend expected keys
-            const payload = {
-                ...formData,
-                vehicle_id: formData.veiculo_id
-            };
+            // Payload already uses English keys from formData
+            const payload = formData;
 
             const response = await fetch(url, {
                 method,
@@ -203,11 +202,13 @@ export const NovaManutencao: React.FC = () => {
             });
 
             if (response.ok) {
+                setSuccess('Manutenção salva com sucesso!');
+                setTimeout(() => setSuccess(null), 5000);
                 const savedData = await response.json();
                 console.log('Manutenção salva:', savedData);
 
                 // Calcular custo total
-                const custoTotal = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
+                const custoTotal = (Number(formData.cost_parts) || 0) + (Number(formData.cost_labor) || 0);
 
                 // Scenario: Create Transaction (Only if NO transaction exists)
                 if (custoTotal > 0 && !transactionInfo) {
@@ -219,7 +220,7 @@ export const NovaManutencao: React.FC = () => {
                             <div className="space-y-2">
                                 <p>Manutenção salva com sucesso!</p>
                                 <p>
-                                    Deseja lançar o custo total de <strong>{formData.moeda} {custoTotal.toFixed(2)}</strong> no módulo Financeiro agora para detalhar o pagamento?
+                                    Deseja lançar o custo total de <strong>{formData.currency} {custoTotal.toFixed(2)}</strong> no módulo Financeiro agora para detalhar o pagamento?
                                 </p>
                             </div>
                         ),
@@ -230,9 +231,9 @@ export const NovaManutencao: React.FC = () => {
                             navigate('/admin/financeiro/transacoes/nova', {
                                 state: {
                                     valor: custoTotal,
-                                    descricao: `Manutenção ${placa} - ${formData.tipo}`,
-                                    categoria_despesa: 'MANUTENCAO',
-                                    centro_custo: 'VENDAS', // Custo Variável
+                                    description: `Manutenção ${placa} - ${formData.type}`,
+                                    categoria_despesa_nome: 'Peças de Reposição',
+                                    centro_custo_nome: 'MANUTENÇÃO E OFICINA',
                                     manutencao_id: savedData.id
                                 }
                             });
@@ -249,11 +250,13 @@ export const NovaManutencao: React.FC = () => {
                 navigate('/admin/manutencao');
             } else {
                 console.error('Failed to save maintenance');
-                alert('Erro ao salvar manutenção.');
+                setError('Erro ao salvar manutenção.');
+                setTimeout(() => setError(null), 5000);
             }
         } catch (error) {
             console.error('Error saving maintenance:', error);
-            alert('Erro ao salvar manutenção.');
+            setError('Erro ao salvar manutenção.');
+            setTimeout(() => setError(null), 5000);
         } finally {
             setLoading(false);
         }
@@ -276,7 +279,7 @@ export const NovaManutencao: React.FC = () => {
                 ? `${import.meta.env.VITE_API_URL}/api/maintenance/${id}`
                 : `${import.meta.env.VITE_API_URL}/api/maintenance`;
 
-            const payload = { ...formData, vehicle_id: formData.veiculo_id };
+            const payload = { ...formData, vehicle_id: formData.vehicle_id };
             const saveResponse = await fetch(saveUrl, {
                 method: isEditing ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -291,10 +294,10 @@ export const NovaManutencao: React.FC = () => {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    tipo: fullTrans.type,
-                    descricao: fullTrans.description,
+                    type: fullTrans.type,
+                    description: fullTrans.description,
                     valor: fullTrans.amount,
-                    moeda: fullTrans.currency,
+                    currency: fullTrans.currency,
                     data_emissao: fullTrans.date,
                     data_vencimento: fullTrans.due_date,
                     data_pagamento: fullTrans.payment_date,
@@ -305,27 +308,28 @@ export const NovaManutencao: React.FC = () => {
                     centro_custo: fullTrans.cost_center,
                     classificacao_contabil: fullTrans.accounting_classification,
                     numero_documento: fullTrans.document_number,
-                    observacoes: (fullTrans.notes || '') + '\n[Cancelada devido a alteração de custo na manutenção]'
+                    notes: (fullTrans.notes || '') + '\n[Cancelada devido a alteração de custo na manutenção]'
                 }),
                 credentials: 'include'
             });
 
             // 4. Redirect to NEW transaction form
-            const currentCusto = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
+            const currentCusto = (Number(formData.cost_parts) || 0) + (Number(formData.cost_labor) || 0);
             const placa = selectedVehicleDetails ? selectedVehicleDetails.placa : 'Veículo';
 
             navigate('/admin/financeiro/transacoes/nova', {
                 state: {
                     valor: currentCusto,
-                    descricao: `Manutenção ${placa} - ${formData.tipo}`,
-                    categoria_despesa: 'MANUTENCAO',
-                    centro_custo: 'VENDAS',
+                    description: `Manutenção ${placa} - ${formData.type}`,
+                    categoria_despesa_nome: 'Peças de Reposição',
+                    centro_custo_nome: 'MANUTENÇÃO E OFICINA',
                     manutencao_id: savedData.id
                 }
             });
         } catch (error: any) {
             console.error('Erro no fluxo auditável:', error);
-            alert(error.message || 'Erro ao processar alteração financeira.');
+            setError(error.message || 'Erro ao processar alteração financeira.');
+            setTimeout(() => setError(null), 5000);
         } finally {
             setLoading(false);
         }
@@ -334,14 +338,15 @@ export const NovaManutencao: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.veiculo_id) {
-            alert('Por favor, selecione um veículo.');
+        if (!formData.vehicle_id) {
+            setError('Por favor, selecione um veículo.');
+            setTimeout(() => setError(null), 5000);
             return;
         }
 
         // Check for scenarios requiring pre-save confirmation (Only when Editing with existing transaction)
         if (isEditing && transactionInfo) {
-            const custoTotal = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
+            const custoTotal = (Number(formData.cost_parts) || 0) + (Number(formData.cost_labor) || 0);
 
             // Scenario 1: Cancellation
             if (formData.status === StatusManutencao.CANCELLED) {
@@ -391,14 +396,14 @@ export const NovaManutencao: React.FC = () => {
 
             // Scenario 3: General Update (Value/Date)
             else {
-                const originalCusto = (Number(originalData?.custo_pecas) || 0) + (Number(originalData?.custo_mao_de_obra) || 0);
-                const currentCusto = (Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0);
+                const originalCusto = (Number(originalData?.cost_parts) || 0) + (Number(originalData?.cost_labor) || 0);
+                const currentCusto = (Number(formData.cost_parts) || 0) + (Number(formData.cost_labor) || 0);
 
                 const hasFinancialChanges =
                     Math.abs(originalCusto - currentCusto) > 0.01 ||
-                    originalData?.data_agendada !== formData.data_agendada ||
-                    originalData?.tipo !== formData.tipo ||
-                    originalData?.veiculo_id !== formData.veiculo_id;
+                    originalData?.scheduled_date !== formData.scheduled_date ||
+                    originalData?.type !== formData.type ||
+                    originalData?.vehicle_id !== formData.vehicle_id;
 
                 if (!hasFinancialChanges) {
                     executeSave();
@@ -419,8 +424,8 @@ export const NovaManutencao: React.FC = () => {
                             <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-sm border border-slate-200 dark:border-slate-800 flex justify-between items-center">
                                 <div className="text-xs text-slate-500 uppercase font-bold">Resumo</div>
                                 <div className="flex gap-4">
-                                    <span className="text-sm line-through text-slate-400">{formData.moeda} {originalCusto.toFixed(2)}</span>
-                                    <span className="text-sm font-black text-slate-900 dark:text-slate-100">{formData.moeda} {currentCusto.toFixed(2)}</span>
+                                    <span className="text-sm line-through text-slate-400">{formData.currency} {originalCusto.toFixed(2)}</span>
+                                    <span className="text-sm font-black text-slate-900 dark:text-slate-100">{formData.currency} {currentCusto.toFixed(2)}</span>
                                 </div>
                             </div>
 
@@ -537,15 +542,15 @@ export const NovaManutencao: React.FC = () => {
                                     Tipo de Manutenção
                                 </label>
                                 <select
-                                    name="tipo"
+                                    name="type"
                                     required
                                     className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-black uppercase text-[12px] tracking-widest outline-none appearance-none"
                                     onChange={handleInputChange}
-                                    value={formData.tipo}
+                                    value={formData.type}
                                 >
-                                    {Object.values(TipoManutencao).map(tipo => (
-                                        <option key={tipo} value={tipo}>
-                                            {TipoManutencaoLabel[tipo as TipoManutencao] || tipo}
+                                    {Object.values(TipoManutencao).map(type => (
+                                        <option key={type} value={type}>
+                                            {TipoManutencaoLabel[type as TipoManutencao] || type}
                                         </option>
                                     ))}
                                 </select>
@@ -576,11 +581,11 @@ export const NovaManutencao: React.FC = () => {
                                 </label>
                                 <input
                                     type="number"
-                                    name="km_veiculo"
+                                    name="km_vehicle"
                                     required
                                     className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                     onChange={handleNumberChange}
-                                    value={formData.km_veiculo || 0}
+                                    value={formData.km_vehicle || 0}
                                 />
                             </div>
                         </div>
@@ -597,13 +602,13 @@ export const NovaManutencao: React.FC = () => {
                                     Descrição do Serviço
                                 </label>
                                 <textarea
-                                    name="descricao"
+                                    name="description"
                                     required
                                     rows={3}
                                     className="w-full p-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium text-sm resize-none outline-none"
                                     placeholder="Descreva o serviço a ser realizado..."
                                     onChange={handleInputChange}
-                                    value={formData.descricao || ''}
+                                    value={formData.description || ''}
                                 />
                             </div>
 
@@ -614,10 +619,10 @@ export const NovaManutencao: React.FC = () => {
                                     </label>
                                     <input
                                         type="text"
-                                        name="oficina"
+                                        name="workshop"
                                         className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                         onChange={handleInputChange}
-                                        value={formData.oficina || ''}
+                                        value={formData.workshop || ''}
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -626,10 +631,10 @@ export const NovaManutencao: React.FC = () => {
                                     </label>
                                     <input
                                         type="text"
-                                        name="responsavel"
+                                        name="responsible"
                                         className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                         onChange={handleInputChange}
-                                        value={formData.responsavel || ''}
+                                        value={formData.responsible || ''}
                                     />
                                 </div>
                             </div>
@@ -637,33 +642,33 @@ export const NovaManutencao: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-border/50">
                                 <div className="space-y-2">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
-                                        Custo Peças ({formData.moeda})
+                                        Custo Peças ({formData.currency})
                                     </label>
                                     <div className="relative group">
                                         <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                         <input
                                             type="number"
-                                            name="custo_pecas"
+                                            name="cost_parts"
                                             step="0.01"
                                             className="w-full h-14 pl-10 pr-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                             onChange={handleNumberChange}
-                                            value={formData.custo_pecas}
+                                            value={formData.cost_parts}
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">
-                                        Custo Mão de Obra ({formData.moeda})
+                                        Custo Mão de Obra ({formData.currency})
                                     </label>
                                     <div className="relative group">
                                         <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                         <input
                                             type="number"
-                                            name="custo_mao_de_obra"
+                                            name="cost_labor"
                                             step="0.01"
                                             className="w-full h-14 pl-10 pr-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium outline-none"
                                             onChange={handleNumberChange}
-                                            value={formData.custo_mao_de_obra}
+                                            value={formData.cost_labor}
                                         />
                                     </div>
                                 </div>
@@ -672,7 +677,7 @@ export const NovaManutencao: React.FC = () => {
                                         Total Estimado
                                     </label>
                                     <div className="h-14 flex items-center px-4 bg-muted dark:bg-muted border border-border/50 rounded-sm text-foreground font-black tracking-tight text-lg">
-                                        {formData.moeda} {((Number(formData.custo_pecas) || 0) + (Number(formData.custo_mao_de_obra) || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        {formData.currency} {((Number(formData.cost_parts) || 0) + (Number(formData.cost_labor) || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
                                 </div>
                             </div>
@@ -692,8 +697,8 @@ export const NovaManutencao: React.FC = () => {
                                     Data Agendada
                                 </label>
                                 <SwissDatePicker
-                                    value={formData.data_agendada || ''}
-                                    onChange={(val) => setFormData(prev => ({ ...prev, data_agendada: val }))}
+                                    value={formData.scheduled_date || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, scheduled_date: val }))}
                                     required={true}
                                 />
                             </div>
@@ -702,8 +707,8 @@ export const NovaManutencao: React.FC = () => {
                                     Data Início (Real)
                                 </label>
                                 <SwissDatePicker
-                                    value={formData.data_inicio || ''}
-                                    onChange={(val) => setFormData(prev => ({ ...prev, data_inicio: val }))}
+                                    value={formData.start_date || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, start_date: val }))}
                                 />
                             </div>
                             <div className="space-y-2">
@@ -711,8 +716,8 @@ export const NovaManutencao: React.FC = () => {
                                     Data Conclusão
                                 </label>
                                 <SwissDatePicker
-                                    value={formData.data_conclusao || ''}
-                                    onChange={(val) => setFormData(prev => ({ ...prev, data_conclusao: val }))}
+                                    value={formData.completion_date || ''}
+                                    onChange={(val) => setFormData(prev => ({ ...prev, completion_date: val }))}
                                 />
                             </div>
                         </div>

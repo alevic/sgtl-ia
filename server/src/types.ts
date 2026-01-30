@@ -619,24 +619,30 @@ export interface IFretamento {
   observacoes?: string;
 }
 
-export interface IManutencao {
+export interface IMaintenance {
   id: string;
-  veiculo_id: string;
-  tipo: TipoManutencao;
+  vehicle_id: string;
+  type: TipoManutencao;
   status: StatusManutencao;
-  data_agendada: string;
-  data_inicio?: string;
-  data_conclusao?: string;
-  km_veiculo: number;
-  descricao: string;
-  custo_pecas: number;
-  custo_mao_de_obra: number;
-  moeda: Moeda;
-  oficina?: string;
-  responsavel?: string;
-  observacoes?: string;
+  scheduled_date: string;
+  start_date?: string;
+  completion_date?: string;
+  km_vehicle: number;
+  description: string;
+  cost_parts: number;
+  cost_labor: number;
+  currency: Moeda;
+  workshop?: string;
+  responsible?: string;
+  notes?: string;
   anexos?: string[];
+  organization_id: string;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
 }
+
+export type IManutencao = IMaintenance;
 
 export interface IBankAccount {
   id: string;
@@ -676,17 +682,33 @@ export interface IFinanceCategory {
 
 export interface ITransacao {
   id: string;
-  tipo: TipoTransacao;
-  descricao: string;
-  valor: number;
-  moeda: Moeda;
-  data_emissao: string;
-  data_vencimento: string;
-  data_pagamento?: string;
+  type: TipoTransacao;
+  description: string;
+  amount: string; // amount is decimal(15,2) in schema, usually handled as string in JS for precision
+  currency: Moeda;
+  date: string;
+  due_date: string;
+  payment_date?: string;
   status: StatusTransacao;
+  payment_method?: FormaPagamento;
+  category?: string; // name of category
+  category_id?: string;
+  cost_center_id?: string;
+  cost_center_name?: string; // added for join convenience
+  category_name?: string;    // added for join convenience
+
+  // Legacy fields (deprecated)
+  tipo?: TipoTransacao;
+  descricao?: string;
+  valor?: number;
+  moeda?: Moeda;
+  data_emissao?: string;
+  data_vencimento?: string;
+  data_pagamento?: string;
   forma_pagamento?: FormaPagamento;
   categoria_receita?: CategoriaReceita;
   categoria_despesa?: CategoriaDespesa;
+
   cliente_id?: string;
   fornecedor_id?: string;
   viagem_id?: string;
@@ -697,15 +719,14 @@ export interface ITransacao {
   observacoes?: string;
   anexos?: string[];
   centro_custo?: CentroCusto;
-  cost_center_id?: string;
-  bank_account_id?: string;
-  category_id?: string;
   classificacao_contabil?: ClassificacaoContabil;
   parcela_atual?: number;
   total_parcelas?: number;
-  criado_por: string;
-  criado_em: string;
+  criado_por?: string;
+  criado_em?: string;
   atualizado_em?: string;
+  organization_id?: string;
+  created_by?: string;
 }
 
 export interface IContaPagar {

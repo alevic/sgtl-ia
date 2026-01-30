@@ -1,13 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, Check, Download
+    ArrowLeft, Plus, Search, Filter, Calendar, DollarSign, TrendingUp, Check, Download, ArrowUpRight
 } from 'lucide-react';
 import { ITransacao, StatusTransacao, CategoriaReceita, Moeda, CentroCusto, TipoTransacao } from '@/types';
 import { authClient } from '../lib/auth-client';
 import { useApp } from '../context/AppContext';
+import { useDateFormatter } from '../hooks/useDateFormatter';
 import { TransactionActions } from '../components/Financeiro/TransactionActions';
 import { financeAuxService } from '../services/financeAuxService';
+import { api } from '../services/api';
 import { ICostCenter, IFinanceCategory } from '@/types';
 import { PageHeader } from '../components/Layout/PageHeader';
 import { DashboardCard } from '../components/Layout/DashboardCard';
@@ -22,6 +24,7 @@ import { Wallet } from 'lucide-react';
 export const ContasReceber: React.FC = () => {
     const navigate = useNavigate();
     const { currentContext } = useApp();
+    const { formatDate } = useDateFormatter();
     const [busca, setBusca] = useState('');
     const [filtroStatus, setFiltroStatus] = useState<StatusTransacao | 'TODAS'>('TODAS');
     const [filtroCategoria, setFiltroCategoria] = useState<string>('TODAS');
@@ -36,15 +39,12 @@ export const ContasReceber: React.FC = () => {
         setIsLoading(true);
         try {
             const [transRes, centers, cats] = await Promise.all([
-                fetch(`${import.meta.env.VITE_API_URL}/api/finance/transactions`, { credentials: 'include' }),
+                api.get<ITransacao[]>('/api/finance/transactions'),
                 financeAuxService.getCostCenters(),
                 financeAuxService.getCategories()
             ]);
 
-            if (transRes.ok) {
-                const data = await transRes.json();
-                setTransacoes(data);
-            }
+            setTransacoes(transRes);
             setCostCenters(centers);
             setCategories(cats);
         } catch (error) {
@@ -60,21 +60,26 @@ export const ContasReceber: React.FC = () => {
 
     const contasFiltradas = useMemo(() => {
         return transacoes
-            .filter(t => t.tipo === TipoTransacao.INCOME)
+            .filter(t => t.type === TipoTransacao.INCOME || t.tipo === TipoTransacao.INCOME)
             .filter(conta => {
+                const description = conta.description || conta.descricao || '';
+                const docNum = conta.document_number || conta.numero_documento || '';
+
                 const matchBusca = busca === '' ||
-                    conta.descricao.toLowerCase().includes(busca.toLowerCase()) ||
-                    conta.numero_documento?.toLowerCase().includes(busca.toLowerCase());
+                    description.toLowerCase().includes(busca.toLowerCase()) ||
+                    docNum.toLowerCase().includes(busca.toLowerCase());
 
                 const matchStatus = filtroStatus === 'TODAS' || conta.status === filtroStatus;
 
                 const matchCategoria = filtroCategoria === 'TODAS' ||
                     conta.category_id === filtroCategoria ||
-                    conta.categoria_receita === filtroCategoria;
+                    conta.categoria_receita === filtroCategoria ||
+                    conta.category_name === filtroCategoria;
 
                 const matchCentroCusto = filtroCentroCusto === 'TODOS' ||
                     conta.cost_center_id === filtroCentroCusto ||
-                    conta.centro_custo === filtroCentroCusto;
+                    conta.centro_custo === filtroCentroCusto ||
+                    conta.cost_center_name === filtroCentroCusto;
 
                 return matchBusca && matchStatus && matchCategoria && matchCentroCusto;
             });
@@ -96,10 +101,6 @@ export const ContasReceber: React.FC = () => {
         return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     };
 
-    const formatDate = (date: string) => {
-        return new Date(date).toLocaleDateString('pt-BR');
-    };
-
     const getStatusBadge = (status: StatusTransacao) => {
         const styles = {
             [StatusTransacao.PAID]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -110,7 +111,7 @@ export const ContasReceber: React.FC = () => {
         };
 
         return (
-            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${styles[status]}`}>
+            <span className={`px - 2 py - 0.5 rounded text - xs font - semibold ${styles[status]} `}>
                 {status}
             </span>
         );
@@ -252,59 +253,68 @@ export const ContasReceber: React.FC = () => {
                             <p className="text-slate-500 dark:text-slate-400">Nenhuma conta encontrada</p>
                         </div>
                     ) : (
-                        contasFiltradas.map(conta => (
+                        contasFiltradas.map(conta => {
+                            const isPendente = conta.status === StatusTransacao.PENDING;
 
+                            return (
+                                <div
+                                    key={conta.id}
+                                    className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700/50 last:border-0"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="w-8 h-8 rounded-sm bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                                    <ArrowUpRight size={16} strokeWidth={3} />
+                                                </div>
+                                                <h3 className="font-bold text-slate-800 dark:text-slate-100 uppercase tracking-tight">
+                                                    {conta.description}
+                                                </h3>
+                                                {getStatusBadge(conta.status)}
+                                            </div>
 
-                            <div
-                                key={conta.id}
-                                className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                            >
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="font-semibold text-slate-800 dark:text-white">
-                                                {conta.descricao}
-                                            </h3>
-                                            {getStatusBadge(conta.status)}
+                                            <div className="flex items-center gap-4 text-xs font-bold text-slate-500 dark:text-slate-400">
+                                                <span className="flex items-center gap-1">
+                                                    <span className="text-muted-foreground/60">CAT:</span> {conta.category_name || 'RECEITAS'}
+                                                </span>
+                                                <span>•</span>
+                                                <span className="flex items-center gap-1">
+                                                    <span className="text-muted-foreground/60 uppercase">Emissão:</span> {formatDate(conta.date || conta.data_emissao || conta.issue_date)}
+                                                </span>
+                                                <span>•</span>
+                                                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                                                    <span className="text-muted-foreground/60 uppercase">Recebimento:</span> {formatDate(conta.due_date || conta.data_vencimento)}
+                                                </span>
+                                                {conta.document_number && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="flex items-center gap-1">
+                                                            <span className="text-muted-foreground/60">DOC:</span> {conta.document_number}
+                                                        </span>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                        {conta.observacoes && (
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
-                                                {conta.observacoes}
-                                            </p>
-                                        )}
-                                        <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                                            <span>Categoria: {conta.categoria_receita}</span>
-                                            <span>•</span>
-                                            <span>Emissão: {formatDate(conta.data_emissao)}</span>
-                                            <span>•</span>
-                                            <span>Vencimento: {formatDate(conta.data_vencimento)}</span>
-                                            {conta.numero_documento && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span>Doc: {conta.numero_documento}</span>
-                                                </>
-                                            )}
-                                            {conta.centro_custo && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span className="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-600 dark:text-slate-400 font-medium">
-                                                        {conta.centro_custo}
-                                                    </span>
-                                                </>
-                                            )}
+                                        <div className="flex items-center gap-6 ml-4">
+                                            <div className="text-right">
+                                                <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                                                    {formatCurrency(Number(conta.amount))}
+                                                </p>
+                                                <p className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-tighter">
+                                                    ID: #{conta.id.slice(0, 8)}
+                                                </p>
+                                            </div>
+                                            <TransactionActions transacao={conta} onUpdate={fetchTransacoes} />
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 ml-4">
-                                        <div className="text-right">
-                                            <p className="text-xl font-bold text-green-600 dark:text-green-400 mb-1">
-                                                {formatCurrency(Number(conta.valor))}
-                                            </p>
+                                    {(conta.notes || conta.observations) && (
+                                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-900/40 rounded text-[11px] text-slate-500 dark:text-slate-400 border-l-2 border-slate-200 dark:border-slate-700">
+                                            {conta.notes || conta.observations}
                                         </div>
-                                        <TransactionActions transacao={conta} onUpdate={fetchTransacoes} />
-                                    </div>
+                                    )}
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             </div>

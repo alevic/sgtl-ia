@@ -15,7 +15,7 @@ import {
     Inbox,
     WrenchIcon
 } from 'lucide-react';
-import { IManutencao, TipoManutencao, StatusManutencao, StatusManutencaoLabel, TipoManutencaoLabel } from '@/types';
+import { IMaintenance as IManutencao, TipoManutencao, StatusManutencao, StatusManutencaoLabel, TipoManutencaoLabel } from '@/types';
 import {
     Table,
     TableBody,
@@ -125,7 +125,7 @@ export const Manutencao: React.FC = () => {
         );
     };
 
-    const TypeBadge: React.FC<{ tipo: TipoManutencao }> = ({ tipo }) => {
+    const TypeBadge: React.FC<{ type: TipoManutencao }> = ({ type }) => {
         const configs: Record<any, any> = {
             [TipoManutencao.PREVENTIVE]: {
                 label: TipoManutencaoLabel[TipoManutencao.PREVENTIVE],
@@ -159,7 +159,7 @@ export const Manutencao: React.FC = () => {
             }
         };
 
-        const config = configs[tipo] || { label: tipo, className: "bg-muted text-muted-foreground", icon: Wrench };
+        const config = configs[type] || { label: type, className: "bg-muted text-muted-foreground", icon: Wrench };
         const Icon = config.icon;
 
         return (
@@ -172,8 +172,8 @@ export const Manutencao: React.FC = () => {
 
     const filteredMaintenances = manutencoes.filter(m => {
         const matchesSearch =
-            (m.descricao?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
-            (m.oficina?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+            (m.description?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+            (m.workshop?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
             ((m as any).placa?.toLowerCase().includes(searchTerm.toLowerCase()) || ''); // Assuming join brings placa
 
         const matchesStatus = filterStatus === 'TODOS' || m.status === filterStatus;
@@ -184,10 +184,10 @@ export const Manutencao: React.FC = () => {
     // KPIs Calculation
     const totalMaintenances = manutencoes.length;
     const inProgress = manutencoes.filter(m => m.status === StatusManutencao.IN_PROGRESS || (m.status as any) === 'EM_ANDAMENTO').length;
-    const totalCost = manutencoes.reduce((acc, curr) => acc + Number(curr.custo_pecas || 0) + Number(curr.custo_mao_de_obra || 0), 0);
+    const totalCost = manutencoes.reduce((acc, curr) => acc + Number(curr.cost_parts || 0) + Number(curr.cost_labor || 0), 0);
     const scheduledNext7Days = manutencoes.filter(m => {
         if (m.status !== StatusManutencao.SCHEDULED && (m.status as any) !== 'AGENDADA') return false;
-        const date = new Date(m.data_agendada);
+        const date = new Date(m.scheduled_date);
         const now = new Date();
         const diffTime = Math.abs(date.getTime() - now.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -252,7 +252,7 @@ export const Manutencao: React.FC = () => {
                     <div className="relative group flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
                         <Input
-                            placeholder="Descrição, oficina ou placa..."
+                            placeholder="Descrição, workshop ou placa..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-12 h-14 bg-muted border-input rounded-sm font-bold transition-all focus-visible:ring-2 focus-visible:ring-primary/20"
@@ -309,22 +309,22 @@ export const Manutencao: React.FC = () => {
                                                     {(manutencao as any).placa || 'Sem Placa'}
                                                 </span>
                                                 <span className="text-[11px] font-bold text-muted-foreground/80">
-                                                    {(manutencao as any).modelo || `ID: ${manutencao.veiculo_id.substring(0, 8)}`}
+                                                    {(manutencao as any).modelo || `ID: ${manutencao.vehicle_id.substring(0, 8)}`}
                                                 </span>
                                                 <span className="text-[12px] font-semibold text-primary/60 uppercase">
-                                                    {manutencao.km_veiculo.toLocaleString()} KM
+                                                    {manutencao.km_vehicle.toLocaleString()} KM
                                                 </span>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex flex-col gap-1 max-w-[200px]">
-                                            <TypeBadge tipo={manutencao.tipo} />
-                                            <span className="text-sm font-bold tracking-tight text-foreground truncate" title={manutencao.descricao}>
-                                                {manutencao.descricao}
+                                            <TypeBadge type={manutencao.type} />
+                                            <span className="text-sm font-bold tracking-tight text-foreground truncate" title={manutencao.description}>
+                                                {manutencao.description}
                                             </span>
                                             <span className="text-[12px] font-bold text-muted-foreground italic">
-                                                {manutencao.oficina || 'Oficina não informada'}
+                                                {manutencao.workshop || 'Oficina não informada'}
                                             </span>
                                         </div>
                                     </TableCell>
@@ -332,7 +332,7 @@ export const Manutencao: React.FC = () => {
                                         <div className="flex flex-col gap-2">
                                             <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
                                                 <Calendar className="w-3.5 h-3.5 text-primary" strokeWidth={3} />
-                                                {formatDate(manutencao.data_agendada)}
+                                                {formatDate(manutencao.scheduled_date)}
                                             </div>
                                             <StatusBadge status={manutencao.status} />
                                         </div>
@@ -340,12 +340,12 @@ export const Manutencao: React.FC = () => {
                                     <TableCell>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-semibold text-emerald-600 transition-colors group-hover:text-emerald-500">
-                                                R$ {(Number(manutencao.custo_pecas) + Number(manutencao.custo_mao_de_obra)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                R$ {(Number(manutencao.cost_parts) + Number(manutencao.cost_labor)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
                                             <div className="flex gap-2 text-[12px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-                                                <span>P: {Number(manutencao.custo_pecas).toLocaleString()}</span>
+                                                <span>P: {Number(manutencao.cost_parts).toLocaleString()}</span>
                                                 <span>•</span>
-                                                <span>M: {Number(manutencao.custo_mao_de_obra).toLocaleString()}</span>
+                                                <span>M: {Number(manutencao.cost_labor).toLocaleString()}</span>
                                             </div>
                                         </div>
                                     </TableCell>
