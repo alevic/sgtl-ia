@@ -515,14 +515,28 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
         const userId = session.user.id;
 
         const {
-            tipo, description, valor, amount, moeda, currency, date, data_emissao,
-            due_date, data_vencimento, payment_date, data_pagamento, status, forma_pagamento, payment_method,
-            category_id, cost_center_id, bank_account_id,
-            classificacao_contabil, document_number, numero_documento, notes, observacoes,
-            maintenance_id, reservation_id, reserva_id
+            tipo, type,
+            description, descricao,
+            valor, amount,
+            moeda, currency,
+            date, data_emissao,
+            due_date, data_vencimento,
+            payment_date, data_pagamento,
+            status,
+            forma_pagamento, payment_method,
+            category_id,
+            cost_center_id,
+            bank_account_id,
+            classificacao_contabil, financial_classification,
+            document_number, numero_documento,
+            notes, observacoes, observations,
+            maintenance_id,
+            reservation_id, reserva_id
         } = req.body;
 
         // Map legacy frontend fields to new schema if necessary
+        const finalType = tipo || type || 'EXPENSE';
+        const finalDescription = description || descricao || 'Nova Transação';
         const finalAmount = (valor || amount || 0).toString();
         const finalCurrency = moeda || currency || 'BRL';
         const finalDate = ensureValidDate(date, ensureValidDate(data_emissao, new Date()));
@@ -530,14 +544,15 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
         const finalPaymentDate = ensureValidDate(payment_date, ensureValidDate(data_pagamento));
         const finalPaymentMethod = payment_method || forma_pagamento || null;
         const finalDocNum = document_number || numero_documento || null;
-        const finalNotes = notes || observacoes || null;
+        const finalNotes = notes || observacoes || observations || null;
+        const finalClassification = classificacao_contabil || financial_classification || null;
         const finalMaintId = maintenance_id || null;
         const finalResId = reservation_id || reserva_id || null;
 
         const [newTransaction] = await db.insert(transactions)
             .values({
-                type: tipo || 'EXPENSE',
-                description: description || req.body.descricao || 'Nova Transação',
+                type: finalType,
+                description: finalDescription,
                 amount: finalAmount,
                 currency: finalCurrency,
                 date: finalDate,
@@ -550,7 +565,7 @@ router.post("/transactions", authorize(['admin', 'financeiro']), async (req, res
                 bank_account_id: bank_account_id || null,
                 maintenance_id: finalMaintId,
                 reservation_id: finalResId,
-                classificacao_contabil: classificacao_contabil || null,
+                classificacao_contabil: finalClassification,
                 document_number: finalDocNum,
                 notes: finalNotes,
                 organization_id: orgId,
@@ -578,14 +593,28 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
         const { id } = req.params;
 
         const {
-            tipo, description, valor, amount, moeda, currency, date, data_emissao,
-            due_date, data_vencimento, payment_date, data_pagamento, status, forma_pagamento, payment_method,
-            category_id, cost_center_id, bank_account_id,
-            classificacao_contabil, document_number, numero_documento, notes, observacoes,
-            maintenance_id, reservation_id, reserva_id
+            tipo, type,
+            description, descricao,
+            valor, amount,
+            moeda, currency,
+            date, data_emissao,
+            due_date, data_vencimento,
+            payment_date, data_pagamento,
+            status,
+            forma_pagamento, payment_method,
+            category_id,
+            cost_center_id,
+            bank_account_id,
+            classificacao_contabil, financial_classification,
+            document_number, numero_documento,
+            notes, observacoes, observations,
+            maintenance_id,
+            reservation_id, reserva_id
         } = req.body;
 
         // Map legacy fields
+        const finalType = tipo || type;
+        const finalDescription = description || descricao;
         const finalAmount = valor || amount;
         const finalCurrency = moeda || currency;
         const finalDate = ensureValidDate(date || data_emissao);
@@ -593,13 +622,14 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
         const finalPaymentDate = ensureValidDate(payment_date || data_pagamento);
         const finalPaymentMethod = payment_method || forma_pagamento;
         const finalDocNum = document_number || numero_documento;
-        const finalNotes = notes || observacoes;
+        const finalNotes = notes || observacoes || observations;
+        const finalClassification = classificacao_contabil || financial_classification;
 
         const [updatedTransaction] = await db.update(transactions)
             .set({
-                type: tipo,
-                description: description || req.body.descricao,
-                amount: finalAmount ? finalAmount.toString() : undefined,
+                type: finalType !== undefined ? finalType : undefined,
+                description: finalDescription !== undefined ? finalDescription : undefined,
+                amount: finalAmount !== undefined ? finalAmount.toString() : undefined,
                 currency: finalCurrency,
                 date: finalDate,
                 due_date: finalDueDate,
@@ -611,7 +641,7 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
                 bank_account_id,
                 maintenance_id,
                 reservation_id: reservation_id || reserva_id,
-                classificacao_contabil,
+                classificacao_contabil: finalClassification,
                 document_number: finalDocNum,
                 notes: finalNotes,
                 updated_at: new Date()

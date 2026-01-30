@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Save, Calendar, DollarSign, Tag, FileText, Upload } from 'lucide-react';
+import { ArrowLeft, Save, Calendar, DollarSign, Tag, FileText, Upload, TrendingUp, TrendingDown } from 'lucide-react';
 import {
     TipoTransacao, CategoriaReceita, CategoriaDespesa, FormaPagamento,
     StatusTransacao, Moeda, CentroCusto, ClassificacaoContabil, ICostCenter, IBankAccount, IFinanceCategory
@@ -35,8 +35,10 @@ export const NovaTransacao: React.FC = () => {
     const [numeroDocumento, setNumeroDocumento] = useState('');
     const [observacoes, setObservacoes] = useState('');
 
-    const [centroCusto, setCentroCusto] = useState<CentroCusto>(CentroCusto.VENDAS);
-    const [classificacaoContabil, setClassificacaoContabil] = useState<ClassificacaoContabil>(ClassificacaoContabil.CUSTO_VARIAVEL);
+    const [centroCusto, setCentroCusto] = useState<string>('');
+    const [classificacaoContabil, setClassificacaoContabil] = useState<string>('');
+
+    const isIncome = tipo === TipoTransacao.INCOME || (tipo as any) === 'RECEITA';
 
     const [maintenanceId, setMaintenanceId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -232,8 +234,9 @@ export const NovaTransacao: React.FC = () => {
         <div className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Executivo */}
             <PageHeader
-                title={id ? 'Editar Transação' : 'Nova Transação'}
-                subtitle={id ? 'Ajuste de registro financeiro existente' : 'Lançamento manual de entrada ou saída de caixa'}
+                title={isIncome ? (id ? 'Editar Receita' : 'Nova Receita') : (id ? 'Editar Despesa' : 'Nova Despesa')}
+                subtitle={isIncome ? 'Lançamento de entrada de caixa no sistema' : 'Lançamento de saída ou compromisso de pagamento'}
+                icon={isIncome ? TrendingUp : TrendingDown}
                 backLink="/admin/financeiro"
                 backText="Fluxo Financeiro"
                 rightElement={
@@ -278,6 +281,39 @@ export const NovaTransacao: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8 space-y-8">
+                    {/* Visual Type Indicator */}
+                    <div className={cn(
+                        "p-6 rounded-sm border-l-4 flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-4 duration-500",
+                        isIncome
+                            ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500 text-emerald-800 dark:text-emerald-300"
+                            : "bg-rose-50 dark:bg-rose-950/20 border-rose-500 text-rose-800 dark:text-rose-300"
+                    )}>
+                        <div className="flex items-center gap-4">
+                            <div className={cn(
+                                "p-3 rounded-full",
+                                isIncome ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-rose-100 dark:bg-rose-900/40"
+                            )}>
+                                {isIncome ? <TrendingUp size={24} /> : <TrendingDown size={24} />}
+                            </div>
+                            <div>
+                                <h3 className="font-black uppercase tracking-widest text-sm leading-tight">
+                                    {isIncome ? 'Lançamento de Receita' : 'Lançamento de Despesa'}
+                                </h3>
+                                <p className="text-[11px] font-bold opacity-70 uppercase tracking-tighter mt-0.5">
+                                    {isIncome ? 'Este registro aumentará o saldo de caixa' : 'Este registro reduzirá o saldo de caixa ou gerará uma obrigação'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="hidden sm:block">
+                            <span className={cn(
+                                "text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
+                                isIncome ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"
+                            )}>
+                                {isIncome ? 'Entrada' : 'Saída'}
+                            </span>
+                        </div>
+                    </div>
+
                     {/* Informações Básicas */}
                     <FormSection
                         title="Natureza do Lançamento"
@@ -440,7 +476,7 @@ export const NovaTransacao: React.FC = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria de Fluxo *</label>
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Categoria *</label>
                                     <select
                                         required
                                         value={categoryId}

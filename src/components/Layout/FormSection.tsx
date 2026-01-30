@@ -9,6 +9,7 @@ interface FormSectionProps {
     icon?: LucideIcon;
     children: React.ReactNode;
     className?: string;
+    rightElement?: React.ReactNode;
     footer?: React.ReactNode;
 }
 
@@ -18,15 +19,21 @@ export const FormSection: React.FC<FormSectionProps> = ({
     icon: Icon,
     children,
     className,
+    rightElement,
     footer
 }) => {
     return (
         <Card className={cn("shadow-xl shadow-muted/20 bg-card   border border-border/40 overflow-hidden", className)}>
-            <div className="p-8 border-b border-border/50 bg-muted">
+            <div className="p-8 border-b border-border/50 bg-muted flex items-center justify-between">
                 <h3 className="text-section-header flex items-center gap-2">
                     {Icon && <Icon size={14} className="text-primary" />}
                     {title}
                 </h3>
+                {rightElement && (
+                    <div className="flex items-center">
+                        {rightElement}
+                    </div>
+                )}
             </div>
             <CardContent className="p-8">
                 {description && (

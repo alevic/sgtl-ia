@@ -236,7 +236,7 @@ export const Transacoes: React.FC = () => {
             </div>
 
             {/* Filters Module */}
-            <ListFilterSection gridClassName="lg:grid-cols-4">
+            <ListFilterSection gridClassName="lg:grid-cols-6">
                 <div className="lg:col-span-2 space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Pesquisar</label>
                     <div className="relative group">
@@ -267,7 +267,10 @@ export const Transacoes: React.FC = () => {
 
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Tipo</label>
-                    <Select value={filtroTipo} onValueChange={(v: any) => setFiltroTipo(v)}>
+                    <Select value={filtroTipo} onValueChange={(v: any) => {
+                        setFiltroTipo(v);
+                        setFiltroCategoria('TODAS');
+                    }}>
                         <SelectTrigger className="h-14 bg-muted/40 border-border/50 rounded-sm font-bold uppercase tracking-widest text-[11px]">
                             <SelectValue placeholder="TIPO" />
                         </SelectTrigger>
@@ -275,6 +278,45 @@ export const Transacoes: React.FC = () => {
                             <SelectItem value="TODAS">AMBOS OS TIPOS</SelectItem>
                             <SelectItem value={TipoTransacao.INCOME}>RECEITAS (ENTRADAS)</SelectItem>
                             <SelectItem value={TipoTransacao.EXPENSE}>DESPESAS (SAÍDAS)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Centro de Custo</label>
+                    <Select value={filtroCentroCusto} onValueChange={(v: any) => {
+                        setFiltroCentroCusto(v);
+                        setFiltroCategoria('TODAS');
+                    }}>
+                        <SelectTrigger className="h-14 bg-muted/40 border-border/50 rounded-sm font-bold uppercase tracking-widest text-[11px]">
+                            <SelectValue placeholder="CENTRO CUSTO" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODOS">TODOS C. CUSTOS</SelectItem>
+                            {costCenters.map(cc => (
+                                <SelectItem key={cc.id} value={cc.id}>{cc.name.toUpperCase()}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest ml-1">Categoria</label>
+                    <Select value={filtroCategoria} onValueChange={(v: any) => setFiltroCategoria(v)}>
+                        <SelectTrigger className="h-14 bg-muted/40 border-border/50 rounded-sm font-bold uppercase tracking-widest text-[11px]">
+                            <SelectValue placeholder="CATEGORIA" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="TODAS">TODAS CATEGORIAS</SelectItem>
+                            {categories
+                                .filter(cat => {
+                                    const typeMatch = filtroTipo === 'TODAS' || cat.type === filtroTipo;
+                                    const ccMatch = filtroCentroCusto === 'TODOS' || cat.cost_center_id === filtroCentroCusto;
+                                    return typeMatch && ccMatch;
+                                })
+                                .map(cat => (
+                                    <SelectItem key={cat.id} value={cat.id}>{cat.name.toUpperCase()}</SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
                 </div>
