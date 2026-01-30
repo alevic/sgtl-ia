@@ -93,9 +93,9 @@ router.post("/payment-confirmed", verifyWebhookSecret, async (req, res) => {
                 description: `Pagamento Digital - Reserva ${reservation.ticket_code}`,
                 amount: amount.toString(),
                 currency: 'BRL',
-                date: new Date(), // Emission
-                due_date: new Date(), // Due
-                payment_date: payment_date ? new Date(payment_date) : new Date(), // Payment Date
+                date: new Date().toISOString().split('T')[0], // Emission
+                due_date: new Date().toISOString().split('T')[0], // Due
+                payment_date: (payment_date ? new Date(payment_date) : new Date()).toISOString().split('T')[0], // Payment Date
                 status: StatusTransacao.PAID,
                 payment_method: payment_method || 'DIGITAL',
                 category: 'VENDA_PASSAGEM',

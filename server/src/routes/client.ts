@@ -264,7 +264,7 @@ router.post("/checkout", clientAuthorize(), async (req, res) => {
                     description: `Uso de créditos na reserva - ${tripResult.rows[0].title}`,
                     status: StatusTransacao.PAID,
                     client_id: clientId,
-                    date: new Date(),
+                    date: new Date().toISOString().split('T')[0],
                     created_by: userId
                 });
         }
@@ -325,7 +325,7 @@ router.post("/checkout", clientAuthorize(), async (req, res) => {
                 status: StatusTransacao.PENDING,
                 client_id: clientId,
                 reservation_id: createdReservations[0].id,
-                date: new Date(),
+                date: new Date().toISOString().split('T')[0],
                 created_by: userId
             });
 
@@ -343,7 +343,7 @@ router.post("/checkout", clientAuthorize(), async (req, res) => {
                         status: StatusTransacao.PENDING,
                         client_id: clientId,
                         reservation_id: createdReservations[0].id,
-                        date: new Date(),
+                        date: new Date().toISOString().split('T')[0],
                         created_by: userId
                     });
             }

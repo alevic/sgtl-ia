@@ -68,7 +68,7 @@ export class FinanceService {
                 description: `Manutenção Automática: ${description || maintenance_type}`,
                 amount: totalAmount.toString(),
                 currency: currency || 'BRL',
-                date: new Date(scheduled_date || new Date().toISOString()),
+                date: new Date(scheduled_date || new Date().toISOString()).toISOString().split('T')[0],
                 status: StatusTransacao.PENDING,
                 category: CategoriaDespesa.MANUTENCAO,
                 category_id: categoryId,
@@ -114,7 +114,7 @@ export class FinanceService {
                 description: `Reserva: ${ticket_code}`,
                 amount: amount.toString(),
                 currency: 'BRL',
-                date: new Date(created_at || new Date().toISOString()),
+                date: new Date(created_at || new Date().toISOString()).toISOString().split('T')[0],
                 status: isFullyPaid ? StatusTransacao.PAID : (paidAmount > 0 ? StatusTransacao.PARTIALLY_PAID : StatusTransacao.PENDING),
                 category: CategoriaReceita.VENDA_PASSAGEM,
                 category_id: categoryId,
@@ -124,7 +124,7 @@ export class FinanceService {
                 client_id: client_id,
                 payment_method: payment_method || null,
                 cost_center_id: costCenterId,
-                payment_date: isFullyPaid ? new Date(created_at || new Date().toISOString()) : null
+                payment_date: isFullyPaid ? new Date(created_at || new Date().toISOString()).toISOString().split('T')[0] : null
             })
             .returning();
 
