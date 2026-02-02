@@ -2,8 +2,8 @@ import { api } from "./api";
 import { ITransacao } from '@/types';
 
 export const transactionsService = {
-    getAll: async () => {
-        return api.get<ITransacao[]>('/api/finance/transactions');
+    getAll: async (params?: any) => {
+        return api.get<ITransacao[]>('/api/finance/transactions', { params });
     },
 
     create: async (transaction: Partial<ITransacao>) => {

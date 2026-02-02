@@ -125,6 +125,33 @@ export const initCronJobs = () => {
         }
     });
 
+    // Job: Auto-Mark Reservations as Used (Every 10 minutes)
+    cron.schedule('*/10 * * * *', async () => {
+        console.log('⏰ Running Cron: Auto-Mark Reservations as Used');
+        const client = await pool.connect();
+        try {
+            const query = `
+                UPDATE reservations r
+                SET status = $1,
+                    updated_at = CURRENT_TIMESTAMP
+                FROM trips t
+                WHERE r.trip_id = t.id
+                  AND r.status = $2
+                  AND t.arrival_date IS NOT NULL 
+                  AND t.arrival_time IS NOT NULL
+                  AND (t.arrival_date + t.arrival_time) AT TIME ZONE 'America/Sao_Paulo' <= CURRENT_TIMESTAMP
+            `;
+            const result = await client.query(query, [ReservationStatus.USED, ReservationStatus.CHECKED_IN]);
+            if ((result.rowCount ?? 0) > 0) {
+                console.log(`✅ [CRON] Marked ${result.rowCount} reservations as USED after trip arrival.`);
+            }
+        } catch (error) {
+            console.error('❌ [CRON] Error running auto-mark used job:', error);
+        } finally {
+            client.release();
+        }
+    });
+
     // Job: Audit Log Cleanup (Daily at 01:00 AM)
     cron.schedule('0 1 * * *', async () => {
         console.log('⏰ Running Cron: Audit Log Cleanup');
@@ -150,5 +177,5 @@ export const initCronJobs = () => {
         }
     });
 
-    console.log('✅ Cron Jobs Scheduled: [Reservations, Trip Lifecycle, Audit Cleanup]');
+    console.log('✅ Cron Jobs Scheduled: [Reservations Exp, Reservations Used, Trip Lifecycle, Audit Cleanup]');
 };

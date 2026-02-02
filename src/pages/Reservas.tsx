@@ -79,12 +79,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
         [ReservationStatus.USED]: { color: 'bg-blue-500', text: 'text-blue-500', label: ReservationStatusLabel[ReservationStatus.USED] },
         [ReservationStatus.CHECKED_IN]: { color: 'bg-indigo-500', text: 'text-indigo-500', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] },
         [ReservationStatus.NO_SHOW]: { color: 'bg-slate-500', text: 'text-slate-500', label: ReservationStatusLabel[ReservationStatus.NO_SHOW] },
-        [ReservationStatus.COMPLETED]: { color: 'bg-blue-600', text: 'text-blue-600', label: ReservationStatusLabel[ReservationStatus.COMPLETED] },
-        'PENDENTE': { color: 'bg-amber-500', text: 'text-amber-500', label: ReservationStatusLabel[ReservationStatus.PENDING] },
-        'CONFIRMADA': { color: 'bg-emerald-500', text: 'text-emerald-500', label: ReservationStatusLabel[ReservationStatus.CONFIRMED] },
-        'CANCELADA': { color: 'bg-destructive', text: 'text-destructive', label: ReservationStatusLabel[ReservationStatus.CANCELLED] },
-        'UTILIZADA': { color: 'bg-blue-500', text: 'text-blue-500', label: ReservationStatusLabel[ReservationStatus.USED] },
-        'EMBARCADO': { color: 'bg-indigo-500', text: 'text-indigo-500', label: ReservationStatusLabel[ReservationStatus.CHECKED_IN] }
+        [ReservationStatus.COMPLETED]: { color: 'bg-blue-600', text: 'text-blue-600', label: ReservationStatusLabel[ReservationStatus.COMPLETED] }
     };
 
     const config = configs[status] || configs[ReservationStatus.PENDING];
@@ -307,20 +302,39 @@ export const Reservas: React.FC = () => {
 
         try {
             setActionLoading(true);
-            await transactionsService.create({
-                tipo: TipoTransacao.INCOME,
-                descricao: `Pagamento Reserva ${paymentReserva.ticket_code || paymentReserva.codigo} - ${paymentReserva.passenger_name}`,
-                valor: paidAmount,
-                moeda: paymentReserva.moeda || 'BRL',
-                data_emissao: new Date().toISOString(),
-                data_vencimento: new Date().toISOString(),
-                data_pagamento: new Date().toISOString(),
-                status: StatusTransacao.PAID,
-                forma_pagamento: paymentMethod,
-                categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
-                reserva_id: paymentReserva.id,
-                criado_por: 'Sistema'
+
+            // Reconciliation Logic: Check for an existing pending transaction for this reservation
+            const existingTransactions = await transactionsService.getAll({
+                reservation_id: paymentReserva.id,
+                status: StatusTransacao.PENDING
             });
+
+            if (existingTransactions && existingTransactions.length > 0) {
+                // Update the first pending one found
+                const pendingTx = existingTransactions[0];
+                await transactionsService.update(pendingTx.id, {
+                    status: StatusTransacao.PAID,
+                    data_pagamento: new Date().toISOString(),
+                    forma_pagamento: paymentMethod,
+                    valor: paidAmount // Update value in case it changed (though usually quittance)
+                });
+            } else {
+                // Fallback: Create new transaction
+                await transactionsService.create({
+                    tipo: TipoTransacao.INCOME,
+                    descricao: `Pagamento Reserva ${paymentReserva.ticket_code || paymentReserva.codigo} - ${paymentReserva.passenger_name}`,
+                    valor: paidAmount,
+                    moeda: paymentReserva.moeda || 'BRL',
+                    data_emissao: new Date().toISOString(),
+                    data_vencimento: new Date().toISOString(),
+                    data_pagamento: new Date().toISOString(),
+                    status: StatusTransacao.PAID,
+                    forma_pagamento: paymentMethod,
+                    categoria_receita: CategoriaReceita.VENDA_PASSAGEM,
+                    reserva_id: paymentReserva.id,
+                    criado_por: 'Sistema'
+                });
+            }
 
             const currentTotalPaid = Number(paymentReserva.amount_paid || paymentReserva.valor_pago || 0) + paidAmount;
             const totalPrice = Number(paymentReserva.valor_total || paymentReserva.price || 0);
@@ -407,7 +421,7 @@ export const Reservas: React.FC = () => {
         <div key="reservas-main" className="p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
             {/* Header Module */}
             <PageHeader
-                title="Gestão de Reservas"
+                title="Gestão de Reservas e Passageiros"
                 subtitle="Acompanhe passagens, pagamentos e embarques em tempo real"
                 icon={Ticket}
                 rightElement={
@@ -574,20 +588,13 @@ export const Reservas: React.FC = () => {
             {/* Table Module */}
             {/* Reservations Table Container */}
             <Card className="shadow-2xl shadow-muted/20 overflow-hidden rounded-sm bg-card  ">
-                <div className="p-8 border-b border-border/50 flex justify-between items-center bg-muted">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-primary/10 rounded-sm">
-                            <Ticket className="w-5 h-5 text-primary" strokeWidth={2.5} />
-                        </div>
-                        <h2 className="text-xl font-semibold tracking-tight">Registro de Passageiros</h2>
-                    </div>
-                </div>
 
                 <Table>
                     <TableHeader className="bg-muted">
                         <TableRow className="hover:bg-transparent border-border/50">
                             <TableHead className="pl-8 h-14 text-[12px] font-semibold uppercase tracking-widest">Código / Passageiro</TableHead>
-                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Viagem / Veículo</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Data / Viagem</TableHead>
+                            <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Poltrona / Embarque</TableHead>
                             <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest text-center">Status</TableHead>
                             <TableHead className="h-14 text-[12px] font-semibold uppercase tracking-widest">Investimento</TableHead>
                             <TableHead className="pr-8 h-14 text-[12px] font-semibold uppercase tracking-widest text-right">Ações</TableHead>
@@ -596,7 +603,7 @@ export const Reservas: React.FC = () => {
                     <TableBody>
                         {loading ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-64 text-center">
+                                <TableCell colSpan={6} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-3 animate-pulse">
                                         <div className="w-12 h-14 bg-primary/10 rounded-sm flex items-center justify-center text-primary">
                                             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -607,7 +614,7 @@ export const Reservas: React.FC = () => {
                             </TableRow>
                         ) : reservasFiltradas.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-64 text-center">
+                                <TableCell colSpan={6} className="h-64 text-center">
                                     <div className="flex flex-col items-center gap-2">
                                         <Inbox className="w-12 h-14 text-muted-foreground/30" />
                                         <p className="font-bold text-sm text-muted-foreground">Nenhuma reserva encontrada</p>
@@ -642,12 +649,33 @@ export const Reservas: React.FC = () => {
                                         <TableCell>
                                             <div className="flex flex-col">
                                                 <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
-                                                    <Bus size={14} className="text-primary" />
-                                                    {vehicleName}
+                                                    <Calendar size={14} className="text-primary" />
+                                                    {(reserva as any).departure_date ? formatDate((reserva as any).departure_date) : 'Data N/D'}
                                                 </div>
-                                                <span className="text-[12px] font-medium text-muted-foreground">
-                                                    {tripName}
-                                                </span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[12px] font-medium text-muted-foreground">
+                                                        {(reserva as any).trip_title || (reserva as any).trip_name || tripName}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-tighter">
+                                                        {(reserva as any).vehicle_plate ? `${(reserva as any).vehicle_model} [${(reserva as any).vehicle_plate}]` : 'Sem veículo'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col">
+                                                <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
+                                                    <MapPin size={14} className="text-primary" />
+                                                    Poltrona {(reserva as any).seat_number || reserva.assento_numero || 'N/D'}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[11px] font-medium text-muted-foreground truncate max-w-[150px]">
+                                                        E: {(reserva as any).boarding_point || 'Não inf.'}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-tighter">
+                                                        S: {(reserva as any).dropoff_point || 'Não inf.'}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-center">

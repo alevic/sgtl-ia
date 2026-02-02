@@ -455,6 +455,12 @@ router.get("/transactions", authorize(['admin', 'financeiro']), async (req, res)
         const session = (req as any).session;
         const orgId = session.session.activeOrganizationId;
 
+        const { reservation_id, status } = req.query;
+
+        const whereConditions = [eq(transactions.organization_id, orgId)];
+        if (reservation_id) whereConditions.push(eq(transactions.reservation_id, reservation_id as string));
+        if (status) whereConditions.push(eq(transactions.status, status as string));
+
         const results = await db.select({
             id: transactions.id,
             type: transactions.type,
@@ -478,7 +484,7 @@ router.get("/transactions", authorize(['admin', 'financeiro']), async (req, res)
             .from(transactions)
             .leftJoin(categories, eq(transactions.category_id, categories.id))
             .leftJoin(costCenters, eq(transactions.cost_center_id, costCenters.id))
-            .where(eq(transactions.organization_id, orgId))
+            .where(and(...whereConditions))
             .orderBy(desc(transactions.date), desc(transactions.created_at));
 
         res.json(results.map(mapTransaction));
@@ -650,9 +656,12 @@ router.put("/transactions/:id", authorize(['admin', 'financeiro']), async (req, 
         const finalDescription = description || descricao;
         const finalAmount = valor || amount;
         const finalCurrency = moeda || currency;
-        const finalDate = ensureValidDate(date || data_emissao);
-        const finalDueDate = ensureValidDate(due_date || data_vencimento);
-        const finalPaymentDate = ensureValidDate(payment_date || data_pagamento);
+
+        // Ensure dates are only updated if provided, otherwise undefined to let Drizzle skip the update
+        const finalDate = (date !== undefined || data_emissao !== undefined) ? ensureValidDate(date || data_emissao) : undefined;
+        const finalDueDate = (due_date !== undefined || data_vencimento !== undefined) ? ensureValidDate(due_date || data_vencimento) : undefined;
+        const finalPaymentDate = (payment_date !== undefined || data_pagamento !== undefined) ? ensureValidDate(payment_date || data_pagamento) : undefined;
+
         const finalPaymentMethod = payment_method || forma_pagamento;
         const finalDocNum = document_number || numero_documento;
         const finalNotes = notes || observacoes || observations;

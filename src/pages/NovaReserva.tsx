@@ -509,47 +509,49 @@ export const NovaReserva: React.FC = () => {
         </div>
       </Card>
 
-      <div className="space-y-6">
-        <FormSection
-          title="Seletor de Grade Operacional"
-          icon={RefreshCw}
-        >
-          <SeletorViagem
-            viagens={viagens}
-            viagemSelecionada={viagemSelecionada}
-            onChange={setViagemSelecionada}
-          />
-        </FormSection>
-
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/admin/reservas')}
-            className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
+      {step === 1 && (
+        <div className="space-y-6 animate-in fade-in duration-500">
+          <FormSection
+            title="Seletor de Grade Operacional"
+            icon={RefreshCw}
           >
-            Voltar
-          </Button>
+            <SeletorViagem
+              viagens={viagens}
+              viagemSelecionada={viagemSelecionada}
+              onChange={setViagemSelecionada}
+            />
+          </FormSection>
 
-          {viagemSelecionada && (
-            <button
-              onClick={() => setViagemSelecionada(null)}
-              className="text-primary hover:text-primary/80 font-black uppercase text-[11px] tracking-widest flex items-center gap-2 transition-colors ml-4"
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/admin/reservas')}
+              className="h-14 rounded-sm px-6 font-black uppercase text-[12px] tracking-widest"
             >
-              <RefreshCw size={14} />
-              Alterar Seleção
-            </button>
-          )}
-        </div>
+              Voltar
+            </Button>
 
-        <Button
-          onClick={() => setStep(2)}
-          disabled={!podeAvancarStep1}
-          className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
-        >
-          Próxima Etapa
-          <ArrowRight size={18} className="ml-2" />
-        </Button>
-      </div>
+            {viagemSelecionada && (
+              <button
+                onClick={() => setViagemSelecionada(null)}
+                className="text-primary hover:text-primary/80 font-black uppercase text-[11px] tracking-widest flex items-center gap-2 transition-colors ml-4"
+              >
+                <RefreshCw size={14} />
+                Alterar Seleção
+              </button>
+            )}
+          </div>
+
+          <Button
+            onClick={() => setStep(2)}
+            disabled={!podeAvancarStep1}
+            className="h-14 rounded-sm px-8 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase text-[12px] tracking-widest shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:scale-100"
+          >
+            Próxima Etapa
+            <ArrowRight size={18} className="ml-2" />
+          </Button>
+        </div>
+      )}
       {step === 2 && (
         <ErrorBoundary>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

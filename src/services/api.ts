@@ -26,8 +26,22 @@ const defaultHeaders = {
 };
 
 export const api = {
-    get: async <T>(endpoint: string): Promise<T> => {
-        const response = await fetch(`${API_URL}${endpoint}`, {
+    get: async <T>(endpoint: string, options?: { params?: Record<string, any> }): Promise<T> => {
+        let url = `${API_URL}${endpoint}`;
+        if (options?.params) {
+            const searchParams = new URLSearchParams();
+            Object.entries(options.params).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    searchParams.append(key, value.toString());
+                }
+            });
+            const queryString = searchParams.toString();
+            if (queryString) {
+                url += (url.includes('?') ? '&' : '?') + queryString;
+            }
+        }
+
+        const response = await fetch(url, {
             method: 'GET',
             headers: defaultHeaders,
             credentials: 'include'
