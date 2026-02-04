@@ -1036,6 +1036,7 @@ export async function setupDb() {
                 price_bed DECIMAL(10, 2),
                 price_master_bed DECIMAL(10, 2),
                 seats_available INTEGER,
+                trip_code TEXT UNIQUE,
                 notes TEXT,
                 created_by TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1078,8 +1079,8 @@ export async function setupDb() {
             ADD COLUMN IF NOT EXISTS gallery JSONB DEFAULT '[]',
             ADD COLUMN IF NOT EXISTS baggage_limit TEXT,
             ADD COLUMN IF NOT EXISTS alerts TEXT,
-            ADD COLUMN IF NOT EXISTS price_bed DECIMAL(10, 2),
             ADD COLUMN IF NOT EXISTS price_master_bed DECIMAL(10, 2),
+            ADD COLUMN IF NOT EXISTS trip_code TEXT UNIQUE,
             ADD COLUMN IF NOT EXISTS active BOOLEAN DEFAULT TRUE;
         `);
 
@@ -1090,6 +1091,19 @@ export async function setupDb() {
             WHERE trip_type IS NOT NULL 
             AND (tags IS NULL OR array_length(tags, 1) IS NULL OR array_length(tags, 1) = 0);
         `);
+
+        // Migration: Populate trip_code for existing trips
+        console.log("Checking for trips needing codes...");
+        const tripsWithoutCode = await pool.query(`SELECT id FROM trips WHERE trip_code IS NULL`);
+        if (tripsWithoutCode.rows.length > 0) {
+            console.log(`Generating codes for ${tripsWithoutCode.rows.length} trips...`);
+            const crypto = await import('crypto');
+            for (const trip of tripsWithoutCode.rows) {
+                const code = 'V-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+                await pool.query(`UPDATE trips SET trip_code = $1 WHERE id = $2`, [code, trip.id]);
+            }
+            console.log("✅ Trip codes populated.");
+        }
 
         // Create Reservations Table
         await pool.query(`

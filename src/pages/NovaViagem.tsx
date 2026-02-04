@@ -62,6 +62,7 @@ export const NovaViagem: React.FC = () => {
     const [notes, setNotes] = useState('');
     const [limiteBagagem, setLimiteBagagem] = useState(''); // New field
     const [alertas, setAlertas] = useState(''); // New field
+    const [tripCode, setTripCode] = useState(''); // New field
 
     // Dates (Backend expects separate date/time)
     const [dataPartida, setDataPartida] = useState('');
@@ -158,6 +159,7 @@ export const NovaViagem: React.FC = () => {
                 setGaleria(viagem.gallery || []);
                 setLimiteBagagem(viagem.baggage_limit || '');
                 setAlertas(viagem.alerts || '');
+                setTripCode(viagem.trip_code || '');
 
                 // Prices
                 const prices: Record<string, number> = {};
@@ -394,6 +396,14 @@ export const NovaViagem: React.FC = () => {
                                     className="w-full h-14 px-4 rounded-sm bg-muted border-border/50 focus:border-primary/50 focus:ring-primary/20 transition-all font-medium"
                                 />
                             </div>
+                            {isEdicao && tripCode && (
+                                <div className="space-y-2">
+                                    <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Código da Viagem</label>
+                                    <div className="w-full h-14 px-4 rounded-sm bg-muted/60 border-border/50 flex items-center font-bold text-muted-foreground tracking-widest">
+                                        {tripCode}
+                                    </div>
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <label className="text-[12px] font-semibold uppercase tracking-widest text-muted-foreground ml-1">Tags Operacionais</label>
                                 <SeletorTags

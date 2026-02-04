@@ -493,6 +493,7 @@ export interface IViagem {
   price_bed?: number;
   price_master_bed?: number;
   seats_available?: number;
+  trip_code?: string;
   notes?: string;
   title?: string;
   tags?: string[];

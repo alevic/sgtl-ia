@@ -330,6 +330,7 @@ export const trips = pgTable("trips", {
     price_master_bed: decimal("price_master_bed", { precision: 10, scale: 2 }),
     seats_available: integer("seats_available"),
     notes: text("notes"),
+    trip_code: text("trip_code").unique(),
     title: text("title"),
     trip_type: text("trip_type"),
     tags: text("tags").array(),

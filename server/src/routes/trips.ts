@@ -4,6 +4,7 @@ import { auth } from "../auth.js";
 import { authorize } from "../middleware.js";
 import { TripStatus, RouteType } from "../types.js";
 import { AuditService } from "../services/auditService.js";
+import crypto from "crypto";
 
 const router = express.Router();
 
@@ -490,21 +491,26 @@ router.post("/trips", authorize(['admin', 'operacional']), async (req, res) => {
             }
         }
 
+        // Generate Trip Code (e.g., V-123456)
+        const trip_code = 'V-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+
         const result = await pool.query(
             `INSERT INTO trips (
                 route_id, return_route_id, vehicle_id, driver_id,
                 departure_date, departure_time, arrival_date, arrival_time,
                 price_conventional, price_executive, price_semi_sleeper, price_sleeper, price_bed, price_master_bed,
                 seats_available, status, notes, organization_id, created_by,
-                title, tags, cover_image, gallery, baggage_limit, alerts
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+                title, tags, cover_image, gallery, baggage_limit, alerts,
+                trip_code
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
             RETURNING *`,
             [
                 route_id, return_route_id || null, vehicle_id || null, driver_id || null,
                 departure_date, departure_time, arrival_date || null, arrival_time || null,
                 price_conventional || null, price_executive || null, price_semi_sleeper || null, price_sleeper || null, price_bed || null, price_master_bed || null,
                 finalSeats || 0, TripStatus.SCHEDULED, notes || null, orgId, userId,
-                title || null, tags || [], cover_image || null, JSON.stringify(gallery || []), baggage_limit || null, alerts || null
+                title || null, tags || [], cover_image || null, JSON.stringify(gallery || []), baggage_limit || null, alerts || null,
+                trip_code
             ]
         );
 

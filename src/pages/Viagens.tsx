@@ -225,7 +225,7 @@ export const Viagens: React.FC = () => {
         navigate('/admin/financeiro/transacoes/nova', {
             state: {
                 trip_id: viagem.id,
-                description: `Despesa de Viagem: ${viagem.title || viagem.route_name}`,
+                description: `${viagem.trip_code || ''} - Despesa de Viagem: ${viagem.title || viagem.route_name}`,
                 type: 'EXPENSE'
             }
         });
@@ -419,7 +419,14 @@ export const Viagens: React.FC = () => {
                                 <TableRow key={viagem.id} className={cn("group hover:bg-muted border-border/30 transition-colors", viagem.active === false && "opacity-60 grayscale-[0.5]")}>
                                     <TableCell className="pl-8 py-5">
                                         <div className="space-y-2">
-                                            <div className="font-semibold text-base group-hover:text-primary transition-colors">{viagem.title || 'Sem título'}</div>
+                                            <div className="flex items-center gap-2">
+                                                {viagem.trip_code && (
+                                                    <span className="text-[10px] font-bold bg-muted px-1.5 py-0.5 rounded border border-border/50 text-muted-foreground">
+                                                        {viagem.trip_code}
+                                                    </span>
+                                                )}
+                                                <div className="font-semibold text-base group-hover:text-primary transition-colors">{viagem.title || 'Sem título'}</div>
+                                            </div>
                                             <div className="flex flex-wrap gap-1.5">
                                                 {viagem.tags?.map(tagName => {
                                                     const tagDef = allTags.find(t => t.nome === tagName);
